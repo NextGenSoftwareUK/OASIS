@@ -15,6 +15,7 @@ using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using System.Text.Json;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 using System.Text.Json.Serialization;
 
 namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS
@@ -66,8 +67,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS
             return conn;
         }
 
-        private static string Ser(object obj) => JsonSerializer.Serialize(obj, _jsonOpts);
-        private static T? Des<T>(string json) => JsonSerializer.Deserialize<T>(json, _jsonOpts);
+        // Canonical OASIS record JSON keeps concrete types for interface members and skips holon navigation.
+        private static string Ser(object obj) => StoredRecordJson.Serialize(obj);
+        private static T? Des<T>(string json) => StoredRecordJson.DeserializeStored<T>(json);
 
         private async Task ExecuteAsync(string sql)
         {
@@ -133,7 +135,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS
                 var json = Ser(avatar);
                 var isDeleted = avatar.DeletedDate != DateTime.MinValue ? 1 : 0;
                 await ExecuteAsync($"INSERT INTO oasis.avatars (id, username, email, is_deleted, data_json) VALUES ('{avatar.Id}', '{Esc(avatar.Username)}', '{Esc(avatar.Email)}', {isDeleted}, '{Esc(json)}')");
-                result.Result = avatar; result.IsError = false; result.Message = $"ClickHouseOASIS: Avatar '{avatar.Username}' saved.";
+                result.Result = avatar; result.IsError = false; result.IsSaved = true; result.SavedCount = 1; result.Message = $"ClickHouseOASIS: Avatar '{avatar.Username}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: Error saving avatar: {ex.Message}"); }
             return result;
@@ -150,10 +152,10 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = $"SELECT data_json FROM oasis.avatars FINAL WHERE id = '{id}' AND is_deleted = 0 LIMIT 1";
                 using var reader = await cmd.ExecuteReaderAsync();
-                if (!await reader.ReadAsync()) { OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: No avatar for ID '{id}'."); return result; }
+                if (!await reader.ReadAsync()) { OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: No avatar for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 var a = Des<Avatar>(reader.GetString(0));
-                if (a == null) { OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: No avatar for ID '{id}'."); return result; }
-                result.Result = a; result.IsError = false; result.Message = "ClickHouseOASIS: Avatar loaded.";
+                if (a == null) { OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: No avatar for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = a; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "ClickHouseOASIS: loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: {ex.Message}"); }
             return result;
@@ -170,10 +172,10 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = $"SELECT data_json FROM oasis.avatars FINAL WHERE username = '{Esc(username)}' AND is_deleted = 0 LIMIT 1";
                 using var reader = await cmd.ExecuteReaderAsync();
-                if (!await reader.ReadAsync()) { OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: No avatar for username '{username}'."); return result; }
+                if (!await reader.ReadAsync()) { OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: No avatar for username '{username}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 var a = Des<Avatar>(reader.GetString(0));
-                if (a == null) { OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: No avatar for username '{username}'."); return result; }
-                result.Result = a; result.IsError = false; result.Message = "ClickHouseOASIS: Avatar loaded.";
+                if (a == null) { OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: No avatar for username '{username}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = a; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "ClickHouseOASIS: loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: {ex.Message}"); }
             return result;
@@ -190,10 +192,10 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = $"SELECT data_json FROM oasis.avatars FINAL WHERE email = '{Esc(avatarEmail)}' AND is_deleted = 0 LIMIT 1";
                 using var reader = await cmd.ExecuteReaderAsync();
-                if (!await reader.ReadAsync()) { OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: No avatar for email '{avatarEmail}'."); return result; }
+                if (!await reader.ReadAsync()) { OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: No avatar for email '{avatarEmail}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 var a = Des<Avatar>(reader.GetString(0));
-                if (a == null) { OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: No avatar for email '{avatarEmail}'."); return result; }
-                result.Result = a; result.IsError = false; result.Message = "ClickHouseOASIS: Avatar loaded.";
+                if (a == null) { OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: No avatar for email '{avatarEmail}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = a; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "ClickHouseOASIS: loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: {ex.Message}"); }
             return result;
@@ -220,7 +222,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS
                 cmd.CommandText = "SELECT data_json FROM oasis.avatars FINAL WHERE is_deleted = 0";
                 using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync()) { var a = Des<Avatar>(reader.GetString(0)); if (a != null) list.Add(a); }
-                result.Result = list; result.IsError = false; result.Message = $"ClickHouseOASIS: Loaded {list.Count} avatar(s).";
+                result.Result = list; result.IsError = false; result.IsLoaded = true; result.LoadedCount = list.Count; result.Message = $"ClickHouseOASIS: Loaded {list.Count} avatar(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: {ex.Message}"); }
             return result;
@@ -233,9 +235,21 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS
             var result = new OASISResult<bool>();
             try
             {
-                if (softDelete) { var l = await LoadAvatarAsync(id); if (!l.IsError && l.Result != null) { var a = (Avatar)l.Result; a.DeletedDate = DateTime.UtcNow; await SaveAvatarAsync(a); } }
-                else { await ExecuteAsync($"ALTER TABLE oasis.avatars DELETE WHERE id = '{id}'"); }
-                result.Result = true; result.IsError = false; result.Message = $"ClickHouseOASIS: Avatar '{id}' deleted.";
+                var l = await LoadAvatarAsync(id);
+                if (l.IsError || l.Result == null) { OASISErrorHandling.HandleError(ref result, l.Message); result.ErrorCode = l.ErrorCode; return result; }
+                if (softDelete)
+                {
+                    var a = (Avatar)l.Result; a.DeletedDate = DateTime.UtcNow;
+                    var saved = await SaveAvatarAsync(a);
+                    if (saved.IsError || !saved.IsSaved) { OASISErrorHandling.HandleError(ref result, saved.Message); return result; }
+                }
+                else
+                {
+                    // Lightweight DELETE is synchronously visible; ALTER ... DELETE is a background mutation.
+                    await ExecuteAsync($"DELETE FROM oasis.avatars WHERE id = '{id}'");
+                    await ExecuteAsync($"DELETE FROM oasis.avatar_details WHERE id = '{id}'");
+                }
+                result.Result = true; result.IsError = false; result.IsDeleted = true; result.DeletedCount = 1; result.Message = $"ClickHouseOASIS: Avatar '{id}' deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: {ex.Message}"); }
             return result;
@@ -258,9 +272,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS
             try
             {
                 if (d.Id == Guid.Empty) d.Id = Guid.NewGuid();
-                var json = Ser(d);
+                var json = StoredRecordJson.Serialize(d);
                 await ExecuteAsync($"INSERT INTO oasis.avatar_details (id, username, email, data_json) VALUES ('{d.Id}', '{Esc(d.Username)}', '{Esc(d.Email)}', '{Esc(json)}')");
-                result.Result = d; result.IsError = false; result.Message = "ClickHouseOASIS: AvatarDetail saved.";
+                result.Result = d; result.IsError = false; result.IsSaved = true; result.SavedCount = 1; result.Message = "ClickHouseOASIS: AvatarDetail saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: {ex.Message}"); }
             return result;
@@ -277,10 +291,10 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = $"SELECT data_json FROM oasis.avatar_details FINAL WHERE id = '{id}' LIMIT 1";
                 using var reader = await cmd.ExecuteReaderAsync();
-                if (!await reader.ReadAsync()) { OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: No detail for ID '{id}'."); return result; }
-                var detail = Des<AvatarDetail>(reader.GetString(0));
-                if (detail == null) { OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: No detail for ID '{id}'."); return result; }
-                result.Result = detail; result.IsError = false; result.Message = "ClickHouseOASIS: AvatarDetail loaded.";
+                if (!await reader.ReadAsync()) { OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: No detail for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                var detail = StoredRecordJson.DeserializeStored<AvatarDetail>(reader.GetString(0));
+                if (detail == null) { OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: No detail for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = detail; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "ClickHouseOASIS: loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: {ex.Message}"); }
             return result;
@@ -297,10 +311,10 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = $"SELECT data_json FROM oasis.avatar_details FINAL WHERE username = '{Esc(u)}' LIMIT 1";
                 using var reader = await cmd.ExecuteReaderAsync();
-                if (!await reader.ReadAsync()) { OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: No detail for username '{u}'."); return result; }
-                var d = Des<AvatarDetail>(reader.GetString(0));
-                if (d == null) { OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: No detail for username '{u}'."); return result; }
-                result.Result = d; result.IsError = false; result.Message = "ClickHouseOASIS: AvatarDetail loaded.";
+                if (!await reader.ReadAsync()) { OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: No detail for username '{u}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                var d = StoredRecordJson.DeserializeStored<AvatarDetail>(reader.GetString(0));
+                if (d == null) { OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: No detail for username '{u}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = d; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "ClickHouseOASIS: loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: {ex.Message}"); }
             return result;
@@ -317,10 +331,10 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = $"SELECT data_json FROM oasis.avatar_details FINAL WHERE email = '{Esc(e)}' LIMIT 1";
                 using var reader = await cmd.ExecuteReaderAsync();
-                if (!await reader.ReadAsync()) { OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: No detail for email '{e}'."); return result; }
-                var d = Des<AvatarDetail>(reader.GetString(0));
-                if (d == null) { OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: No detail for email '{e}'."); return result; }
-                result.Result = d; result.IsError = false; result.Message = "ClickHouseOASIS: AvatarDetail loaded.";
+                if (!await reader.ReadAsync()) { OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: No detail for email '{e}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                var d = StoredRecordJson.DeserializeStored<AvatarDetail>(reader.GetString(0));
+                if (d == null) { OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: No detail for email '{e}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = d; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "ClickHouseOASIS: loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: {ex.Message}"); }
             return result;
@@ -338,8 +352,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = "SELECT data_json FROM oasis.avatar_details FINAL";
                 using var reader = await cmd.ExecuteReaderAsync();
-                while (await reader.ReadAsync()) { var d = Des<AvatarDetail>(reader.GetString(0)); if (d != null) list.Add(d); }
-                result.Result = list; result.IsError = false; result.Message = $"ClickHouseOASIS: Loaded {list.Count} detail(s).";
+                while (await reader.ReadAsync()) { var d = StoredRecordJson.DeserializeStored<AvatarDetail>(reader.GetString(0)); if (d != null) list.Add(d); }
+                result.Result = list; result.IsError = false; result.IsLoaded = true; result.LoadedCount = list.Count; result.Message = $"ClickHouseOASIS: Loaded {list.Count} detail(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: {ex.Message}"); }
             return result;
@@ -361,16 +375,29 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS
                     ? new Dictionary<Core.Enums.ProviderType, string>()
                     : new Dictionary<Core.Enums.ProviderType, string>(holon.ProviderUniqueStorageKey);
                 keys[Core.Enums.ProviderType.ClickHouseOASIS] = id.ToString("D");
-                var payload = JsonSerializer.SerializeToNode(holon, holon.GetType(), _jsonOpts)!.AsObject();
-                payload["Id"] = id;
-                payload["ProviderUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
-                await PersistHolonAsync(id, holon.ParentHolonId, holon.HolonType.ToString(), holon.IsDeleted, payload.ToJsonString(_jsonOpts));
+                var payload = System.Text.Json.Nodes.JsonNode.Parse(Ser(holon))!.AsObject();
+                payload["Id"] = id.ToString("D");
+                payload["ProviderUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys);
+                await PersistHolonAsync(id, holon.ParentHolonId, holon.HolonType.ToString(), holon.IsDeleted, payload.ToJsonString());
                 holon.Id = id;
                 holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
                 holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.ClickHouseOASIS] = id.ToString("D");
+                var savedCount = 1;
+                if (saveChildren && holon.Children != null)
+                {
+                    foreach (var child in holon.Children)
+                    {
+                        if (child == null) continue;
+                        child.ParentHolonId = id;
+                        var childResult = await SaveHolonAsync(child, recursive, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                        if (childResult.IsError || !childResult.IsSaved)
+                            throw new System.IO.InvalidDataException($"Child holon {child.Id} was not saved: {childResult.Message}");
+                        savedCount += childResult.SavedCount;
+                    }
+                }
                 result.Result = holon;
                 result.IsSaved = true;
-                result.SavedCount = 1;
+                result.SavedCount = savedCount;
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: Error saving holon: {ex.Message}"); }
             return result;
@@ -383,6 +410,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             var saved = new List<IHolon>();
             var errors = new List<string>();
+            var savedTotal = 0;
             foreach (var holon in holons)
             {
                 var write = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
@@ -391,13 +419,13 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS
                     errors.Add(write.Message);
                     if (!continueOnError) break;
                 }
-                else if (write.IsSaved && write.Result != null) saved.Add(write.Result);
+                else if (write.IsSaved && write.Result != null) { saved.Add(write.Result); savedTotal += write.SavedCount; }
             }
             result.Result = saved;
             result.IsError = errors.Count > 0;
             result.ErrorCount = errors.Count;
             result.IsSaved = saved.Count > 0;
-            result.SavedCount = saved.Count;
+            result.SavedCount = savedTotal;
             result.Message = string.Join("; ", errors);
             return result;
         }
@@ -413,10 +441,10 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = $"SELECT data_json FROM oasis.holons FINAL WHERE id = '{id}' AND is_deleted = 0 LIMIT 1";
                 using var reader = await cmd.ExecuteReaderAsync();
-                if (!await reader.ReadAsync()) { OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: No holon for ID '{id}'."); return result; }
+                if (!await reader.ReadAsync()) { OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: No holon for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 var h = Des<Holon>(reader.GetString(0));
-                if (h == null) { OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: No holon for ID '{id}'."); return result; }
-                result.Result = h; result.IsError = false; result.Message = "ClickHouseOASIS: Holon loaded.";
+                if (h == null) { OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: No holon for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = h; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "ClickHouseOASIS: loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: {ex.Message}"); }
             return result;
@@ -439,7 +467,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS
                 cmd.CommandText = $"SELECT data_json FROM oasis.holons FINAL WHERE is_deleted = 0{filter}";
                 using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync()) { var h = Des<Holon>(reader.GetString(0)); if (h != null) list.Add(h); }
-                result.Result = list; result.IsError = false; result.Message = $"ClickHouseOASIS: Loaded {list.Count} holon(s).";
+                result.Result = list; result.IsError = false; result.IsLoaded = true; result.LoadedCount = list.Count; result.Message = $"ClickHouseOASIS: Loaded {list.Count} holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: {ex.Message}"); }
             return result;
@@ -459,7 +487,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS
                 cmd.CommandText = $"SELECT data_json FROM oasis.holons FINAL WHERE parent_holon_id = '{id}' AND is_deleted = 0{filter}";
                 using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync()) { var h = Des<Holon>(reader.GetString(0)); if (h != null) list.Add(h); }
-                result.Result = list; result.IsError = false; result.Message = $"ClickHouseOASIS: Loaded {list.Count} child holon(s).";
+                result.Result = list; result.IsError = false; result.IsLoaded = true; result.LoadedCount = list.Count; result.Message = $"ClickHouseOASIS: Loaded {list.Count} child holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: {ex.Message}"); }
             return result;
@@ -475,9 +503,25 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS
             var result = new OASISResult<bool>();
             try
             {
-                if (softDelete) { var l = await LoadHolonAsync(id); if (!l.IsError && l.Result != null) { var h = (Holon)l.Result; h.DeletedDate = DateTime.UtcNow; await SaveHolonAsync(h); } }
-                else { await ExecuteAsync($"ALTER TABLE oasis.holons DELETE WHERE id = '{id}'"); }
-                result.Result = true; result.IsError = false; result.Message = $"ClickHouseOASIS: Holon '{id}' deleted.";
+                if (softDelete)
+                {
+                    var l = await LoadHolonAsync(id, loadChildren: false);
+                    if (l.IsError || l.Result == null) { OASISErrorHandling.HandleError(ref result, l.Message); result.ErrorCode = l.ErrorCode; return result; }
+                    var h = (Holon)l.Result; h.DeletedDate = DateTime.UtcNow;
+                    var saved = await SaveHolonAsync(h, saveChildren: false);
+                    if (saved.IsError || !saved.IsSaved) { OASISErrorHandling.HandleError(ref result, saved.Message); return result; }
+                }
+                else
+                {
+                    using (var conn = OpenConnection())
+                    using (var count = conn.CreateCommand())
+                    {
+                        count.CommandText = $"SELECT count() FROM oasis.holons FINAL WHERE id = '{id}'";
+                        if (Convert.ToInt64(await count.ExecuteScalarAsync()) == 0) { OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: No holon for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                    }
+                    await ExecuteAsync($"DELETE FROM oasis.holons WHERE id = '{id}'");
+                }
+                result.Result = true; result.IsError = false; result.IsDeleted = true; result.DeletedCount = 1; result.Message = $"ClickHouseOASIS: Holon '{id}' deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: {ex.Message}"); }
             return result;
@@ -494,7 +538,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS
         public string GetProviderVersion() => "1.0.0";
         public Task<string> GetProviderVersionAsync() => Task.FromResult("1.0.0");
 
-        private static string Esc(string? s) => (s ?? "").Replace("'", "\\'").Replace("\\", "\\\\");
+        private static string Esc(string? s) => (s ?? "").Replace("\\", "\\\\").Replace("'", "\\'");
 
         // ─── Remaining IOASISStorageProvider surface ─────────────────────────────
 
@@ -537,18 +581,23 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
             var result = new OASISResult<IHolon>();
-            var loaded = await LoadHolonAsync(id);
+            var loaded = await LoadHolonAsync(id, loadChildren: false);
             if (loaded.IsError || loaded.Result == null)
             {
                 OASISErrorHandling.HandleError(ref result, loaded.Message);
+                result.ErrorCode = loaded.ErrorCode;
                 return result;
             }
 
             var deleted = await DeleteHolonSoftAsync(id, true);
-            if (deleted.IsError)
+            if (deleted.IsError || !deleted.IsDeleted)
                 OASISErrorHandling.HandleError(ref result, deleted.Message);
             else
+            {
                 result.Result = loaded.Result;
+                result.IsDeleted = true;
+                result.DeletedCount = deleted.DeletedCount;
+            }
 
             return result;
         }
@@ -590,7 +639,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS
                     matches.Add(holon);
             }
 
-            result.Result = matches;
+            result.Result = matches; result.IsLoaded = true; result.LoadedCount = matches.Count;
             return result;
         }
 
@@ -609,7 +658,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS
 
             if (metaKeyValuePairs == null || metaKeyValuePairs.Count == 0)
             {
-                result.Result = new List<IHolon>(all.Result);
+                var everything = new List<IHolon>(all.Result); result.Result = everything; result.IsLoaded = true; result.LoadedCount = everything.Count;
                 return result;
             }
 
@@ -632,7 +681,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS
                 if (isMatch) matches.Add(holon);
             }
 
-            result.Result = matches;
+            result.Result = matches; result.IsLoaded = true; result.LoadedCount = matches.Count;
             return result;
         }
 
@@ -642,11 +691,15 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
             var result = new OASISResult<bool>();
-            var saved = await SaveHolonsAsync(holons);
-            if (saved.IsError)
+            var saved = await SaveHolonsAsync(holons, saveChildren: false, continueOnError: false);
+            if (saved.IsError || !saved.IsSaved)
                 OASISErrorHandling.HandleError(ref result, saved.Message);
             else
+            {
                 result.Result = true;
+                result.IsSaved = true;
+                result.SavedCount = saved.SavedCount;
+            }
             return result;
         }
 
@@ -676,7 +729,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS
                     owned.Add(holon);
             }
 
-            result.Result = owned;
+            result.Result = owned; result.IsLoaded = true; result.LoadedCount = owned.Count;
             return result;
         }
 

@@ -23,4 +23,12 @@
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.AptosOASIS\NextGenSoftware.OASIS.API.Providers.AptosOASIS.csproj" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(NativeStorageConformance)' == 'true'">
+    <Compile Remove="**/*.cs" />
+    <Compile Include="AptosNativeStorageConformanceTests.cs" />
+    <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(NativeStorageConformance)' != 'true'">
+    <Compile Remove="AptosNativeStorageConformanceTests.cs" />
+  </ItemGroup>
 </Project>

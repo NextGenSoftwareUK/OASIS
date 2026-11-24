@@ -66,8 +66,21 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocal);
         }
 
-        private static string Ser(object o) => JsonSerializer.Serialize(o, _jsonOpts);
-        private static T? Des<T>(string? json) => json == null ? default : JsonSerializer.Deserialize<T>(json, _jsonOpts);
+        // Canonical OASIS record JSON keeps concrete types for interface members and skips holon navigation.
+        private static string Ser(object o) => NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Serialize(o);
+        private static T? Des<T>(string? json) => json == null ? default : NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<T>(json);
+
+        /// <summary>Native envelope document as written to the avatars, avatar_details and holons collections.</summary>
+        private sealed class StoredDocument
+        {
+            public string? Id { get; set; }
+            public string? Username { get; set; }
+            public string? Email { get; set; }
+            public string? ParentHolonId { get; set; }
+            public int HolonType { get; set; }
+            public bool IsDeleted { get; set; }
+            public string? DataJson { get; set; }
+        }
 
         private async Task<IBucket> GetBucketAsync()
         {
@@ -86,7 +99,8 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS
         private async Task<List<T>> N1qlAsync<T>(string query, Dictionary<string, object>? args = null)
         {
             if (_cluster == null) _cluster = await Couchbase.Cluster.ConnectAsync(_connectionString, _username, _password);
-            var options = new QueryOptions();
+            // Lookups must observe acknowledged writes; the default NotBounded scan can miss them.
+            var options = new QueryOptions().ScanConsistency(QueryScanConsistency.RequestPlus);
             if (args != null) foreach (var kv in args) options.Parameter(kv.Key, kv.Value);
             var result = await _cluster.QueryAsync<T>(query, options);
             var rows = new List<T>();
@@ -151,7 +165,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS
                 var coll = await GetCollectionAsync("avatars");
                 var doc = new { id = avatar.Id.ToString(), username = avatar.Username ?? "", email = avatar.Email ?? "", isDeleted = avatar.IsDeleted, dataJson = Ser(avatar) };
                 await coll.UpsertAsync(avatar.Id.ToString(), doc);
-                result.Result = avatar; result.IsError = false; result.Message = $"CouchbaseOASIS: Avatar '{avatar.Username}' saved.";
+                result.Result = avatar; result.IsError = false; result.IsSaved = true; result.SavedCount = 1; result.Message = $"CouchbaseOASIS: Avatar '{avatar.Username}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: {ex.Message}"); }
             return result;
@@ -169,11 +183,11 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS
                 var coll = await GetCollectionAsync("avatars");
                 IGetResult? get = null;
                 try { get = await coll.GetAsync(id.ToString()); } catch (DocumentNotFoundException) { }
-                if (get == null) { OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: No avatar for ID '{id}'."); return result; }
-                var doc = get.ContentAs<System.Text.Json.JsonElement>();
-                if (doc.TryGetProperty("isDeleted", out var del) && del.GetBoolean()) { OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: Avatar '{id}' is deleted."); return result; }
-                var avatar = Des<Avatar>(doc.GetProperty("dataJson").GetString()); if (avatar == null) { OASISErrorHandling.HandleError(ref result, "CouchbaseOASIS: Deserialise failed."); return result; }
-                result.Result = avatar; result.IsError = false; result.Message = "CouchbaseOASIS: Avatar loaded.";
+                if (get == null) { OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: No avatar for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                var doc = get.ContentAs<StoredDocument>();
+                if (doc.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: Avatar '{id}' is deleted."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                var avatar = Des<Avatar>(doc.DataJson); if (avatar == null) { OASISErrorHandling.HandleError(ref result, "CouchbaseOASIS: Deserialise failed."); return result; }
+                result.Result = avatar; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "CouchbaseOASIS: loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: {ex.Message}"); }
             return result;
@@ -183,16 +197,15 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS
 
         private async Task<Avatar?> QueryAvatarAsync(string field, string value)
         {
-            var rows = await N1qlAsync<System.Text.Json.JsonElement>($"SELECT dataJson FROM `{_bucketName}`.`_default`.`avatars` WHERE {field} = $val AND isDeleted = false LIMIT 1", new Dictionary<string, object> { ["val"] = value });
+            var rows = await N1qlAsync<StoredDocument>($"SELECT dataJson FROM `{_bucketName}`.`_default`.`avatars` WHERE {field} = $val AND isDeleted = false LIMIT 1", new Dictionary<string, object> { ["val"] = value });
             var row = rows.FirstOrDefault();
-            if (row.ValueKind == JsonValueKind.Undefined) return null;
-            return Des<Avatar>(row.TryGetProperty("dataJson", out var dj) ? dj.GetString() : null);
+            return row == null ? null : Des<Avatar>(row.DataJson);
         }
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string username, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
-            try { var a = await QueryAvatarAsync("username", username); if (a == null) { OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: No avatar for username '{username}'."); return result; } result.Result = a; result.IsError = false; result.Message = "CouchbaseOASIS: Avatar loaded."; }
+            try { var a = await QueryAvatarAsync("username", username); if (a == null) { OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: No avatar for username '{username}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; } result.Result = a; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "CouchbaseOASIS: loaded."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: {ex.Message}"); }
             return result;
         }
@@ -202,7 +215,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS
         public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string email, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
-            try { var a = await QueryAvatarAsync("email", email); if (a == null) { OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: No avatar for email '{email}'."); return result; } result.Result = a; result.IsError = false; result.Message = "CouchbaseOASIS: Avatar loaded."; }
+            try { var a = await QueryAvatarAsync("email", email); if (a == null) { OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: No avatar for email '{email}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; } result.Result = a; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "CouchbaseOASIS: loaded."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: {ex.Message}"); }
             return result;
         }
@@ -216,9 +229,9 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS
             var result = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
-                var rows = await N1qlAsync<System.Text.Json.JsonElement>($"SELECT dataJson FROM `{_bucketName}`.`_default`.`avatars` WHERE isDeleted = false");
-                var avatars = rows.Select(r => Des<Avatar>(r.TryGetProperty("dataJson", out var dj) ? dj.GetString() : null)).Where(a => a != null).Cast<IAvatar>().ToList();
-                result.Result = avatars; result.IsError = false; result.Message = $"CouchbaseOASIS: Loaded {avatars.Count} avatar(s).";
+                var rows = await N1qlAsync<StoredDocument>($"SELECT dataJson FROM `{_bucketName}`.`_default`.`avatars` WHERE isDeleted = false");
+                var avatars = rows.Select(r => Des<Avatar>(r.DataJson)).Where(a => a != null).Cast<IAvatar>().ToList();
+                result.Result = avatars; result.IsError = false; result.IsLoaded = true; result.LoadedCount = avatars.Count; result.Message = $"CouchbaseOASIS: Loaded {avatars.Count} avatar(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: {ex.Message}"); }
             return result;
@@ -240,8 +253,14 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS
                     var av = (Avatar)loaded.Result; av.DeletedDate = DateTime.UtcNow;
                     await coll.UpsertAsync(id.ToString(), new { id = id.ToString(), username = av.Username ?? "", email = av.Email ?? "", isDeleted = true, dataJson = Ser(av) });
                 }
-                else { await coll.RemoveAsync(id.ToString()); }
-                result.Result = true; result.IsError = false; result.Message = $"CouchbaseOASIS: Avatar '{id}' deleted.";
+                else
+                {
+                    try { await coll.RemoveAsync(id.ToString()); }
+                    catch (DocumentNotFoundException) { OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: No avatar for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                    var details = await GetCollectionAsync("avatar_details");
+                    try { await details.RemoveAsync(id.ToString()); } catch (DocumentNotFoundException) { }
+                }
+                result.Result = true; result.IsError = false; result.IsDeleted = true; result.DeletedCount = 1; result.Message = $"CouchbaseOASIS: Avatar '{id}' deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: {ex.Message}"); }
             return result;
@@ -266,7 +285,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS
                 if (d.Id == Guid.Empty) d.Id = Guid.NewGuid();
                 var coll = await GetCollectionAsync("avatar_details");
                 await coll.UpsertAsync(d.Id.ToString(), new { id = d.Id.ToString(), username = d.Username ?? "", email = d.Email ?? "", dataJson = Ser(d) });
-                result.Result = d; result.IsError = false; result.Message = "CouchbaseOASIS: AvatarDetail saved.";
+                result.Result = d; result.IsError = false; result.IsSaved = true; result.SavedCount = 1; result.Message = "CouchbaseOASIS: AvatarDetail saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: {ex.Message}"); }
             return result;
@@ -281,10 +300,10 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS
             {
                 var coll = await GetCollectionAsync("avatar_details");
                 IGetResult? get = null; try { get = await coll.GetAsync(id.ToString()); } catch (DocumentNotFoundException) { }
-                if (get == null) { OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: No detail for ID '{id}'."); return result; }
-                var doc = get.ContentAs<System.Text.Json.JsonElement>();
-                var detail = Des<AvatarDetail>(doc.GetProperty("dataJson").GetString()); if (detail == null) { OASISErrorHandling.HandleError(ref result, "CouchbaseOASIS: Deserialise failed."); return result; }
-                result.Result = detail; result.IsError = false; result.Message = "CouchbaseOASIS: AvatarDetail loaded.";
+                if (get == null) { OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: No detail for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                var doc = get.ContentAs<StoredDocument>();
+                var detail = Des<AvatarDetail>(doc.DataJson); if (detail == null) { OASISErrorHandling.HandleError(ref result, "CouchbaseOASIS: Deserialise failed."); return result; }
+                result.Result = detail; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "CouchbaseOASIS: loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: {ex.Message}"); }
             return result;
@@ -294,20 +313,20 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS
 
         private async Task<AvatarDetail?> QueryDetailAsync(string field, string value)
         {
-            var rows = await N1qlAsync<System.Text.Json.JsonElement>($"SELECT dataJson FROM `{_bucketName}`.`_default`.`avatar_details` WHERE {field} = $val LIMIT 1", new Dictionary<string, object> { ["val"] = value });
+            var rows = await N1qlAsync<StoredDocument>($"SELECT dataJson FROM `{_bucketName}`.`_default`.`avatar_details` WHERE {field} = $val LIMIT 1", new Dictionary<string, object> { ["val"] = value });
             var row = rows.FirstOrDefault();
-            return row.ValueKind == JsonValueKind.Undefined ? null : Des<AvatarDetail>(row.TryGetProperty("dataJson", out var dj) ? dj.GetString() : null);
+            return row == null ? null : Des<AvatarDetail>(row.DataJson);
         }
 
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var d = await QueryDetailAsync("username", u); if (d == null) { OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: No detail for username '{u}'."); return result; } result.Result = d; result.IsError = false; result.Message = "CouchbaseOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: {ex.Message}"); } return result; }
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var d = await QueryDetailAsync("username", u); if (d == null) { OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: No detail for username '{u}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; } result.Result = d; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "CouchbaseOASIS: loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: {ex.Message}"); } return result; }
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string u, int version = 0) => LoadAvatarDetailByUsernameAsync(u, version).Result;
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var d = await QueryDetailAsync("email", e); if (d == null) { OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: No detail for email '{e}'."); return result; } result.Result = d; result.IsError = false; result.Message = "CouchbaseOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: {ex.Message}"); } return result; }
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var d = await QueryDetailAsync("email", e); if (d == null) { OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: No detail for email '{e}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; } result.Result = d; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "CouchbaseOASIS: loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: {ex.Message}"); } return result; }
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string e, int version = 0) => LoadAvatarDetailByEmailAsync(e, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
             var result = new OASISResult<IEnumerable<IAvatarDetail>>();
-            try { var rows = await N1qlAsync<System.Text.Json.JsonElement>($"SELECT dataJson FROM `{_bucketName}`.`_default`.`avatar_details`"); var details = rows.Select(r => Des<AvatarDetail>(r.TryGetProperty("dataJson", out var dj) ? dj.GetString() : null)).Where(d => d != null).Cast<IAvatarDetail>().ToList(); result.Result = details; result.IsError = false; result.Message = $"CouchbaseOASIS: Loaded {details.Count} detail(s)."; }
+            try { var rows = await N1qlAsync<StoredDocument>($"SELECT dataJson FROM `{_bucketName}`.`_default`.`avatar_details`"); var details = rows.Select(r => Des<AvatarDetail>(r.DataJson)).Where(d => d != null).Cast<IAvatarDetail>().ToList(); result.Result = details; result.IsError = false; result.IsLoaded = true; result.LoadedCount = details.Count; result.Message = $"CouchbaseOASIS: Loaded {details.Count} detail(s)."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: {ex.Message}"); }
             return result;
         }
@@ -327,17 +346,30 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS
                     ? new Dictionary<Core.Enums.ProviderType, string>()
                     : new Dictionary<Core.Enums.ProviderType, string>(holon.ProviderUniqueStorageKey);
                 keys[Core.Enums.ProviderType.CouchbaseOASIS] = id.ToString("D");
-                var payload = JsonSerializer.SerializeToNode(holon, holon.GetType(), _jsonOpts)!.AsObject();
-                payload["id"] = id;
-                payload["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
-                var cas = await PersistHolonAsync(id, holon.ParentHolonId, (int)holon.HolonType, holon.IsDeleted, payload.ToJsonString(_jsonOpts));
+                var payload = System.Text.Json.Nodes.JsonNode.Parse(Ser(holon))!.AsObject();
+                payload["Id"] = id.ToString("D");
+                payload["ProviderUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys);
+                var cas = await PersistHolonAsync(id, holon.ParentHolonId, (int)holon.HolonType, holon.IsDeleted, payload.ToJsonString());
                 if (cas == 0) throw new InvalidOperationException("Native write did not acknowledge a CAS revision.");
                 holon.Id = id;
                 holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
                 holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.CouchbaseOASIS] = id.ToString("D");
+                var savedCount = 1;
+                if (saveChildren && holon.Children != null)
+                {
+                    foreach (var child in holon.Children)
+                    {
+                        if (child == null) continue;
+                        child.ParentHolonId = id;
+                        var childResult = await SaveHolonAsync(child, recursive, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                        if (childResult.IsError || !childResult.IsSaved)
+                            throw new System.IO.InvalidDataException($"Child holon {child.Id} was not saved: {childResult.Message}");
+                        savedCount += childResult.SavedCount;
+                    }
+                }
                 result.Result = holon;
                 result.IsSaved = true;
-                result.SavedCount = 1;
+                result.SavedCount = savedCount;
                 // Preserve exact native unsigned CAS precision; this is an acknowledgement, not a conditional write.
                 result.MetaData["Couchbase.Cas"] = cas.ToString(System.Globalization.CultureInfo.InvariantCulture);
             }
@@ -360,7 +392,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            var saved = new List<IHolon>(); var errors = new List<string>();
+            var saved = new List<IHolon>(); var errors = new List<string>(); var savedTotal = 0;
             foreach (var h in holons)
             {
                 var write = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
@@ -369,13 +401,13 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS
                     errors.Add(write.Message);
                     if (!continueOnError) break;
                 }
-                else if (write.IsSaved && write.Result != null) saved.Add(write.Result);
+                else if (write.IsSaved && write.Result != null) { saved.Add(write.Result); savedTotal += write.SavedCount; }
             }
             result.Result = saved;
             result.IsError = errors.Count > 0;
             result.ErrorCount = errors.Count;
             result.IsSaved = saved.Count > 0;
-            result.SavedCount = saved.Count;
+            result.SavedCount = savedTotal;
             result.Message = string.Join("; ", errors);
             return result;
         }
@@ -391,11 +423,11 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS
             {
                 var coll = await GetCollectionAsync("holons");
                 IGetResult? get = null; try { get = await coll.GetAsync(id.ToString()); } catch (DocumentNotFoundException) { }
-                if (get == null) { OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: No holon for ID '{id}'."); return result; }
-                var doc = get.ContentAs<System.Text.Json.JsonElement>();
-                if (doc.TryGetProperty("isDeleted", out var del) && del.GetBoolean()) { OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: Holon '{id}' is deleted."); return result; }
-                var holon = Des<Holon>(doc.GetProperty("dataJson").GetString()); if (holon == null) { OASISErrorHandling.HandleError(ref result, "CouchbaseOASIS: Deserialise failed."); return result; }
-                result.Result = holon; result.IsError = false; result.Message = "CouchbaseOASIS: Holon loaded.";
+                if (get == null) { OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: No holon for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                var doc = get.ContentAs<StoredDocument>();
+                if (doc.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: Holon '{id}' is deleted."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                var holon = Des<Holon>(doc.DataJson); if (holon == null) { OASISErrorHandling.HandleError(ref result, "CouchbaseOASIS: Deserialise failed."); return result; }
+                result.Result = holon; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "CouchbaseOASIS: loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: {ex.Message}"); }
             return result;
@@ -407,8 +439,8 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS
 
         private async Task<List<IHolon>> QueryHolonsAsync(string where, Dictionary<string, object>? args = null)
         {
-            var rows = await N1qlAsync<System.Text.Json.JsonElement>($"SELECT dataJson FROM `{_bucketName}`.`_default`.`holons` WHERE {where}", args);
-            return rows.Select(r => Des<Holon>(r.TryGetProperty("dataJson", out var dj) ? dj.GetString() : null)).Where(h => h != null).Cast<IHolon>().ToList();
+            var rows = await N1qlAsync<StoredDocument>($"SELECT dataJson FROM `{_bucketName}`.`_default`.`holons` WHERE {where}", args);
+            return rows.Select(r => Des<Holon>(r.DataJson)).Where(h => h != null).Cast<IHolon>().ToList();
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -419,7 +451,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS
                 var where = type == HolonType.All ? "isDeleted = false" : "isDeleted = false AND holonType = $ht";
                 var args = type == HolonType.All ? null : new Dictionary<string, object> { ["ht"] = (int)type };
                 var holons = await QueryHolonsAsync(where, args);
-                result.Result = holons; result.IsError = false; result.Message = $"CouchbaseOASIS: Loaded {holons.Count} holon(s).";
+                result.Result = holons; result.IsError = false; result.IsLoaded = true; result.LoadedCount = holons.Count; result.Message = $"CouchbaseOASIS: Loaded {holons.Count} holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: {ex.Message}"); }
             return result;
@@ -436,7 +468,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS
                 var args = new Dictionary<string, object> { ["pid"] = id.ToString() };
                 if (type != HolonType.All) args["ht"] = (int)type;
                 var holons = await QueryHolonsAsync(where, args);
-                result.Result = holons; result.IsError = false; result.Message = $"CouchbaseOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
+                result.Result = holons; result.IsError = false; result.IsLoaded = true; result.LoadedCount = holons.Count; result.Message = $"CouchbaseOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: {ex.Message}"); }
             return result;
@@ -453,17 +485,42 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                var loaded = await LoadHolonAsync(id); if (loaded.IsError || loaded.Result == null) { OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: Holon '{id}' not found."); return result; }
+                var loaded = await LoadHolonAsync(id, loadChildren: false); if (loaded.IsError || loaded.Result == null) { OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: Holon '{id}' not found."); result.ErrorCode = loaded.ErrorCode; return result; }
                 var holon = (Holon)loaded.Result; holon.DeletedDate = DateTime.UtcNow;
                 var coll = await GetCollectionAsync("holons");
                 await coll.UpsertAsync(id.ToString(), new { id = id.ToString(), parentHolonId = holon.ParentHolonId.ToString(), holonType = (int)holon.HolonType, isDeleted = true, dataJson = Ser(holon) });
-                result.Result = holon; result.IsError = false; result.Message = $"CouchbaseOASIS: Holon '{id}' soft-deleted.";
+                result.Result = holon; result.IsError = false; result.IsDeleted = true; result.DeletedCount = 1; result.Message = $"CouchbaseOASIS: Holon '{id}' soft-deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: {ex.Message}"); }
             return result;
         }
 
         public override OASISResult<IHolon> DeleteHolon(Guid id) => DeleteHolonAsync(id).Result;
+
+        /// <summary>Soft delete (tombstone document) or permanent removal of one native holon document.</summary>
+        public async Task<OASISResult<bool>> DeleteHolonSoftAsync(Guid id, bool softDelete = true)
+        {
+            var result = new OASISResult<bool>();
+            try
+            {
+                if (softDelete)
+                {
+                    var deleted = await DeleteHolonAsync(id);
+                    if (deleted.IsError || !deleted.IsDeleted) { OASISErrorHandling.HandleError(ref result, deleted.Message); result.ErrorCode = deleted.ErrorCode; return result; }
+                }
+                else
+                {
+                    var coll = await GetCollectionAsync("holons");
+                    try { await coll.RemoveAsync(id.ToString()); }
+                    catch (DocumentNotFoundException) { OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: No holon for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                }
+                result.Result = true; result.IsDeleted = true; result.DeletedCount = 1;
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: {ex.Message}"); }
+            return result;
+        }
+
+        public OASISResult<bool> DeleteHolonSoft(Guid id, bool softDelete = true) => DeleteHolonSoftAsync(id, softDelete).Result;
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string pk) { if (Guid.TryParse(pk, out Guid id)) return await DeleteHolonAsync(id); var r = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r, $"CouchbaseOASIS: Invalid GUID '{pk}'."); return r; }
         public override OASISResult<IHolon> DeleteHolon(string pk) => DeleteHolonAsync(pk).Result;
 
@@ -480,19 +537,19 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS
         public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) => SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        { var all = await LoadAllHolonsAsync(type); var holons = all.Result?.Where(h => h.MetaData != null && h.MetaData.TryGetValue(metaKey, out var v) && v?.ToString() == metaValue).ToList() ?? new List<IHolon>(); return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsError = false, Message = $"CouchbaseOASIS: {holons.Count} holon(s)." }; }
+        { var all = await LoadAllHolonsAsync(type); var holons = all.Result?.Where(h => h.MetaData != null && h.MetaData.TryGetValue(metaKey, out var v) && v?.ToString() == metaValue).ToList() ?? new List<IHolon>(); if (all.IsError) { var failed = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref failed, all.Message); return failed; } return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsError = false, IsLoaded = true, LoadedCount = holons.Count, Message = $"CouchbaseOASIS: {holons.Count} holon(s)." }; }
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKvp, MetaKeyValuePairMatchMode mode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        { var all = await LoadAllHolonsAsync(type); bool IsMatch(IHolon h) { if (h.MetaData == null) return false; var checks = metaKvp.Select(kvp => h.MetaData.TryGetValue(kvp.Key, out var v) && v?.ToString() == kvp.Value); return mode == MetaKeyValuePairMatchMode.Any ? checks.Any(c => c) : checks.All(c => c); } var holons = all.Result?.Where(IsMatch).ToList() ?? new List<IHolon>(); return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsError = false, Message = $"CouchbaseOASIS: {holons.Count} holon(s)." }; }
+        { var all = await LoadAllHolonsAsync(type); bool IsMatch(IHolon h) { if (h.MetaData == null) return false; var checks = metaKvp.Select(kvp => h.MetaData.TryGetValue(kvp.Key, out var v) && v?.ToString() == kvp.Value); return mode == MetaKeyValuePairMatchMode.Any ? checks.Any(c => c) : checks.All(c => c); } var holons = all.Result?.Where(IsMatch).ToList() ?? new List<IHolon>(); if (all.IsError) { var failed = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref failed, all.Message); return failed; } return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsError = false, IsLoaded = true, LoadedCount = holons.Count, Message = $"CouchbaseOASIS: {holons.Count} holon(s)." }; }
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKvp, MetaKeyValuePairMatchMode mode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsByMetaDataAsync(metaKvp, mode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
         // ─── Import / Export ──────────────────────────────────────────────────────
 
-        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons) { var s = await SaveHolonsAsync(holons); return new OASISResult<bool> { Result = !s.IsError, IsError = s.IsError, Message = s.Message }; }
+        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons) { var s = await SaveHolonsAsync(holons, saveChildren: false, continueOnError: false); var ok = !s.IsError && s.IsSaved; return new OASISResult<bool> { Result = ok, IsError = !ok, IsSaved = ok, SavedCount = s.SavedCount, Message = s.Message }; }
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).Result;
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) => await LoadAllHolonsAsync();
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).Result;
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0) { var all = await LoadAllHolonsAsync(); var h = all.Result?.Where(x => x.CreatedByAvatarId == avatarId).ToList() ?? new List<IHolon>(); return new OASISResult<IEnumerable<IHolon>> { Result = h, IsError = false, Message = $"CouchbaseOASIS: {h.Count} holon(s)." }; }
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0) { var all = await LoadAllHolonsAsync(); var h = all.Result?.Where(x => x.CreatedByAvatarId == avatarId).ToList() ?? new List<IHolon>(); if (all.IsError) { var failed = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref failed, all.Message); return failed; } return new OASISResult<IEnumerable<IHolon>> { Result = h, IsError = false, IsLoaded = true, LoadedCount = h.Count, Message = $"CouchbaseOASIS: {h.Count} holon(s)." }; }
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0) => ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string u, int version = 0) { var a = await LoadAvatarByUsernameAsync(u); if (a.IsError || a.Result == null) { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, "Not found."); return r; } return await ExportAllDataForAvatarByIdAsync(a.Result.Id, version); }
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string u, int version = 0) => ExportAllDataForAvatarByUsernameAsync(u, version).Result;

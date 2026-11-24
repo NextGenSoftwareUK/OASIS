@@ -64,6 +64,7 @@ public partial class BitcoinOASIS
         }
 
         result.SavedCount = receipts.Count;
+        result.IsSaved = failures.Count == 0 && result.Result != null;
         if (receipts.Count > 0)
             result.MetaData["BitcoinAcknowledgedTransactionIds"] = string.Join(",", receipts);
         if (failures.Count > 0)
@@ -79,8 +80,10 @@ public partial class BitcoinOASIS
         {
             if (record == null || record.Id == Guid.Empty || !identities.Add(record.Id))
                 throw new ArgumentException("The Bitcoin holon graph contains an invalid or repeated identity.");
+            if (parent != Guid.Empty && record.ParentHolonId == Guid.Empty)
+                record.ParentHolonId = parent;
             if (parent != Guid.Empty && record.ParentHolonId != parent)
-                throw new ArgumentException("Every Bitcoin graph child must identify its parent holon.");
+                throw new ArgumentException("A Bitcoin graph child identifies a different parent holon.");
 
             plan.Add((record, record.Id, parent));
             if (record.Children == null || (maxDepth > 0 && depth >= maxDepth) || (!recursive && depth > 0))
@@ -199,7 +202,17 @@ public partial class BitcoinOASIS
             IsActive = false,
             DeletedDate = DateTime.UtcNow
         };
-        return await SaveHolonAsync(tombstone, saveChildren: false);
+        var published = await SaveHolonAsync(tombstone, saveChildren: false);
+        var deleted = new OASISResult<IHolon> { MetaData = published.MetaData, ErrorCode = published.ErrorCode };
+        if (published.IsError || !published.IsSaved)
+        {
+            OASISErrorHandling.HandleError(ref deleted, published.Message, published.Exception);
+            return deleted;
+        }
+        deleted.Result = published.Result;
+        deleted.IsDeleted = true;
+        deleted.DeletedCount = 1;
+        return deleted;
     }
 
     private async Task<OASISResult<IHolon>> LoadWalletHolonAsync(
@@ -218,6 +231,11 @@ public partial class BitcoinOASIS
         {
             result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
             OASISErrorHandling.HandleError(ref result, "The Bitcoin wallet has no matching holon.");
+        }
+        else
+        {
+            result.IsLoaded = true;
+            result.LoadedCount = 1;
         }
 
         return result;
@@ -240,6 +258,8 @@ public partial class BitcoinOASIS
             }
 
             result.Result = selected;
+            result.IsLoaded = true;
+            result.LoadedCount = selected.Length;
         }
         catch (Exception ex)
         {

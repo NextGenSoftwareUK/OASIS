@@ -136,7 +136,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     return response;
                 }
 
-                if (saveChildren && saveChildrenOnProvider && holon.Children?.Count > 0)
+                if (saveChildren && holon.Children?.Count > 0)
                     return await SaveWalletHolonGraphAsync(holon, recursive, maxChildDepth, continueOnError);
 
                 response = await CommitEncryptedRecordAsync<IHolon>(holon, HolonRecordScope);
@@ -155,6 +155,9 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             var result = new OASISResult<T>();
             var signer = new NBitcoin.BitcoinSecret(_privateKey, SigningNetwork);
             var source = signer.GetAddress(NBitcoin.ScriptPubKeyType.Segwit).ToString();
+            // Each publication is a new immutable version of the record: stamp it after the wallet's latest one.
+            var previous = (await ReadRecordHistoryForKindAsync(kind, record.Id)).OrderByDescending(entry => entry.Version).FirstOrDefault();
+            await NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordVersions.StampAsync(record.Id, record, previous, null);
             var snapshot = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublicationSnapshot<T>.Capture(record);
             using var client = CreateRecordBlobClient();
             using var codec = CreateRecordCodec();
@@ -180,10 +183,23 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             stored.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
             stored.ProviderUniqueStorageKey[Core.Enums.ProviderType.BitcoinOASIS] = publication.Result.TransactionResult;
             result.Result = stored;
+            result.IsSaved = true;
+            result.SavedCount = 1;
             return result;
         }
 
         private const string AvatarDetailRecordScope = "bitcoin-oasis:avatar-detail:v1";
+
+        private async Task<IReadOnlyList<IHolonBase>> ReadRecordHistoryForKindAsync(BitcoinRecordKind kind, Guid id)
+        {
+            IEnumerable<IHolonBase> history = kind switch
+            {
+                BitcoinRecordKind.Avatar => await ReadWalletRecordHistoryAsync<IAvatar>(DecodeAvatarTransactionAsync, 0),
+                BitcoinRecordKind.AvatarDetail => await ReadWalletRecordHistoryAsync<IAvatarDetail>(DecodeAvatarDetailTransactionAsync, 0),
+                _ => await ReadWalletRecordHistoryAsync<IHolon>(DecodeHolonTransactionAsync, 0)
+            };
+            return history.Where(entry => entry.Id == id).ToArray();
+        }
 
         public async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByTransactionIdAsync(string providerKey, int version = 0)
         {
@@ -210,6 +226,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     detail.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
                     detail.ProviderUniqueStorageKey[Core.Enums.ProviderType.BitcoinOASIS] = transactionId.ToString();
                     result.Result = detail;
+                    result.IsLoaded = true;
+                    result.LoadedCount = 1;
                     return result;
                 }
 

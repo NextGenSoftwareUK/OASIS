@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -116,11 +117,11 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
             {
                 var doc = await GetDocAsync<Avatar>(CollAvatars, id.ToString());
                 if (doc == null)
-                    OASISErrorHandling.HandleError(ref result, $"ChromaOASIS: Avatar {id} not found.");
+                    { OASISErrorHandling.HandleError(ref result, $"ChromaOASIS: Avatar {id} not found."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else if (doc.IsDeleted)
-                    OASISErrorHandling.HandleError(ref result, $"ChromaOASIS: Avatar {id} has been deleted.");
+                    { OASISErrorHandling.HandleError(ref result, $"ChromaOASIS: Avatar {id} has been deleted."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else
-                    result.Result = doc;
+                { result.Result = doc; result.IsLoaded = true; result.LoadedCount = 1; }
             }
             catch (Exception ex)
             {
@@ -139,9 +140,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
             {
                 var doc = await FindOneAsync<Avatar>(CollAvatars, "Username", username);
                 if (doc == null || doc.IsDeleted)
-                    OASISErrorHandling.HandleError(ref result, $"ChromaOASIS: Avatar with username '{username}' not found.");
+                    { OASISErrorHandling.HandleError(ref result, $"ChromaOASIS: Avatar with username '{username}' not found."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else
-                    result.Result = doc;
+                { result.Result = doc; result.IsLoaded = true; result.LoadedCount = 1; }
             }
             catch (Exception ex)
             {
@@ -160,9 +161,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
             {
                 var doc = await FindOneAsync<Avatar>(CollAvatars, "Email", email);
                 if (doc == null || doc.IsDeleted)
-                    OASISErrorHandling.HandleError(ref result, $"ChromaOASIS: Avatar with email '{email}' not found.");
+                    { OASISErrorHandling.HandleError(ref result, $"ChromaOASIS: Avatar with email '{email}' not found."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else
-                    result.Result = doc;
+                { result.Result = doc; result.IsLoaded = true; result.LoadedCount = 1; }
             }
             catch (Exception ex)
             {
@@ -180,7 +181,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
             try
             {
                 var docs = await GetAllDocsAsync<Avatar>(CollAvatars);
-                result.Result = docs.FindAll(a => !a.IsDeleted);
+                var live = docs.FindAll(a => !a.IsDeleted); result.Result = live; result.IsLoaded = true; result.LoadedCount = live.Count;
             }
             catch (Exception ex)
             {
@@ -200,7 +201,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
                 if (avatar.Id == Guid.Empty)
                     avatar.Id = Guid.NewGuid();
                 await UpsertDocAsync(CollAvatars, avatar.Id.ToString(), avatar);
-                result.Result = avatar;
+                result.Result = avatar; result.IsSaved = true; result.SavedCount = 1;
             }
             catch (Exception ex)
             {
@@ -217,20 +218,27 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
             var result = new OASISResult<bool>();
             try
             {
+                var avatar = await GetDocAsync<Avatar>(CollAvatars, id.ToString());
+                if (avatar == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"ChromaOASIS: Avatar {id} not found.");
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    return result;
+                }
                 if (softDelete)
                 {
-                    var avatar = await GetDocAsync<Avatar>(CollAvatars, id.ToString());
-                    if (avatar != null)
-                    {
-                        avatar.DeletedDate = DateTime.UtcNow;
-                        await UpsertDocAsync(CollAvatars, id.ToString(), avatar);
-                    }
+                    avatar.DeletedDate = DateTime.UtcNow;
+                    await UpsertDocAsync(CollAvatars, id.ToString(), avatar);
                 }
                 else
                 {
                     await DeleteDocAsync(CollAvatars, id.ToString());
+                    if (await GetDocAsync<AvatarDetail>(CollAvatarDetails, id.ToString()) != null)
+                        await DeleteDocAsync(CollAvatarDetails, id.ToString());
                 }
                 result.Result = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
             }
             catch (Exception ex)
             {
@@ -249,7 +257,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
             {
                 var avatar = await FindOneAsync<Avatar>(CollAvatars, "Username", username);
                 if (avatar == null)
-                    OASISErrorHandling.HandleError(ref result, $"ChromaOASIS: Avatar '{username}' not found.");
+                    { OASISErrorHandling.HandleError(ref result, $"ChromaOASIS: Avatar '{username}' not found."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else
                     return await DeleteAvatarAsync(avatar.Id, softDelete);
             }
@@ -270,7 +278,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
             {
                 var avatar = await FindOneAsync<Avatar>(CollAvatars, "Email", email);
                 if (avatar == null)
-                    OASISErrorHandling.HandleError(ref result, $"ChromaOASIS: Avatar with email '{email}' not found.");
+                    { OASISErrorHandling.HandleError(ref result, $"ChromaOASIS: Avatar with email '{email}' not found."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else
                     return await DeleteAvatarAsync(avatar.Id, softDelete);
             }
@@ -293,9 +301,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
             {
                 var doc = await GetDocAsync<AvatarDetail>(CollAvatarDetails, id.ToString());
                 if (doc == null)
-                    OASISErrorHandling.HandleError(ref result, $"ChromaOASIS: AvatarDetail {id} not found.");
+                    { OASISErrorHandling.HandleError(ref result, $"ChromaOASIS: AvatarDetail {id} not found."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else
-                    result.Result = doc;
+                { result.Result = doc; result.IsLoaded = true; result.LoadedCount = 1; }
             }
             catch (Exception ex)
             {
@@ -314,9 +322,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
             {
                 var doc = await FindOneAsync<AvatarDetail>(CollAvatarDetails, "Username", username);
                 if (doc == null)
-                    OASISErrorHandling.HandleError(ref result, $"ChromaOASIS: AvatarDetail '{username}' not found.");
+                    { OASISErrorHandling.HandleError(ref result, $"ChromaOASIS: AvatarDetail '{username}' not found."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else
-                    result.Result = doc;
+                { result.Result = doc; result.IsLoaded = true; result.LoadedCount = 1; }
             }
             catch (Exception ex)
             {
@@ -335,9 +343,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
             {
                 var doc = await FindOneAsync<AvatarDetail>(CollAvatarDetails, "Email", email);
                 if (doc == null)
-                    OASISErrorHandling.HandleError(ref result, $"ChromaOASIS: AvatarDetail '{email}' not found.");
+                    { OASISErrorHandling.HandleError(ref result, $"ChromaOASIS: AvatarDetail '{email}' not found."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else
-                    result.Result = doc;
+                { result.Result = doc; result.IsLoaded = true; result.LoadedCount = 1; }
             }
             catch (Exception ex)
             {
@@ -355,7 +363,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
             try
             {
                 var docs = await GetAllDocsAsync<AvatarDetail>(CollAvatarDetails);
-                result.Result = docs;
+                result.Result = docs; result.IsLoaded = true; result.LoadedCount = docs.Count;
             }
             catch (Exception ex)
             {
@@ -375,7 +383,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
                 if (detail.Id == Guid.Empty)
                     detail.Id = Guid.NewGuid();
                 await UpsertDocAsync(CollAvatarDetails, detail.Id.ToString(), detail);
-                result.Result = detail;
+                result.Result = detail; result.IsSaved = true; result.SavedCount = 1;
             }
             catch (Exception ex)
             {
@@ -396,11 +404,11 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
             {
                 var doc = await GetDocAsync<Holon>(CollHolons, id.ToString());
                 if (doc == null)
-                    OASISErrorHandling.HandleError(ref result, $"ChromaOASIS: Holon {id} not found.");
+                    { OASISErrorHandling.HandleError(ref result, $"ChromaOASIS: Holon {id} not found."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else if (doc.IsDeleted)
-                    OASISErrorHandling.HandleError(ref result, $"ChromaOASIS: Holon {id} has been deleted.");
+                    { OASISErrorHandling.HandleError(ref result, $"ChromaOASIS: Holon {id} has been deleted."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else
-                    result.Result = doc;
+                { result.Result = doc; result.IsLoaded = true; result.LoadedCount = 1; }
             }
             catch (Exception ex)
             {
@@ -418,7 +426,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
             try
             {
                 var all = await FindAllAsync<Holon>(CollHolons, "ParentHolonId", id.ToString());
-                result.Result = all.FindAll(h => !h.IsDeleted);
+                var live = all.FindAll(h => !h.IsDeleted); result.Result = live; result.IsLoaded = true; result.LoadedCount = live.Count;
             }
             catch (Exception ex)
             {
@@ -436,7 +444,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
             try
             {
                 var docs = await GetAllDocsAsync<Holon>(CollHolons);
-                result.Result = docs.FindAll(h => !h.IsDeleted);
+                var live = docs.FindAll(h => !h.IsDeleted); result.Result = live; result.IsLoaded = true; result.LoadedCount = live.Count;
             }
             catch (Exception ex)
             {
@@ -463,17 +471,30 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
                 keys[Core.Enums.ProviderType.ChromaOASIS] = id.ToString("D");
 
                 // Stage identity in the wire document; HolonManager owns tracking acceptance.
-                var payload = JsonSerializer.SerializeToNode(holon, holon.GetType())!.AsObject();
-                payload["Id"] = id;
+                var payload = System.Text.Json.Nodes.JsonNode.Parse(StoredRecordJson.Serialize(holon))!.AsObject();
+                payload["Id"] = id.ToString("D");
                 payload["ProviderUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys);
                 await UpsertDocAsync(CollHolons, id.ToString("D"), payload);
 
                 holon.Id = id;
                 holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
                 holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.ChromaOASIS] = id.ToString("D");
+                var savedCount = 1;
+                if (saveChildren && holon.Children != null)
+                {
+                    foreach (var child in holon.Children)
+                    {
+                        if (child == null) continue;
+                        child.ParentHolonId = id;
+                        var childResult = await SaveHolonAsync(child, recursive, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                        if (childResult.IsError || !childResult.IsSaved)
+                            throw new System.IO.InvalidDataException($"Child holon {child.Id} was not saved: {childResult.Message}");
+                        savedCount += childResult.SavedCount;
+                    }
+                }
                 result.Result = holon;
                 result.IsSaved = true;
-                result.SavedCount = 1;
+                result.SavedCount = savedCount;
             }
             catch (Exception ex)
             {
@@ -491,6 +512,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             var saved = new List<IHolon>();
             var errors = new List<string>();
+            var savedTotal = 0;
             foreach (var holon in holons)
             {
                 var write = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
@@ -499,13 +521,13 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
                     errors.Add(write.Message);
                     if (!continueOnError) break;
                 }
-                else if (write.IsSaved && write.Result != null) saved.Add(write.Result);
+                else if (write.IsSaved && write.Result != null) { saved.Add(write.Result); savedTotal += write.SavedCount; }
             }
             result.Result = saved;
             result.IsError = errors.Count > 0;
             result.ErrorCount = errors.Count;
             result.IsSaved = saved.Count > 0;
-            result.SavedCount = saved.Count;
+            result.SavedCount = savedTotal;
             result.Message = string.Join("; ", errors);
             return result;
         }
@@ -518,20 +540,26 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
             var result = new OASISResult<bool>();
             try
             {
+                var holon = await GetDocAsync<Holon>(CollHolons, id.ToString());
+                if (holon == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"ChromaOASIS: Holon {id} not found.");
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    return result;
+                }
                 if (softDelete)
                 {
-                    var holon = await GetDocAsync<Holon>(CollHolons, id.ToString());
-                    if (holon != null)
-                    {
-                        holon.DeletedDate = DateTime.UtcNow;
-                        await UpsertDocAsync(CollHolons, id.ToString(), holon);
-                    }
+                    holon.DeletedDate = DateTime.UtcNow;
+                    var saved = await SaveHolonAsync(holon, saveChildren: false);
+                    if (saved.IsError || !saved.IsSaved) { OASISErrorHandling.HandleError(ref result, saved.Message); return result; }
                 }
                 else
                 {
                     await DeleteDocAsync(CollHolons, id.ToString());
                 }
                 result.Result = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
             }
             catch (Exception ex)
             {
@@ -562,9 +590,13 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
             throw new HttpRequestException($"Chroma returned {(int)response.StatusCode} ({response.ReasonPhrase}): {body}");
         }
 
+        /// <summary>Canonical OASIS record JSON; staged JSON nodes are already canonical.</summary>
+        private static string ToDocument<T>(T obj)
+            => obj is System.Text.Json.Nodes.JsonNode node ? node.ToJsonString() : StoredRecordJson.Serialize(obj);
+
         private static Dictionary<string, object> ToMetadata<T>(T obj, string id)
         {
-            var json = JsonSerializer.Serialize(obj);
+            var json = ToDocument(obj);
             var meta = new Dictionary<string, object> { { "oasis_id", id } };
             using var d = JsonDocument.Parse(json);
             foreach (var field in new[] { "Username", "Email", "ParentHolonId" })
@@ -587,7 +619,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
                 if (el.ValueKind != JsonValueKind.String) continue;
                 var raw = el.GetString();
                 if (string.IsNullOrEmpty(raw)) continue;
-                var item = JsonSerializer.Deserialize<T>(raw, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                var item = StoredRecordJson.DeserializeStored<T>(raw);
                 if (item != null) list.Add(item);
             }
             return list;
@@ -598,7 +630,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
             var cid = await ResolveCollectionIdAsync(collection);
             var resp = await _http.PostAsync($"{CollectionsUrl}/{cid}/get",
                 Json(new { ids = new[] { id }, include = new[] { "documents", "metadatas" } }));
-            if (!resp.IsSuccessStatusCode) return null;
+            await EnsureSuccessAsync(resp);
             var json = await resp.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(json);
             var list = ParseDocuments<T>(doc.RootElement);
@@ -611,7 +643,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
             var body = new
             {
                 ids = new[] { id },
-                documents = new[] { JsonSerializer.Serialize(obj) },
+                documents = new[] { ToDocument(obj) },
                 metadatas = new[] { ToMetadata(obj, id) },
                 embeddings = new[] { new[] { 0.0f } }
             };
@@ -636,7 +668,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
                 : (object)new { where, limit, include = new[] { "documents", "metadatas" } };
 
             var resp = await _http.PostAsync($"{CollectionsUrl}/{cid}/get", Json(body));
-            if (!resp.IsSuccessStatusCode) return new List<T>();
+            await EnsureSuccessAsync(resp);
             var json = await resp.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(json);
             return ParseDocuments<T>(doc.RootElement);
@@ -757,18 +789,23 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
             var result = new OASISResult<IHolon>();
-            var loaded = await LoadHolonAsync(id);
+            var loaded = await LoadHolonAsync(id, loadChildren: false);
             if (loaded.IsError || loaded.Result == null)
             {
                 OASISErrorHandling.HandleError(ref result, loaded.Message);
+                result.ErrorCode = loaded.ErrorCode;
                 return result;
             }
 
             var deleted = await DeleteHolonSoftAsync(id, true);
-            if (deleted.IsError)
+            if (deleted.IsError || !deleted.IsDeleted)
                 OASISErrorHandling.HandleError(ref result, deleted.Message);
             else
+            {
                 result.Result = loaded.Result;
+                result.IsDeleted = true;
+                result.DeletedCount = deleted.DeletedCount;
+            }
 
             return result;
         }
@@ -810,7 +847,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
                     matches.Add(holon);
             }
 
-            result.Result = matches;
+            result.Result = matches; result.IsLoaded = true; result.LoadedCount = matches.Count;
             return result;
         }
 
@@ -829,7 +866,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
 
             if (metaKeyValuePairs == null || metaKeyValuePairs.Count == 0)
             {
-                result.Result = new List<IHolon>(all.Result);
+                var everything = new List<IHolon>(all.Result); result.Result = everything; result.IsLoaded = true; result.LoadedCount = everything.Count;
                 return result;
             }
 
@@ -852,7 +889,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
                 if (isMatch) matches.Add(holon);
             }
 
-            result.Result = matches;
+            result.Result = matches; result.IsLoaded = true; result.LoadedCount = matches.Count;
             return result;
         }
 
@@ -862,11 +899,15 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
             var result = new OASISResult<bool>();
-            var saved = await SaveHolonsAsync(holons);
-            if (saved.IsError)
+            var saved = await SaveHolonsAsync(holons, saveChildren: false, continueOnError: false);
+            if (saved.IsError || !saved.IsSaved)
                 OASISErrorHandling.HandleError(ref result, saved.Message);
             else
+            {
                 result.Result = true;
+                result.IsSaved = true;
+                result.SavedCount = saved.SavedCount;
+            }
             return result;
         }
 
@@ -896,7 +937,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
                     owned.Add(holon);
             }
 
-            result.Result = owned;
+            result.Result = owned; result.IsLoaded = true; result.LoadedCount = owned.Count;
             return result;
         }
 

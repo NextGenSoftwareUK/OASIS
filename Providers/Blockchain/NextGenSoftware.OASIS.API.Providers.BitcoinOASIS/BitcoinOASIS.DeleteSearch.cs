@@ -257,7 +257,10 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             var result = new OASISResult<IEnumerable<IAvatarDetail>>();
             try
             {
-                result.Result = await ReadWalletRecordsAsync<IAvatarDetail>(DecodeAvatarDetailTransactionAsync, version);
+                var details = await ReadWalletRecordsAsync<IAvatarDetail>(DecodeAvatarDetailTransactionAsync, version);
+                result.Result = details;
+                result.IsLoaded = true;
+                result.LoadedCount = details.Count;
             }
             catch (Exception ex)
             {
@@ -316,6 +319,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 holon.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
                 holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.BitcoinOASIS] = transactionId.ToString();
                 result.Result = holon;
+                result.IsLoaded = true;
+                result.LoadedCount = 1;
             }
             catch (BitcoinTransactionNotFoundException ex)
             {
@@ -362,7 +367,10 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             var result = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
-                result.Result = await ReadWalletRecordsAsync<IAvatar>(DecodeAvatarTransactionAsync, version);
+                var avatars = await ReadWalletRecordsAsync<IAvatar>(DecodeAvatarTransactionAsync, version);
+                result.Result = avatars;
+                result.IsLoaded = true;
+                result.LoadedCount = avatars.Count;
             }
             catch (Exception ex)
             {

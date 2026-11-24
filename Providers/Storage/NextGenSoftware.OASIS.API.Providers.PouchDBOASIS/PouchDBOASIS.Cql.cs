@@ -137,7 +137,7 @@ public partial class PouchDBOASIS : ICosmicQueryStorageProvider, ICosmicReadOnly
                         if (!property.Name.Equals("Children", StringComparison.OrdinalIgnoreCase)) property.WriteTo(writer);
                     writer.WriteEndObject();
                 }
-                var row = JsonSerializer.Deserialize<Holon>(projected.ToArray(), _jsonOpts);
+                var row = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<Holon>(System.Text.Encoding.UTF8.GetString(projected.ToArray()));
                 if (row == null || row.Id != id || !plan.Query.ReadAccess.CanRead(row))
                     throw new InvalidDataException("Native PouchDB holon differs from read authority.");
                 if (row.IsDeleted) continue;

@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
@@ -95,6 +96,24 @@ namespace NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS
                 await Create(ApiUrl("/_api/collection"), new { name = col, type = 2 });
         }
 
+        /// <summary>
+        /// Canonical OASIS record JSON (concrete types preserved for interface members) with camelCase
+        /// top-level fields, which the AQL selectors and CQL compiler address. Reads are case-insensitive.
+        /// </summary>
+        private static JsonObject ToStoredDocument(object obj)
+        {
+            var canonical = JsonNode.Parse(StoredRecordJson.Serialize(obj))!.AsObject();
+            var document = new JsonObject();
+            foreach (var property in System.Linq.Enumerable.ToList(canonical))
+            {
+                canonical.Remove(property.Key);
+                var name = property.Key.StartsWith("$") || property.Key.Length == 0 ? property.Key
+                    : char.ToLowerInvariant(property.Key[0]) + property.Key.Substring(1);
+                document[name] = property.Value;
+            }
+            return document;
+        }
+
         private async Task<T?> GetDocAsync<T>(string collection, string key)
         {
             using var response = await _http.GetAsync(ApiUrl($"/_api/document/{collection}/{Uri.EscapeDataString(key)}"));
@@ -106,12 +125,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS
                     return default;
             }
             response.EnsureSuccessStatusCode();
-            return JsonSerializer.Deserialize<T>(payload, _jsonOpts);
+            return StoredRecordJson.DeserializeStored<T>(payload);
         }
 
         private async Task<string> UpsertDocAsync(string collection, string key, object obj)
         {
-            var payload = JsonSerializer.SerializeToNode(obj, obj.GetType(), _jsonOpts)!.AsObject();
+            var payload = obj as JsonObject ?? ToStoredDocument(obj);
             payload["_key"] = key;
             using var response = await _http.PostAsync(ApiUrl($"/_api/document/{collection}?overwriteMode=replace&waitForSync=true"), Json(payload));
             response.EnsureSuccessStatusCode();
@@ -143,7 +162,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS
                 throw new InvalidDataException("ArangoDB query returned no result array.");
             foreach (var el in result.EnumerateArray())
             {
-                var item = JsonSerializer.Deserialize<T>(el.GetRawText(), _jsonOpts);
+                var item = StoredRecordJson.DeserializeStored<T>(el.GetRawText());
                 if (item != null) list.Add(item);
             }
             return list;
@@ -177,7 +196,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS
                 if (avatar.ProviderUniqueStorageKey == null) avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.ArangoDBOASIS] = avatar.Id.ToString();
                 await UpsertDocAsync(ColAvatars, avatar.Id.ToString(), avatar);
-                result.Result = avatar; result.IsError = false; result.Message = $"ArangoDBOASIS: Avatar '{avatar.Username}' saved.";
+                result.Result = avatar; result.IsError = false; result.IsSaved = true; result.SavedCount = 1; result.Message = $"ArangoDBOASIS: Avatar '{avatar.Username}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ArangoDBOASIS: Error saving avatar: {ex.Message}"); }
             return result;
@@ -191,8 +210,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS
             try
             {
                 var a = await GetDocAsync<Avatar>(ColAvatars, id.ToString());
-                if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"ArangoDBOASIS: No avatar for ID '{id}'."); return result; }
-                result.Result = a; result.IsError = false; result.Message = "ArangoDBOASIS: Avatar loaded.";
+                if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"ArangoDBOASIS: No avatar for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = a; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "ArangoDBOASIS: loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ArangoDBOASIS: {ex.Message}"); }
             return result;
@@ -207,8 +226,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS
             {
                 var hits = await AqlQueryAsync<Avatar>($"FOR d IN {ColAvatars} FILTER d.username == @val LIMIT 1 RETURN d", new Dictionary<string, object> { { "val", username } });
                 var a = hits.Count > 0 ? hits[0] : null;
-                if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"ArangoDBOASIS: No avatar for username '{username}'."); return result; }
-                result.Result = a; result.IsError = false; result.Message = "ArangoDBOASIS: Avatar loaded.";
+                if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"ArangoDBOASIS: No avatar for username '{username}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = a; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "ArangoDBOASIS: loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ArangoDBOASIS: {ex.Message}"); }
             return result;
@@ -223,8 +242,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS
             {
                 var hits = await AqlQueryAsync<Avatar>($"FOR d IN {ColAvatars} FILTER d.email == @val LIMIT 1 RETURN d", new Dictionary<string, object> { { "val", avatarEmail } });
                 var a = hits.Count > 0 ? hits[0] : null;
-                if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"ArangoDBOASIS: No avatar for email '{avatarEmail}'."); return result; }
-                result.Result = a; result.IsError = false; result.Message = "ArangoDBOASIS: Avatar loaded.";
+                if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"ArangoDBOASIS: No avatar for email '{avatarEmail}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = a; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "ArangoDBOASIS: loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ArangoDBOASIS: {ex.Message}"); }
             return result;
@@ -241,7 +260,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS
             {
                 var all = await AqlQueryAsync<Avatar>($"FOR d IN {ColAvatars} RETURN d", new Dictionary<string, object>());
                 var list = new List<IAvatar>(); foreach (var a in all) { if (!a.IsDeleted) list.Add(a); }
-                result.Result = list; result.IsError = false; result.Message = $"ArangoDBOASIS: Loaded {list.Count} avatar(s).";
+                result.Result = list; result.IsError = false; result.IsLoaded = true; result.LoadedCount = list.Count; result.Message = $"ArangoDBOASIS: Loaded {list.Count} avatar(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ArangoDBOASIS: {ex.Message}"); }
             return result;
@@ -254,9 +273,15 @@ namespace NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS
             var result = new OASISResult<bool>();
             try
             {
-                if (softDelete) { var load = await LoadAvatarAsync(id); if (!load.IsError && load.Result != null) { var a = (Avatar)load.Result; a.DeletedDate = DateTime.UtcNow; await SaveAvatarAsync(a); } }
-                else { await DeleteDocAsync(ColAvatars, id.ToString()); }
-                result.Result = true; result.IsError = false; result.Message = $"ArangoDBOASIS: Avatar '{id}' deleted.";
+                var a = await GetDocAsync<Avatar>(ColAvatars, id.ToString());
+                if (a == null) { OASISErrorHandling.HandleError(ref result, $"ArangoDBOASIS: No avatar for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                if (softDelete) { a.DeletedDate = DateTime.UtcNow; var saved = await SaveAvatarAsync(a); if (saved.IsError || !saved.IsSaved) { OASISErrorHandling.HandleError(ref result, saved.Message); return result; } }
+                else
+                {
+                    await DeleteDocAsync(ColAvatars, id.ToString());
+                    if (await GetDocAsync<AvatarDetail>(ColDetails, id.ToString()) != null) await DeleteDocAsync(ColDetails, id.ToString());
+                }
+                result.Result = true; result.IsError = false; result.IsDeleted = true; result.DeletedCount = 1; result.Message = $"ArangoDBOASIS: Avatar '{id}' deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ArangoDBOASIS: {ex.Message}"); }
             return result;
@@ -280,7 +305,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS
             {
                 if (d.Id == Guid.Empty) d.Id = Guid.NewGuid();
                 await UpsertDocAsync(ColDetails, d.Id.ToString(), d);
-                result.Result = d; result.IsError = false; result.Message = "ArangoDBOASIS: AvatarDetail saved.";
+                result.Result = d; result.IsError = false; result.IsSaved = true; result.SavedCount = 1; result.Message = "ArangoDBOASIS: AvatarDetail saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ArangoDBOASIS: {ex.Message}"); }
             return result;
@@ -294,23 +319,23 @@ namespace NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS
             try
             {
                 var d = await GetDocAsync<AvatarDetail>(ColDetails, id.ToString());
-                if (d == null) { OASISErrorHandling.HandleError(ref result, $"ArangoDBOASIS: No detail for ID '{id}'."); return result; }
-                result.Result = d; result.IsError = false; result.Message = "ArangoDBOASIS: AvatarDetail loaded.";
+                if (d == null) { OASISErrorHandling.HandleError(ref result, $"ArangoDBOASIS: No detail for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = d; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "ArangoDBOASIS: loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ArangoDBOASIS: {ex.Message}"); }
             return result;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) => LoadAvatarDetailAsync(id, version).Result;
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var hits = await AqlQueryAsync<AvatarDetail>($"FOR d IN {ColDetails} FILTER d.username == @val LIMIT 1 RETURN d", new Dictionary<string, object> { { "val", u } }); var d = hits.Count > 0 ? hits[0] : null; if (d == null) { OASISErrorHandling.HandleError(ref result, $"ArangoDBOASIS: No detail for username '{u}'."); return result; } result.Result = d; result.IsError = false; result.Message = "ArangoDBOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ArangoDBOASIS: {ex.Message}"); } return result; }
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var hits = await AqlQueryAsync<AvatarDetail>($"FOR d IN {ColDetails} FILTER d.username == @val LIMIT 1 RETURN d", new Dictionary<string, object> { { "val", u } }); var d = hits.Count > 0 ? hits[0] : null; if (d == null) { OASISErrorHandling.HandleError(ref result, $"ArangoDBOASIS: No detail for username '{u}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; } result.Result = d; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "ArangoDBOASIS: loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ArangoDBOASIS: {ex.Message}"); } return result; }
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string u, int version = 0) => LoadAvatarDetailByUsernameAsync(u, version).Result;
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var hits = await AqlQueryAsync<AvatarDetail>($"FOR d IN {ColDetails} FILTER d.email == @val LIMIT 1 RETURN d", new Dictionary<string, object> { { "val", e } }); var d = hits.Count > 0 ? hits[0] : null; if (d == null) { OASISErrorHandling.HandleError(ref result, $"ArangoDBOASIS: No detail for email '{e}'."); return result; } result.Result = d; result.IsError = false; result.Message = "ArangoDBOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ArangoDBOASIS: {ex.Message}"); } return result; }
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var hits = await AqlQueryAsync<AvatarDetail>($"FOR d IN {ColDetails} FILTER d.email == @val LIMIT 1 RETURN d", new Dictionary<string, object> { { "val", e } }); var d = hits.Count > 0 ? hits[0] : null; if (d == null) { OASISErrorHandling.HandleError(ref result, $"ArangoDBOASIS: No detail for email '{e}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; } result.Result = d; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "ArangoDBOASIS: loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ArangoDBOASIS: {ex.Message}"); } return result; }
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string e, int version = 0) => LoadAvatarDetailByEmailAsync(e, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
             var result = new OASISResult<IEnumerable<IAvatarDetail>>();
-            try { var all = await AqlQueryAsync<AvatarDetail>($"FOR d IN {ColDetails} RETURN d", new Dictionary<string, object>()); result.Result = new List<IAvatarDetail>(all); result.IsError = false; result.Message = $"ArangoDBOASIS: Loaded {all.Count} detail(s)."; }
+            try { var all = await AqlQueryAsync<AvatarDetail>($"FOR d IN {ColDetails} RETURN d", new Dictionary<string, object>()); result.Result = new List<IAvatarDetail>(all); result.IsError = false; result.IsLoaded = true; result.LoadedCount = all.Count; result.Message = $"ArangoDBOASIS: Loaded {all.Count} detail(s)."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ArangoDBOASIS: {ex.Message}"); }
             return result;
         }
@@ -331,17 +356,30 @@ namespace NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS
                     ? new Dictionary<Core.Enums.ProviderType, string>()
                     : new Dictionary<Core.Enums.ProviderType, string>(holon.ProviderUniqueStorageKey);
                 keys[Core.Enums.ProviderType.ArangoDBOASIS] = id.ToString("D");
-                var payload = JsonSerializer.SerializeToNode(holon, holon.GetType(), _jsonOpts)!.AsObject();
-                payload["id"] = id;
+                var payload = ToStoredDocument(holon);
+                payload["id"] = id.ToString("D");
                 payload["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
                 var revision = await UpsertDocAsync(ColHolons, id.ToString("D"), payload);
                 // Publish caller identity only after a validated native acknowledgement.
                 holon.Id = id;
                 holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
                 holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.ArangoDBOASIS] = id.ToString("D");
+                var savedCount = 1;
+                if (saveChildren && holon.Children != null)
+                {
+                    foreach (var child in holon.Children)
+                    {
+                        if (child == null) continue;
+                        child.ParentHolonId = id;
+                        var childResult = await SaveHolonAsync(child, recursive, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                        if (childResult.IsError || !childResult.IsSaved)
+                            throw new InvalidDataException($"Child holon {child.Id} was not saved: {childResult.Message}");
+                        savedCount += childResult.SavedCount;
+                    }
+                }
                 result.Result = holon;
                 result.IsSaved = true;
-                result.SavedCount = 1;
+                result.SavedCount = savedCount;
                 result.MetaData["ArangoDB.Revision"] = revision;
 
             }
@@ -356,6 +394,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             var saved = new List<IHolon>();
             var errors = new List<string>();
+            var savedTotal = 0;
             foreach (var holon in holons)
             {
                 var write = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
@@ -364,13 +403,13 @@ namespace NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS
                     errors.Add(write.Message);
                     if (!continueOnError) break;
                 }
-                else if (write.IsSaved && write.Result != null) saved.Add(write.Result);
+                else if (write.IsSaved && write.Result != null) { saved.Add(write.Result); savedTotal += write.SavedCount; }
             }
             result.Result = saved;
             result.IsError = errors.Count != 0;
             result.ErrorCount = errors.Count;
             result.IsSaved = saved.Count != 0;
-            result.SavedCount = saved.Count;
+            result.SavedCount = savedTotal;
             result.Message = string.Join("; ", errors);
             return result;
         }
@@ -383,8 +422,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS
             try
             {
                 var h = await GetDocAsync<Holon>(ColHolons, id.ToString());
-                if (h == null || h.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"ArangoDBOASIS: No holon for ID '{id}'."); return result; }
-                result.Result = h; result.IsError = false; result.Message = "ArangoDBOASIS: Holon loaded.";
+                if (h == null || h.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"ArangoDBOASIS: No holon for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = h; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "ArangoDBOASIS: loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ArangoDBOASIS: {ex.Message}"); }
             return result;
@@ -401,7 +440,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS
             {
                 var all = await AqlQueryAsync<Holon>($"FOR d IN {ColHolons} RETURN d", new Dictionary<string, object>());
                 var list = new List<IHolon>(); foreach (var h in all) { if (h.IsDeleted) continue; if (holonType != HolonType.All && h.HolonType != holonType) continue; list.Add(h); }
-                result.Result = list; result.IsError = false; result.Message = $"ArangoDBOASIS: Loaded {list.Count} holon(s).";
+                result.Result = list; result.IsError = false; result.IsLoaded = true; result.LoadedCount = list.Count; result.Message = $"ArangoDBOASIS: Loaded {list.Count} holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ArangoDBOASIS: {ex.Message}"); }
             return result;
@@ -416,7 +455,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS
             {
                 var all = await AqlQueryAsync<Holon>($"FOR d IN {ColHolons} FILTER d.parentHolonId == @val RETURN d", new Dictionary<string, object> { { "val", id.ToString() } });
                 var list = new List<IHolon>(); foreach (var h in all) { if (h.IsDeleted) continue; if (holonType != HolonType.All && h.HolonType != holonType) continue; list.Add(h); }
-                result.Result = list; result.IsError = false; result.Message = $"ArangoDBOASIS: Loaded {list.Count} child holon(s).";
+                result.Result = list; result.IsError = false; result.IsLoaded = true; result.LoadedCount = list.Count; result.Message = $"ArangoDBOASIS: Loaded {list.Count} child holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ArangoDBOASIS: {ex.Message}"); }
             return result;
@@ -427,7 +466,15 @@ namespace NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string pk, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsForParentAsync(pk, holonType, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
         public async Task<OASISResult<bool>> DeleteHolonSoftAsync(Guid id, bool softDelete = true)
-        { var result = new OASISResult<bool>(); try { if (softDelete) { var load = await LoadHolonAsync(id); if (!load.IsError && load.Result != null) { var h = (Holon)load.Result; h.DeletedDate = DateTime.UtcNow; await SaveHolonAsync(h); } } else { await DeleteDocAsync(ColHolons, id.ToString()); } result.Result = true; result.IsError = false; result.Message = $"ArangoDBOASIS: Holon '{id}' deleted."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ArangoDBOASIS: {ex.Message}"); } return result; }
+        {
+            var result = new OASISResult<bool>();
+            try
+            {
+                var h = await GetDocAsync<Holon>(ColHolons, id.ToString());
+                if (h == null) { OASISErrorHandling.HandleError(ref result, $"ArangoDBOASIS: No holon for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                if (softDelete) { h.DeletedDate = DateTime.UtcNow; var saved = await SaveHolonAsync(h, saveChildren: false); if (saved.IsError || !saved.IsSaved) { OASISErrorHandling.HandleError(ref result, saved.Message); return result; } }
+                else { await DeleteDocAsync(ColHolons, id.ToString()); }
+                result.Result = true; result.IsError = false; result.IsDeleted = true; result.DeletedCount = 1; result.Message = $"ArangoDBOASIS: Holon '{id}' deleted."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ArangoDBOASIS: {ex.Message}"); } return result; }
         public OASISResult<bool> DeleteHolonSoft(Guid id, bool softDelete = true) => DeleteHolonSoftAsync(id, softDelete).Result;
         public async Task<OASISResult<bool>> DeleteHolonSoftAsync(string pk, bool softDelete = true) { if (Guid.TryParse(pk, out Guid id)) return await DeleteHolonSoftAsync(id, softDelete); var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, $"ArangoDBOASIS: Invalid GUID '{pk}'."); return r; }
         public OASISResult<bool> DeleteHolonSoft(string pk, bool softDelete = true) => DeleteHolonSoftAsync(pk, softDelete).Result;
@@ -479,18 +526,23 @@ namespace NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
             var result = new OASISResult<IHolon>();
-            var loaded = await LoadHolonAsync(id);
+            var loaded = await LoadHolonAsync(id, loadChildren: false);
             if (loaded.IsError || loaded.Result == null)
             {
                 OASISErrorHandling.HandleError(ref result, loaded.Message);
+                result.ErrorCode = loaded.ErrorCode;
                 return result;
             }
 
             var deleted = await DeleteHolonSoftAsync(id, true);
-            if (deleted.IsError)
+            if (deleted.IsError || !deleted.IsDeleted)
                 OASISErrorHandling.HandleError(ref result, deleted.Message);
             else
+            {
                 result.Result = loaded.Result;
+                result.IsDeleted = true;
+                result.DeletedCount = deleted.DeletedCount;
+            }
 
             return result;
         }
@@ -532,7 +584,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS
                     matches.Add(holon);
             }
 
-            result.Result = matches;
+            result.Result = matches; result.IsLoaded = true; result.LoadedCount = matches.Count;
             return result;
         }
 
@@ -551,7 +603,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS
 
             if (metaKeyValuePairs == null || metaKeyValuePairs.Count == 0)
             {
-                result.Result = new List<IHolon>(all.Result);
+                var everything = new List<IHolon>(all.Result); result.Result = everything; result.IsLoaded = true; result.LoadedCount = everything.Count;
                 return result;
             }
 
@@ -574,7 +626,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS
                 if (isMatch) matches.Add(holon);
             }
 
-            result.Result = matches;
+            result.Result = matches; result.IsLoaded = true; result.LoadedCount = matches.Count;
             return result;
         }
 
@@ -584,11 +636,15 @@ namespace NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
             var result = new OASISResult<bool>();
-            var saved = await SaveHolonsAsync(holons);
-            if (saved.IsError)
+            var saved = await SaveHolonsAsync(holons, saveChildren: false, continueOnError: false);
+            if (saved.IsError || !saved.IsSaved)
                 OASISErrorHandling.HandleError(ref result, saved.Message);
             else
+            {
                 result.Result = true;
+                result.IsSaved = true;
+                result.SavedCount = saved.SavedCount;
+            }
             return result;
         }
 
@@ -618,7 +674,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS
                     owned.Add(holon);
             }
 
-            result.Result = owned;
+            result.Result = owned; result.IsLoaded = true; result.LoadedCount = owned.Count;
             return result;
         }
 

@@ -1,0 +1,89 @@
+name: Aptos native storage
+
+on:
+  push:
+    branches: [work/hyperdrive-triad]
+    paths:
+      - '.github/workflows/aptos-native-storage.yml'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.AptosOASIS/**'
+      - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.AptosOASIS.IntegrationTests/AptosNativeStorageConformanceTests.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  storage:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: OASIS
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Run the shared core storage suite against a disposable Aptos local testnet
+        run: |
+          fixture="$(mktemp -d "$RUNNER_TEMP/oasis-native.XXXXXXXX")"
+          tools="$(mktemp -d "$RUNNER_TEMP/aptos-tools.XXXXXXXX")"
+          node_pid=""
+          cleanup() {
+            status=$?
+            if [[ -n "$node_pid" ]]; then kill "$node_pid" 2>/dev/null || true; wait "$node_pid" 2>/dev/null || true; fi
+            if (( status != 0 )) && [[ -f "$tools/node.log" ]]; then tail -n 40 "$tools/node.log" || true; fi
+            [[ "$fixture" == "$RUNNER_TEMP"/oasis-native.* ]] && rm -rf -- "$fixture"
+            [[ "$tools" == "$RUNNER_TEMP"/aptos-tools.* ]] && rm -rf -- "$tools"
+            exit "$status"
+          }
+          trap cleanup EXIT
+          curl -fsSL -o "$tools/aptos.zip" \
+            https://github.com/aptos-labs/aptos-core/releases/download/aptos-cli-v9.6.0/aptos-cli-9.6.0-Ubuntu-24.04-x86_64.zip
+          unzip -q "$tools/aptos.zip" -d "$tools/bin"
+          aptos="$tools/bin/aptos"
+          "$aptos" --version
+          (cd "$tools" && "$aptos" node run-local-testnet --with-faucet --force-restart --assume-yes --no-txn-stream \
+            --test-dir "$tools/testnet" > "$tools/node.log" 2>&1) &
+          node_pid=$!
+          for attempt in $(seq 1 120); do
+            if curl -fsS http://127.0.0.1:8080/v1 >/dev/null 2>&1 && curl -fsS http://127.0.0.1:8081/ >/dev/null 2>&1; then break; fi
+            [[ "$attempt" != 120 ]]; sleep 2
+          done
+          contract="Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.AptosOASIS/contracts"
+          workdir="$tools/account"; mkdir -p "$workdir"; cp -r "$contract"/. "$workdir"/
+          cd "$workdir"
+          "$aptos" init --profile oasis --network local --assume-yes >/dev/null
+          address="$(sed -n 's/^ *account: *//p' .aptos/config.yaml | head -1)"
+          key="$(sed -n 's/^ *private_key: *"\{0,1\}\([^"]*\)"\{0,1\}$/\1/p' .aptos/config.yaml | head -1)"
+          [[ -n "$address" && -n "$key" ]]
+          "$aptos" move publish --profile oasis --named-addresses oasis=oasis --assume-yes >/dev/null
+          "$aptos" move run --profile oasis --function-id "0x${address#0x}::oasis::initialize" --assume-yes >/dev/null
+          cd "$GITHUB_WORKSPACE/OASIS"
+          export OASIS_NATIVE_STORAGE_FIXTURE="$fixture" OASIS_APTOS_CONTRACT="0x${address#0x}" OASIS_APTOS_PRIVATE_KEY="${key#ed25519-priv-}"
+          dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.AptosOASIS.IntegrationTests" \
+            -p:NativeStorageConformance=true --filter "FullyQualifiedName~AptosNativeStorageConformanceTests" \
+            -m:2 -nr:false -p:UseSharedCompilation=false --logger "console;verbosity=normal"
+          for mode in async sync; do
+            jq -e '.Succeeded and .FixtureCleanupComplete and (.Passed | length == 26)' "$fixture/$mode.json" >/dev/null
+          done
+          echo "Aptos passed both storage modes against a local testnet."

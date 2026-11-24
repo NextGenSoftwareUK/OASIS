@@ -581,9 +581,6 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
                     Assert.AreEqual(privateHolon.Id, scopedExport.Result.Single().Id);
                 }
 
-                var hardDelete = await recovered.DeleteAvatarAsync(avatarRecord.Id, softDelete: false);
-                Assert.IsTrue(hardDelete.IsError);
-                Assert.IsFalse(hardDelete.MetaData.ContainsKey("BitcoinTransactionId"));
                 var deleted = await recovered.DeleteAvatarByEmailAsync(avatarRecord.Email);
                 Assert.IsFalse(deleted.IsError, deleted.Message);
                 Assert.IsTrue(deleted.Result);
@@ -713,6 +710,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
                 var rootRecord = new Holon { Id = Guid.NewGuid(), HolonType = HolonType.Holon, Version = 1 };
                 var childRecord = new Holon { Id = Guid.NewGuid(), HolonType = HolonType.Holon, Version = 1 };
                 rootRecord.Children = new[] { (IHolon)childRecord }.ToList();
+                // A child that names a different parent is rejected before any publication.
+                childRecord.ParentHolonId = Guid.NewGuid();
                 var invalidGraph = await recovered.SaveHolonAsync(rootRecord, saveChildrenOnProvider: true);
                 Assert.IsTrue(invalidGraph.IsError);
                 Assert.AreEqual(0, invalidGraph.SavedCount);

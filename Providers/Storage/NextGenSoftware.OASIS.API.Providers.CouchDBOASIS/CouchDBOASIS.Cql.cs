@@ -120,7 +120,7 @@ public partial class CouchDBOASIS : ICosmicQueryStorageProvider
             (conflicts.ValueKind != JsonValueKind.Array || conflicts.GetArrayLength() != 0))
             throw new CqlRevisionConflictException();
 
-        var row = JsonSerializer.Deserialize<Holon>(native.GetRawText(), new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        var row = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<Holon>(native.GetRawText());
         if (row == null || row.Id != id)
             throw new InvalidDataException("Native holon differs from the selected key.");
         return row;

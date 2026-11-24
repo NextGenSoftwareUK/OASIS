@@ -64,8 +64,13 @@ namespace NextGenSoftware.OASIS.API.Providers.InfluxDBOASIS
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocal);
         }
 
-        private static string Ser(object o) => JsonSerializer.Serialize(o, _jsonOpts);
-        private static T? Des<T>(string? json) => json == null ? default : JsonSerializer.Deserialize<T>(json, _jsonOpts);
+        // Canonical OASIS record JSON keeps concrete types for interface members and skips holon navigation.
+        private static string Ser(object o) => NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Serialize(o);
+        private static T? Des<T>(string? json) => json == null ? default : NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<T>(json);
+
+        /// <summary>Permanently removes every point of one tagged record (all versions) from the bucket.</summary>
+        private Task DeleteSeriesAsync(string measurement, Guid id)
+            => GetClient().GetDeleteApi().Delete(DateTime.UnixEpoch, DateTime.UtcNow.AddYears(1), $"_measurement=\"{measurement}\" AND id=\"{id:D}\"", _bucket, _org);
 
         private InfluxDBClient GetClient() => _client ??= InfluxDBClientFactory.Create(_url, _token.ToCharArray());
 
@@ -150,7 +155,7 @@ from(bucket: ""{EscapeFlux(bucket)}"")
                     .Field("data_json", Ser(avatar))
                     .Timestamp(DateTime.UtcNow, WritePrecision.Ns);
                 await WritePointAsync(point);
-                result.Result = avatar; result.IsError = false; result.Message = $"InfluxDBOASIS: Avatar '{avatar.Username}' saved.";
+                result.Result = avatar; result.IsError = false; result.IsSaved = true; result.SavedCount = 1; result.Message = $"InfluxDBOASIS: Avatar '{avatar.Username}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: {ex.Message}"); }
             return result;
@@ -174,7 +179,7 @@ from(bucket: ""{EscapeFlux(bucket)}"")
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
-            try { var a = await LoadAvatarByTagAsync("id", id.ToString()); if (a == null) { OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: No avatar for ID '{id}'."); return result; } result.Result = a; result.IsError = false; result.Message = "InfluxDBOASIS: Avatar loaded."; }
+            try { var a = await LoadAvatarByTagAsync("id", id.ToString()); if (a == null) { OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: No avatar for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; } result.Result = a; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "InfluxDBOASIS: loaded."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: {ex.Message}"); }
             return result;
         }
@@ -184,7 +189,7 @@ from(bucket: ""{EscapeFlux(bucket)}"")
         public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string username, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
-            try { var a = await LoadAvatarByTagAsync("username", username); if (a == null) { OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: No avatar for username '{username}'."); return result; } result.Result = a; result.IsError = false; result.Message = "InfluxDBOASIS: Avatar loaded."; }
+            try { var a = await LoadAvatarByTagAsync("username", username); if (a == null) { OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: No avatar for username '{username}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; } result.Result = a; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "InfluxDBOASIS: loaded."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: {ex.Message}"); }
             return result;
         }
@@ -194,7 +199,7 @@ from(bucket: ""{EscapeFlux(bucket)}"")
         public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string email, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
-            try { var a = await LoadAvatarByTagAsync("email", email); if (a == null) { OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: No avatar for email '{email}'."); return result; } result.Result = a; result.IsError = false; result.Message = "InfluxDBOASIS: Avatar loaded."; }
+            try { var a = await LoadAvatarByTagAsync("email", email); if (a == null) { OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: No avatar for email '{email}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; } result.Result = a; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "InfluxDBOASIS: loaded."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: {ex.Message}"); }
             return result;
         }
@@ -210,7 +215,7 @@ from(bucket: ""{EscapeFlux(bucket)}"")
             {
                 var records = await QueryAsync(LatestByIdFlux(_bucket, "oasis_avatars"));
                 var avatars = records.Where(r => !FieldBool(r, "is_deleted")).Select(r => Des<Avatar>(Field(r, "data_json"))).Where(a => a != null).Cast<IAvatar>().ToList();
-                result.Result = avatars; result.IsError = false; result.Message = $"InfluxDBOASIS: Loaded {avatars.Count} avatar(s).";
+                result.Result = avatars; result.IsError = false; result.IsLoaded = true; result.LoadedCount = avatars.Count; result.Message = $"InfluxDBOASIS: Loaded {avatars.Count} avatar(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: {ex.Message}"); }
             return result;
@@ -225,7 +230,14 @@ from(bucket: ""{EscapeFlux(bucket)}"")
             var result = new OASISResult<bool>();
             try
             {
-                var loaded = await LoadAvatarAsync(id); if (loaded.IsError || loaded.Result == null) { OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: Avatar '{id}' not found."); return result; }
+                var loaded = await LoadAvatarAsync(id); if (loaded.IsError || loaded.Result == null) { OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: Avatar '{id}' not found."); result.ErrorCode = loaded.ErrorCode; return result; }
+                if (!softDelete)
+                {
+                    await DeleteSeriesAsync("oasis_avatars", id);
+                    await DeleteSeriesAsync("oasis_avatar_details", id);
+                    result.Result = true; result.IsError = false; result.IsDeleted = true; result.DeletedCount = 1; result.Message = $"InfluxDBOASIS: Avatar '{id}' permanently deleted.";
+                    return result;
+                }
                 var av = (Avatar)loaded.Result; av.DeletedDate = DateTime.UtcNow;
                 // Soft-delete: write new point with is_deleted=true (InfluxDB is append-only, newest wins)
                 var point = PointData.Measurement("oasis_avatars")
@@ -233,7 +245,7 @@ from(bucket: ""{EscapeFlux(bucket)}"")
                     .Field("is_deleted", true).Field("data_json", Ser(av))
                     .Timestamp(DateTime.UtcNow, WritePrecision.Ns);
                 await WritePointAsync(point);
-                result.Result = true; result.IsError = false; result.Message = $"InfluxDBOASIS: Avatar '{id}' deleted.";
+                result.Result = true; result.IsError = false; result.IsDeleted = true; result.DeletedCount = 1; result.Message = $"InfluxDBOASIS: Avatar '{id}' deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: {ex.Message}"); }
             return result;
@@ -260,7 +272,7 @@ from(bucket: ""{EscapeFlux(bucket)}"")
                     .Tag("id", d.Id.ToString()).Tag("username", d.Username ?? "").Tag("email", d.Email ?? "")
                     .Field("data_json", Ser(d)).Timestamp(DateTime.UtcNow, WritePrecision.Ns);
                 await WritePointAsync(point);
-                result.Result = d; result.IsError = false; result.Message = "InfluxDBOASIS: AvatarDetail saved.";
+                result.Result = d; result.IsError = false; result.IsSaved = true; result.SavedCount = 1; result.Message = "InfluxDBOASIS: AvatarDetail saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: {ex.Message}"); }
             return result;
@@ -276,17 +288,17 @@ from(bucket: ""{EscapeFlux(bucket)}"")
             return rec == null ? null : Des<AvatarDetail>(Field(rec, "data_json"));
         }
 
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var d = await LoadDetailByTagAsync("id", id.ToString()); if (d == null) { OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: No detail for ID '{id}'."); return result; } result.Result = d; result.IsError = false; result.Message = "InfluxDBOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: {ex.Message}"); } return result; }
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var d = await LoadDetailByTagAsync("id", id.ToString()); if (d == null) { OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: No detail for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; } result.Result = d; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "InfluxDBOASIS: loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: {ex.Message}"); } return result; }
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) => LoadAvatarDetailAsync(id, version).Result;
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var d = await LoadDetailByTagAsync("username", u); if (d == null) { OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: No detail for username '{u}'."); return result; } result.Result = d; result.IsError = false; result.Message = "InfluxDBOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: {ex.Message}"); } return result; }
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var d = await LoadDetailByTagAsync("username", u); if (d == null) { OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: No detail for username '{u}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; } result.Result = d; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "InfluxDBOASIS: loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: {ex.Message}"); } return result; }
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string u, int version = 0) => LoadAvatarDetailByUsernameAsync(u, version).Result;
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var d = await LoadDetailByTagAsync("email", e); if (d == null) { OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: No detail for email '{e}'."); return result; } result.Result = d; result.IsError = false; result.Message = "InfluxDBOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: {ex.Message}"); } return result; }
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var d = await LoadDetailByTagAsync("email", e); if (d == null) { OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: No detail for email '{e}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; } result.Result = d; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "InfluxDBOASIS: loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: {ex.Message}"); } return result; }
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string e, int version = 0) => LoadAvatarDetailByEmailAsync(e, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
             var result = new OASISResult<IEnumerable<IAvatarDetail>>();
-            try { var records = await QueryAsync(LatestByIdFlux(_bucket, "oasis_avatar_details")); var details = records.Select(r => Des<AvatarDetail>(Field(r, "data_json"))).Where(d => d != null).Cast<IAvatarDetail>().ToList(); result.Result = details; result.IsError = false; result.Message = $"InfluxDBOASIS: Loaded {details.Count} detail(s)."; }
+            try { var records = await QueryAsync(LatestByIdFlux(_bucket, "oasis_avatar_details")); var details = records.Select(r => Des<AvatarDetail>(Field(r, "data_json"))).Where(d => d != null).Cast<IAvatarDetail>().ToList(); result.Result = details; result.IsError = false; result.IsLoaded = true; result.LoadedCount = details.Count; result.Message = $"InfluxDBOASIS: Loaded {details.Count} detail(s)."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: {ex.Message}"); }
             return result;
         }
@@ -307,16 +319,29 @@ from(bucket: ""{EscapeFlux(bucket)}"")
                     ? new Dictionary<Core.Enums.ProviderType, string>()
                     : new Dictionary<Core.Enums.ProviderType, string>(holon.ProviderUniqueStorageKey);
                 keys[Core.Enums.ProviderType.InfluxDBOASIS] = id.ToString("D");
-                var payload = JsonSerializer.SerializeToNode(holon, holon.GetType(), _jsonOpts)!.AsObject();
-                payload["id"] = id;
-                payload["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
-                await PersistHolonAsync(id, holon.ParentHolonId, ((int)holon.HolonType).ToString(System.Globalization.CultureInfo.InvariantCulture), holon.IsDeleted, payload.ToJsonString(_jsonOpts));
+                var payload = System.Text.Json.Nodes.JsonNode.Parse(Ser(holon))!.AsObject();
+                payload["Id"] = id.ToString("D");
+                payload["ProviderUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys);
+                await PersistHolonAsync(id, holon.ParentHolonId, ((int)holon.HolonType).ToString(System.Globalization.CultureInfo.InvariantCulture), holon.IsDeleted, payload.ToJsonString());
                 holon.Id = id;
                 holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
                 holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.InfluxDBOASIS] = id.ToString("D");
+                var savedCount = 1;
+                if (saveChildren && holon.Children != null)
+                {
+                    foreach (var child in holon.Children)
+                    {
+                        if (child == null) continue;
+                        child.ParentHolonId = id;
+                        var childResult = await SaveHolonAsync(child, recursive, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                        if (childResult.IsError || !childResult.IsSaved)
+                            throw new System.IO.InvalidDataException($"Child holon {child.Id} was not saved: {childResult.Message}");
+                        savedCount += childResult.SavedCount;
+                    }
+                }
                 result.Result = holon;
                 result.IsSaved = true;
-                result.SavedCount = 1;
+                result.SavedCount = savedCount;
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: {ex.Message}"); }
             return result;
@@ -329,6 +354,7 @@ from(bucket: ""{EscapeFlux(bucket)}"")
             var result = new OASISResult<IEnumerable<IHolon>>();
             var saved = new List<IHolon>();
             var errors = new List<string>();
+            var savedTotal = 0;
             foreach (var holon in holons)
             {
                 var write = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
@@ -337,13 +363,13 @@ from(bucket: ""{EscapeFlux(bucket)}"")
                     errors.Add(write.Message);
                     if (!continueOnError) break;
                 }
-                else if (write.IsSaved && write.Result != null) saved.Add(write.Result);
+                else if (write.IsSaved && write.Result != null) { saved.Add(write.Result); savedTotal += write.SavedCount; }
             }
             result.Result = saved;
             result.IsError = errors.Count > 0;
             result.ErrorCount = errors.Count;
             result.IsSaved = saved.Count > 0;
-            result.SavedCount = saved.Count;
+            result.SavedCount = savedTotal;
             result.Message = string.Join("; ", errors);
             return result;
         }
@@ -358,9 +384,9 @@ from(bucket: ""{EscapeFlux(bucket)}"")
             try
             {
                 var records = await QueryAsync(LatestByIdFlux(_bucket, "oasis_holons", $"r.id == \"{EscapeFlux(id.ToString())}\""));
-                var rec = records.FirstOrDefault(r => !FieldBool(r, "is_deleted")); if (rec == null) { OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: No holon for ID '{id}'."); return result; }
+                var rec = records.FirstOrDefault(r => !FieldBool(r, "is_deleted")); if (rec == null) { OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: No holon for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 var holon = Des<Holon>(Field(rec, "data_json")); if (holon == null) { OASISErrorHandling.HandleError(ref result, "InfluxDBOASIS: Deserialise failed."); return result; }
-                result.Result = holon; result.IsError = false; result.Message = "InfluxDBOASIS: Holon loaded.";
+                result.Result = holon; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "InfluxDBOASIS: loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: {ex.Message}"); }
             return result;
@@ -377,7 +403,7 @@ from(bucket: ""{EscapeFlux(bucket)}"")
             {
                 var records = await QueryAsync(LatestByIdFlux(_bucket, "oasis_holons"));
                 var holons = records.Where(r => !FieldBool(r, "is_deleted") && (type == HolonType.All || r.Values.TryGetValue("holon_type", out var ht) && ht?.ToString() == ((int)type).ToString())).Select(r => Des<Holon>(Field(r, "data_json"))).Where(h => h != null).Cast<IHolon>().ToList();
-                result.Result = holons; result.IsError = false; result.Message = $"InfluxDBOASIS: Loaded {holons.Count} holon(s).";
+                result.Result = holons; result.IsError = false; result.IsLoaded = true; result.LoadedCount = holons.Count; result.Message = $"InfluxDBOASIS: Loaded {holons.Count} holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: {ex.Message}"); }
             return result;
@@ -393,7 +419,7 @@ from(bucket: ""{EscapeFlux(bucket)}"")
                 var idStr = id.ToString();
                 var records = await QueryAsync(LatestByIdFlux(_bucket, "oasis_holons", $"r.parent_holon_id == \"{EscapeFlux(idStr)}\""));
                 var holons = records.Where(r => !FieldBool(r, "is_deleted") && (type == HolonType.All || r.Values.TryGetValue("holon_type", out var ht) && ht?.ToString() == ((int)type).ToString())).Select(r => Des<Holon>(Field(r, "data_json"))).Where(h => h != null).Cast<IHolon>().ToList();
-                result.Result = holons; result.IsError = false; result.Message = $"InfluxDBOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
+                result.Result = holons; result.IsError = false; result.IsLoaded = true; result.LoadedCount = holons.Count; result.Message = $"InfluxDBOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: {ex.Message}"); }
             return result;
@@ -410,17 +436,42 @@ from(bucket: ""{EscapeFlux(bucket)}"")
             var result = new OASISResult<IHolon>();
             try
             {
-                var loaded = await LoadHolonAsync(id); if (loaded.IsError || loaded.Result == null) { OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: Holon '{id}' not found."); return result; }
+                var loaded = await LoadHolonAsync(id, loadChildren: false); if (loaded.IsError || loaded.Result == null) { OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: Holon '{id}' not found."); result.ErrorCode = loaded.ErrorCode; return result; }
                 var holon = (Holon)loaded.Result; holon.DeletedDate = DateTime.UtcNow;
                 var point = PointData.Measurement("oasis_holons").Tag("id", id.ToString()).Tag("parent_holon_id", holon.ParentHolonId.ToString()).Tag("holon_type", ((int)holon.HolonType).ToString()).Field("is_deleted", true).Field("data_json", Ser(holon)).Timestamp(DateTime.UtcNow, WritePrecision.Ns);
                 await WritePointAsync(point);
-                result.Result = holon; result.IsError = false; result.Message = $"InfluxDBOASIS: Holon '{id}' soft-deleted.";
+                result.Result = holon; result.IsError = false; result.IsDeleted = true; result.DeletedCount = 1; result.Message = $"InfluxDBOASIS: Holon '{id}' soft-deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: {ex.Message}"); }
             return result;
         }
 
         public override OASISResult<IHolon> DeleteHolon(Guid id) => DeleteHolonAsync(id).Result;
+
+        /// <summary>Soft delete (newest tombstone point) or permanent removal of every point of one holon.</summary>
+        public async Task<OASISResult<bool>> DeleteHolonSoftAsync(Guid id, bool softDelete = true)
+        {
+            var result = new OASISResult<bool>();
+            try
+            {
+                if (softDelete)
+                {
+                    var deleted = await DeleteHolonAsync(id);
+                    if (deleted.IsError || !deleted.IsDeleted) { OASISErrorHandling.HandleError(ref result, deleted.Message); result.ErrorCode = deleted.ErrorCode; return result; }
+                }
+                else
+                {
+                    var records = await QueryAsync(LatestByIdFlux(_bucket, "oasis_holons", $"r.id == \"{EscapeFlux(id.ToString())}\""));
+                    if (records.Count == 0) { OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: No holon for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                    await DeleteSeriesAsync("oasis_holons", id);
+                }
+                result.Result = true; result.IsDeleted = true; result.DeletedCount = 1;
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: {ex.Message}"); }
+            return result;
+        }
+
+        public OASISResult<bool> DeleteHolonSoft(Guid id, bool softDelete = true) => DeleteHolonSoftAsync(id, softDelete).Result;
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string pk) { if (Guid.TryParse(pk, out Guid id)) return await DeleteHolonAsync(id); var r = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r, $"InfluxDBOASIS: Invalid GUID '{pk}'."); return r; }
         public override OASISResult<IHolon> DeleteHolon(string pk) => DeleteHolonAsync(pk).Result;
 
@@ -437,19 +488,19 @@ from(bucket: ""{EscapeFlux(bucket)}"")
         public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) => SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        { var all = await LoadAllHolonsAsync(type); var holons = all.Result?.Where(h => h.MetaData != null && h.MetaData.TryGetValue(metaKey, out var v) && v?.ToString() == metaValue).ToList() ?? new List<IHolon>(); return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsError = false, Message = $"InfluxDBOASIS: {holons.Count} holon(s)." }; }
+        { var all = await LoadAllHolonsAsync(type); var holons = all.Result?.Where(h => h.MetaData != null && h.MetaData.TryGetValue(metaKey, out var v) && v?.ToString() == metaValue).ToList() ?? new List<IHolon>(); if (all.IsError) { var failed = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref failed, all.Message); return failed; } return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsError = false, IsLoaded = true, LoadedCount = holons.Count, Message = $"InfluxDBOASIS: {holons.Count} holon(s)." }; }
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKvp, MetaKeyValuePairMatchMode mode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        { var all = await LoadAllHolonsAsync(type); bool IsMatch(IHolon h) { if (h.MetaData == null) return false; var checks = metaKvp.Select(kvp => h.MetaData.TryGetValue(kvp.Key, out var v) && v?.ToString() == kvp.Value); return mode == MetaKeyValuePairMatchMode.Any ? checks.Any(c => c) : checks.All(c => c); } var holons = all.Result?.Where(IsMatch).ToList() ?? new List<IHolon>(); return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsError = false, Message = $"InfluxDBOASIS: {holons.Count} holon(s)." }; }
+        { var all = await LoadAllHolonsAsync(type); bool IsMatch(IHolon h) { if (h.MetaData == null) return false; var checks = metaKvp.Select(kvp => h.MetaData.TryGetValue(kvp.Key, out var v) && v?.ToString() == kvp.Value); return mode == MetaKeyValuePairMatchMode.Any ? checks.Any(c => c) : checks.All(c => c); } var holons = all.Result?.Where(IsMatch).ToList() ?? new List<IHolon>(); if (all.IsError) { var failed = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref failed, all.Message); return failed; } return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsError = false, IsLoaded = true, LoadedCount = holons.Count, Message = $"InfluxDBOASIS: {holons.Count} holon(s)." }; }
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKvp, MetaKeyValuePairMatchMode mode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsByMetaDataAsync(metaKvp, mode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
         // ─── Import / Export ──────────────────────────────────────────────────────
 
-        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons) { var s = await SaveHolonsAsync(holons); return new OASISResult<bool> { Result = !s.IsError, IsError = s.IsError, Message = s.Message }; }
+        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons) { var s = await SaveHolonsAsync(holons, saveChildren: false, continueOnError: false); var ok = !s.IsError && s.IsSaved; return new OASISResult<bool> { Result = ok, IsError = !ok, IsSaved = ok, SavedCount = s.SavedCount, Message = s.Message }; }
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).Result;
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) => await LoadAllHolonsAsync();
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).Result;
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0) { var all = await LoadAllHolonsAsync(); var h = all.Result?.Where(x => x.CreatedByAvatarId == avatarId).ToList() ?? new List<IHolon>(); return new OASISResult<IEnumerable<IHolon>> { Result = h, IsError = false, Message = $"InfluxDBOASIS: {h.Count} holon(s)." }; }
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0) { var all = await LoadAllHolonsAsync(); var h = all.Result?.Where(x => x.CreatedByAvatarId == avatarId).ToList() ?? new List<IHolon>(); if (all.IsError) { var failed = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref failed, all.Message); return failed; } return new OASISResult<IEnumerable<IHolon>> { Result = h, IsError = false, IsLoaded = true, LoadedCount = h.Count, Message = $"InfluxDBOASIS: {h.Count} holon(s)." }; }
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0) => ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string u, int version = 0) { var a = await LoadAvatarByUsernameAsync(u); if (a.IsError || a.Result == null) { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, "Not found."); return r; } return await ExportAllDataForAvatarByIdAsync(a.Result.Id, version); }
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string u, int version = 0) => ExportAllDataForAvatarByUsernameAsync(u, version).Result;

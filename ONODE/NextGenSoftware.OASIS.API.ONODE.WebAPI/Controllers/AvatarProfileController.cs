@@ -161,7 +161,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("upload-avatar-portrait")]
         public async Task<OASISHttpResponseMessage<bool>> UploadAvatarPortrait(AvatarPortrait avatarPortrait)
         {
-            if (avatarPortrait.AvatarId != Avatar.Id && avatarPortrait.Username != Avatar.Username && avatarPortrait.Email != Avatar.Email && Avatar.AvatarType.Value != AvatarType.Wizard)
+            // Every supplied identity must be the caller's own unless the caller is a Wizard. The previous
+            // check rejected only when the id, username AND email all differed, so a caller could pass their
+            // own username with another avatar's id and replace that avatar's portrait.
+            bool isWizard = Avatar.AvatarType.Value == AvatarType.Wizard;
+            bool targetsSelf = avatarPortrait != null &&
+                (avatarPortrait.AvatarId == Guid.Empty || avatarPortrait.AvatarId == Avatar.Id) &&
+                (string.IsNullOrEmpty(avatarPortrait.Username) || string.Equals(avatarPortrait.Username, Avatar.Username, StringComparison.OrdinalIgnoreCase)) &&
+                (string.IsNullOrEmpty(avatarPortrait.Email) || string.Equals(avatarPortrait.Email, Avatar.Email, StringComparison.OrdinalIgnoreCase)) &&
+                (avatarPortrait.AvatarId != Guid.Empty || !string.IsNullOrEmpty(avatarPortrait.Username) || !string.IsNullOrEmpty(avatarPortrait.Email));
+            if (avatarPortrait == null || (!targetsSelf && !isWizard))
                 return HttpResponseHelper.FormatResponse(new OASISResult<bool>() { IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
             return HttpResponseHelper.FormatResponse(await AvatarManager.UploadAvatarPortraitAsync(avatarPortrait.AvatarId, avatarPortrait.Username, avatarPortrait.Email, avatarPortrait.ImageBase64));
         }

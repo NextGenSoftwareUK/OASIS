@@ -47,8 +47,8 @@ public class CouchbaseSaveOwnershipTests
         {
             staged = id;
             using var payload = JsonDocument.Parse(json);
-            Assert.AreEqual(id, payload.RootElement.GetProperty("id").GetGuid());
-            Assert.AreEqual(id.ToString("D"), payload.RootElement.GetProperty("providerUniqueStorageKey")
+            Assert.AreEqual(id, payload.RootElement.GetProperty("Id").GetGuid());
+            Assert.AreEqual(id.ToString("D"), payload.RootElement.GetProperty("ProviderUniqueStorageKey")
                 .GetProperty("CouchbaseOASIS").GetString());
             return completion.Task;
         }};
