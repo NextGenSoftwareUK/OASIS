@@ -77,3 +77,5 @@ Settings03760bc9-9984-40c1-8963-55f907f51e66 SUCCESS on cafd0f8c8/Core8a5ab45. F
 Next publish the staged card with verified HTTP scope and first-setup/C# links; do not claim browser or independent consensus verification. Full ORM/signed Starknet writes remain outside this bounded read profile.
 
 Website main80ba51052c14a2f705e24e9825a9fe8b495fe642 now publishes the Starknet card and pinned guide164b4bb96/C#cafd0f8c8 links byte-identically:152265bytes, SHA25658bd2b0b5edec25c29d16f9351006dc4621dd6ca2818df5d08dec1551163a2a6. Public site-publication.json is under TestResults/StarknetPublicSourceCandidateCurrent. Publication does not certify browser interaction; gate remains open. Next breadth candidate is documented in CARDANO_PUBLIC_SOURCE_STATUS.md.
+
+11 November UTC: Starknet public accepted-header presets returned three full and two filtered rows in the live Development CQL Playground. Original-owner MongoDB paired browser verification remains open. No preparation or record saves.

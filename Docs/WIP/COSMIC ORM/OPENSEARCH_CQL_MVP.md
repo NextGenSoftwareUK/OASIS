@@ -135,3 +135,47 @@ Current interactiveTRX hashes under TestResults/OpenSearchCqlCurrent:
 - native-postpair: `bc5c483514c81019ceae59e367c23495b3e7a993c34af6bfed72632f2e2cd021`
 
 Next red provider: Couchbase; continue breadth before deeper parity.
+OpenSearchHostedCqlNative accepts COSMIC_OPENSEARCH_HOSTED_CQL_SOURCE with
+Endpoint, Actor, three LiveIds, one DeletedId and one MissingId. It uses
+the same guarded HTTP transport as WEB4 and checks public root ownership,
+native absence, full and subset reads, paging and unchanged document hashes.
+Keep credentials in the process environment. The hosted tests and deployment
+remain pending. The retained Windows proof is preserved.
+The shared WEB4 admission run passed ten focused checks with zero skips at
+Core `0205f68`, covering both providers and all native and Mongo presets.
+TRX SHA-256 `e61277ee1449a4cb2156be6a9954608f2f7543be7d697b0235315e12b0cd9edb`.
+The native HTTPS fixture compiled with 11 warnings and zero errors.
+Execution needs an owned source and restricted read credentials.
+
+Offline enrollment binds the reviewed Endpoint and the first LiveIds
+entry to the protected HTTPS origin and probe settings. The descriptor
+does not contain credentials. The protected reader must pass format
+checks, and its actual read scope must be qualified against the owned
+teaching index before live enrollment.
+
+The OpenSearch hosted fixture now requires CQL_OPENSEARCH_QUERY_ORIGIN
+and CQL_OPENSEARCH_QUERY_PROBE_ID to match the reviewed Endpoint and first
+LiveIds entry. It compiled with zero errors, and both mismatch checks
+failed before sending HTTP. Live qualification remains open.
+
+11 November UTC: Development OpenSearch CI passed all four generic storage cases. The remaining three tests stopped at missing fixture prerequisites: owned Mongo replica admission, persistent OpenSearch restart state, and the Mongo federation connection. The next CI change should reuse the existing restart and federation tests on isolated state, preserving the generic storage coverage. Hosted CQL remains open. [OpenSearch job](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43028699870/job/130549848053)
+
+11 November UTC: published OpenSearch diagnostic `77285ecd91` against Development `73e0d4bb08`. CI reuses the existing secured OpenSearch 3.9.0 provisioner with the runner account as the receipt owner, then runs the existing native test before and after restarting the same container. The diagnostic uses an isolated runner and a private CA. Federation and hosted CQL remain open.
+
+11 November UTC: secured OpenSearch 3.9.0 CI passed one native CQL test before restart and one after restart, zero skips. The tests verified the same cluster identity and original document snapshot over authenticated HTTPS with the fixture CA. CI removed its container. Mongo federation and hosted WEB4 remain open. [OpenSearch restart CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43035774220)
+
+11 November UTC: OpenSearch federation diagnostic `b4ff3d1e2c` extends the passing secured restart workflow with a disposable Mongo replica set. It runs existing replica admission, SDK/HTTP federation, and the post-federation native source recheck. Hosted HTTPS teaching-source acceptance remains open.
+
+11 November UTC: OpenSearch passed all five isolated CI phases with zero skips, including Mongo replica admission, native SDK/HTTP federation, and a final source recheck. Hosted HTTPS CQL remains open. [OpenSearch federation CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43037028447)
+
+11 November UTC: Development `2df4de082f` contains the verified OpenSearch restart/federation and SurrealDB restart workflows and fixture scripts. Both are manually dispatched. SurrealDB generic storage and federation remain open, as does hosted HTTPS CQL for both providers. [OpenSearch CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43037028447) · [SurrealDB restart CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43038591878)
+
+11 November UTC: standard OpenSearch CI fixture orchestration is under verification at ba77981977. Both generic and native coverage are retained. Hosted HTTPS CQL remains open.
+
+11 November UTC: the generic and secured native OpenSearch jobs are queued in [OpenSearch fixture orchestration CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43040976654).
+
+11 November UTC: both OpenSearch CI jobs passed together, including the generic storage matrix and secured native restart/federation workflow. Candidate `18d99faa23` is ready for the next Development batch. The equivalent SurrealDB jobs are running. Hosted HTTPS CQL remains open for both. [OpenSearch CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43040976654) · [SurrealDB CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43042182895)
+
+11 November UTC: Development c837fe5ad8 carries the OpenSearch and SurrealDB CI routing verified in runs 43040976654 and 43042182895. Both passed generic storage and native federation. Development pipeline 43043263300 and Railway WEB4 deployment f573b5ac-55d9-4394-a84f-20feb7eaaa87 were queued at inspection. Live acceptance remains gated on restricted HTTPS teaching sources already recorded in ACTIONS-FOR-DAVID.
+
+11 November UTC: OpenSearch generic storage and native restart/federation both passed in standard Development CI 43043263300 at c837fe5ad8. Railway deployed earlier revision 165e8abaee successfully and still has c837fe5ad8 queued. Hosted HTTPS CQL acceptance remains open.

@@ -152,3 +152,95 @@ Evidence under TestResults/ArangoDbCqlCurrent:
 Final browser-run.log contains all5phase hashes. Earlier native hashes above refer
 to the original admission run, not refreshed current TRX files. Reports remain
 regenerable outside Docs. [Launcher](CQL_DEMO_LAUNCHER.md).
+# ArangoDB bounded CQL MVP
+
+The provider now has a bounded identity query path over the native AQL
+cursor API. It uses the existing `oasis/holons` documents and binds
+canonical GUID keys in a `DOCUMENT` lookup. It strips embedded children
+before returning the records. Missing documents are excluded by the
+native lookup, and paging follows identity and visibility checks. A
+native error, incomplete cursor, foreign key or inconsistent payload
+rejects the whole result. Budgets are 100 keys, 15 seconds, 8 MiB wire
+and 4 MiB decoded payload. General graph and historical queries are open.
+
+The public profile takes a caller-owned HTTP client and an existing
+probe. It requires the probe and selected live records to remain public.
+The test fixture covers the exact AQL request, paging, deleted and missing
+records, private records and malformed cursor outcomes. The provider
+build is pending the shared lease.
+
+The opt-in hosted fixture is prepared for the pending WEB4 registration.
+It will use `COSMIC_ARANGODB_HOSTED_CQL_SOURCE` and protected origin,
+restricted reader and probe settings. Run native qualification with
+an approved ArangoDB source. ArangoDB 3.12 requires Linux or the official
+Linux container on this Windows host. There is no supported native
+Windows package for 3.12.
+[Native lookup contract](https://docs.arango.ai/arangodb/stable/aql/functions/miscellaneous/#document).
+[Native platform support](https://docs.arango.ai/arangodb/stable/operations/installation/).
+
+All 13 provider tests passed at Core `0492cec40a87a7ab84ac2ec7718e017ae4463871`.
+The cursor tests verified 3/2, paging, deletion and absence, private record
+rejection and strict failure on a foreign key, bad payload or incomplete
+cursor. WEB4 registration and native server execution remain open.
+
+WEB4 now reads protected `CQL_ARANGODB_QUERY_` settings with suffixes ORIGIN,
+READER_USERNAME, READER_PASSWORD and PROBE_ID. The connection is pinned
+to the configured HTTPS cursor endpoint in database `oasis`. The
+transport checks the exact AQL, runtime limit and canonical key set before
+sending a request. The protected settings preparer requires the first
+reviewed live ID as the probe. Eight settings tests passed.
+
+The native fixture is enabled with
+`/p:EnableArangoDbHostedCqlNativeTests=true` and selected with
+`TestCategory=ArangoDbHostedCqlNative`. The fixture build passed and all 11 WEB4 admission tests passed at Core
+`c7743e6d9ee0432d180311e4a85a23dbd4980b93`. An approved TLS endpoint and restricted reader for
+`oasis/holons` are required for the native run.
+
+The original task branch records native restart and Mongo-paired browser
+proof at `d36cc175c` and `ed5d9c6bb`. Those results cover the original source
+and local demo. This recovery build covers the new WEB4 admission path.
+
+Admission TRX SHA256
+`a98217a443336f380162b69701b3b0130defedf71c64b7eea1c87262477c03ed`.
+The fixture was compiled here. The approved hosted ArangoDB source and
+live Development verification are still pending.
+
+Offline enrollment and native qualification use the same descriptor with Origin. Use
+the first LiveIds entry as the probe. The protected settings must match
+the reviewed source and contain the restricted reader username and
+password. Offline tests used synthetic settings. The owned native source
+and live WEB4 acceptance are still pending.
+
+11 November UTC: [ArangoDB provider integration CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43026834539) passed with the authenticated fixture and the scoped candidate `9e82b80e72`. The companion run also passed. Development advanced to `c0b8c1eef1` with the independently verified EOSIO native storage batch while this diagnostic ran. The ArangoDB correction is on the COSMIC branch pending integration, and its separate native restart and federation gates remain open.
+
+11 November UTC: prepared ArangoDB integration candidate `5878dea5f9` on Development `c0b8c1eef1`. The two changed files produce a byte-identical patch to the successful authenticated-fixture CI candidate. The intervening Development changes concern EOSIO native storage. Development integration remains pending while the LayerZero deployment builds and its two successors are queued.
+
+11 November UTC: integrated the authenticated ArangoDB CI fixture correction into Development `48fea5d0ed`, preserving the Solana and EOSIO changes. The two-file patch is byte-identical to the scoped candidate that passed ArangoDB provider integration CI. The change wires the synthetic test-container password into the test client. Hosted HTTPS teaching-source qualification and live WEB4 acceptance remain open. [Focused CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43026834539)
+
+11 November UTC: standard Development CI exported the authenticated ArangoDB fixture settings successfully, but the full integration project still failed in its test step. The focused generic integration pass remains valid. Inspect individual test outcomes before attributing the broader failure to a specific fixture or provider path. [Development ArangoDB job](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43028699870/job/130549848025)
+
+11 November UTC: standard Development ArangoDB CI passed all four generic storage cases. The three failures were the Linux Mongo replica-set admission test (missing owned root), native Mongo federation test (missing replica-set connection), and retained ArangoDB restart test (missing retained runner root). The generic job starts only ArangoDB. The remaining CI work is to run the fixture-dependent tests with their own provisioned state and preserve coverage of both test groups. [Development job](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43028699870/job/130549848025)
+
+11 November UTC: added an isolated ArangoDB restart workflow using the pinned 3.12.12 image and the existing native CQL test. It uses one fresh fixture across initial load and graceful restart, checks that each phase executed one passing test, and removes the container and its anonymous volumes on exit. Diagnostic `348b78616c` runs on Development `877318b3c7`. Mongo federation and hosted CQL remain separate open gates.
+
+11 November UTC: the first isolated restart job pulled the pinned ArangoDB image but received a connection reset during startup before any tests ran. The corrected workflow bounds authenticated readiness polling, checks that the owned container is running, and allows only transient transport errors while the service initializes. Authentication and version errors stop immediately. Corrected diagnostic `80e4f92139` is published for CI. [First restart attempt](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43030710056)
+
+11 November UTC: corrected startup readiness is running in [ArangoDB native restart CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43031012725). The initial startup failure and companion run are terminal. The old diagnostic tag was removed.
+
+11 November UTC: isolated ArangoDB restart CI passed with one native CQL test and zero skips before restart and one pass and zero skips after restart on the same pinned 3.12.12 container. The retained fixture assertions checked record hashes and collection revision. The workflow completed graceful stop and container/volume removal. This qualifies the fresh CI restart path. Mongo federation and hosted CQL remain open. [ArangoDB restart CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43031012725)
+
+11 November UTC: Development `b22d4667ba` contains the verified QuestDB CI schema provisioning and ArangoDB native restart workflows. The ArangoDB workflow is manually dispatched. QuestDB hosted CQL and ArangoDB Mongo federation and hosted CQL remain open. This batch changes CI workflows only. [QuestDB focused CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43029367152), [ArangoDB restart CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43031012725)
+
+11 November UTC: ArangoDB federation diagnostic `ad775a8da6` extends the verified restart workflow with a disposable loopback Mongo replica set. It runs existing replica admission, native federation, and post-federation ArangoDB identity checks. It uses fresh CI state and leaves the original retained source alone. Hosted CQL remains open.
+
+11 November UTC: ArangoDB CI passed all five phases with zero skips: initial native read, restart read, Mongo replica admission, native SDK/HTTP federation, and post-federation source recheck. The federation test verified 5 full and 4 filtered rows with provider provenance, rejected invalid requests, and verified the owned Mongo database was removed. The original retained source was not used. Hosted CQL remains open. [ArangoDB federation CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43031787640)
+
+11 November UTC: Development `73e0d4bb08` contains the verified ArangoDB MongoDB federation and QuestDB restart workflows. Both are manually dispatched. This batch changes only CI. Hosted HTTPS source admission and live browser checks remain open. [ArangoDB CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43031787640) · [QuestDB CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43033757190)
+
+11 November UTC: candidate 880937b05f routes generic ArangoDB and QuestDB cases to the standard provider matrix and calls the dedicated native fixture workflows from the same pipeline. Diagnostic 37a10ab14d exercises all four jobs. Both fixture workflows retain manual dispatch. Development integration awaits the combined result.
+
+11 November UTC: combined database CI passed all four jobs, covering generic ArangoDB and QuestDB plus their dedicated restart and federation fixture tests. Candidate `880937b05f` is ready for the next Development batch. Hosted CQL remains open for both providers. [Combined CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43034639175)
+
+11 November UTC: Development `1c7e670e8d` integrates the verified ArangoDB and QuestDB CI routing. The generic matrix runs the four storage tests for each provider and calls the dedicated fixture workflows for native restart and federation coverage. The three-file patch is identical to the one qualified by all four focused jobs. Hosted CQL remains open. [Combined database CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43034639175)
+
+11 November UTC: the standard Development pipeline at `1c7e670e8d` passed all four ArangoDB and QuestDB jobs, including both generic storage jobs and both dedicated native fixture jobs. This verifies the routing in the regular pipeline. Hosted CQL acceptance remains open. [Development CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43036514678)

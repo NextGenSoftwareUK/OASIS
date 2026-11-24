@@ -79,3 +79,43 @@ registration, active replication/cluster/failover, public hosting, AOF/per-save 
 durability/PITR and distributed snapshots remain unverified for this scope.
 [Historical proof/failure review](Archive/DRAGONFLY_CQL_MVP_PRESERVED_2026-10-30.md),
 [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md), [later work](AFTER_DEMO_BACKLOG.md).
+
+## WEB4 query profile preparation
+
+The opt-in source uses the `CQL_DRAGONFLY_QUERY_` settings ADDRESS, PORT,
+TLS_HOST, USERNAME, PASSWORD, STORAGE_KEY and PROBE_ID. Use the approved
+native TLS endpoint, a read-restricted ACL, the existing encryption key
+and the first reviewed live probe. The shared Redis SDK checks the exact
+socket endpoint and the Dragonfly provider retains its own authority and
+encrypted key namespace. The query profile rejects a selected live record
+that has become private.
+
+The protected settings preparer binds the catalogue to the configured
+probe. Its controlled Dragonfly case preserved the existing provider
+settings. The linked native category `DragonflyHostedCqlNative` uses
+`COSMIC_DRAGONFLY_HOSTED_CQL_SOURCE` and the same protected source settings.
+It checks public 3/2, paging, deletion and absence, and unchanged returned
+records on the actual product. Review the live ACL against the exact deployed
+Dragonfly version before enrollment.
+[Dragonfly ACL key support](https://github.com/dragonflydb/dragonfly/discussions/2451).
+
+All 14 WEB4 Redis-family admission tests passed against Core
+`79b52a7f8bc9bfd06c1317956ad5d4855df2a379`. The native fixture compiled
+with zero errors. Live Dragonfly source and visitor proof remain open.
+
+Offline enrollment now requires the reviewed Address, Port and TlsHost in
+addition to the native fixture's Actor, LiveIds, DeletedId and MissingId.
+The first LiveIds entry supplies the probe. The protected baseline must
+match the endpoint and probe and contain the restricted reader credentials
+and existing 32-byte storage key. Synthetic offline checks passed. The
+owned native TLS source and live WEB4 acceptance are still pending.
+
+11 November UTC: Dragonfly CI 43053188998 passed the pinned 2.0.2 encrypted native CQL, checkpoint, restart and MongoDB federation checks. The runner verified the native process and preserved the source across restart. Standard matrix routing and hosted TLS acceptance remain open.
+
+11 November UTC: Dragonfly candidate 04eb5a3c9b routes generic storage to the standard matrix and runs the qualified native checkpoint/restart and federation workflow separately. Combined diagnostic 782f0b3408 is submitted on Development ea54de967e. Results and hosted TLS acceptance remain open.
+
+11 November UTC: both Dragonfly jobs passed in combined CI 43054087952. The standard job on ea54de967e failed four fixture-only cases because it lacked the owned Dragonfly and MongoDB roots. The verified candidate routes those tests to the dedicated fixture and leaves generic storage in the standard matrix. Hosted TLS remains open.
+
+11 November UTC: Development d93d984b7b integrates the verified Redis, Dragonfly and Valkey standard CI routing on top of HyperDrive Hedera changes. The batch contains only the three independently qualified fixture-routing patches. Hosted TLS acceptance remains open for all three.
+
+11 November UTC: all six Redis, Dragonfly and Valkey jobs passed in the standard Development pipeline 43059249089 at d93d984b7b. Each provider passed its generic storage matrix job and its dedicated native restart/federation job. Hosted TLS acceptance remains open.

@@ -4,6 +4,27 @@ Required by the user30October2026. Applies to every provider demo produced by th
 work, existing and future, including the first10content-query providers. A local
 C#/HTTP/browser demo is not proof that the provider works in the public sandbox.
 
+This recovered roadmap preserves the original acceptance scope. Its dated
+observations and counts are historical. Use [current status](CURRENT_STATUS.md)
+for current evidence. The pending LocalFile HyperDrive point-routing check
+is deferred behind the priority provider demos as of 10 November 2026.
+
+Carry forward accepted checks. EOSIO, SOLID and TON each passed both public
+presets in the live Development browser. Their private MongoDB paired
+presets still require the original prepared session. Hedera's earlier full public browser preset returned HTTP 504. On Development
+deployment 91493edb, a public visitor confirmed catalogue availability, native
+HTTP 3/2, and paired HTTP 3/2 with zero MongoDB copies. The public browser subset rendered two rows. The full preset again returned HTTP 504. The next Hedera gate is
+the full public browser preset, followed by the original owner's private paired
+presets. Keep the earlier activation cancellation as release-specific evidence.
+TRON and Supabase still await their reviewed access.
+
+## Top-priority Supabase demo
+
+Use the existing SupabaseOASIS provider and retained local PostgREST/MongoDB
+evidence. The next gate is qualification against the reviewed hosted teaching
+source, followed by Development HTTP and browser acceptance. See the
+[Supabase MVP evidence and requirements](SUPABASE_CQL_MVP.md#development-web4-candidate).
+
 ## Observed integration points
 
 - Frontend: `C:/Source/Web4Site/web4-sandbox.html` (separate repository).
@@ -110,3 +131,6 @@ Evidence `TestResults/Web4SandboxCqlCurrent/node-tests.log`: 1088 bytes, SHA256 
 Evidence `TestResults/Web4SandboxCqlCurrent/browser.png`: 204979 bytes, SHA256 `3ac4a4a5c3181914d1707b5ed827694a8f3075b6b7f66b2742e22396a77e02db`.
 
 Follow-up: [host admission root causes, tested free profile and remaining deployment/subscription gates](SANDBOX_CQL_ADMISSION.md).
+10 November: the five-reader Development batch is deployed. Ronin, Immutable zkEVM, Flow, EAS and Sign Protocol passed the exact public HTTP full/subset presets (3/2), both native and paired, on 4907da23. Browser rendering and original-owner private copies/replicas remain separate acceptance gates.
+All five public browser full/subset presets also rendered 3/2 rows. Private paired browser and replica qualification remain open.
+Five-reader paired browser check: a public visitor rendered 3/2 rows from the MongoDB-paired presets for Ronin, Immutable zkEVM, Flow, EAS and Sign Protocol. Earlier exact API evidence established zero visible MongoDB copies. Original-owner paired browser and replica checks remain open.

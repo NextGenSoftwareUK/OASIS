@@ -316,3 +316,5 @@ Evidence TestResults/EnsPublicSourceCurrent/public-assets-observation-1.json;
 site ACK retained under HostedEnsReleaseCurrent. Browser interaction remains
 unverified. ENS scoped functional milestone complete; no reliability/full ORM
 claim. Next red source review: ECLIPSE_PUBLIC_SOURCE_STATUS.md.
+
+11 November UTC: ENS native direct name resolution presets rendered 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. The original-owner private paired browser check remains open.

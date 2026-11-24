@@ -1,18 +1,35 @@
-name: Qualify CQL public catalogues
+name: Qualify CQL public catalogues and diagnostics
 
 on:
   push:
-    branches: [work/cosmic-teaching-release-candidate]
+    branches: [work/cosmic-cql-ton-public]
     paths:
       - '.github/workflows/qualify-cql-public-catalogues.yml'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.MoralisOASIS/MoralisOASIS.ActivateDeactivateLoad.cs'
+      - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.MoralisOASIS.UnitTests/MoralisActivationTests.cs'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.MoralisOASIS/MoralisOASIS.NFTHelpers.cs'
+      - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.MoralisOASIS.UnitTests/MoralisBurnCapabilityTests.cs'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlPublicReadCatalogue.cs'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlPublicReadCatalogueTests.cs'
+      - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlNativeFailureDiagnosticsTests.cs'
+      - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlNativeFailureDiagnostics.cs'
+      - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlV1Providers.cs'
   workflow_dispatch:
     inputs:
+      evm_shipping:
+        description: Verify shipping Ethereum, Polygon, Arbitrum, NEAR and EOSIO CQL admission
+        required: false
+        type: boolean
+        default: false
       ref:
         description: Exact reviewed source commit
         required: true
         type: string
+      solana_native:
+        description: Verify the shipping Solana provider against the reviewed public mainnet catalogue
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -50,22 +67,81 @@ jobs:
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
-      - name: Verify catalogues and DuckDB native/federated preset admission
+      - name: Verify catalogues, DuckDB admission and native failure diagnostics
         working-directory: OASIS
         shell: pwsh
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner public-catalogue-ci -Operation {
-            dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlPublicReadCatalogueTests|FullyQualifiedName~CqlDuckDbHostedAdmissionTests' --results-directory TestResults/CqlPublicReadCatalogueCurrent --logger 'trx;LogFileName=catalogue.trx'
-            if ($LASTEXITCODE) { throw 'Public catalogue regression failed' }
+            dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlPublicReadCatalogueTests|FullyQualifiedName~CqlDuckDbHostedAdmissionTests|FullyQualifiedName~CqlNativeFailureDiagnosticsTests' --results-directory TestResults/CqlPublicReadCatalogueCurrent --logger 'trx;LogFileName=catalogue.trx'
+            if ($LASTEXITCODE) { throw 'Public catalogue and diagnostic regression failed' }
             [xml]$report = Get-Content TestResults/CqlPublicReadCatalogueCurrent/catalogue.trx
-            if ($report.TestRun.ResultSummary.Counters.passed -ne '6' -or $report.TestRun.ResultSummary.Counters.total -ne '6') {
-              throw 'All five catalogue cases and the DuckDB four-preset admission case must pass'
+            if ($report.TestRun.ResultSummary.Counters.passed -ne '13' -or $report.TestRun.ResultSummary.Counters.total -ne '13') {
+              throw 'All 13 catalogue, admission and diagnostic cases must pass'
+            }
+          }
+      - name: Verify shipping Solana CQL on public mainnet
+        if: inputs.solana_native
+        working-directory: OASIS
+        shell: pwsh
+        run: |
+          $fixture = New-TemporaryFile
+          try {
+            @{
+              schema = 1
+              rpcUrl = 'https://api.mainnet-beta.solana.com'
+              genesisHash = '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d'
+              sourceOwner = [Guid]::NewGuid().ToString('D')
+              addresses = @(
+                'SysvarC1ock11111111111111111111111111111111',
+                'SysvarRent111111111111111111111111111111111',
+                'SysvarEpochSchedu1e111111111111111111111111'
+              )
+            } | ConvertTo-Json -Compress | Set-Content -LiteralPath $fixture.FullName
+            $env:OASIS_SOLANA_PUBLIC_ENDPOINT_NATIVE = '1'
+            $env:OASIS_SOLANA_PUBLIC_SOURCE = $fixture.FullName
+            dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests --no-build --no-restore /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlSolanaNativeEndpointTests' --results-directory TestResults/CqlPublicReadCatalogueCurrent --logger 'trx;LogFileName=solana-native.trx'
+            if ($LASTEXITCODE) { throw 'The shipping Solana public endpoint test failed.' }
+            [xml]$report = Get-Content TestResults/CqlPublicReadCatalogueCurrent/solana-native.trx
+            $counts = $report.TestRun.ResultSummary.Counters
+            if ($counts.passed -ne '1' -or $counts.executed -ne '1' -or $counts.total -ne '1') {
+              throw 'The shipping Solana public endpoint test must execute and pass.'
+            }
+          }
+          finally {
+            Remove-Item -LiteralPath $fixture.FullName -ErrorAction Stop
+          }
+      - name: Verify shipping EVM, NEAR and EOSIO CQL admission
+        if: inputs.evm_shipping == true
+        working-directory: OASIS
+        shell: pwsh
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-evm-shipping-ci -Operation {
+            dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests --no-build --no-restore /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlEthereumHostedAdmissionTests|FullyQualifiedName~CqlPolygonHostedAdmissionTests|FullyQualifiedName~CqlArbitrumHostedAdmissionTests|FullyQualifiedName~CqlNearHostedAdmissionTests|FullyQualifiedName~CqlEosioHostedAdmissionTests' --results-directory TestResults/CqlPublicReadCatalogueCurrent --logger 'trx;LogFileName=evm-shipping.trx'
+            if ($LASTEXITCODE) { throw 'Shipping EVM admission failed' }
+            [xml]$report = Get-Content TestResults/CqlPublicReadCatalogueCurrent/evm-shipping.trx
+            if ($report.TestRun.ResultSummary.Counters.passed -ne '10' -or $report.TestRun.ResultSummary.Counters.total -ne '10') {
+              throw 'All ten EVM, NEAR and EOSIO catalogue and preset admission cases must pass'
+            }
+          }
+      - name: Verify Moralis activation and unsupported NFT burns
+        working-directory: OASIS
+        shell: pwsh
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner moralis-capability-ci -Operation {
+            dotnet test Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.MoralisOASIS.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~MoralisBurnCapabilityTests|FullyQualifiedName~MoralisActivationTests' --results-directory TestResults/MoralisBurnCapabilityCurrent --logger 'trx;LogFileName=capability.trx'
+            if ($LASTEXITCODE) { throw 'Moralis burn capability regression failed' }
+            [xml]$report = Get-Content TestResults/MoralisBurnCapabilityCurrent/capability.trx
+            if ($report.TestRun.ResultSummary.Counters.passed -ne '4' -or $report.TestRun.ResultSummary.Counters.total -ne '4') {
+              throw 'All four Moralis activation and burn cases must pass'
             }
           }
       - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: cql-public-catalogue-regression
-          path: OASIS/TestResults/CqlPublicReadCatalogueCurrent/catalogue.trx
+          path: |
+            OASIS/TestResults/CqlPublicReadCatalogueCurrent/catalogue.trx
+            OASIS/TestResults/CqlPublicReadCatalogueCurrent/evm-shipping.trx
+            OASIS/TestResults/MoralisBurnCapabilityCurrent/capability.trx
           if-no-files-found: error
           retention-days: 30

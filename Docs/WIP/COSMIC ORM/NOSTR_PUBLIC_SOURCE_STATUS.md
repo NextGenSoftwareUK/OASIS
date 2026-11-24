@@ -150,3 +150,50 @@ Development d167dff13/exact job0096f2e4-f831-4dcd-9cd8-b1d7613781aa SUCCESS,heal
 ## Controlled activation-latch correction
 
 Explicit source recovery implemented at the host lifecycle boundary,same source/profile retained.27API/controller/discovery/GraphQL tests pass,including non-cooperative cancellation ownership and host/generation/operation fences. No hosted activation/read/query/save/restart performed in this change;current live Nostr outage remains red. See [recovery contract](CQL_SOURCE_RECOVERY.md).
+Development 91493edb startup recorded Nostr activation failure at WebSocket connect, HTTP 503 / NotAWebSocket. Authenticated discovery lists Nostr unavailable. This confirms recurrence of the recorded relay handshake failure signature. Preserve the accepted cohorts and use the existing operator recovery action. No new relay request, substitution, or provider state change was made.
+
+10 November Development fbc0e08e: Nostr remains unavailable in the authenticated catalogue. Its activation log recorded HTTP 503 / NotAWebSocket during connect after 136 ms. The existing Wizard session action in ACTIONS-FOR-DAVID still awaits local sign-in. Preserve the original relay and accepted cohorts for the serialized recovery and subsequent read-only browser check.
+
+11 November UTC: Development 87793cf704 Nostr native public full browser preset rendered 3 signed events. The two-event preset returned HTTP 503 CQL_QUERY_FAILED. Railway logged query-stage WebSocket connect HTTP 503 NotAWebSocket. Subset and private paired browser acceptance remain open. No retry or source change was made.
+
+
+11 November UTC: traced the Nostr filtered-browser HTTP 503 to the WebSocket upgrade. NostrPublicRelayRead opens the guarded socket before ReadConnectedAsync serializes or sends the REQ frame, so the failing connection had not sent the two-event filter to the relay. The successful full read and failed subset therefore show intermittent handshake failure. Relay availability across new connections remains open. Keep the reviewed source and preserve the failed operation for reconciliation.
+
+
+11 November UTC: on Development c39eba5cd1, the Nostr native filtered preset passed live WEB4 HTTP with the two expected rows. The earlier browser 503 is preserved. The filtered browser check and relay reliability across connections remain open.
+
+11 November UTC: the filtered Nostr public browser preset rendered two signed events on Development c39eba5cd1. Together with the full three-event browser result on 87793cf704, both native public presets have browser acceptance. The intervening WebSocket 503, relay reliability and the original owner's private paired browser check remain recorded.
+
+11 November UTC: Railway WEB4 deployment `3eddd55c-697c-4ed3-aee9-1280c212ffa7` succeeded at `8ecc28e3ca`. Catalogue readiness progressed from 27/106 to 105/106. Listed priority sources and LocalFile reported native and federated readiness. Aptos remained ready. Nostr alone failed activation: WebSocket connect HTTP 503, NotAWebSocket, 155 ms. Verify the queued `16d22e842e` successor before requesting the existing Wizard recovery session again.
+
+11 November UTC: while Railway served `8ecc28e3ca`, an independent standards-based WebSocket upgrade from the running WEB4 container to its configured anonymous Nostr relay also returned HTTP 503. The probe used installed Node HTTPS, sent no Nostr REQ, and performed no recovery. This reproduces the startup failure without the CQL adapter or query filter. Relay or edge cause remains unknown.
+
+11 November UTC: Nostr returned to available at startup on Development `16d22e842e`, Railway `93128896-23da-441c-88b1-95ef8bb7030f`. The authenticated catalogue reached 106/106 ready. Existing functional and browser receipts stand. Intermittent relay handshake reliability remains open.
+
+11 November UTC: Development f4d314f7a3 startup log confirms Nostr failed at WebSocket connect with HTTP 503 / NotAWebSocket after 109 ms, before sending a subscription. This matches the failure previously reproduced by an independent upgrade from the WEB4 container at 8ecc28e3ca. Preserve the accepted public and private receipts. Check startup on the already-building TRON wallet successor, then use serialized source recovery only if Nostr remains unavailable and the existing Development Wizard session is present.
+
+11 November UTC: Railway deployment 3d9ee41b-0695-4f06-a237-afd0bbd2ec14 is live at Development 4489034aa1. The retained Playground refreshed from 37 to 70 to 105 available sources. Nostr activation again failed the WebSocket upgrade with HTTP 503 / NotAWebSocket at 105 ms. Existing Nostr evidence remains preserved. Arbitrum and Polygon wallet revision e5530b0914 is building, and MongoDB metadata revision 88dcb9ada1 is queued.
+
+11 November UTC: WEB4 e5530b0914 is live on Railway 06b83b4e-4b8b-4903-afd1-d7b1b15dbcc7. The prior browser visitor could not renew, so the discovery request was not sent. One new disposable visitor sandbox-bfaa6d06 loaded 105 sources. Nostr again failed its WebSocket upgrade with HTTP 503 / NotAWebSocket at 120 ms. MongoDB metadata is building and its graph-test successor remains queued.
+
+11 November UTC: live WEB4 88dcb9ada1 on Railway 3a9967e4-0432-4fd2-87bb-94d954607eea advertised 105 available CQL sources in the retained browser. Nostr activation again failed the WebSocket upgrade with HTTP 503 / NotAWebSocket at 117 ms. The multi-key MongoDB metadata route is outside the checked free-demo policy; the existing native MongoDB All/Any results remain the evidence for that route's provider implementation.
+
+11 November UTC: live Development WEB4 c686a8618d reached 105 available hosted sources after IPFS cutover. Railway deployment c7b533e2 recorded Nostr activation WebSocket HTTP 503 / NotAWebSocket at 738 ms. Prior signed-event browser acceptance remains recorded. No source recovery was requested.
+
+11 November UTC: Railway startup logs for live Development WEB4 07082d65c0 (deployment f08726a5) show Nostr activation again failed during WebSocket connect with HTTP 503 / NotAWebSocket after 107 ms. This revision did not establish Nostr readiness. Prior successful public browser reads remain valid within their recorded scope. No source recovery, settings change or subscription was initiated.
+
+11 November UTC: authenticated discovery on WEB4 1c7e670e8d still returned CQL_SOURCE_UNAVAILABLE for Nostr. Existing operator recovery and accepted original cohort evidence remain recorded.
+
+11 November UTC: on deployment 882d3bd1 the activation log records a WebSocket HTTP 503. The retained source and prior acceptance were preserved. The current unavailable state is at relay connection, before query execution.
+
+11 November UTC: Nostr returned to available in authenticated discovery on WEB4 b5fe79a765. Prior query acceptance remains recorded.
+
+11 November UTC: live WEB4 ea614f3fc6 reports Hedera activation timed out awaiting response headers after 15,008 ms with no HTTP status. Nostr's relay returned HTTP 503 during WebSocket upgrade (NotAWebSocket). Discovery remains 104/106. The protected Development Wizard session is absent on this laptop. Keep the existing operator recovery action open.
+
+11 November UTC: Railway WEB4 cut over to e5e3ca694c, deployment a1f0917e-b72a-4b5a-8732-0b6547f41687. Authenticated discovery warmed from 92/106 to 105/106 native and federation ready. Hedera and TON recovered readiness on this revision; Nostr remains CQL_SOURCE_UNAVAILABLE. Supabase, TRON and CouchDB remain absent. Prior functional cohorts were left intact.
+
+11 November UTC: Railway WEB4 cut over to d93d984b7b, deployment d04ed4c4-2d76-4ea1-b261-393da541fe3b. Authenticated discovery returned 105/106 native and federation ready. Hedera recovered readiness. Nostr remains CQL_SOURCE_UNAVAILABLE. Supabase, TRON and CouchDB remain absent. No accepted query cohort was replayed.
+
+11 November UTC: WEB4 TimescaleDB revision 2ec6cd9cce is live (789a7cd0-64cf-4531-ae28-e55ea1f43a06). Authenticated discovery warmed from 68/106 to 104/106 ready for native and federation. Blockscout and Hedera are ready. Cardano activation received HTTP 429 and Nostr WebSocket upgrade received HTTP 503 (NotAWebSocket). Supabase, TRON and CouchDB remain absent. Preserve previously accepted cohorts.
+
+11 November UTC: startup logs on live WEB4 73f8b98967 confirm Nostr failed at WebSocket connect before subscription (HTTP 503, NotAWebSocket, 135 ms). Existing scoped query and browser evidence stands. Operator recovery still requires the existing Development Wizard session.

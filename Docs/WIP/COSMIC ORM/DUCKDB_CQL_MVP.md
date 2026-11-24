@@ -135,3 +135,246 @@ Continue missing provider MVPs from the all-provider inventory; leave this green
 scope alone absent a reproduced bug. Full ORM/parity acceptance remains open.
 
 [Breadth reconciliation](PROVIDER_BREADTH_RECONCILIATION_2026-10-30.md) / [status](CURRENT_STATUS.md).
+
+The recovery laptop passed native and Mongo-paired DuckDB replay. Read-only
+activation passed against the retained source and WEB4 opt-in registration
+builds. Local Core candidate 6fcc2fead73f542480d30f981e24764683917b9c adds
+DuckDB query tariff admission on top of SQL Server's pin. The WEB4 admission
+fixture is ready for verification against that candidate before publication.
+Development still requires placement of a qualified read-only database.
+
+The retained demo file, LocalState/COSMIC/DuckDbCql/source.duckdb, is
+1,323,008 bytes, with no adjacent WAL at qualification. SHA256:
+DB649A3DD1A2FCE1694CBA1F9E303505596A3D3289B01F8166A6D232D3FFCA19.
+It contains three teaching records and a tombstone. Core tariff pin and four
+native/paired preset plans passed. For Development, first confirm persistent
+placement and verify the file hash after transfer. Set
+CQL_DUCKDB_QUERY_CONNECTION_STRING to the absolute mounted file with
+access_mode=READ_ONLY. Enroll only the three live GUIDs from demo-seed.json in
+the read catalogue, add query-only zero-cost admission and the four canonical
+presets. Use Verify-HostedQuerySource.py DuckDBOASIS --readiness before
+preparing a cohort. No file was copied or deployed during this check.
+
+For the Development enrollment review, use a dedicated path such as
+`/data/cql/duckdb/source.duckdb` on the verified WEB4 volume. Require the
+qualified SHA256 after placement and check that no adjacent WAL exists before
+setting `Data Source=/data/cql/duckdb/source.duckdb;access_mode=READ_ONLY`.
+The retained seed and source snapshot agree on these three live IDs, in preset
+order:
+
+1. `0d3cbcef-c8cf-4083-af88-5a71de0486ef`
+2. `3dc27e40-909f-4323-a6fe-15d835e332f1`
+3. `37f7f99a-a41e-41a6-9259-07778fd410f2`
+
+Use the first two for the subset and all three for the full preset. Keep the
+tombstone `6888e38f-7d88-40bd-b599-d124b0f7e2be` outside the public catalogue.
+The recovery-laptop file still matches the qualified digest. Remote placement
+and activation remain open.
+
+Generate the four preset values for the reviewed settings using the qualified
+seed. The command prints only the public presets. Review its output as
+`CQL_HOSTED_QUERY_EXAMPLES__DuckDBOASIS` alongside the scoped grant and tariff.
+
+```powershell
+$seed = Get-Content -Raw LocalState/COSMIC/DuckDbCql/demo-seed.json | ConvertFrom-Json
+$provider = 'DuckDBOASIS'
+$presets = foreach ($count in 3, 2) {
+    $suffix = if ($count -eq 3) { 'records' } else { 'subset' }
+    $selection = @{
+        orderBy = 'None'
+        take = 25
+        includeMetadata = $true
+        filters = @(@{
+            field = 'Id'
+            scalar = 'Guid'
+            operator = 'In'
+            value = @($seed.Ids | Select-Object -First $count)
+        })
+    }
+    @{
+        id = "public-$suffix"
+        label = "DuckDB teaching records ($count)"
+        request = $selection + @{ provider = $provider }
+    }
+    @{
+        id = "mongo-public-$suffix"
+        label = "DuckDB teaching records ($count) + my Mongo snapshots"
+        operation = 'Federation'
+        request = @{
+            scope = 'Named'
+            providers = @('MongoDBOASIS', $provider)
+            source = $selection
+            identityMode = 'PreserveCopies'
+            maximumProviderAttempts = 2
+            take = 25
+        }
+    }
+}
+ConvertTo-Json -InputObject @($presets) -Depth 8 -Compress
+```
+
+Offline verification against Web4Site `2170b67` passed for both generated
+paired presets. The frontend preparation recipe selected the same first two
+native IDs from the retained seed in both cases and preserved the original
+three-ID and two-ID federation filters. Live browser acceptance remains open.
+
+The WEB4 build dependency manifest declares DuckDB.NET Bindings.Full 1.1.3
+and copies its Linux x64 and arm64 native assets. ELF headers matched their
+declared architectures. This checks build packaging. Opening the exact
+retained file under the deployed Linux runtime remains an acceptance gate.
+
+The recovery laptop hub now runs the verified native and Mongo-paired demo:
+
+```powershell
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider DuckDB -Federated -RecoveryMongo -VerifyOnly
+```
+
+This invocation passed both phases and confirmed the temporary Mongo fixture
+was removed. No test listeners remained. Reused the existing source and build
+outputs in the recovery ledger. Hosted acceptance remains open.
+
+## Linux retained-source qualification — 7 November 2026
+
+The original database still hashesDB649A3DD1A2FCE1694CBA1F9E303505596A3D3289B01F8166A6D232D3FFCA19
+and has no adjacent WAL. Its in-memory gzip transport is5381bytes, SHA256
+4b0d0e62c3331148c174c6ed51636300dc33d3296b06811cdee7b39e79d5b01d.
+The current retained224-byte seed hashesdc837edd1d778e8dc402d2b1b8712fe783faf4fef1387c4dc7f7e3fb518929de;
+its three live IDs and tombstone match the placement plan above. The older
+seed digest in historical evidence is not substituted for this exact input.
+
+A dedicated Linux CI gate accepts only those exact compressed/source/seed
+hashes, restores a separate read-only copy, and runs the real provider SDK.
+It checks native CQL3/2/0 across two provider activations, unchanged file hash
+and no WAL. It never calls the native seeding fixture, SaveHolon or Mongo.
+The original Windows source and its save acknowledgements remain unopened
+by the SDK. This is a new Linux portability gate, not replay of Windows
+acceptance. Qualification remains pending until its dispatched run passes.
+
+Linux run42385940278/job128443199243 passed the retained-source native case,
+zero skips, on exactdd0ee7a2740770f962be8732a0f0d0d4a760c9c5. The real
+DuckDB.NET SDK returned3/2/0 through CQL across two provider activations,
+with unchanged database SHA256 and no WAL. No native seeding or Mongo
+mutation occurred. Artifact13579442161 is7184bytes, SHA256
+35620a1dd3a1408ae6cac7c95b79d25df286b7500697fe7817142f5b24da71d0,
+retained90days. It contains the exact synthetic source, retained seed and
+TRX. This closes the standalone Linux portability gate; shipping WEB4 native
+asset packaging, protected volume placement, registration/admission, live
+HTTP federation/privacy and browser acceptance remain separate gates.
+[Retained-source Linux qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42385940278).
+
+Owned hosted placement is now implemented behind explicit sandbox flags.
+The bootstrap accepts a bounded gzip bundle bound to its native byte count
+and SHA256, writes an exclusive intent/source/ACK generation, and requires
+identical source bytes/receipt plus no WAL on restart. Partial state, symlinks,
+changed data and writable/foreign SDK connection strings are refused without
+repair or overwrite. The exact source path is/data/COSMIC/SandboxDuckDB/source.duckdb
+with access_mode=READ_ONLY. DuckDB runs inside.NET, so the shared supervisor
+also supports this explicit source without launching a native daemon.
+
+All16 new runtime controls and all82 focused shared runtime controls pass;
+no native IPFS bootstrap was replayed. Entrypoint shell syntax passes. These
+checks use owned temporary synthetic byte fixtures, not the original database.
+No DuckDB settings, hosted source or live enrollment has been applied. The
+scoped image/publisher and live HTTP/browser gates remain open.
+
+Guarded DuckDB publisher now prepares exactly six settings: explicit runtime
+flag, compressed original bundle, fixed read-only connection, query-only
+admission/tariff, public catalogue and four preset partition. It requires
+matching retained database/seed Linux qualification, distinct reviewed IDs,
+no WAL and shipping runtime bundle validation. No DNA or existing provider
+settings are changed. Apply retains the shared per-key intent/ACK/no-replay
+protocol and exact deployment fence. Acceptance verifies all six ACKs, full
+configuration equality and mounted source hash/size/receipt/no-WAL before
+and after queries. Explicit acknowledged discovery-visitor reuse is supported.
+
+Six new publisher controls,28 response/journal controls and39 preset controls
+pass. The shared response fixture was adjusted for a second retained-source
+provider; its two earlier fixture failures are retained, not shipping/native
+failures. Six protected settings are prepared under prefixduckdb-public;
+none were applied. The original source receipt was materialized from verified
+Linux CI/artifact evidence with exact database/seed hashes. New image checks
+will require the shipped Linux native library and all of its dynamic links.
+The existing DuckDB four-preset admission test is included with the five
+catalogue controls in the next exact candidate CI gate (six cases total).
+
+Scoped DuckDB candidate3cc1ab108ef082b9aa7e00224eb895ad01060434 with
+Core9fac20cdd4e8158e730b00785d4b39721ed691d7 is published on the reused
+candidate refs. Thirteen named paths add only the opt-in read-only reader,
+admission, native placement/ABI checks and their controls; other providers
+and all accepted source configuration remain intact. The Dockerfile uses
+the task source's LF normalization; ignoring end-of-line changes its delta
+is exactly the source module COPY and native-library ABI check. Parent
+gitlink/manifest equality and seven Dockerfile contracts passed.
+
+Exact admission CI42388149011/job128449838422 passed6/6,0skips, including
+all five catalogue guards and the existing DuckDB native/Mongo four-preset
+planning case. Artifact13580462708,2113B, SHA256
+389759ba8d595b54faccc5379b7aa0bc5d84429884a7d4e03099a6dd1a635f24.
+Image42388244083/job128450124097 is running, exact candidate/teaching flags.
+No DuckDB code deployment, settings application or mounted-source write has
+been requested. Development remains the accepted Waku release7672cd5ea.
+
+Exact image42388244083/job128450124097 passed for3cc1ab108, teaching runtimes
+enabled. Digestsha256:81d462e109e3b2e88c6997e8ca3cd14d918e01a425141a0270174e80a31e20a9.
+The shipped Linux x64 libduckdb.so was present and ldd found no missing
+native dependencies. All seven exact private retention refs were re-observed;
+new Core9fac20cd is also retained on codex/deployed-dependency-9fac20cd.
+Manifest/gitlinks, current shared refs and complete protected settings baseline
+matched. Development advanced normally to3cc1ab108. Code deployment
+858ac680-3f46-4b5e-a4f8-491573304bfc isBUILDING. No DuckDB settings or source
+placement has been applied; accepted Waku remains the preceding good release.
+
+Publisher controls are now9/9: stale setting ACK and unrelated configuration
+drift refuse inspection, and a matching bootstrap receipt cannot excuse a
+changed native file hash or deployment. These tests are fully controlled;
+no live source/SDK query or original cohort was replayed. Verify the exact
+new deployment and absent destination before applying the six prepared keys.
+
+## Live Development HTTP acceptance — 7 November 2026
+
+Settings deployment32b26f74-01b7-4ce2-a84e-08959ff46468 isSUCCESS at exact
+3cc1ab108ef082b9aa7e00224eb895ad01060434/Core9fac20cdd4e8158e730b00785d4b39721ed691d7.
+Instance36653fc7-c5f3-4dbc-86c6-0af48bc96f5a, deployed image
+sha256:0ca5d349772e2ff41bdf17d7c12eee2baed73d0164b4e6cb6599809046e387d3.
+Prior code858ac680 succeeded. Its actual runtime script matched the qualified
+Git blob, native library57260168B/SDK1.1.3 was verified, destination absent
+and volume writable before settings were staged. All six original writes
+were acknowledged exactly once with no deployment triggered. A single
+activation was requested; source placement occurred once under its own
+intent/ACK protocol. No original local fixture/SDK was replayed.
+
+The original database was copied to/data/COSMIC/SandboxDuckDB/source.duckdb.
+Its exact hashDB649A3DD1A2FCE1694CBA1F9E303505596A3D3289B01F8166A6D232D3FFCA19,
+byte count1323008, bootstrap receipt and absent WAL matched before and after
+live acceptance. Full protected configuration and all six ACKs also matched.
+The profile uses access_mode=READ_ONLY. The tombstone stays unenrolled.
+
+First hosted cohort: native3/2, first2private Mongo saves, paired5/4,
+repeat0new/2existing, exactSQLite/Neo4j replicas2/2. Independent visitor
+saw public3 and private0 on Mongo and both replicas. Two save ACKs and an
+empty pending-intent object remain. Receipt sealed in
+LocalState/COSMIC/HostedQueryAcceptance-DuckDBOASIS/cql-http-acceptance.acknowledged.json.
+Discovery explicitly reused the acknowledged PouchDB visitor; no replacement
+readiness account. Preserve these sessions/receipts and never replay them.
+
+| HTTP report | Bytes | SHA256 |
+|---|---:|---|
+| DuckDBOASIS-native-http.json |8974|c46059c9957919f9e185f0c45e5d91b98d8b8c3d6b34573e88fe67be8f08d65b|
+| DuckDBOASIS-client-http-flow.json |27377|d0f199c40ca8721d5aa1b5dc787ed147806a9a13a958d599448d9e9431284633|
+| DuckDBOASIS-isolation-http.json |3816|94cbe132f10871e2ab20ad954585060c6772559ddbfe779e095f4540c06917df|
+
+Reports are under TestResults/HostedCqlIntegrationCurrent. The original
+Windows source and save ACKs remain unchanged. No new local environment,
+runtime, database copy or native launch was used. Coverage119local/78liveHTTP/
+28functional browser. Card22 hosted publication and browser verification
+follow. This proves the bounded read profile, not full DuckDB ORM parity.
+
+Existing public card22 now includes the hosted path, retaining local5116
+launcher/stop instructions. Web4Site698e102 pushed normally to existing
+work/cosmic-cql/main; all119 client controls pass. Public HTML245724B,
+SHA256eec1271ac6348716c32771bca66d4d8d229e31e1e1d251b00557d179cc229a09,
+is byte-identical to the committed blob. Guide and real C# read-only
+example are pinned to backend8e7931835. Browser interaction remains open.
+[Hosted/local demo](https://web4.oasisomniverse.one/web4-sandbox.html#cql-duckdb-catalogue).
+
+11 November UTC: DuckDBOASIS read-only public teaching presets returned 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. Original-owner paired browser verification remains open.

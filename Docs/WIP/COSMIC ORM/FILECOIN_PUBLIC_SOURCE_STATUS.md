@@ -74,3 +74,5 @@ Hosted immutable evidence:
 - `TestResults/HostedCqlIntegrationCurrent/FilecoinOASIS-native-http.json`: 13754bytes; SHA256 `33cf1ed8a4022a3977e8e8db5e9969da238566ea09189c9630b7fd10c294b7a9`.
 - `TestResults/HostedCqlIntegrationCurrent/FilecoinOASIS-client-http-flow.json`: 36934bytes; SHA256 `17720236fb18e73d15ec5b343d0a6b4a90f5f2eefedbbb8d187d17a07a6807c8`.
 - `TestResults/HostedCqlIntegrationCurrent/FilecoinOASIS-isolation-http.json`: 5212bytes; SHA256 `e336263f393a69489e9c2ccefced858d88fff2bf21943273deee77a7083d4d01`.
+
+11 November UTC: Filecoin RPC-v1 finalized-balance presets returned three full and two filtered rows in the live Development CQL Playground. Original-owner MongoDB paired browser verification remains open. No preparation or record saves.

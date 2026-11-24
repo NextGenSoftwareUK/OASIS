@@ -160,6 +160,9 @@ app.MapGraphQL();
 app.MapGrpcService<CollectiveConsciousnessGrpcService>();
 app.MapGrpcService<SymbiosisGrpcService>();
 app.MapGet("/", () => Results.Redirect("/swagger"));
+// Unauthenticated liveness probe used by the OPORTAL API Health screen and uptime checks.
+// "/health" is already exempt from the API key middleware; no billing policy applies.
+app.MapGet("/health", () => Results.Ok(new { status = "healthy", service = "WEB7 OASIS Symbiotic Layer API", timestamp = DateTime.UtcNow }));
 
 var dnaPath = OASISBootLoader.OASISDNAPath ?? System.IO.Path.Combine(AppContext.BaseDirectory, "OASIS_DNA.json");
 var admittedBoot=builder.Configuration["PREPARED_STORAGE_ADMISSION_JSON"]!=null;

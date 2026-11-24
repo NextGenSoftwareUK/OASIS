@@ -106,6 +106,16 @@ function Log($msg) {
     Write-Host "[cleanup] $msg" -ForegroundColor Cyan
 }
 
+# Run one cleanup stage so that a failure in it (a locked file, a missing path, a tracked folder that must be
+# preserved, a Git error) is counted and reported, and the run carries on with the next stage instead of stopping.
+function Invoke-CleanupStage([string]$name, [scriptblock]$stage) {
+    try { & $stage }
+    catch {
+        $script:cleanupFailureCount++
+        Write-Warning "Stage '$name' stopped: $($_.Exception.Message) -- continuing with the next stage."
+    }
+}
+
 function Get-CleanupInventory([string]$path) {
     $full = [IO.Path]::GetFullPath($path).TrimEnd('\')
     $preserved = Get-CleanupPreservationReason $full
@@ -214,12 +224,12 @@ function Remove-OASISPathSafely([string]$path, [string]$root) {
     # Ask the innermost Git checkout, so tracked files inside submodules are protected too.
     $parent = Split-Path -Parent $target
     $gitRoot = & git -C $parent rev-parse --show-toplevel
-    if ($LASTEXITCODE -ne 0) { throw "Cannot establish source ownership: $target" }
+    if ($LASTEXITCODE -ne 0) { $script:cleanupFailureCount++; Write-Warning "Skipped (cannot establish source ownership): $target"; return }
     $gitBoundary = (Convert-CleanupPath $gitRoot) + '\'
     if (!$target.StartsWith($gitBoundary,[StringComparison]::OrdinalIgnoreCase)) { throw 'Git boundary mismatch.' }
     $relative = $target.Substring($gitBoundary.Length).Replace('\','/')
     $tracked = @(& git -C $gitRoot ls-files -- $relative)
-    if ($LASTEXITCODE -ne 0 -or $tracked.Count) { throw "Tracked source/submodule preserved: $target" }
+    if ($LASTEXITCODE -ne 0 -or $tracked.Count) { $script:cleanupFailureCount++; Log "PRESERVED (tracked source or submodule, not removed): $target"; return }
     Remove-Safely $target 'Untracked generated output; regenerate using the existing source, SDK and original build command'
 }
 
@@ -872,7 +882,7 @@ if ($Aggressive) {
 
 if ($ClearWslCaches) {
     Log "Cleaning regenerable caches inside WSL ${WslDistribution} (explicit option)..."
-    Clear-WslCaches
+    Invoke-CleanupStage 'WSL caches' { Clear-WslCaches }
 }
 
 if ($CompactWSL -and !$KeepWSLVhdx) {

@@ -129,3 +129,32 @@ aliases remain separate gaps; this direct-registration demo does not certify the
 
 [Status](CURRENT_STATUS.md) / [inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md) /
 [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+
+Offline enrollment uses a separate descriptor with Address, Port and TlsHost
+alongside the native fixture's Actor, LiveIds, DeletedId and MissingId. The first
+LiveIds entry supplies the probe. The protected settings must match that
+endpoint and probe and hold the existing reader credentials and storage key.
+The offline tests use synthetic settings. Native TLS and live WEB4 acceptance
+still require an owned teaching source.
+
+### Hosted public read verification
+
+After native TLS qualification and reviewed Development enrollment, run
+Verify-HostedQuerySource.py RedisOASIS with --reviewed-exact-key-source,
+--readiness --read-only-readiness, --public-readiness-settings and
+--reuse-acknowledged-readiness. Use the same reviewed descriptor, protected
+deployed settings snapshot and an eligible retained visitor. The verifier
+checks the address, port, TLS hostname, probe, four presets and exact public
+read grant before using that visitor. The offline hostname mismatch check
+passed and made no native or WEB4 request. Public federation, private copies,
+browser acceptance and HyperDrive replica delivery have separate evidence.
+
+11 November UTC: Redis candidate 52ea33e543 runs existing encrypted native CQL before and after restart and MongoDB SDK/HTTP federation on digest-pinned disposable services. The existing retained Windows fixture remains supported. Results are pending. The verified Dragonfly/Valkey batch still applies to Development ea54de967e.
+
+11 November UTC: Redis CI 43057101843 passed five strict phases with zero skips: encrypted native CQL, restart, Mongo replica admission, SDK/HTTP federation and a final native recheck. Candidate 8a0503265b routes generic storage to the standard matrix and the native checks to their dedicated fixture. Combined diagnostic db871820ad is submitted. Hosted TLS acceptance remains open.
+
+11 November UTC: both Redis jobs passed in combined CI 43057542686. Generic storage ran in the standard matrix, and encrypted native CQL, restart and MongoDB federation ran in the dedicated fixture. The independently verified Redis, Dragonfly and Valkey changes are prepared as Development batch d93d984b7b on the current Hedera base. Hosted TLS acceptance remains open.
+
+11 November UTC: Development d93d984b7b integrates the verified Redis, Dragonfly and Valkey standard CI routing on top of HyperDrive Hedera changes. The batch contains only the three independently qualified fixture-routing patches. Hosted TLS acceptance remains open for all three.
+
+11 November UTC: all six Redis, Dragonfly and Valkey jobs passed in the standard Development pipeline 43059249089 at d93d984b7b. Each provider passed its generic storage matrix job and its dedicated native restart/federation job. Hosted TLS acceptance remains open.

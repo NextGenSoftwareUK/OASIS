@@ -413,3 +413,5 @@ Next red scope: reconcile preserved Eclipse candidate against live post-Akash
 baseline while preserving original source owner/catalogue/genesis/qualification,
 old candidate/intent/failure. Exact successful105329a3fcode contains its existing
 verified implementation. No old-job retry, owner replacement or stale overwrite.
+
+11 November UTC: Akash native indexed provider metadata presets rendered 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. The original-owner private paired browser check remains open.

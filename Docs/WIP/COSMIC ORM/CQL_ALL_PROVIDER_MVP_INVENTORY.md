@@ -1,5 +1,19 @@
 # All-provider CQL MVP inventory
 
+Recovered from the original COSMIC branch. Verification and registration counts below describe that checkout. For current live Development evidence and rollout gates, see [current status](CURRENT_STATUS.md) and the [current provider matrix](PROVIDER_CQL_AND_SANDBOX_STATUS.md).
+
+## Live Development evidence added since this inventory
+
+| Provider | Verified scope | Remaining gate |
+| --- | --- | --- |
+| HoloOASIS | The shipping BootLoader provider served three full and two filtered rows through both native and public-only federation presets on live Development. The private MongoDB pair returned five full and four filtered rows, and a separate visitor saw zero private copies. | Browser rendering, SQLite replica delivery and live HyperDrive writes. |
+| EOSIO | Both public browser presets rendered three and two rows. Native storage passed 52/52. | Original-owner private paired browser flow. |
+| SOLID | Both public browser presets passed. Native storage passed 52/52. | Original-owner private paired browser flow. |
+| TON | Both public browser presets passed. Native storage passed 52/52. | Original-owner private paired browser flow. |
+| Hedera | Both public browser presets rendered three and two rows. Native storage passed 52/52. | Original-owner private paired browser flow. |
+
+The [current status](CURRENT_STATUS.md) records deployment evidence and links to the relevant provider reports.
+
 Generated 2026-10-30 by Scripts/TestHosts/Update-CosmicCqlProviderInventory.ps1. 226 concrete enum identities; selectors None/All/Default excluded.
 Source SHA256: ProviderType 69F7623EF7D6C4BC9DAE0B7ED3599ADFD6DC8D4C066CF6E56FAE30CEA9F287B4; central registration 768935EA474D52CEA5D9DD50EAE8004A82CC5FF693F8E37565FC6C3A5136EB89. Fetched Development: 835653f31; ancestor of task HEAD: True. Core checkout: d9f5ec105b43060debff30fe65d37efde9d02af5. These facts describe the current task checkout, not fresh native acceptance for every row.
 
@@ -15,7 +29,7 @@ Fetched Development 835653f31 is integrated. See [integration verification](DEVE
 
 | Provider identity | Scoped MVP | Source project evidence | Central registration / next gate |
 |---|---|---|---|
-| SolanaOASIS | ✅ [Scoped proof](CQL_MONGO_SOLANA_NATIVE_VERIFICATION.md) | [project](<../../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.csproj>) | [Active case](<../../../OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/OASISBootLoader.Register.cs#L140>); verify factory/mode |
+| SolanaOASIS | ✅ [Shipping public CQL live on Development](CURRENT_STATUS.md#live-shipping-solana-public-cql) and [prior scoped proof](CQL_MONGO_SOLANA_NATIVE_VERIFICATION.md) | [project](<../../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.csproj>) | [Active case](<../../../OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/OASISBootLoader.Register.cs#L140>); verify factory/mode |
 | ArbitrumOASIS | ✅ [Scoped proof](ARBITRUM_CQL_MVP.md) | [project](<../../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS/NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.csproj>) | [Active case](<../../../OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/OASISBootLoader.Register.cs#L263>); verify factory/mode |
 | AvalancheOASIS | ✅ [Scoped proof](AVALANCHE_CQL_MVP.md) | [project](<../../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.AvalancheOASIS/NextGenSoftware.OASIS.API.Providers.AvalancheOASIS.csproj>) | [Active case](<../../../OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/OASISBootLoader.Register.cs#L482>); verify factory/mode |
 | BaseOASIS | ✅ [Scoped proof](BASE_CQL_MVP.md) | [project](<../../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BaseOASIS/NextGenSoftware.OASIS.API.Providers.BaseOASIS.csproj>) | [Active case](<../../../OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/OASISBootLoader.Register.cs#L513>); verify factory/mode |

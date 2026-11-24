@@ -43,3 +43,5 @@ This scoped native/local/hosted HTTP demo is complete. Browser interaction is st
 Limits: key equality/IN only, up to8configured keys, per-object properties/ETags, no shared snapshot, general scans, native mutation or full ORM claim. Browser gates remain separate. [Guide](../../Devs/AZURE_PUBLIC_BLOB_CQL_GUIDE.md) | [Current programme](CURRENT_STATUS.md) | [Resources](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
 
 Current-release readiness observation:40/40enrolled providers report available in hosted discovery; no unavailable rows. This was one read-only request through the original Azure owner, with no replayed save/native cohort. Raw TestResults/AzurePublicSourceCurrent/current-hosted-discovery.json. Startup readiness does not replace each release-scoped native proof or certify browser interaction.
+
+11 November UTC: AzureStorageOASIS public blob properties presets returned 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. Original-owner paired browser verification remains open.

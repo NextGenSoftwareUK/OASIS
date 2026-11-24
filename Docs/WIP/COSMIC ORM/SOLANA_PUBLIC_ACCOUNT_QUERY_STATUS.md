@@ -66,3 +66,21 @@ The normal visitor verifier now accepts `SolanaOASIS`: `python Scripts/Sandbox/V
 4. Rendered sandbox browser acceptance and local-demo links. Until then, this adapter is not hosted demo coverage.
 
 Full canonical Solana ORM writes, memo decoding and history recovery remain separate unfinished scopes. Hosted Azure and Oracle remain explicitly deferred by David.
+
+Browser native reads, 5 November 2026. The live Development CQL Playground session sandbox-ca8924da selected SolanaOASIS and ran the advertised full and subset examples. The table rendered three native accounts at slot 465589402, then the status reported two rows for the subset. Native full operation 315699a3-5eea-cd7a-c1de-6dc94037eb92. Mongo preparation and paired browser reads remain open. Retain the browser tab for this session.
+
+Browser pairing continuation, 5 November 2026. Same sandbox-ca8924da session saved two private Mongo records. Full federation returned five rows from MongoDBOASIS and SolanaOASIS; subset returned four. Repeated preparation reported zero saved and two already prepared. Browser session remains retained. Independent browser privacy and screenshot capture remain open.
+Privacy follow-up, 5 November 2026. Browser table identifies owner b1f86140-00a9-4017-9b6c-af9eade65c76 and private Mongo IDs 3066ca99-2a54-885f-afad-8b104f13b653 and b7f878cb-cd6d-8bf6-b075-e86856ade714, both version 1. The independent retained rehearsal visitor queried those exact IDs through HTTP on MongoDB, SQLite and Neo4j and saw zero rows on each. This is HTTP privacy evidence for the browser-created copies. Screenshot showed selection controls but did not capture the result table; result screenshot remains open.
+Result capture, 5 November 2026. The browser screenshot now shows the four-row subset table with two MongoDBOASIS version-1 copies and two SolanaOASIS version-0 native accounts, alongside the zero-save/two-reused preparation status. Screenshot emitted in the chat; no standalone image file was retained.
+
+Current verification: the November 5 browser session passed native 3/2,
+MongoDB federation 5/4 and repeat preparation with zero new saves. The
+subset table was inspected and an independent visitor's privacy check
+passed over HTTP. Earlier open browser notes are historical. The proof
+applies to the reviewed public-account demo. Canonical ORM parity remains open.
+
+11 November UTC: HyperDrive recorded 52/52 shipping Solnet storage cases and logical cleanup on a fresh official Agave 4.3.0 validator. The first CI job timed out during validator shutdown. Development `7951636ce0` contains the verified memo acknowledgement and test changes. The updated bounded teardown is running both storage modes. Original ledger recovery, hosted native storage acceptance and full ORM parity remain open. [Initial run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43023043006), [teardown verification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43027809655)
+
+11 November UTC: on the LayerZero cutover deployment `ba604fae-510c-4e38-9ca8-3c511884eaf3`, Solana appeared unavailable while the WEB4 Playground had 84 ready sources. A later refresh showed 106 ready and Solana was selectable. Existing public query acceptance is preserved. This check confirmed catalogue readiness only.
+
+11 November UTC: Solana follow-up CI passed both native storage modes and the updated bounded Agave shutdown on an isolated ledger. This closes the validator teardown gate. Hosted native storage and original ledger recovery remain open. [Solana CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43027809655)

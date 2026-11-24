@@ -36,6 +36,7 @@ class HederaConfigurationTests(unittest.TestCase):
         self.assertEqual(admission["queryOnlyProviders"], ["IPFSOASIS", "HashgraphOASIS"])
         rows = json.loads(after[publisher.KEYS[2]])
         self.assertEqual(len(rows), 4)
+        self.assertEqual([row["request"]["maximumDurationMilliseconds"] for row in rows], [20000] * 4)
         self.assertEqual([len(row["request"].get("source", row["request"])["filters"][0]["value"]) for row in rows], [3, 3, 2, 2])
 
     def test_encrypted_snapshot_query_key_requires_explicit_host_policy(self):
@@ -52,6 +53,23 @@ class HederaConfigurationTests(unittest.TestCase):
                 before["OASIS_DNA_JSON"] = json.dumps(dna)
                 after = publisher.candidate(before, source)
                 self.assertEqual(after["OASIS_DNA_JSON"], before["OASIS_DNA_JSON"])
+
+    def test_amends_only_existing_hedera_deadlines(self):
+        before, source = self.fixture()
+        enrolled = publisher.candidate(before, source)
+        key = publisher.KEYS[2]
+        rows = json.loads(enrolled[key])
+        for row in rows:
+            del row["request"]["maximumDurationMilliseconds"]
+        baseline = {**enrolled, key: publisher.configuration.compact(rows)}
+        amended = publisher.amend_preset_deadlines(baseline)
+        self.assertEqual(json.loads(amended[key]), json.loads(enrolled[key]))
+        self.assertEqual({k: v for k, v in amended.items() if k != key},
+                         {k: v for k, v in baseline.items() if k != key})
+        rows[1]["request"]["providers"].reverse()
+        baseline[key] = publisher.configuration.compact(rows)
+        with self.assertRaisesRegex(ValueError, "provider scope"):
+            publisher.amend_preset_deadlines(baseline)
 
     def test_rejects_credentials_wrong_catalogue_paid_tariff_and_existing_enrollment(self):
         for fault in ("credential", "endpoint", "chain", "addresses", "owner", "schema", "paid", "existing", "ordinary", "native", "examples", "tariff", "history"):

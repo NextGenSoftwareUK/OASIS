@@ -149,8 +149,8 @@ public partial class HolonRepository
                 {
                     // The identity/SQLite messages carry no path or credentials; keep
                     // the cause so a held route shows why it was held.
-                    var detail = cause is SqliteException native
-                        ? "SQLite error "+native.SqliteErrorCode+"/"+native.SqliteExtendedErrorCode
+                    var detail = cause is SqliteException identityError
+                        ? "SQLite error "+identityError.SqliteErrorCode+"/"+identityError.SqliteExtendedErrorCode
                         : cause.Message;
                     return ConditionalError(bindingCodePrefix+"_INVALID",
                         "The receiver identity is missing or invalid ("+detail+"); no identity was initialized and no replica applied.", cause);

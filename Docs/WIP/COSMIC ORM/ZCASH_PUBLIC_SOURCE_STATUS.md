@@ -148,3 +148,5 @@ ZcashOASIS-isolation-http.json:5581bytes SHA256 `eeb9e894732b3b3ce222a54a0f26ae8
 ## Sandbox card publication
 
 Website main/task3141cca9491d585ed0b1c8aab7a52c7dd5bbc948 publishes cql-zcash-catalogue with native/Mongo preset directions, spaced local command and pinned guide/C# links. HTML parser/uniqueDOMID checks pass. Public HTML199130bytes SHA256583e921e1fa2901a6737e63c7c8ba095235bd84d73e2336f6d411e81d8e6dd8c and both unchanged JS assets match exact Git blobs. No JS changes/repeated green tests/browser interaction. Publication ACK retained HostedZcashPublicSourceCurrent. Hosted cohort remains frozen. Browser/reliability/fullORM gates remain open.
+
+11 November UTC: ZcashOASIS public block-summary presets returned 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. Original-owner paired browser verification remains open.

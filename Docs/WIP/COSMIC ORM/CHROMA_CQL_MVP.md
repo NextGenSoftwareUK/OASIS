@@ -64,3 +64,127 @@ replication/migrations/full HyperDrive and semantic/hosted security need separat
 acceptance. Advertised demo failures remain immediate fixes, not deferred items.
 
 Subsequent user-requested reviewed cleanup removed these private bins as part of63 verified directories/4751008965B. Source/evidence/cache/obj retained; see COMPLETED_TEST_OUTPUT_CLEANUP_2026-10-31.md.
+
+## Development enrollment gate
+
+The recovered provider exposes explicit read-only CQL activation. It verifies
+the existing holon collection by name and canonical UUID using GET. The
+WEB4 now has opt-in registration with a guarded HTTP client, explicit
+HTTPS origin, tenant and database. Qualify the exact collection and three
+live teaching IDs with credentials restricted to that source before
+publishing the Development catalogue. Chroma's bounded reads use POST for the native collection
+query API, so qualify read permissions by operation and path. Keep native
+mutation endpoints outside the query credential's scope.
+
+The adapter needs these two native operations under the exact configured
+tenant and database:
+
+- `GET /api/v2/tenants/{tenant}/databases/{database}/collections/oasis_holons`
+  for collection activation.
+- `POST /api/v2/tenants/{tenant}/databases/{database}/collections/{uuid}/get`
+  for the bounded ID query. Use the collection UUID returned by activation.
+
+Qualify the credential against both routes and confirm that collection
+creation and document upsert/delete are denied on a disposable fixture.
+The provider's injected HTTP client supports separate host-managed
+authentication. Keep credential values out of source configuration and
+acceptance reports.
+
+The opt-in WEB4 registration uses `CQL_CHROMA_QUERY_ORIGIN`,
+`CQL_CHROMA_QUERY_TENANT`, `CQL_CHROMA_QUERY_DATABASE` and the private
+`CQL_CHROMA_QUERY_BEARER_TOKEN`. This contract targets a reviewed HTTPS
+service that accepts a scoped bearer credential for the two read routes.
+The WEB4 build and the exact Core `7b17894c` admission run passed. Chroma
+and CouchDB passed 2/2 with zero skips, covering the zero-cost query-only
+tariffs and four planned presets per provider. The parent gitlink and
+Railway manifest match. The earlier loopback native/browser run establishes
+the three-record demo shape. The original evidence path is absent on the
+recovery laptop, and that run used plaintext without authentication. To
+accept Development, qualify the reviewed HTTPS endpoint and scoped credential,
+replay the same three IDs on that endpoint, then verify WEB4 discovery,
+native and Mongo-paired query results, and the signed-in browser card.
+
+## Recovery-laptop HTTPS read qualification tool, 5 November 2026
+
+`Scripts/Sandbox/Probe-ChromaHostedReadiness.py` now qualifies the exact two
+provider read routes without creating a collection or mutating documents.
+Supply a metadata-only JSON source with exactly `origin`, `tenant`, `database`,
+`collectionId` and `ids` (three distinct canonical UUIDs). The reviewed collection
+must already contain the three public, active, undeleted canonical Holon documents.
+The collection activation response must match both oasis_holons and the reviewed
+UUID. Native reads request documents only, with bounded full/subset selections;
+response order is not treated as stable. Each payload ID must match its native ID.
+
+Keep the scoped bearer token only in the process environment
+`CQL_CHROMA_QUERY_BEARER_TOKEN`. The tool rejects redirects, proxies, non-HTTPS
+origins, URL credentials and local/private DNS results before credential dispatch.
+It makes at most three requests, each with a 15-second timeout and 4 MiB response
+bound. Receipts retain only the source hash, counts, outcome type and scope;
+neither credentials nor document contents are written to the receipts.
+
+```powershell
+python -B Scripts/Sandbox/Probe-ChromaHostedReadiness.py `
+  LocalState/COSMIC/ChromaHostedQualificationCurrent/source.json `
+  LocalState/COSMIC/ChromaHostedQualificationCurrent
+```
+
+Exclusive intent/ACK/failure files prevent an implicit repeat after uncertainty.
+Review the original outcome before any separately authorized qualification run.
+Six controlled tests pass without network calls or new runtime dependencies.
+No real hosted endpoint or credential has been supplied or qualified. The tool
+explicitly does not certify denial of mutation routes, hosted CQL, federation,
+replicas or browser acceptance. Qualify denied mutations only on a separately
+owned disposable fixture, then retain that distinct authorization proof.
+
+Contract comparison and shared-tool verification: activation matches the shipping
+GET collection-name route; reads match its POST collection-UUID/get request,
+documents-only include, limit and offset. The probe additionally requires the
+reviewed UUID and exact teaching counts. These assertions qualify a source;
+they do not replace the provider's CQL read authority. The complete Sandbox
+Python suite passes 637 tests, zero failures/skips, including six new Chroma
+cases. No external source was contacted by that test run.
+
+The new qualification tool's URL check reproduced one edge case before use:
+empty userinfo (`https://@host`) passed a truthiness check. It now rejects
+userinfo by presence, including empty username/password, before any request.
+The six focused tests pass with both empty-userinfo regressions included.
+No hosted call or qualification receipt was created.
+
+The qualification probe now resolves the reviewed hostname once per
+request, rejects private and multicast answers, and connects to the exact
+checked address. TLS still verifies the reviewed hostname. The seven
+focused Chroma tests and the 811-test offline sandbox suite passed. Live
+qualification remains open and no hosted credential was used.
+
+WEB4 configuration now requires CQL_CHROMA_QUERY_COLLECTION_ID to match
+the reviewed collectionId from the native descriptor. Activation fails
+if the named collection resolves to a different UUID. All 19 focused
+Chroma provider tests passed, including the replacement-collection test.
+The local WEB4 build passed with zero errors, and its focused test verified
+native and MongoDB-paired preset compilation. The full startup probe was
+inconclusive. The registration now uses a dedicated method called by
+WEB4 Startup. A focused WEB4 run passed all four cases, including refusal
+before service registration for missing, malformed and zero collection
+UUIDs. Hosted qualification and live enrollment remain open.
+
+After native qualification, prepare the query-only settings candidate from
+a protected baseline containing the same reviewed source settings and the
+same scoped bearer used for the probe.
+
+```powershell
+python -B Scripts/Sandbox/Prepare-HostedExactKeyConfiguration.py ChromaOASIS `
+  --catalogue LocalState/COSMIC/ChromaHostedQualificationCurrent/source.json `
+  --chroma-qualification LocalState/COSMIC/ChromaHostedQualificationCurrent/qualification.acknowledged.json `
+  --baseline $reviewedProtectedBaseline --output $newProtectedCandidate
+```
+
+The builder checks the descriptor digest, the native 3/2 read receipt and
+the protected origin, tenant, database and collection settings. It adds
+only query admission, the exact public ID grants and the four query presets.
+The receipt contains no credential identity. Confirm the bearer through the
+private configuration workflow and verify mutation denial separately before
+live enrollment. All 53 settings-builder tests passed with synthetic inputs.
+
+Three additional WEB4 tests passed for the shared origin and bearer policy.
+The registration rejects empty user information, nonstandard HTTPS ports and
+non-ASCII bearer characters before adding services. No native call ran.
