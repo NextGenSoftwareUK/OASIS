@@ -107,6 +107,18 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.AreSame(lazyRoot.Children[0],(await lazy.FindAsync<Holon>(lazyRoot.Children[0].Id)).Result,"Lazily loaded children are tracked.");
         }
         checks++;
+        // A09 filtered include: native filter, ordering and paging of one navigation.
+        using(var filtered=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            var filteredRoot=(await filtered.FindAsync<Holon>(root.Id)).Result;
+            var only=await filtered.LoadChildrenAsync<Holon,string>(filteredRoot,row=>row.Name.StartsWith("cascade-nav",StringComparison.Ordinal),row=>row.Name);
+            Assert.IsFalse(only.IsError,only.ErrorCode+": "+only.Message);
+            CollectionAssert.AreEqual(new[]{navChild.Id},filteredRoot.Children.Select(row=>row.Id).ToArray());
+            var top=await filtered.LoadChildrenAsync<Holon,string>(filteredRoot,row=>row.IsActive,row=>row.Name,descending:true,take:1);
+            Assert.IsFalse(top.IsError,top.ErrorCode+": "+top.Message);
+            CollectionAssert.AreEqual(new[]{navChild.Id},top.Result.Select(row=>row.Id).ToArray(),"Ordered descending by name, first page of one.");
+        }
+        checks++;
         var bounded=await deleter.RemoveCascadeAsync(loaded,softDelete:false,maximumDescendants:1);
         Assert.IsTrue(bounded.IsError);Assert.AreEqual("COSMIC_CASCADE_LIMIT_EXCEEDED",bounded.ErrorCode);checks++;
         var queued=await deleter.RemoveCascadeAsync(loaded,softDelete:false);
@@ -117,6 +129,6 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.IsFalse(deleted.IsError,deleted.ErrorCode+": "+deleted.Message);checks++;
         CollectionAssert.AreEquivalent(new[]{other.Id},(await Stored(root.Id,child.Id,grandchild.Id,late.Id,navChild.Id,other.Id)).Select(row=>row.Id).ToArray());checks++;
         return new NativeFixtureJourneyProof(checks,4,new Dictionary<string,bool>{
-            ["cascadeDeleteVerified"]=true,["cascadeBoundRefusedVerified"]=true,["siblingPreservedVerified"]=true,["explicitChildLoadingVerified"]=true,["loadedCollectionFixUpVerified"]=true,["extraLazyCollectionVerified"]=true,["navigationCascadeInsertVerified"]=true,["deleteOrphanVerified"]=true,["batchFetchVerified"]=true,["lazyLoadingVerified"]=true});
+            ["cascadeDeleteVerified"]=true,["cascadeBoundRefusedVerified"]=true,["siblingPreservedVerified"]=true,["explicitChildLoadingVerified"]=true,["loadedCollectionFixUpVerified"]=true,["extraLazyCollectionVerified"]=true,["navigationCascadeInsertVerified"]=true,["deleteOrphanVerified"]=true,["batchFetchVerified"]=true,["lazyLoadingVerified"]=true,["filteredIncludeVerified"]=true});
     }
 }
