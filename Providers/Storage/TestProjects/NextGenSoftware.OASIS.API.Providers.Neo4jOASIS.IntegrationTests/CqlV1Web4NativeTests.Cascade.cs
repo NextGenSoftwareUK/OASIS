@@ -57,16 +57,21 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.AreSame(children.Result[0],loaded.Children.Single());checks++;
         Assert.AreEqual(CosmicEntityState.Unchanged,deleter.State(loaded).Result);
         Assert.AreSame(children.Result[0],(await deleter.FindAsync<Holon>(child.Id)).Result,"Loaded children join the identity map.");checks++;
+        // A05: a child created under the loaded parent joins its Children after commit.
+        var late=New("cascade-late-child");late.ParentHolonId=root.Id;Assert.IsFalse(deleter.Add(late).IsError);
+        var lateSaved=await deleter.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));
+        Assert.IsFalse(lateSaved.IsError,lateSaved.Message);
+        CollectionAssert.AreEquivalent(new[]{child.Id,late.Id},loaded.Children.Select(row=>row.Id).ToArray());checks++;
         var bounded=await deleter.RemoveCascadeAsync(loaded,softDelete:false,maximumDescendants:1);
         Assert.IsTrue(bounded.IsError);Assert.AreEqual("COSMIC_CASCADE_LIMIT_EXCEEDED",bounded.ErrorCode);checks++;
         var queued=await deleter.RemoveCascadeAsync(loaded,softDelete:false);
-        Assert.IsFalse(queued.IsError,queued.ErrorCode+": "+queued.Message);Assert.AreEqual(3,queued.Result);checks++;
+        Assert.IsFalse(queued.IsError,queued.ErrorCode+": "+queued.Message);Assert.AreEqual(4,queued.Result);checks++;
         var clock=System.Diagnostics.Stopwatch.StartNew();
         var deleted=await deleter.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));
         timings.Add("cascade-commit",clock.ElapsedMilliseconds);
         Assert.IsFalse(deleted.IsError,deleted.ErrorCode+": "+deleted.Message);checks++;
-        CollectionAssert.AreEquivalent(new[]{other.Id},(await Stored(root.Id,child.Id,grandchild.Id,other.Id)).Select(row=>row.Id).ToArray());checks++;
+        CollectionAssert.AreEquivalent(new[]{other.Id},(await Stored(root.Id,child.Id,grandchild.Id,late.Id,other.Id)).Select(row=>row.Id).ToArray());checks++;
         return new NativeFixtureJourneyProof(checks,4,new Dictionary<string,bool>{
-            ["cascadeDeleteVerified"]=true,["cascadeBoundRefusedVerified"]=true,["siblingPreservedVerified"]=true,["explicitChildLoadingVerified"]=true});
+            ["cascadeDeleteVerified"]=true,["cascadeBoundRefusedVerified"]=true,["siblingPreservedVerified"]=true,["explicitChildLoadingVerified"]=true,["loadedCollectionFixUpVerified"]=true});
     }
 }
