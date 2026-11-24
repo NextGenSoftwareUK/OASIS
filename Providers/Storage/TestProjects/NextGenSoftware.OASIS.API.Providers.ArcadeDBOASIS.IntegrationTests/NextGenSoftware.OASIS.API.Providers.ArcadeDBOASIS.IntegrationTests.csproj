@@ -15,4 +15,12 @@
   <ItemGroup>
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS\NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS.csproj" />
   </ItemGroup>
+  <ItemGroup Condition="'$(NativeStorageConformance)' == 'true'">
+    <Compile Remove="**/*.cs" />
+    <Compile Include="ArcadeDBNativeStorageConformanceTests.cs" />
+    <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(NativeStorageConformance)' != 'true'">
+    <Compile Remove="ArcadeDBNativeStorageConformanceTests.cs" />
+  </ItemGroup>
 </Project>

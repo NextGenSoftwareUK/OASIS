@@ -15,4 +15,12 @@
   <ItemGroup>
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.QuestDBOASIS\NextGenSoftware.OASIS.API.Providers.QuestDBOASIS.csproj" />
   </ItemGroup>
+  <ItemGroup Condition="'$(NativeStorageConformance)' == 'true'">
+    <Compile Remove="**/*.cs" />
+    <Compile Include="QuestDBNativeStorageConformanceTests.cs" />
+    <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(NativeStorageConformance)' != 'true'">
+    <Compile Remove="QuestDBNativeStorageConformanceTests.cs" />
+  </ItemGroup>
 </Project>

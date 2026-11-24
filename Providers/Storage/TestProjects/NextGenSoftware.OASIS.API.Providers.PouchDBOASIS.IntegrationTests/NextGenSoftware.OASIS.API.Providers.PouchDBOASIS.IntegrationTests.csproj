@@ -15,4 +15,12 @@
   <ItemGroup>
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.PouchDBOASIS\NextGenSoftware.OASIS.API.Providers.PouchDBOASIS.csproj" />
   </ItemGroup>
+  <ItemGroup Condition="'$(NativeStorageConformance)' == 'true'">
+    <Compile Remove="**/*.cs" />
+    <Compile Include="PouchDBNativeStorageConformanceTests.cs" />
+    <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(NativeStorageConformance)' != 'true'">
+    <Compile Remove="PouchDBNativeStorageConformanceTests.cs" />
+  </ItemGroup>
 </Project>

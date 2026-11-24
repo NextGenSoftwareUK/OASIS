@@ -13,7 +13,11 @@ on:
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.InfluxDBOASIS/**'
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.ChromaOASIS/**'
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.PgVectorOASIS/**'
-      - 'Providers/Storage/TestProjects/*/*NativeStorageConformanceTests.cs'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS/**'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.QuestDBOASIS/**'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.PouchDBOASIS/**'
+      - 'Providers/Social/NextGenSoftware.OASIS.API.Providers.NostrOASIS/**'
+      - 'Providers/*/TestProjects/*/*NativeStorageConformanceTests.cs'
   workflow_dispatch:
 
 permissions:
@@ -26,7 +30,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        provider: [CouchDB, Couchbase, ArangoDB, SurrealDB, ClickHouse, InfluxDB, Chroma, PgVector]
+        provider: [CouchDB, Couchbase, ArangoDB, SurrealDB, ClickHouse, InfluxDB, Chroma, PgVector, ArcadeDB, QuestDB, PouchDB, Nostr]
     defaults:
       run:
         working-directory: OASIS
@@ -106,6 +110,20 @@ jobs:
               wait_for "docker exec $container pg_isready -U postgres -d oasis"
               sleep 3
               docker exec "$container" psql -U postgres -d oasis -c 'CREATE EXTENSION IF NOT EXISTS vector;' ;;
+            ArcadeDB)
+              container="$(docker run -d -p 127.0.0.1:12480:2480 -e JAVA_OPTS="-Darcadedb.server.rootPassword=$password" arcadedata/arcadedb:25.10.1)"
+              wait_for "curl -fsS -u root:$password http://127.0.0.1:12480/api/v1/server" ;;
+            QuestDB)
+              container="$(docker run -d -p 127.0.0.1:18812:8812 -p 127.0.0.1:19000:9000 questdb/questdb:9.1.0)"
+              wait_for "curl -fsS 'http://127.0.0.1:19000/exec?query=SELECT%201'" ;;
+            PouchDB)
+              container="$(docker run -d -p 127.0.0.1:15985:5984 -e COUCHDB_USER=admin -e COUCHDB_PASSWORD="$password" apache/couchdb:3.5.1)"
+              wait_for "curl -fsS -u admin:$password http://127.0.0.1:15985/_up"
+              for db in _users _replicator; do curl -fsS -u "admin:$password" -X PUT "http://127.0.0.1:15985/$db" || true; done ;;
+            Nostr)
+              container="$(docker run -d -p 127.0.0.1:17777:8080 scsibug/nostr-rs-relay:0.9.0)"
+              wait_for "curl -fsS -H 'Accept: application/nostr+json' http://127.0.0.1:17777/"
+              export OASIS_NOSTR_SECRET="$(openssl rand -hex 32)" ;;
             Couchbase)
               container="$(docker run -d -p 127.0.0.1:8091-8097:8091-8097 -p 127.0.0.1:11210:11210 -p 127.0.0.1:11280:11280 couchbase/server:community-7.6.2)"
               wait_for "curl -fsS http://127.0.0.1:8091/ui/index.html"
@@ -115,7 +133,7 @@ jobs:
                 --bucket-type couchbase --bucket-ramsize 512 --wait
               wait_for "curl -fsS -u Administrator:$password http://127.0.0.1:8093/query/service -d 'statement=SELECT 1'" ;;
           esac
-          project="Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.${PROVIDER}OASIS.IntegrationTests"
+          project="$(ls -d Providers/*/TestProjects/NextGenSoftware.OASIS.API.Providers.${PROVIDER}OASIS.IntegrationTests | head -1)"
           export OASIS_NATIVE_STORAGE_FIXTURE="$fixture" OASIS_NATIVE_PASSWORD="$password"
           dotnet test "$project" -p:NativeStorageConformance=true --filter "FullyQualifiedName~${PROVIDER}NativeStorageConformanceTests" \
             -m:2 -nr:false -p:UseSharedCompilation=false --logger "console;verbosity=normal"
