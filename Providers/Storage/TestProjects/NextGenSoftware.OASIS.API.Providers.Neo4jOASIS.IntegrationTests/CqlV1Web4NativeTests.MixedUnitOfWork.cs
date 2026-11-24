@@ -105,19 +105,23 @@ public sealed partial class CqlV1Web4NativeTests
             CollectionAssert.AreEquivalent(wanted,streamed.ToArray());Assert.AreEqual(2,streamed.Count);
         }
         checks++;
-        // Q31 date arithmetic: field.AddX(k) compared with a closed date runs natively.
+        // Q31 date arithmetic: a date field's AddX(k) compared with a closed date runs natively.
         using(var dates=CosmicSession.Create(manager,adapter,access).Result)
         {
-            var wanted=new[]{keep.Id,added.Id};var now=DateTime.UtcNow;
+            var now=new DateTime(2026,11,24,12,0,0,DateTimeKind.Utc);
+            var stamped=New("date-stamped");stamped.MetaData=new Dictionary<string,object>{{"stamp",now}};
+            Assert.IsFalse(dates.Add(stamped).IsError);
+            Assert.IsFalse((await dates.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()))).IsError);
+            var wanted=new[]{stamped.Id};
             async Task<int> Count(System.Linq.Expressions.Expression<Func<Holon,bool>> filter)
             {
                 var rows=await dates.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>wanted.Contains(row.Id)).Where(filter).ToCosmicListAsync();
                 Assert.IsFalse(rows.IsError,rows.ErrorCode+": "+rows.Message);return rows.Result.Count;
             }
-            Assert.AreEqual(2,await Count(row=>row.CreatedDate.AddDays(1)>now));
-            Assert.AreEqual(0,await Count(row=>row.CreatedDate.AddDays(-1)>now));
-            Assert.AreEqual(2,await Count(row=>row.CreatedDate.AddHours(-48)<now));
-            var months=await dates.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>row.CreatedDate.AddMonths(1)>now).ToCosmicListAsync();
+            Assert.AreEqual(1,await Count(row=>CosmicQueryMetadata.Value<DateTime>(row,"stamp").AddDays(1)>now));
+            Assert.AreEqual(0,await Count(row=>CosmicQueryMetadata.Value<DateTime>(row,"stamp").AddDays(-1)>now));
+            Assert.AreEqual(1,await Count(row=>CosmicQueryMetadata.Value<DateTime>(row,"stamp").AddHours(-48)<now));
+            var months=await dates.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>CosmicQueryMetadata.Value<DateTime>(row,"stamp").AddMonths(1)>now).ToCosmicListAsync();
             Assert.IsTrue(months.IsError,"Month arithmetic is not linear and is refused.");
         }
         checks++;
