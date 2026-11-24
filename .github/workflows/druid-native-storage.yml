@@ -55,7 +55,7 @@ jobs:
           cleanup() {
             status=$?
             if [[ -n "$druid_pid" ]]; then kill "$druid_pid" 2>/dev/null || true; wait "$druid_pid" 2>/dev/null || true; fi
-            if (( status != 0 )); then tail -n 40 "$druid_root"/apache-druid-39.0.0/log/*.log 2>/dev/null || true; fi
+            if (( status != 0 )); then tail -n 60 "$druid_root/start.log" || true; for log in "$druid_root"/apache-druid-39.0.0/log/*.log; do echo "== $log"; tail -n 30 "$log"; done 2>/dev/null || true; fi
             [[ "$fixture" == "$RUNNER_TEMP"/oasis-native.* ]] && rm -rf -- "$fixture"
             [[ "$druid_root" == "$RUNNER_TEMP"/druid.* ]] && rm -rf -- "$druid_root"
             exit "$status"
@@ -72,9 +72,9 @@ jobs:
           done
           (cd "$home" && exec bin/start-druid -m 8g) > "$druid_root/start.log" 2>&1 &
           druid_pid=$!
-          for attempt in $(seq 1 150); do
+          for attempt in $(seq 1 300); do
             if curl -fsS -X POST -H 'Content-Type: application/json' -d '{"query":"SELECT 1"}' http://127.0.0.1:8888/druid/v2/sql >/dev/null 2>&1 && curl -fsS http://127.0.0.1:8888/druid/indexer/v1/workers | jq -e 'length > 0' >/dev/null 2>&1; then break; fi
-            [[ "$attempt" != 150 ]]; sleep 2
+            [[ "$attempt" != 300 ]]; sleep 2
           done
           export OASIS_NATIVE_STORAGE_FIXTURE="$fixture"
           dotnet test "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.DruidOASIS.IntegrationTests" -p:NativeStorageConformance=true \
