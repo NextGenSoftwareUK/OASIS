@@ -121,8 +121,14 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.AreEqual(1,await Count(row=>CosmicQueryMetadata.Value<DateTime>(row,"stamp").AddDays(1)>now));
             Assert.AreEqual(0,await Count(row=>CosmicQueryMetadata.Value<DateTime>(row,"stamp").AddDays(-1)>now));
             Assert.AreEqual(1,await Count(row=>CosmicQueryMetadata.Value<DateTime>(row,"stamp").AddHours(-48)<now));
-            var months=await dates.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>CosmicQueryMetadata.Value<DateTime>(row,"stamp").AddMonths(1)>now).ToCosmicListAsync();
-            Assert.IsTrue(months.IsError,"Month arithmetic is not linear and is refused.");
+            var refused=false;
+            try
+            {
+                var months=await dates.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>CosmicQueryMetadata.Value<DateTime>(row,"stamp").AddMonths(1)>now).ToCosmicListAsync();
+                refused=months.IsError;
+            }
+            catch(CosmicLinqException){refused=true;}
+            Assert.IsTrue(refused,"Month arithmetic is not linear and is refused.");
         }
         checks++;
         // S06 notification tracking: only raised PropertyChanged marks a notifying entity Modified.
