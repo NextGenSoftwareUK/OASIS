@@ -54,11 +54,19 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.AreEqual(2,counted.Result.Count,"The filter applies to every query, not once.");checks++;
         var bypass=await reader.Linq<Holon>(CosmicQueryTrackingMode.NoTracking,100,ignoreQueryFilters:true).Result.Where(row=>ids.Contains(row.Id)).ToCosmicListAsync();
         Assert.IsFalse(bypass.IsError,bypass.Message);Assert.AreEqual(3,bypass.Result.Count);checks++;
+        // S20: Auto flush makes the session's own pending insert visible to its next async query.
+        Assert.IsFalse(reader.SetFlushMode(CosmicFlushMode.Auto).IsError);
+        var pending=New("tenant-row-4");pending.Description="tenant-a";Assert.IsFalse(reader.Add(pending).IsError);
+        var withPending=ids.Append(pending.Id).ToArray();
+        var flushedQuery=await reader.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>withPending.Contains(row.Id)).ToCosmicListAsync();
+        Assert.IsFalse(flushedQuery.IsError,flushedQuery.ErrorCode+": "+flushedQuery.Message);
+        Assert.AreEqual(3,flushedQuery.Result.Count,"The auto-flushed insert is visible and still filtered.");
+        Assert.AreEqual(CosmicEntityState.Unchanged,reader.State(pending).Result);checks++;
         var foreign=CosmicSession.Create(manager,adapter,CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result).Result;
         var hidden=await foreign.Linq<Holon>(CosmicQueryTrackingMode.NoTracking,100,ignoreQueryFilters:true).Result.Where(row=>ids.Contains(row.Id)).ToCosmicListAsync();
         Assert.IsFalse(hidden.IsError,hidden.Message);Assert.AreEqual(0,hidden.Result.Count,"Bypass never widens read access.");checks++;
         foreign.Dispose();
         return new NativeFixtureJourneyProof(checks,1,new Dictionary<string,bool>{
-            ["globalFilterVerified"]=true,["explicitBypassVerified"]=true,["accessNotWidenedVerified"]=true});
+            ["globalFilterVerified"]=true,["explicitBypassVerified"]=true,["accessNotWidenedVerified"]=true,["autoFlushVerified"]=true});
     }
 }
