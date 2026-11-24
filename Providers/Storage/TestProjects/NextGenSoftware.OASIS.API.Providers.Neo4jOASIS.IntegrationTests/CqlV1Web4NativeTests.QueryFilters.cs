@@ -66,11 +66,22 @@ public sealed partial class CqlV1Web4NativeTests
         var stats=reader.Statistics;
         Assert.AreEqual(4L,stats.QueryCount);Assert.AreEqual(1L,stats.FlushCount);Assert.AreEqual(0L,stats.FailedFlushCount);
         Assert.AreEqual(1,stats.EntityCount);Assert.AreEqual(0,stats.AddedCount);checks++;
+        // S07: merge a disconnected copy onto the tracked instance and save it against its revision.
+        using(var merger=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            var detached=new Holon{Id=ids[0],Name="merged-name",Description="tenant-a",CreatedByAvatarId=actor,IsActive=true,IsPublic=false};
+            var merged=await merger.MergeAsync(detached);
+            Assert.IsFalse(merged.IsError,merged.ErrorCode+": "+merged.Message);Assert.AreNotSame(detached,merged.Result);
+            Assert.AreEqual(CosmicEntityState.Modified,merger.State(merged.Result).Result);
+            var mergedSave=await merger.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));
+            Assert.IsFalse(mergedSave.IsError,mergedSave.ErrorCode+": "+mergedSave.Message);
+        }
+        var afterMerge=(await Stored(ids[0])).Single();Assert.AreEqual("merged-name",afterMerge.Name);checks++;
         var foreign=CosmicSession.Create(manager,adapter,CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result).Result;
         var hidden=await foreign.Linq<Holon>(CosmicQueryTrackingMode.NoTracking,100,ignoreQueryFilters:true).Result.Where(row=>ids.Contains(row.Id)).ToCosmicListAsync();
         Assert.IsFalse(hidden.IsError,hidden.Message);Assert.AreEqual(0,hidden.Result.Count,"Bypass never widens read access.");checks++;
         foreign.Dispose();
         return new NativeFixtureJourneyProof(checks,1,new Dictionary<string,bool>{
-            ["globalFilterVerified"]=true,["explicitBypassVerified"]=true,["accessNotWidenedVerified"]=true,["autoFlushVerified"]=true,["sessionStatisticsVerified"]=true});
+            ["globalFilterVerified"]=true,["explicitBypassVerified"]=true,["accessNotWidenedVerified"]=true,["autoFlushVerified"]=true,["sessionStatisticsVerified"]=true,["disconnectedMergeVerified"]=true});
     }
 }
