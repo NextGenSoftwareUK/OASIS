@@ -47,7 +47,7 @@ Not yet covered:
 
 There are 234 shipping provider projects: 178 storage or specialised storage, 56 non-storage.
 
-Done (85 pass the native core-storage-v2 suite 52/52 against their real backend; ActivityPub passes capability-v1 5/5):
+Done (86 pass the native core-storage-v2 suite 52/52 against their real backend; ActivityPub passes capability-v1 5/5):
 
 - Every priority provider is done: HoloOASIS, Solana, MongoDB, SQLite, Neo4j, Supabase, SQL Server, Oracle (OracleDB),
   AWS, IPFS, NEAR, Cosmos, Azure (CosmosDB + Storage), Google Cloud, Polkadot, ActivityPub, SOLID, Polygon, Arbitrum,
@@ -83,6 +83,8 @@ Done (85 pass the native core-storage-v2 suite 52/52 against their real backend;
   no row DELETE; PouchDB never checked write status and turned every read error into "not found"; Berachain and Sei had
   no chain identity, which the EVM base requires for signing, so their writes failed on every network; PgVector and
   ArcadeDB were missing ProviderName/Description.
+- NATS JetStream passes in the CI matrix (new integration-test project). Neo4jOASIS2 is a thin subclass of Neo4jOASIS (same
+  driver and record implementation), so the Neo4jOASIS run covers it.
 
 Partly done, with open items:
 - Turso: managed Turso and hosted WEB4 activation are still open.
@@ -94,8 +96,10 @@ Next, breadth first, in order of popularity (shared suite not yet run):
 1. Pinecone, LanceDB (Cloud), Zilliz: hosted vector stores, need accounts
 2. Appwrite, Fauna, Xata, Nile, CloudflareD1, VercelKV, NetlifyBlobs, Tigris (hosted; need accounts, see ACTIONS-FOR-DAVID)
 3. BigQuery, Snowflake, Redshift, Databricks, MotherDuck (hosted analytics; need accounts)
+   Druid, Pinot and Marqo are implemented but heavy (Pinot/Druid ingest one segment or task per row); queued after the chains.
 4. The remaining non-EVM chains need real storage implementations, not fixes:
-   - XRPL: avatar, detail and most holon storage methods return NotSupported.
+   - XRPL: avatar, detail and most holon storage methods return NotSupported, and transaction "signing" submits an empty
+     secret, so it needs real XRPL binary encoding and Ed25519 signing.
    - Stellar: a read-only Horizon wrapper; holon save is an explicit not-implemented error and there is no signing.
    - Cardano: transactions are built as JSON objects, but Cardano only accepts CBOR-encoded signed transactions.
    - Starknet: holon save falls back to HolonManager and calls a Cairo `create_holon` entry point that is not in the repo.
