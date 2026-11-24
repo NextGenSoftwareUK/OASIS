@@ -62,7 +62,22 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.IsFalse(byKey.IsError,byKey.ErrorCode+": "+byKey.Message);Assert.AreEqual(c.Id,byKey.Result.Id);
         Assert.AreEqual(b.Id,(await third.FindByKeyAsync<Holon>(scope,"a@example.test")).Result.Id);
         Assert.IsNull((await third.FindByKeyAsync<Holon>(scope,"missing@example.test")).Result);checks++;
+        // A02 one-to-one: a unique key on the child's ParentHolonId (EF: FK + unique index).
+        var oneScope="profile"+Guid.NewGuid().ToString("N");
+        using(var one=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            Assert.IsFalse(one.HasUniqueKey<Holon>(oneScope,row=>row.ParentHolonId==Guid.Empty?null:row.ParentHolonId.ToString("D")).IsError);
+            var owner=New("one-owner");Assert.IsFalse(one.Add(owner).IsError);
+            Assert.IsFalse((await Save(one)).IsError);
+            var profile=New("one-profile");profile.ParentHolonId=owner.Id;Assert.IsFalse(one.Add(profile).IsError);
+            var first1=await Save(one);Assert.IsFalse(first1.IsError,first1.ErrorCode+": "+first1.Message);
+            var second1=New("one-second");second1.ParentHolonId=owner.Id;Assert.IsFalse(one.Add(second1).IsError);
+            var refused1=await Save(one);
+            Assert.IsTrue(refused1.IsError);Assert.AreEqual("COSMIC_UNIQUE_KEY_CONFLICT",refused1.ErrorCode);
+            Assert.AreEqual(profile.Id,(await one.FindByKeyAsync<Holon>(oneScope,owner.Id.ToString("D"))).Result.Id);
+        }
+        checks++;
         return new NativeFixtureJourneyProof(checks,5,new Dictionary<string,bool>{
-            ["duplicateRefusedVerified"]=true,["keyMoveReleasesVerified"]=true,["deleteReleasesVerified"]=true,["findByKeyVerified"]=true});
+            ["duplicateRefusedVerified"]=true,["keyMoveReleasesVerified"]=true,["deleteReleasesVerified"]=true,["findByKeyVerified"]=true,["oneToOneVerified"]=true});
     }
 }
