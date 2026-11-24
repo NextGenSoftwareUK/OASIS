@@ -9,7 +9,11 @@ internal static class CosmosEscrowConfiguration
     internal static CosmosTokenEscrowConfiguration Create(CosmosBlockChainOASISProviderSettings settings)
     {
         ArgumentNullException.ThrowIfNull(settings);
-        if (settings.IdBoundTokenEscrow == null) return null;
+        // The DNA templates ship an empty escrow section ("" / "") meaning "no escrow
+        // configured"; treat it like a missing section. A half-filled section is still rejected.
+        var escrow = settings.IdBoundTokenEscrow;
+        if (escrow == null || (string.IsNullOrEmpty(escrow.ContractAddress) && string.IsNullOrEmpty(escrow.CodeSha256)))
+            return null;
         var selected = new CosmosTokenEscrowConfiguration(settings.IdBoundTokenEscrow.ContractAddress,
             settings.IdBoundTokenEscrow.CodeSha256);
         selected.Validate(settings.ContractAddress);
