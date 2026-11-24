@@ -46,7 +46,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '25'
       - name: Run the shared core storage suite against a disposable single-machine Apache Druid 39.0.0
         run: |
           fixture="$(mktemp -d "$RUNNER_TEMP/oasis-native.XXXXXXXX")"
@@ -74,6 +74,7 @@ jobs:
           druid_pid=$!
           for attempt in $(seq 1 300); do
             if curl -fsS -X POST -H 'Content-Type: application/json' -d '{"query":"SELECT 1"}' http://127.0.0.1:8888/druid/v2/sql >/dev/null 2>&1 && curl -fsS http://127.0.0.1:8888/druid/indexer/v1/workers | jq -e 'length > 0' >/dev/null 2>&1; then break; fi
+            kill -0 "$druid_pid" 2>/dev/null || { echo "start-druid exited"; exit 1; }
             [[ "$attempt" != 300 ]]; sleep 2
           done
           export OASIS_NATIVE_STORAGE_FIXTURE="$fixture"

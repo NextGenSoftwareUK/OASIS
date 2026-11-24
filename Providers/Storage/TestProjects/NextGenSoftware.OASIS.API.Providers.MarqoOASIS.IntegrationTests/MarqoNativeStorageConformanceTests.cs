@@ -30,6 +30,11 @@ public sealed class MarqoNativeStorageConformanceTests
                 File.Move(reportPath + ".next", reportPath, overwrite: true);
             });
 
+        if (!report.Succeeded)
+        {
+            var activation = await provider.ActivateProviderAsync();
+            Console.WriteLine($"Diagnose(activate): {activation.Message} | {activation.Exception}");
+        }
         Assert.IsTrue(report.Succeeded, $"{report.CurrentCase}: {report.FailureType} {report.FailureContract}; {report.Passed.Count} checks passed.");
         Assert.IsTrue(report.FixtureCleanupComplete);
         Assert.AreEqual(CoreStorageConformance.ChecksPerMode, report.Passed.Count);
