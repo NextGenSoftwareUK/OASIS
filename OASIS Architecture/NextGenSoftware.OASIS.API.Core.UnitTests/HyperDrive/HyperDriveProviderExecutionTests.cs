@@ -1479,6 +1479,11 @@ public sealed partial class HyperDriveProviderExecutionTests
                 It.IsAny<HolonType>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>(),
                 It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>()))
             .ReturnsAsync(new OASISResult<IEnumerable<IHolon>>(new List<IHolon>()));
+        // Listing messages also resolves the avatar's group memberships on the same explicit provider.
+        explicitlySelected.Setup(x => x.LoadHolonsByMetaDataAsync(It.IsAny<string>(), "1",
+                It.IsAny<HolonType>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>(),
+                It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>()))
+            .ReturnsAsync(new OASISResult<IEnumerable<IHolon>>(new List<IHolon>()));
         providerManager.RegisterProvider(runtimeDefault.Object).Should().BeTrue();
         providerManager.RegisterProvider(explicitlySelected.Object).Should().BeTrue();
         providerManager.SetAndActivateCurrentStorageProvider(runtimeDefault.Object).IsError.Should().BeFalse();
