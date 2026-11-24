@@ -38,11 +38,18 @@ public partial class AptosOASIS
         try
         {
             if (!await EnsureActivatedAsync(result)) return result;
-            if (!await HasRecordAsync(HolonRecordType, providerKey)) { result.Message = $"Aptos holon '{providerKey}' was not found."; return result; }
-            var holon = await GetRecordAsync<Holon>(HolonRecordType, providerKey);
-            if (holon != null) holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.AptosOASIS] = providerKey;
+            var holon = await HasRecordAsync(HolonRecordType, providerKey) ? await GetRecordAsync<Holon>(HolonRecordType, providerKey) : null;
+            if (holon == null || holon.IsDeleted)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Aptos holon '{providerKey}' was not found.");
+                result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                return result;
+            }
+            holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.AptosOASIS] = providerKey;
             result.Result = holon;
-            result.Message = holon == null ? $"Aptos holon '{providerKey}' was not found." : "Holon loaded from Aptos.";
+            result.IsLoaded = true;
+            result.LoadedCount = 1;
+            result.Message = "Holon loaded from Aptos.";
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading Aptos holon: {ex.Message}", ex); }
         return result;
@@ -63,6 +70,8 @@ public partial class AptosOASIS
                 { holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.AptosOASIS] = key; holons.Add(holon); }
             }
             result.Result = holons;
+            result.IsLoaded = true;
+            result.LoadedCount = holons.Count;
             result.Message = $"Loaded {holons.Count} holons from Aptos.";
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading Aptos holons: {ex.Message}", ex); }
@@ -71,7 +80,7 @@ public partial class AptosOASIS
     public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
     public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-    { var all = await LoadAllHolonsAsync(type, false, false, version: version); if (!all.IsError) all.Result = all.Result.Where(h => h.ParentHolonId == id).ToList(); return all; }
+    { var all = await LoadAllHolonsAsync(type, false, false, version: version); if (!all.IsError) { var selected = all.Result.Where(h => h.ParentHolonId == id).ToList(); all.Result = selected; all.LoadedCount = selected.Count; } return all; }
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     { var parent = await LoadHolonAsync(providerKey, false, false, version: version); return parent.Result == null ? new() { IsError = parent.IsError, Message = parent.Message, Exception = parent.Exception } : await LoadHolonsForParentAsync(parent.Result.Id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version); }
@@ -79,10 +88,10 @@ public partial class AptosOASIS
 
     private static bool AptosMetaMatches(IHolon h, string key, string value) => h.MetaData != null && h.MetaData.TryGetValue(key, out var actual) && string.Equals(actual?.ToString(), value, StringComparison.OrdinalIgnoreCase);
     public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string key, string value, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-    { var all = await LoadAllHolonsAsync(type, false, false, version: version); if (!all.IsError) all.Result = all.Result.Where(h => AptosMetaMatches(h, key, value)).ToList(); return all; }
+    { var all = await LoadAllHolonsAsync(type, false, false, version: version); if (!all.IsError) { var selected = all.Result.Where(h => AptosMetaMatches(h, key, value)).ToList(); all.Result = selected; all.LoadedCount = selected.Count; } return all; }
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string key, string value, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsByMetaDataAsync(key, value, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> filters, MetaKeyValuePairMatchMode mode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-    { var all = await LoadAllHolonsAsync(type, false, false, version: version); if (!all.IsError) all.Result = all.Result.Where(h => mode == MetaKeyValuePairMatchMode.Any ? filters.Any(x => AptosMetaMatches(h, x.Key, x.Value)) : filters.All(x => AptosMetaMatches(h, x.Key, x.Value))).ToList(); return all; }
+    { var all = await LoadAllHolonsAsync(type, false, false, version: version); if (!all.IsError) { var selected = all.Result.Where(h => mode == MetaKeyValuePairMatchMode.Any ? filters.Any(x => AptosMetaMatches(h, x.Key, x.Value)) : filters.All(x => AptosMetaMatches(h, x.Key, x.Value))).ToList(); all.Result = selected; all.LoadedCount = selected.Count; } return all; }
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> filters, MetaKeyValuePairMatchMode mode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsByMetaDataAsync(filters, mode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
     public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)

@@ -55,11 +55,25 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 if (holon.Id == Guid.Empty)
                     holon.Id = Guid.NewGuid();
 
+                var id = holon.Id;
                 var transactionHash = await UpsertRecordWithHashAsync(HolonRecordType, holon.Id.ToString(), holon);
+                var savedCount = 1;
+                if (saveChildren && holon.Children != null)
+                {
+                    foreach (var child in holon.Children)
+                    {
+                        if (child == null) continue;
+                        child.ParentHolonId = id;
+                        var childResult = await SaveHolonAsync(child, recursive, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                        if (childResult.IsError || !childResult.IsSaved)
+                            throw new System.IO.InvalidDataException($"Child holon {child.Id} was not saved: {childResult.Message}");
+                        savedCount += childResult.SavedCount;
+                    }
+                }
                 response.Result = holon;
                 response.IsError = false;
                 response.IsSaved = true;
-                response.SavedCount = 1;
+                response.SavedCount = savedCount;
                 response.MetaData = new Dictionary<string, string> { ["Aptos.TransactionHash"] = transactionHash };
                 response.Message = "Holon committed to Aptos by a signed SDK transaction";
             }
@@ -90,10 +104,13 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                         }
                     }
                     else
+                    {
                         saved.Add(saveResult.Result);
+                        result.SavedCount += saveResult.SavedCount;
+                    }
                 }
                 result.Result = saved;
-                result.IsSaved = true;
+                result.IsSaved = saved.Count > 0;
                 result.Message = $"{saved.Count} holons saved to Aptos successfully.";
             }
             catch (Exception ex)
@@ -117,16 +134,19 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             try
             {
                 // Load holon first to get its ID
-                var loadResult = await LoadHolonAsync(providerKey);
+                var loadResult = await LoadHolonAsync(providerKey, loadChildren: false);
                 if (loadResult.IsError || loadResult.Result == null)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Holon not found for provider key: {providerKey}");
+                    result.ErrorCode = loadResult.ErrorCode;
                     return result;
                 }
 
                 await DeleteRecordAsync(HolonRecordType, providerKey);
                 result.Result = loadResult.Result;
                 result.IsError = false;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
                 result.Message = "Holon deleted by a signed Aptos SDK transaction";
             }
             catch (Exception ex)
@@ -141,12 +161,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             var result = new OASISResult<bool>();
             try
             {
-                var saveResult = await SaveHolonsAsync(holons);
-                if (saveResult.IsError)
+                var saveResult = await SaveHolonsAsync(holons, saveChildren: false, continueOnError: false);
+                if (saveResult.IsError || !saveResult.IsSaved)
                     OASISErrorHandling.HandleError(ref result, $"ImportAsync failed: {saveResult.Message}");
                 else
                 {
                     result.Result = true;
+                    result.IsSaved = true;
+                    result.SavedCount = saveResult.SavedCount;
                     result.Message = saveResult.Message;
                 }
             }
@@ -169,8 +191,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid id, int version = 0)
         {
             var all = await LoadAllHolonsAsync(version: version);
-            if (!all.IsError)
-                all.Result = all.Result.Where(h => h.CreatedByAvatarId == id).ToList();
+            if (!all.IsError) { var owned = all.Result.Where(h => h.CreatedByAvatarId == id).ToList(); all.Result = owned; all.LoadedCount = owned.Count; }
             return all;
         }
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid id, int version = 0) => ExportAllDataForAvatarByIdAsync(id, version).Result;

@@ -70,6 +70,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.AptosOASIS] = avatar.Id.ToString();
                 await UpsertRecordAsync(AvatarRecordType, avatar.Id.ToString(), avatar);
                 result.Result = avatar;
+                result.IsSaved = true;
+                result.SavedCount = 1;
                 result.Message = $"Avatar '{avatar.Username}' saved on Aptos.";
             }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error saving Aptos avatar: {ex.Message}", ex); }
@@ -92,13 +94,21 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 if (!await HasRecordAsync(AvatarRecordType, providerKey))
                 {
                     result.Message = $"Aptos avatar '{providerKey}' was not found.";
+                    OASISErrorHandling.HandleError(ref result, result.Message); result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
                     return result;
                 }
                 var avatar = await GetRecordAsync<Avatar>(AvatarRecordType, providerKey);
-                if (avatar != null)
-                    avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.AptosOASIS] = providerKey;
+                if (avatar == null || avatar.IsDeleted)
+                {
+                    result.Message = $"Aptos avatar '{providerKey}' was not found.";
+                    OASISErrorHandling.HandleError(ref result, result.Message); result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    return result;
+                }
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.AptosOASIS] = providerKey;
                 result.Result = avatar;
-                result.Message = avatar == null ? $"Aptos avatar '{providerKey}' was not found." : "Avatar loaded from Aptos.";
+                result.IsLoaded = true;
+                result.LoadedCount = 1;
+                result.Message = "Avatar loaded from Aptos.";
             }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading Aptos avatar: {ex.Message}", ex); }
             return result;
@@ -123,6 +133,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     }
                 }
                 result.Result = avatars;
+                result.IsLoaded = true;
+                result.LoadedCount = avatars.Count;
                 result.Message = $"Loaded {avatars.Count} avatars from Aptos.";
             }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading Aptos avatars: {ex.Message}", ex); }
@@ -151,7 +163,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
         {
             if (all.IsError) return new OASISResult<IAvatar> { IsError = true, Message = all.Message, Exception = all.Exception };
             var avatar = all.Result?.FirstOrDefault(predicate);
-            return new OASISResult<IAvatar> { Result = avatar, Message = avatar == null ? $"Aptos avatar with {criterion} was not found." : "Avatar loaded from Aptos." };
+            if (avatar == null)
+                return new OASISResult<IAvatar> { IsError = true, ErrorCode = OASISResultErrorCodes.RecordNotFound, Message = $"Aptos avatar with {criterion} was not found." };
+            return new OASISResult<IAvatar> { Result = avatar, IsLoaded = true, LoadedCount = 1, Message = "Avatar loaded from Aptos." };
         }
 
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true) =>
@@ -169,6 +183,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 {
                     result.Result = false;
                     result.Message = $"Aptos avatar '{providerKey}' was not found.";
+                    OASISErrorHandling.HandleError(ref result, result.Message); result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
                     return result;
                 }
                 if (softDelete)
@@ -177,8 +192,15 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     avatar.DeletedDate = DateTime.UtcNow;
                     await UpsertRecordAsync(AvatarRecordType, providerKey, avatar);
                 }
-                else await DeleteRecordAsync(AvatarRecordType, providerKey);
+                else
+                {
+                    await DeleteRecordAsync(AvatarRecordType, providerKey);
+                    if (await HasRecordAsync(AvatarDetailRecordType, providerKey))
+                        await DeleteRecordAsync(AvatarDetailRecordType, providerKey);
+                }
                 result.Result = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
                 result.Message = $"Aptos avatar '{providerKey}' deleted.";
             }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error deleting Aptos avatar: {ex.Message}", ex); }
@@ -197,6 +219,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 detail.ProviderUniqueStorageKey[Core.Enums.ProviderType.AptosOASIS] = detail.Id.ToString();
                 await UpsertRecordAsync(AvatarDetailRecordType, detail.Id.ToString(), detail);
                 result.Result = detail;
+                result.IsSaved = true;
+                result.SavedCount = 1;
                 result.Message = $"Avatar detail '{detail.Id}' saved on Aptos.";
             }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error saving Aptos avatar detail: {ex.Message}", ex); }
@@ -217,12 +241,21 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 if (!await HasRecordAsync(AvatarDetailRecordType, key))
                 {
                     result.Message = $"Aptos avatar detail '{key}' was not found.";
+                    OASISErrorHandling.HandleError(ref result, result.Message); result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
                     return result;
                 }
                 var detail = await GetRecordAsync<AvatarDetail>(AvatarDetailRecordType, key);
-                if (detail != null) detail.ProviderUniqueStorageKey[Core.Enums.ProviderType.AptosOASIS] = key;
+                if (detail == null || detail.IsDeleted)
+                {
+                    result.Message = $"Aptos avatar detail '{key}' was not found.";
+                    OASISErrorHandling.HandleError(ref result, result.Message); result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    return result;
+                }
+                detail.ProviderUniqueStorageKey[Core.Enums.ProviderType.AptosOASIS] = key;
                 result.Result = detail;
-                result.Message = detail == null ? $"Aptos avatar detail '{key}' was not found." : "Avatar detail loaded from Aptos.";
+                result.IsLoaded = true;
+                result.LoadedCount = 1;
+                result.Message = "Avatar detail loaded from Aptos.";
             }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading Aptos avatar detail: {ex.Message}", ex); }
             return result;
@@ -243,6 +276,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     if (detail != null && !detail.IsDeleted) details.Add(detail);
                 }
                 result.Result = details;
+                result.IsLoaded = true;
+                result.LoadedCount = details.Count;
                 result.Message = $"Loaded {details.Count} avatar details from Aptos.";
             }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading Aptos avatar details: {ex.Message}", ex); }
@@ -271,7 +306,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
         {
             if (all.IsError) return new OASISResult<IAvatarDetail> { IsError = true, Message = all.Message, Exception = all.Exception };
             var detail = all.Result?.FirstOrDefault(predicate);
-            return new OASISResult<IAvatarDetail> { Result = detail, Message = detail == null ? $"Aptos avatar detail with {criterion} was not found." : "Avatar detail loaded from Aptos." };
+            if (detail == null)
+                return new OASISResult<IAvatarDetail> { IsError = true, ErrorCode = OASISResultErrorCodes.RecordNotFound, Message = $"Aptos avatar detail with {criterion} was not found." };
+            return new OASISResult<IAvatarDetail> { Result = detail, IsLoaded = true, LoadedCount = 1, Message = "Avatar detail loaded from Aptos." };
         }
 
         public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
