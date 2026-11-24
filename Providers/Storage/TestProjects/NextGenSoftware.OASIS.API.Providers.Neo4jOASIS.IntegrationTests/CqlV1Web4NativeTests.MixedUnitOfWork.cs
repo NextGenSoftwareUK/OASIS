@@ -105,6 +105,65 @@ public sealed partial class CqlV1Web4NativeTests
             CollectionAssert.AreEquivalent(wanted,streamed.ToArray());Assert.AreEqual(2,streamed.Count);
         }
         checks++;
+        // Q31 date arithmetic: a date field's AddX(k) compared with a closed date runs natively.
+        using(var dates=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            var now=new DateTime(2026,11,24,12,0,0,DateTimeKind.Utc);
+            var stamped=New("date-stamped");stamped.MetaData=new Dictionary<string,object>{{"stamp",now}};
+            Assert.IsFalse(dates.Add(stamped).IsError);
+            Assert.IsFalse((await dates.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()))).IsError);
+            var wanted=new[]{stamped.Id};
+            async Task<int> Count(System.Linq.Expressions.Expression<Func<Holon,bool>> filter)
+            {
+                var rows=await dates.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>wanted.Contains(row.Id)).Where(filter).ToCosmicListAsync();
+                Assert.IsFalse(rows.IsError,rows.ErrorCode+": "+rows.Message);return rows.Result.Count;
+            }
+            Assert.AreEqual(1,await Count(row=>CosmicQueryMetadata.Value<DateTime>(row,"stamp").AddDays(1)>now));
+            Assert.AreEqual(0,await Count(row=>CosmicQueryMetadata.Value<DateTime>(row,"stamp").AddDays(-1)>now));
+            Assert.AreEqual(1,await Count(row=>CosmicQueryMetadata.Value<DateTime>(row,"stamp").AddHours(-48)<now));
+            var refused=false;
+            try
+            {
+                var months=await dates.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>CosmicQueryMetadata.Value<DateTime>(row,"stamp").AddMonths(1)>now).ToCosmicListAsync();
+                refused=months.IsError;
+            }
+            catch(CosmicLinqException){refused=true;}
+            Assert.IsTrue(refused,"Month arithmetic is not linear and is refused.");
+        }
+        checks++;
+        // S06 notification tracking: only raised PropertyChanged marks a notifying entity Modified.
+        using(var notifying=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            Assert.IsFalse(notifying.SetChangeTrackingStrategy(CosmicChangeTrackingStrategy.ChangedNotifications).IsError);
+            var watched=new Holon{Id=Guid.NewGuid(),Name="notify-row",CreatedByAvatarId=actor,IsActive=true,IsPublic=false,IsNewHolon=true};
+            owned.Add(watched.Id);Assert.IsFalse(notifying.Add(watched).IsError);
+            Assert.IsFalse((await notifying.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()))).IsError);
+            watched.MetaData??=new Dictionary<string,object>();watched.MetaData["silent"]="edit";
+            Assert.AreEqual(CosmicEntityState.Unchanged,notifying.State(watched).Result,"No notification, no change.");
+            watched.NotifyPropertyChanged(nameof(Holon.MetaData));
+            Assert.AreEqual(CosmicEntityState.Modified,notifying.State(watched).Result);
+            var notifiedSave=await notifying.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));
+            Assert.IsFalse(notifiedSave.IsError,notifiedSave.ErrorCode+": "+notifiedSave.Message);
+            Assert.AreEqual(CosmicEntityState.Unchanged,notifying.State(watched).Result);
+            Assert.AreEqual("edit",(await Stored(watched.Id)).Single().MetaData["silent"]?.ToString());
+        }
+        checks++;
+        // M15 collection membership: a metadata array contains a string element; scalars never match.
+        using(var tagged=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            var listKey="tags"+Guid.NewGuid().ToString("N");
+            var withRed=New("tags-red");withRed.MetaData=new Dictionary<string,object>{{listKey,new List<string>{"red","blue"}}};
+            var withoutRed=New("tags-green");withoutRed.MetaData=new Dictionary<string,object>{{listKey,new List<string>{"green"}}};
+            var scalarRed=New("tags-scalar");scalarRed.MetaData=new Dictionary<string,object>{{listKey,"red"}};
+            foreach(var row in new[]{withRed,withoutRed,scalarRed})Assert.IsFalse(tagged.Add(row).IsError);
+            var taggedSave=await tagged.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));Assert.IsFalse(taggedSave.IsError,taggedSave.Message);
+            var three=new[]{withRed.Id,withoutRed.Id,scalarRed.Id};
+            var red=await tagged.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>three.Contains(row.Id))
+                .Where(row=>CosmicQueryMetadata.Contains(row,"red",listKey)).ToCosmicListAsync();
+            Assert.IsFalse(red.IsError,red.ErrorCode+": "+red.Message);
+            CollectionAssert.AreEqual(new[]{withRed.Id},red.Result.Select(row=>row.Id).ToArray());
+        }
+        checks++;
         // M29 seed data: idempotent insert of fixed-identity rows in one unit of work.
         Holon[] Seed()=>new[]{
             new Holon{Id=seedIds[0],Name="seed-one",CreatedByAvatarId=actor,IsActive=true,IsPublic=false},
@@ -121,6 +180,6 @@ public sealed partial class CqlV1Web4NativeTests
         }
         Assert.AreEqual(2,(await Stored(seedIds)).Count);checks++;
         return new NativeFixtureJourneyProof(checks,4,new Dictionary<string,bool>{
-            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true});
+            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true,["notificationTrackingVerified"]=true,["collectionMembershipVerified"]=true});
     }
 }

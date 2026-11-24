@@ -126,12 +126,26 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.IsTrue(vetoed.IsError);Assert.AreEqual("TEST_VETO",vetoed.ErrorCode);Assert.AreEqual(1,spy.Done.Count,"A vetoed query never runs.");
         }
         checks++;
+        // Q66: the provider explains the native command a plan compiles to, without executing it.
+        {
+            var explainer=(ICosmicQueryExplainProvider)provider;
+            var query=CosmicQuery<Holon>.Create(CosmicQueryScope.Named(adapter.QueryProviderType).Result).WithReadAccess(access).Result
+                .Where(row=>row.Description=="tenant-a").Result.OrderBy(row=>row.Name).Result.Take(5).Result;
+            var plan=CosmicQueryPlanner.Plan(query,adapter.QueryProviderType,new[]{new CosmicQueryTarget(adapter.QueryProviderType,adapter.QueryCapabilities)});
+            Assert.IsFalse(plan.IsError,plan.Message);
+            var explained=await explainer.ExplainCosmicQueryAsync(plan.Result);
+            Assert.IsFalse(explained.IsError,explained.ErrorCode+": "+explained.Message);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(explained.Result.CommandText));
+            var marker=adapter.QueryProviderType switch{ProviderType.SQLLiteDBOASIS=>"SELECT",ProviderType.Neo4jOASIS=>"MATCH",_=>"$match"};
+            StringAssert.Contains(explained.Result.CommandText,marker,explained.Result.Language);
+        }
+        checks++;
         var foreign=CosmicSession.Create(manager,adapter,CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result).Result;
         var hidden=await foreign.Linq<Holon>(CosmicQueryTrackingMode.NoTracking,100,ignoreQueryFilters:true).Result.Where(row=>ids.Contains(row.Id)).ToCosmicListAsync();
         Assert.IsFalse(hidden.IsError,hidden.Message);Assert.AreEqual(0,hidden.Result.Count,"Bypass never widens read access.");checks++;
         foreign.Dispose();
         return new NativeFixtureJourneyProof(checks,1,new Dictionary<string,bool>{
-            ["globalFilterVerified"]=true,["explicitBypassVerified"]=true,["accessNotWidenedVerified"]=true,["autoFlushVerified"]=true,["sessionStatisticsVerified"]=true,["disconnectedMergeVerified"]=true,["tenantIsolationVerified"]=true,["sessionFactoryVerified"]=true,["queryInterceptorVerified"]=true});
+            ["globalFilterVerified"]=true,["explicitBypassVerified"]=true,["accessNotWidenedVerified"]=true,["autoFlushVerified"]=true,["sessionStatisticsVerified"]=true,["disconnectedMergeVerified"]=true,["tenantIsolationVerified"]=true,["sessionFactoryVerified"]=true,["queryInterceptorVerified"]=true,["queryExplainVerified"]=true});
     }
 
     private sealed class CountingInterceptor : ICosmicQueryInterceptor
