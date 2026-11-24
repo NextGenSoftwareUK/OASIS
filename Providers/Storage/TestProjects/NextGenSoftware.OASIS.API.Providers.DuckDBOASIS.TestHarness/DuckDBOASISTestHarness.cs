@@ -36,7 +36,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DuckDBOASIS.TestHarness
         {
             Console.WriteLine("\n--- Provider Information ---");
             Console.WriteLine($"Name:    {_provider.ProviderName}");
-            Console.WriteLine($"Version: {_provider.GetProviderVersion()}");
+            Console.WriteLine($"Version: {_provider.GetType().Assembly.GetName().Version}");
         }
 
         private static async Task TestAvatarOperations()

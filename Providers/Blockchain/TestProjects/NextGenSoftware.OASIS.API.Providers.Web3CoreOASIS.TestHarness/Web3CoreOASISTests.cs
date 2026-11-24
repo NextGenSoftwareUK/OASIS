@@ -12,7 +12,7 @@ public sealed class Web3CoreOASISTests(Web3CoreOASISFixture fixture) : IClassFix
     [InlineData(3, new byte[] { 0x03 }, new byte[] { 0x03 })]
     public async Task Web3CoreOASIS_CreateAvatarAsync_ShouldCreateAvatar_Scenario(uint entityId, byte[] avatarId, byte[] info)
     {
-        string transactionHash = await _fixture.Web3CoreOASIS.CreateAvatarAsync(entityId, avatarId, info);
+        string transactionHash = (await _fixture.Web3CoreOASIS.CreateAvatarAsync(entityId, avatarId, info)).TransactionHash;
         Assert.False(string.IsNullOrEmpty(transactionHash));
     }
 
@@ -22,7 +22,7 @@ public sealed class Web3CoreOASISTests(Web3CoreOASISFixture fixture) : IClassFix
     [InlineData(3, new byte[] { 0x03 }, new byte[] { 0x03 })]
     public async Task Web3CoreOASIS_CreateHolonAsync_ShouldCreateHolon_Scenario(uint entityId, byte[] holonId, byte[] info)
     {
-        string transactionHash = await _fixture.Web3CoreOASIS.CreateHolonAsync(entityId, holonId, info);
+        string transactionHash = (await _fixture.Web3CoreOASIS.CreateHolonAsync(entityId, holonId, info)).TransactionHash;
         Assert.False(string.IsNullOrEmpty(transactionHash));
     }
 
@@ -32,7 +32,7 @@ public sealed class Web3CoreOASISTests(Web3CoreOASISFixture fixture) : IClassFix
     [InlineData(3, new byte[] { 0x03 }, new byte[] { 0x03 })]
     public async Task Web3CoreOASIS_CreateAvatarDetailAsync_ShouldCreateAvatarDetail_Scenario(uint entityId, byte[] avatarId, byte[] info)
     {
-        string transactionHash = await _fixture.Web3CoreOASIS.CreateAvatarDetailAsync(entityId, avatarId, info);
+        string transactionHash = (await _fixture.Web3CoreOASIS.CreateAvatarDetailAsync(entityId, avatarId, info)).TransactionHash;
         Assert.False(string.IsNullOrEmpty(transactionHash));
     }
 
@@ -160,7 +160,7 @@ public sealed class Web3CoreOASISTests(Web3CoreOASISFixture fixture) : IClassFix
         // Verify that the address provided in the test has sufficient funds to mint the NFT.
         // When running multiple mint operations, be aware that tokens may be moved or consumed, which can affect subsequent tests.
 
-        string transactionHash = await _fixture.Web3CoreOASIS.MintAsync(toAddress, metadataJson);
+        string transactionHash = (await _fixture.Web3CoreOASIS.MintAsync(toAddress, metadataJson)).TransactionHash;
         Assert.False(string.IsNullOrEmpty(transactionHash));
     }
 
@@ -184,7 +184,7 @@ public sealed class Web3CoreOASISTests(Web3CoreOASISFixture fixture) : IClassFix
         // Verify that the 'fromAddress' has the token with the specified tokenId and sufficient balance for sending.
         // Be aware that sending NFTs may affect the availability of tokens, potentially causing tests to fail if the tokens are no longer available.
 
-        string transactionHash = await _fixture.Web3CoreOASIS.SendNFTAsync(
+        string transactionHash = (await _fixture.Web3CoreOASIS.SendNFTAsync(
             fromAddress, 
             toAddress, 
             tokenId, 
@@ -192,7 +192,7 @@ public sealed class Web3CoreOASISTests(Web3CoreOASISFixture fixture) : IClassFix
             toProviderType, 
             amount, 
             memoText
-        );
+        )).TransactionHash;
         Assert.False(string.IsNullOrEmpty(transactionHash));
     }
 }

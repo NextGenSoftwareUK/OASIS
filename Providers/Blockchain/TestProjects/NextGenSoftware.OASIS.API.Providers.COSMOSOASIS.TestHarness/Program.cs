@@ -35,11 +35,11 @@ namespace NextGenSoftware.OASIS.API.Providers.CMOSBCOASIS.TestHarness
 
             cosmos.SaveAvatar(b);
 
-            IEnumerable<IAvatar> avatars = await cosmos.LoadAllAvatarsAsync();
+            IEnumerable<IAvatar> avatars = (await cosmos.LoadAllAvatarsAsync()).Result;
 
-            Avatar avatar = (Avatar)await cosmos.LoadAvatarAsync("farid", "man");
+            IAvatar avatar = (await cosmos.LoadAvatarByUsernameAsync("farid")).Result;
 
-            bool isdeleted = cosmos.DeleteAvatarByUsername("qqq");
+            bool isdeleted = cosmos.DeleteAvatarByUsername("qqq").Result;
 
             cosmos.DeActivateProvider();
 
