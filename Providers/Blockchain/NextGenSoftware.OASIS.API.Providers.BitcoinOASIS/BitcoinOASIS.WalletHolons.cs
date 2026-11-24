@@ -209,7 +209,7 @@ public partial class BitcoinOASIS
             OASISErrorHandling.HandleError(ref deleted, published.Message, published.Exception);
             return deleted;
         }
-        deleted.Result = current.Result;
+        deleted.Result = published.Result;
         deleted.IsDeleted = true;
         deleted.DeletedCount = 1;
         return deleted;
