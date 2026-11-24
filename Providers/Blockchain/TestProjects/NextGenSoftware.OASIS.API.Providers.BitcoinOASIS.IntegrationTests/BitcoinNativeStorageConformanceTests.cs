@@ -36,6 +36,17 @@ public sealed class BitcoinNativeStorageConformanceTests
         for (var output = 0; output < 40; output++)
             await BitcoinCliAsync(container, "-rpcwallet=oasis-regtest", "-named", "sendtoaddress", $"address={address}", "amount=0.5", "fee_rate=2");
         await BitcoinCliAsync(container, "generatetoaddress", "1", minerAddress);
+        using (var esplora = new HttpClient { BaseAddress = new Uri(api.TrimEnd('/') + "/") })
+        {
+            // The suite must start from a wallet whose funding Esplora has fully indexed.
+            for (var attempt = 0; ; attempt++)
+            {
+                using var utxos = JsonDocument.Parse(await esplora.GetStringAsync($"address/{address}/utxo"));
+                if (utxos.RootElement.EnumerateArray().Count(utxo => utxo.GetProperty("status").GetProperty("confirmed").GetBoolean()) == 40) break;
+                Assert.IsTrue(attempt < 120, "Esplora did not index the funded regtest wallet.");
+                await Task.Delay(500);
+            }
+        }
 
         using var miner = new CancellationTokenSource();
         var mining = Task.Run(async () =>

@@ -155,6 +155,9 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             var result = new OASISResult<T>();
             var signer = new NBitcoin.BitcoinSecret(_privateKey, SigningNetwork);
             var source = signer.GetAddress(NBitcoin.ScriptPubKeyType.Segwit).ToString();
+            // Each publication is a new immutable version of the record: stamp it after the wallet's latest one.
+            var previous = (await ReadRecordHistoryForKindAsync(kind, record.Id)).OrderByDescending(entry => entry.Version).FirstOrDefault();
+            await NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordVersions.StampAsync(record.Id, record, previous, null);
             var snapshot = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublicationSnapshot<T>.Capture(record);
             using var client = CreateRecordBlobClient();
             using var codec = CreateRecordCodec();
@@ -186,6 +189,17 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
         }
 
         private const string AvatarDetailRecordScope = "bitcoin-oasis:avatar-detail:v1";
+
+        private async Task<IReadOnlyList<IHolonBase>> ReadRecordHistoryForKindAsync(BitcoinRecordKind kind, Guid id)
+        {
+            IEnumerable<IHolonBase> history = kind switch
+            {
+                BitcoinRecordKind.Avatar => await ReadWalletRecordHistoryAsync<IAvatar>(DecodeAvatarTransactionAsync, 0),
+                BitcoinRecordKind.AvatarDetail => await ReadWalletRecordHistoryAsync<IAvatarDetail>(DecodeAvatarDetailTransactionAsync, 0),
+                _ => await ReadWalletRecordHistoryAsync<IHolon>(DecodeHolonTransactionAsync, 0)
+            };
+            return history.Where(entry => entry.Id == id).ToArray();
+        }
 
         public async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByTransactionIdAsync(string providerKey, int version = 0)
         {
