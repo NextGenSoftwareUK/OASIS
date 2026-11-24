@@ -34,6 +34,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.Synchronizatio
     [JsonSerializable(typeof(HyperDriveActiveViewPreset))]
     [JsonSerializable(typeof(HyperDrivePanelLayout))]
     [JsonSerializable(typeof(HyperDriveQuestLifecycleCommand))]
+    [JsonSerializable(typeof(HyperDriveMessageCommand))]
     public partial class HyperDriveJsonContext : JsonSerializerContext { }
 
     public static class HyperDriveJson

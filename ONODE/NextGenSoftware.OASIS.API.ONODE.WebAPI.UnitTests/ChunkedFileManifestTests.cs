@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using FluentAssertions;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
+using Xunit;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests
 {

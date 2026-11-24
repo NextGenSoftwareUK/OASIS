@@ -34,6 +34,7 @@
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
     <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS.csproj" Condition="'$(PrioritySqlRoutingTests)' == 'true'" />
     <Compile Remove="SqlServerSqliteHyperDriveTests.cs" Condition="'$(PrioritySqlRoutingTests)' != 'true'" />
+    <Compile Remove="MongoSqliteSqlServerTriadHyperDriveTests.cs" Condition="'$(PrioritySqlRoutingTests)' != 'true'" />
     <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS\NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.csproj" />
     <ProjectReference Include="..\..\Providers\Storage\NextGenSoftware.OASIS.API.Providers.LocalFileOASIS\NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.csproj" />
     <ProjectReference Include="..\..\Providers\Storage\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" />
