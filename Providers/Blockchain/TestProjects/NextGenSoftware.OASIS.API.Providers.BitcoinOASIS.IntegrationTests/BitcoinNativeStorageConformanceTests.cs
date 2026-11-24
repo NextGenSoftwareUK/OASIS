@@ -78,6 +78,7 @@ public sealed class BitcoinNativeStorageConformanceTests
                     ("detail", async () => (await provider.LoadAvatarDetailAsync(report.OwnerId)).Message),
                     ("holon", async () => (await provider.LoadHolonAsync(report.RootId, loadChildren: false)).Message),
                     ("all", async () => (await provider.LoadAllHolonsAsync(loadChildren: false)).Message),
+                    ("delete-child", async () => { var d = await provider.DeleteHolonAsync(report.ChildId); return $"{d.IsError} {d.IsDeleted} {d.DeletedCount} {d.ErrorCode} {d.Message} {d.Exception?.GetType().Name}"; }),
                 };
                 foreach (var (name, probe) in probes)
                 {
