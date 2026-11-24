@@ -50,6 +50,13 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.IsFalse(built.IsError,built.Message);checks++;
         using var deleter=CosmicSession.Create(manager,adapter,access).Result;
         var loaded=(await deleter.FindAsync<Holon>(root.Id)).Result;Assert.IsNotNull(loaded);
+        // A10: explicit loading assigns tracked children without dirtying the parent.
+        var children=await deleter.LoadChildrenAsync(loaded);
+        Assert.IsFalse(children.IsError,children.ErrorCode+": "+children.Message);
+        CollectionAssert.AreEqual(new[]{child.Id},children.Result.Select(row=>row.Id).ToArray());
+        Assert.AreSame(children.Result[0],loaded.Children.Single());checks++;
+        Assert.AreEqual(CosmicEntityState.Unchanged,deleter.State(loaded).Result);
+        Assert.AreSame(children.Result[0],(await deleter.FindAsync<Holon>(child.Id)).Result,"Loaded children join the identity map.");checks++;
         var bounded=await deleter.RemoveCascadeAsync(loaded,softDelete:false,maximumDescendants:1);
         Assert.IsTrue(bounded.IsError);Assert.AreEqual("COSMIC_CASCADE_LIMIT_EXCEEDED",bounded.ErrorCode);checks++;
         var queued=await deleter.RemoveCascadeAsync(loaded,softDelete:false);
@@ -60,6 +67,6 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.IsFalse(deleted.IsError,deleted.ErrorCode+": "+deleted.Message);checks++;
         CollectionAssert.AreEquivalent(new[]{other.Id},(await Stored(root.Id,child.Id,grandchild.Id,other.Id)).Select(row=>row.Id).ToArray());checks++;
         return new NativeFixtureJourneyProof(checks,4,new Dictionary<string,bool>{
-            ["cascadeDeleteVerified"]=true,["cascadeBoundRefusedVerified"]=true,["siblingPreservedVerified"]=true});
+            ["cascadeDeleteVerified"]=true,["cascadeBoundRefusedVerified"]=true,["siblingPreservedVerified"]=true,["explicitChildLoadingVerified"]=true});
     }
 }
