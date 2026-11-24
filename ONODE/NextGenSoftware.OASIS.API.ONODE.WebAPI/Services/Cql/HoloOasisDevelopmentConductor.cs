@@ -121,7 +121,9 @@ internal sealed class HoloOasisDevelopmentConductor
                 LogToConsole = false,
                 LogToFile = false
             });
+            var connecting = System.Diagnostics.Stopwatch.StartNew();
             var connection = await _admin.ConnectAsync(AdminEndpoint);
+            Console.WriteLine($"[HoloOASIS startup] conductor started and admin connected after {connecting.Elapsed.TotalSeconds:F1}s");
             cancellationToken.ThrowIfCancellationRequested();
             if (connection == null || connection.IsError || !connection.IsConnected)
                 throw new InvalidOperationException("The local HoloOASIS teaching conductor did not accept its admin connection.");
@@ -151,18 +153,22 @@ internal sealed class HoloOasisDevelopmentConductor
         const string appId = CanonicalHoloOasis.OASIS_HAPP_ID;
         var bundle = Path.Combine(AppContext.BaseDirectory, "OASIS_hAPP", "oasis.happ");
         HoloNETClientAppAgent app = null;
+        var phases = new StartupPhaseTimer();
         try
         {
             await _admin.WaitForPersistedCellAsync(appId, cancellationToken);
+            phases.Mark("persisted cell running");
             var installed = await _admin.InstallEnableSignAttachAndConnectToHappAsync(appId, bundle, "oasis",
                 CapGrantAccessType.Assigned, uninstallhAppIfAlreadyInstalled: false, log: false);
             app = installed?.HoloNETClientAppAgent as HoloNETClientAppAgent;
             if (installed == null || installed.IsError || !installed.IsSuccess || app == null)
                 throw new InvalidOperationException("The verified HoloOASIS teaching app could not be installed or resumed.");
+            phases.Mark("app installed or resumed");
             var writer = new CanonicalHoloOasis(null, app, useHoloNetwork: false);
             var activation = await writer.ActivateProviderAsync();
             if (activation.IsError || !activation.Result)
                 throw new InvalidOperationException("The verified HoloOASIS teaching app could not be activated.");
+            phases.Mark("provider activated");
 
             for (var index = 0; index < ids.Length; index++)
             {
@@ -183,6 +189,8 @@ internal sealed class HoloOasisDevelopmentConductor
                     throw new InvalidOperationException("An existing holon does not match the dedicated teaching fixture.");
             }
 
+            phases.Mark("teaching fixture verified");
+            Console.WriteLine($"[HoloOASIS startup] {phases} last conductor milestone: {DescribeNativeStartup(_admin.ConductorOutput)}");
             var endpoint = app.EndPoint;
             if (!endpoint.IsLoopback || endpoint.Scheme != "ws")
                 throw new InvalidOperationException("The local HoloOASIS teaching app interface must use loopback.");
@@ -275,6 +283,8 @@ internal sealed class HoloOasisDevelopmentConductor
     private sealed class TeachingAdmin(HoloNETDNA dna) : HoloNETClientAdmin(dna)
     {
         protected override bool CaptureTimedConductorSpans => true;
+
+        public string ConductorOutput => GetConductorOutput();
 
         public async Task WaitForPersistedCellAsync(string appId, CancellationToken cancellationToken)
         {
