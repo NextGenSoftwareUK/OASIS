@@ -1125,3 +1125,39 @@ Owner steps:
 Also seen in that run's log: `digest-mismatch: error` during staging preflight; the owning session should check it after the credential is in place.
 
 Links: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44675640513
+
+---
+
+## Part G — Messaging, Edge nearby sync, HerzApp and Our World (added 2026-11-19)
+
+### G1. Messaging branches
+
+- **Status (2026-11-23)** Done. `work/oasis-messaging` is merged into Development in OASIS, OASIS-API-Core and STAR ODK, with gitlinks and `Docker/oasis-dependency-versions.env` repinned.
+
+### G3. Publish the messaging npm packages and push the branches
+
+- **Status (2026-11-19)** Open. Committed locally on branch `work/oasis-messaging` in each repo, nothing pushed or published: `OASIS-API-Javascipt-Package-WEB4` (becomes `@oasisomniverse/web4-api` 2.1.0, adds `/messaging`), the six UI libraries `OASIS-{React,Vue,Angular,Svelte,NextJS,JS}-UI-Component-Library` (1.3.0), and the STAR ODK submodule (DevKit downloads; STAR ODK is now merged).
+- **David action** After review: tell Claude to push the branches; publish `@oasisomniverse/web4-api@2.1.0` first, then the six UI libraries (they depend on `>=2.1.0`). Publishing needs your npm 2FA (same as A1/A2).
+- **Reason** npm publish needs your account and 2FA; repo policy forbids push without your review.
+- **Context** [Messaging component](../../Devs/OASIS_MESSAGING_COMPONENT.md).
+
+### G4. Our World Unity package and HerzApp wiring
+
+- **Status (2026-11-19)** Open. HerzApp does not exist as a repository yet; the integration is documented (HerzID login, then `OASISChatWidget`). The Our World integration is documented; the two new Edge assemblies are not yet in the Unity package build.
+- **David action** Decide where HerzApp lives so the wiring can be added; approve adding `Edge.NearbySync` and `Edge.Messaging` to the Edge release packaging (the global release takes about 2 hours, so it should ride the next real release, not a separate dry run).
+- **Reason** Needs your decision on the HerzApp repository and a release slot.
+
+### G2. Physical-device Bluetooth and mesh acceptance
+
+- **Status (2026-11-19)** Open once the Android/iOS GATT shims exist. The shared stack is verified only with an in-memory radio and real TCP sockets.
+- **David action** Provide two Android phones (and one iPhone for cross-platform) for a test: send a message with Wi-Fi/mobile data off, relay through a third phone, then reconnect and confirm it converges on the server with no duplicate.
+- **Reason** Radios, MTU negotiation and background restrictions cannot be proven in software.
+- **Context** [Edge offline messaging](../../Devs/EDGE_OFFLINE_MESSAGING.md).
+
+## Google Maps and HERE API keys for the map providers
+
+- Open 2026-11-22. GoogleMapsOASIS and HEREMapsOASIS now call the real vendor APIs. They are verified against recorded vendor responses in `map-platforms-unit-tests.yml`, but not yet live.
+- Google: in a Google Cloud project with billing, enable the Routes API, Places API (New) and Geocoding API, create one API key restricted to those three APIs, and store it privately as `OASIS_GOOGLE_ROUTES_API_KEY` wherever the providers run (Railway WEB4 service variables, and the GitHub Actions secret for the live routing test). [Routes API](https://developers.google.com/maps/documentation/routes/compute_route_directions) · [Places Text Search (New)](https://developers.google.com/maps/documentation/places/web-service/text-search) · [Geocoding API](https://developers.google.com/maps/documentation/geocoding/requests-geocoding)
+- HERE: in the HERE platform portal, create an API key for an app with Routing v8 and Geocoding & Search v1, and store it privately as `OASIS_HERE_ROUTING_API_KEY` in the same places. [Routing v8](https://docs.here.com/routing/docs/routing-v8-get-started) · [Discover](https://docs.here.com/geocoding-and-search/docs/code-discover-place)
+- MapLibre needs no key. It defaults to the public OSRM demo and Nominatim servers, which are limited to one request per second and not for production. For production volume, decide whether to self-host OSRM and Nominatim and pass their URLs.
+- Never put the keys in Git or chat. Engineering runs the opt-in live tests once the keys exist.
