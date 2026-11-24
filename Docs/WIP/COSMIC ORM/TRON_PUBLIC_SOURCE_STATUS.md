@@ -45,3 +45,33 @@ PublicNode qualification (separate explicit candidate, not fallback) failed with
 Rechecked official operator policy: anonymous limits may vary by IP, endpoint and time window; no fixed delay is proven to solve this access failure. PublicNode still publishes its native endpoint. One explicit diagnostic of https://tron-rpc.publicnode.com/walletsolidity/getblock for genesis returned HTTP403 before any header validated. Stopped immediately, no other heights/retries/fallback, no catalogue/owner change or provider grant. This establishes only the new diagnostic status, not the status/cause of the older probe or an archive-access diagnosis.
 
 Raw TestResults/TronPublicSourceCandidateCurrent/publicnode-qualification.json:238bytes, SHA256beff38cae21c62c8b8985e568dd2583757bd4f7a97a7c30a443afd41a9693b50. Durable publicnode-qualification.intent.json remains beside existing unchanged source.json. No native CQL success/count increment. Continue TON hosted rollout; revisit TRON only with a separately qualified access contract, not another blind acceptance run. [TRON rate limits](https://developers.tron.network/reference/rate-limits), [operator endpoint](https://tron.publicnode.com/).
+
+## Authenticated recovery candidate
+
+The original adapter and controls were recovered from `f8508cca8` into the
+machine-local qualification directory. The draft accepts a separate
+dedicated TronGrid reader key, retains the original mainnet endpoint and
+catalogue shape, and keeps credentials outside the catalogue. Its native
+test requires `COSMIC_TRON_PUBLIC_SOURCE` and the private process setting
+`COSMIC_TRON_PUBLIC_READER_KEY`. The draft uses a dedicated TLS client with
+redirects, proxying and cookies disabled. A 15-second deadline covers the
+response body and caller cancellation is classified separately.
+All 38 controlled cases passed with zero skips at Core
+`2abc7100acbdf2e4e6d8249c24f7cf5746daba34`.
+The TRX SHA-256 is
+`ead1d9ab42731b361c8886dc020f065f96beaafb7ee5184987a1f32320c43505`.
+[TronGrid API key](https://developers.tron.network/reference/select-network).
+
+The earlier local descriptor is absent on this laptop. A separate,
+machine-local catalogue selects the previously qualified public heights
+1, 2 and 3 with a new synthetic projection owner. The catalogue SHA-256 is
+`7f1c8fe3c35ef3c45ee31be6eaef72f34f8d10185a28e2177ace267822e89c02`.
+It is separate from the original cohort.
+
+After the reader key is available, run
+`LocalState/COSMIC/HostedTronAuthenticatedQualification/verify-native.ps1`
+from this checkout. The runner checks the catalogue and controlled assembly
+hashes under the shared lease and requires one passed native test with zero
+skips. It keeps a unique intent, log and TRX for each execution. The missing
+key preflight passed without creating a run directory or making a request.
+Authenticated native qualification and WEB4 admission remain open.

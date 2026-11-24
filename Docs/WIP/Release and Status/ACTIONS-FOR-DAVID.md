@@ -72,7 +72,8 @@ Last updated 31 October 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (mer
 | 8 | **Add two DNS records so the new HoloNET docs and learn sites go live** (NameSilo) | E1 |
 | 9 | Rotate the Arbitrum testnet key and the block-explorer API key that were committed to git (removed from files, still in history) | E2 |
 | 7 | Older items: phone tests, WSL disk, Vercel branch check, oasisweb4 site decision, iOS runtime script, Git LFS budget, upstream Holochain PRs | D |
-| 10 | COSMIC/CQL: decide follow-up Default-routing fix publication; hosted Azure/Oracle remain deferred | F |
+| 10 | COSMIC/CQL Default-routing correction deployed and verified. Hosted Azure and Oracle remain deferred | F |
+| 11 | **WEB6 model catalogue: review estimated prices, then push** (WEB6 `main`, 2 local commits). Also a broken WEB6 pin on the COSMIC branch | G |
 
 ---
 
@@ -502,6 +503,7 @@ See [COSMIC current status](../COSMIC%20ORM/CURRENT_STATUS.md).
 | Item | Status / David's decision | When action is needed |
 |---|---|---|
 | Existing development Wizard/admin session for CQL source recovery (3 November2026) | **David offered an existing Wizard account;awaiting local sign-in**. Code deployed;27controlled cases/live401+403 pass. Secure local helper and4offline checks ready. 11 November UTC: Development fd40b1ad12 still reports Hedera and Nostr unavailable. Hedera timed out waiting for response headers (15,017 ms) and Nostr returned HTTP 503 on WebSocket connect. Operator sign-in remains pending on this laptop. Later on 11 November, c39eba5cd1 started both readers and Hedera public 3/2 and Nostr filtered 2 passed live HTTP. Recovery is deferred while those sources are ready; retain this action for a future failed source. Aptos now reports CQL_SOURCE_UNAVAILABLE on Development 94fe19c958 after startup HTTP 404; four GETs from the live container later passed. The protected operator session is absent on this laptop. Later on 11 November, Development 371f3d5dc4 activated Aptos on startup and its native public HTTP presets passed 3/2. Sign-in is deferred while the source is ready. | In your own terminal run `python Scripts/Sandbox/Prepare-CqlRecoveryOperatorSession.py` from `C:/Source/OASIS2` (current laptop), enter your existing development Wizard username/password privately,then tell the agent sign-in is complete. No password/token in chat,account creation or role promotion. Needed only if operator recovery is required again;agent owns tests/recovery/journalling. 11 November UTC latest: Development c686a8618d reached 105 available sources and Nostr again returned HTTP 503 during WebSocket activation. Existing operator recovery remains conditional on Nostr still being unavailable after the queued IPFS publication rollout. Earlier signed-event and private-cohort results are retained. 11 November UTC: live WEB4 ea614f3fc6 reports Hedera activation timed out awaiting response headers after 15,008 ms with no HTTP status. Nostr's relay returned HTTP 503 during WebSocket upgrade (NotAWebSocket). Discovery remains 104/106. The protected Development Wizard session is absent on this laptop. Keep the existing operator recovery action open. [Secure steps](../COSMIC%20ORM/CQL_SOURCE_RECOVERY.md#secure-local-sign-in). 12 November UTC: 922321a8aa9d returned 104/106 ready. Hedera timed out before response headers after 15,008 ms. The protected Wizard session directory is absent on this laptop; the existing secure sign-in action applies. 12 November Cancun time. The exact Solr WEB4 rollout reached 106/107 ready. Hedera alone remains unavailable after a 15,010 ms activation response-header timeout. Nostr recovered. The protected local operator session is still absent. The existing Wizard sign-in is now needed to run a targeted Hedera recovery and verify both public presets.  12 November Cancun time. David signed in and Wizard authority was verified. One targeted Hedera recovery advanced generation 1 to 2 and returned HTTP 503 / CQL_SOURCE_UNAVAILABLE. The temporary refresh session was revoked and local encrypted credentials removed. Engineering owns the remaining mirror response-header timeout. No owner action is pending for this attempt. 14 November Cancun time: Hedera and HoloOASIS passed on Development 1ebcb3b772c5. Nostr alone is unavailable after relay upgrade HTTP 521. A later anonymous relay upgrade from the live container returned 101. The protected Wizard session is absent. Use the secure command in this row for one targeted Nostr recovery so the existing signed presets can be checked on live WEB4. The subsequent sign-in returned an application-level password rejection and issued no session. The rejected protected response and intent were archived locally. David requested reuse of a successfully issued Windows-protected session for future recoveries while valid. No password is retained. 15 November UTC: completed for Nostr. Development d7807ff87c7c verified the original three-event and two-event direct and federated CQL presets using the reviewed Primal relay. No additional Wizard sign-in is required for this recovery. |
+| Existing development Wizard/admin session for CQL source recovery (3 November2026) | **David offered an existing Wizard account;awaiting local sign-in**. Code deployed;27controlled cases/live401+403 pass. Secure local helper and4offline checks ready. 11 November UTC: Development fd40b1ad12 still reports Hedera and Nostr unavailable. Hedera timed out waiting for response headers (15,017 ms) and Nostr returned HTTP 503 on WebSocket connect. Operator sign-in remains pending on this laptop. Later on 11 November, c39eba5cd1 started both readers and Hedera public 3/2 and Nostr filtered 2 passed live HTTP. Recovery is deferred while those sources are ready; retain this action for a future failed source. Aptos now reports CQL_SOURCE_UNAVAILABLE on Development 94fe19c958 after startup HTTP 404; four GETs from the live container later passed. The protected operator session is absent on this laptop. Later on 11 November, Development 371f3d5dc4 activated Aptos on startup and its native public HTTP presets passed 3/2. Sign-in is deferred while the source is ready. | In your own terminal run `python Scripts/Sandbox/Prepare-CqlRecoveryOperatorSession.py` from `C:/Source/OASIS2` (current laptop), enter your existing development Wizard username/password privately,then tell the agent sign-in is complete. No password/token in chat,account creation or role promotion. Needed only if operator recovery is required again and for Matrix activation diagnosis on Development 91493edb. The Matrix aliases resolve from that instance. Hedera and Blockscout previously passed public HTTP. Hedera activation cancelled again on 4907da23 and also needs the operator session for recovery. The recovery laptop has no retained operator session. Engineering owns recovery and verification. 11 November UTC latest: Development c686a8618d reached 105 available sources and Nostr again returned HTTP 503 during WebSocket activation. Existing operator recovery remains conditional on Nostr still being unavailable after the queued IPFS publication rollout. Earlier signed-event and private-cohort results are retained. 11 November UTC: live WEB4 ea614f3fc6 reports Hedera activation timed out awaiting response headers after 15,008 ms with no HTTP status. Nostr's relay returned HTTP 503 during WebSocket upgrade (NotAWebSocket). Discovery remains 104/106. The protected Development Wizard session is absent on this laptop. Keep the existing operator recovery action open. [Secure steps](../COSMIC%20ORM/CQL_SOURCE_RECOVERY.md#secure-local-sign-in). 12 November Cancun time. The exact Solr WEB4 rollout reached 106/107 ready. Hedera alone remains unavailable after a 15,010 ms activation response-header timeout. Nostr recovered. The protected local operator session is still absent. The existing Wizard sign-in is now needed to run a targeted Hedera recovery and verify both public presets.  12 November Cancun time. David signed in and Wizard authority was verified. One targeted Hedera recovery advanced generation 1 to 2 and returned HTTP 503 / CQL_SOURCE_UNAVAILABLE. The temporary refresh session was revoked and local encrypted credentials removed. Engineering owns the remaining mirror response-header timeout. No owner action is pending for this attempt. |
 | Consolidated Development batch timing (31 October) | **Approved; published** — David replied “Publish one consolidated batch now”. Development now parent57174def3/Core6bbd015, both remote-verified; newer public-provider expansion remains on its separate task branch | One additional consolidated Development publication authorized. No master/production promotion or hosting spend. [Scope/evidence](../COSMIC%20ORM/HOSTED_SANDBOX_INTEGRATION_PLAN.md#consolidated-release-preflight--31-october-2026). |
 | Default-routing follow-up publication (31 October) | **Approved and deployed, 1 November 2026** — David replied “Publish correction now”; Development051ac6af7 is live, Railway d8876691 SUCCESS; Default preservation and three-source failover verified for the live-found V2 controller acquisition bug.13guard+61controllerHTTPtests pass0skips; original routing fixture/3replicas preserved | First approved extra batch57174def3 deployedSUCCESS, revealing Default is bound toMongo before balancing. Dailycadence exception needed for another deployment. No provider expansion/Corepin/hosting spend. [Root cause/tests](../COSMIC%20ORM/HOSTED_SANDBOX_INTEGRATION_PLAN.md#live-default-routing-root-cause-and-scoped-fix--31-october-2026). |
 | Expansion SDK packaging correction (1 November) | **Approved and published, 1 November 2026** - David replied Publish packaging correction now. Development89681ce40 is pushed and remote-verified; observe its exact deployment before enrollment. Expansion build failed before enrollment; the prior routing release remains live | Seven Polkadot imported modules were omitted from the publish manifest. Actual MSBuild publish metadata, five bridge closure checks and two regression tests pass. No settings, new hosting or production/master promotion. [Details](../COSMIC%20ORM/HOSTED_SANDBOX_INTEGRATION_PLAN.md#polkadot-publish-root-cause---1-november-2026). |
@@ -511,6 +513,8 @@ See [COSMIC current status](../COSMIC%20ORM/CURRENT_STATUS.md).
 | First AWS demo | **Approved** — use a public S3 dataset | Decision implemented: anonymous native metadata reads and Mongo pairing verified through hosted HTTP. No AWS account or bucket setup needed for this demo. |
 | Temporary demo avatar daily calls | **Approved: 200** | Implemented/live-verified. Normal Free accounts stay at 20; token/spending limits unchanged. No further approval requested. |
 | Browser access for demo verification | Public browser checks passed for EOSIO, SOLID, TON and Hedera. The inspected recovery browser directory contains the public visitor only. The EOSIO journal is absent from both local worktrees. The COSMIC recovery checkout also lacks the original TON, Hedera and SOLID journals and protected sessions. | The private paired browser checks require the original demo owner and existing MongoDB copies. Restore the session on the originating machine or identify its protected location privately. Preserve the accepted cohorts. |
+| Browser access for demo verification | Public browser checks passed for EOSIO, SOLID, TON and Hedera. The inspected recovery browser directory contains the public visitor only. | The private paired browser checks require the original demo owner and existing MongoDB copies. Restore the session on the originating machine or identify its protected location privately. Preserve the accepted cohorts. |
+| LocalFile HyperDrive release verification | **Development integration completed 10 November 2026.** The scoped controller and Core dependency repair shipped at 612dd018. LocalFile appeared available on replacement deployment 91493edb. | The local real HTTP regression passed. Current live HyperDrive point-routing verification remains engineering-owned and deferred behind the priority provider demos. Preserve the accepted LocalFile CQL cohort. [Current evidence](../COSMIC%20ORM/CURRENT_STATUS.md#current-development-deployment-observation). |
 
 These decisions do not close unrelated full-provider, production release, device
 or credential actions elsewhere in this file. No blanket cloud spending, on-chain
@@ -618,6 +622,53 @@ Status: missing account/configuration information,2 November2026. David approved
 ## CouchDB native query-role CI
 
 - Completed 11 November UTC. Engineering ran the existing restricted-role test on disposable CouchDB 3 in [CI run 43044567583](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43044567583). The old draft PR action is closed. Hosted CouchDB qualification remains a separate gate.
+
+### SQL Server reader for Development WEB4
+
+Status 9 November 2026. Pending behind the priority demo flows. The local
+native acceptance carries forward, and the hosted reader fixture compiled.
+Identify an existing dedicated SQL Server teaching database and the private
+configuration location for its restricted reader, if available. The reviewed
+descriptor binds the exact connection digest to its teaching IDs. Engineering
+owns TLS, effective permission and data qualification before enrollment.
+[SQL Server qualification](../COSMIC%20ORM/SQLSERVER_CQL_MVP.md)
+
+### MotherDuck reader for Development WEB4
+
+Status 9 November 2026. Pending behind the priority demo flows. If an existing
+MotherDuck teaching database and scoped read-only token are available, identify
+their private configuration location. Engineering owns pinned client compatibility,
+native read qualification and the live settings review. No new resource or paid
+feature is requested. Keep the token out of chat and git.
+
+### Fly.io PostgreSQL reader for Development WEB4
+
+Status 9 November 2026. Pending behind the priority demo flows. If an existing
+Fly PostgreSQL teaching database is available, identify the private
+configuration location for a SELECT-only reader with `SSL Mode=VerifyFull`.
+Engineering owns checking approved network reachability from WEB4 and verifying
+the exact connection and public teaching catalogue. No new resource is requested.
+
+### PlanetScale reader for Development WEB4
+
+Status 9 November 2026. Pending behind the priority demo flows. If an existing
+PlanetScale teaching database is available, identify the private configuration
+location for a SELECT-only reader with `SslMode=VerifyFull`. The reviewed
+catalogue needs three public root holons, one deleted row and one absent ID.
+Engineering owns the exact connection digest, native probe and WEB4 acceptance.
+No new database or paid account is requested.
+[Provider coverage](../COSMIC%20ORM/PROVIDER_CQL_AND_SANDBOX_STATUS.md)
+
+### Chroma reader for Development WEB4
+
+Status 9 November 2026. Pending after the priority demo flows. The local
+registration and preset checks passed. First hosted qualification needs a
+reviewed public HTTPS Chroma v2 origin, tenant, database and collection UUID,
+plus a scoped bearer credential for the reviewed reads. If an existing demo
+instance is available, identify its private configuration location. Keep
+credentials out of chat and git. Engineering owns fixture qualification and
+the scoped WEB4 rollout once Development integration resumes.
+[Chroma qualification and evidence](../COSMIC%20ORM/CHROMA_CQL_MVP.md)
 
 ### CouchDB hosted teaching source - 11 November 2026
 
@@ -753,6 +804,8 @@ and hosted federation and replication verification.
 ## DynamoDB hosted teaching source access - 2026-11-05
 
 - Status: pending owned AWS source and approval for the bounded native reads. Six regional activation and seven WEB4 admission checks passed. The native AWS fixture compiled and awaits the reviewed source.
+- Recovery laptop check on 9 November found no hosted descriptor, region,
+  activation probe ID or dedicated reader access settings. No AWS request ran.
 - Owner step: identify the region of an existing isolated DynamoDB teaching table named OasisHolons, confirm the approved scope for billable reads and arrange an IAM reader restricted to GetItem and BatchGetItem on that table. Make credentials available through protected settings. If the teaching records are absent, make separate reviewed provisioning access available for engineering.
 - The catalogue needs three public live roots, one deleted record and one absent ID under the declared actor. Use one live ID as the exact activation probe. Keep access keys and session tokens outside chat, descriptors and git.
 - Reason: the real regional SDK proof precedes Development settings review and hosted acceptance. The retained DynamoDB Local evidence is separate. No new table, account or paid resource was requested. [Settings and fixture](../COSMIC%20ORM/AWS_CQL_MVP.md#development-web4-dynamodb-candidate).
@@ -775,8 +828,11 @@ and hosted federation and replication verification.
 11 November UTC: WEB4 Development variable-name inventory returned no Supabase settings. Native loopback storage conformance passed 52/52. The reviewed HTTPS teaching project and restricted reader are still needed for the hosted demo.
 
 - Status: 36 provider and eight WEB4 admission checks passed. The native HTTPS qualifier compiled.
+Priority update. Supabase is in the top-priority WEB4 demo queue. A recovery-laptop preflight found none of the five reviewed source and reader settings in the process, user, or machine environment. No values were printed and no request was made.
+
+- Status: 36 provider and eight WEB4 admission checks passed. The native HTTPS qualifier compiled. The offline hosted verifier also passed its exact-catalogue grant check. Native hosted qualification still awaits the reviewed project and restricted reader access.
 - Owner step: identify an existing dedicated Supabase teaching project. Provide its HTTPS origin and public gateway key, and arrange a separate restricted authenticated reader JWT in protected settings. Review the token's expiry and row policies for the dedicated teaching principal.
-- The catalogue requires three public live roots, one deleted row and one absent ID under the declared actor. Use a live record as the probe. No new paid service or account is requested.
+- The catalogue requires three public live roots, one deleted row and one absent ID under the declared actor. Put the configured probe first in the live ID list and use the same catalogue for native qualification and offline candidate preparation. No new paid service or account is requested.
 - Reason: native gateway and row-policy qualification precede Development settings and browser acceptance. [Settings and qualification](../COSMIC%20ORM/SUPABASE_CQL_MVP.md#development-web4-candidate).
 
 ## Firebase hosted teaching source access - 2026-11-06 UTC
@@ -933,6 +989,21 @@ and hosted federation and replication verification.
   credentials, protected settings and the database on the old laptop.
   Engineering will verify the original hashes before preparing settings.
 
+## New-laptop handover: confirm OPORTAL repo and clean up working-tree changes
+
+- Open 2026-11-07. The handover is in
+  [HANDOVER-new-laptop-2026-11-07.md](../HANDOVER-new-laptop-2026-11-07.md).
+- Confirm where the main OPORTAL site (Vercel) lives. `C:\Source\OPORTAL`
+  does not exist on this laptop, so the handover has no clone URL for it.
+- Decide what to do with uncommitted changes on this laptop that are not
+  from the handover work: `STAR ODK` and `WEB6` submodule changes, the
+  `TRON_PUBLIC_SOURCE_STATUS.md` edit, the deleted
+  `TestResults/HyperDrive-Providers/NativeEvidence/*` files and the
+  untracked `.wrangler/` folder. Commit or stash what you want to keep
+  before moving.
+- On the new laptop, clone `C:\Source\xash3d-fwgs` (needed by the OHalfLife
+  build) and run `npm install` in `C:\Source\IDE`.
+
 
 ## Gelato Gasless native capability access — deferred (8 November 2026)
 
@@ -997,12 +1068,114 @@ submission is requested or authorized by this entry.
 ### Recovery laptop power, 11 November UTC
 
 Open. Windows reported 6% battery and discharging. Connect the charger and close the low-battery alert if it persists. The alert blocks Edge input with the Fhenix two-network preset selected and unrun. The full preset already passed.
+### BigQuery and Redshift teaching readers
+
+Status on 9 November 2026. Deferred behind the priority WEB4 demo.
+The bounded readers passed their local build and admission checks.
+Managed verification is pending, and no paid resources were started.
+
+- BigQuery needs an existing approved teaching project and dataset with
+  three reviewed public records in `oasis_holons`. The dedicated
+  application identity needs read access to that table and permission to
+  create query jobs in the approved billing project. The reader caps
+  billed bytes at 10 MiB per job. Keep the credential in protected
+  application-default configuration.
+- Redshift needs an existing approved teaching warehouse with
+  certificate-verified connectivity, a dedicated role with SELECT access
+  to `oasis_holons`, and three reviewed public IDs. Keep the reader
+  connection string protected. Its SHA-256 binds the reviewed catalogue
+  to the configured connection without putting credentials in the file.
+- Engineering owns catalogue validation, exact probe selection, the
+  native/Mongo HTTP fixtures, and WEB4 acceptance after authorized
+  access is available.
+
+[Provider matrix](../COSMIC%20ORM/PROVIDER_CQL_AND_SANDBOX_STATUS.md)
+
+### Snowflake teaching reader
+
+Status on 9 November 2026. Deferred behind the priority WEB4 demo.
+The WEB4 build, protected settings check and both offline admission
+cases passed. The managed fixture was skipped.
+
+If an approved teaching warehouse already exists, identify its
+account, database, schema and warehouse and make a dedicated reader
+role available privately. It needs warehouse, database and schema
+usage and SELECT on the reviewed `oasis_holons` table. The approved
+connection belongs in protected `CQL_SNOWFLAKE_QUERY_CONNECTION_STRING`.
+Engineering will bind its SHA-256 to a reviewed catalogue, set
+`CQL_SNOWFLAKE_QUERY_PROBE_ID` from the first reviewed ID, and run the
+paired native and Mongo HTTP fixture. No new paid warehouse is requested.
+
+[Local build and qualification evidence](../COSMIC%20ORM/SNOWFLAKE_WEB4_DEPENDENCY_GATE.md)
+
+### Databricks teaching source
+
+Status on 9 November 2026. Deferred behind the priority WEB4 demo.
+The provider and WEB4 builds, protected settings check and four
+offline admission cases passed. The managed fixture skipped.
+
+If an approved teaching SQL warehouse already exists, identify its
+workspace HTTPS origin, warehouse ID, catalog and schema. Arrange a
+dedicated identity that can use that warehouse and SELECT only from
+the reviewed `oasis_holons` teaching table. Keep its token in protected
+`CQL_DATABRICKS_QUERY_READER_TOKEN`. No new warehouse or spending is
+requested. Confirm use of the existing warehouse is approved before
+submitting any statements.
+
+Engineering owns the reviewed three-record descriptor, binding of the
+first probe and protected settings, and the native/Mongo HTTP fixture.
+[Provider matrix](../COSMIC%20ORM/PROVIDER_CQL_AND_SANDBOX_STATUS.md)
+
+### Zilliz Cloud teaching reader
+
+Status on 9 November 2026. Deferred behind the priority WEB4 demo.
+The provider and WEB4 builds and protected configuration checks passed.
+Five offline WEB4 admission cases passed. The managed fixture skipped.
+
+If an approved teaching cluster already exists, identify its reviewed
+HTTPS cluster endpoint and arrange a dedicated API key restricted to
+reading the `oasis_holons` teaching collection. Keep the key in protected
+`CQL_ZILLIZ_QUERY_READER_TOKEN`. No cluster creation or spending is
+requested. Engineering owns the reviewed record catalogue, origin and
+probe binding, and the paired native and Mongo HTTP checks.
+
+[Provider matrix](../COSMIC%20ORM/PROVIDER_CQL_AND_SANDBOX_STATUS.md)
+
+### Xata PostgreSQL teaching reader
+
+Deferred behind the priority WEB4 demo. The Xata provider and protected
+configuration checks passed. WEB4 verification is in progress.
+
+Managed qualification requires an existing approved Xata PostgreSQL
+teaching database and a dedicated SELECT-only role. Keep the verified
+TLS connection string in protected `CQL_XATA_QUERY_CONNECTION_STRING`.
+Engineering will bind the reviewed connection digest and first public
+probe ID and run the paired HTTP/MongoDB fixture. No new paid database
+is requested.
+
+[Provider matrix](../COSMIC%20ORM/PROVIDER_CQL_AND_SANDBOX_STATUS.md)
+
+### Five-reader CI source publication
+
+10 November 2026. The scoped WEB4 and Core previews are ready for source
+publication. The working-copy Release build and 14 focused admission tests
+passed. The exact image has not been built. GitHub's Build WEB4 image workflow
+requires a remote parent revision and a fetchable Core revision matching the
+parent gitlink and manifest.
+
+Approved 10 November 2026. David lifted the commit/push hold for scoped
+publication on the existing COSMIC refs and required exact image verification
+before Development integration. Core 4018beec and WEB4 3e44bdc2 were pushed.
+Build WEB4 image run 42840429678 was dispatched with 3e44bdc2 as its source.
+The exact Development candidate passed CI run 42842227152 and merged at 111165cf. Railway 25b466ab is building. The 12 protected reader settings await deployment success. Engineering owns verification and rollout.
+[Scope and evidence](../COSMIC%20ORM/CURRENT_STATUS.md)
 
 Power recovery verified on 11 November UTC: battery 21% and charging (Win32_Battery status 2). The prior Edge window is closed. Engineering owns reopening browser verification. The charger action is resolved.
 
 ### GOMap public demo routing origin (11 November 2026)
 
 **Status** Awaiting an approved dedicated endpoint for Development WEB4. The exact GOMap candidate passed its 12 boundary checks and native WEB4 HTTP/MongoDB qualification in [CI run 43108783977](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43108783977). Scoped Development merge 274ff42adb is prepared and waits on the existing WEB4 deployment queue. Identify the existing dedicated HTTPS OSRM origin, if available, and where its operator terms are documented. The demo needs permission for concurrent sandbox traffic and must meet the operator's attribution rules. If no endpoint is available, the linked review documents an owned Berlin-only OSRM deployment. Capacity measurement and a hosting decision are still open. Keep credentials in private configuration. [GOMap scope and endpoint review](../COSMIC%20ORM/GOMAP_PUBLIC_SOURCE_STATUS.md).
+**Status** Awaiting an approved dedicated endpoint for Development WEB4. Identify the existing dedicated HTTPS OSRM origin, if available, and where its operator terms are documented. The demo needs permission for concurrent sandbox traffic and must meet the operator's attribution rules. If no endpoint is available, the COSMIC task will document hosting options before any paid provisioning decision. Keep credentials in private configuration. [GOMap scope and endpoint review](../COSMIC%20ORM/GOMAP_PUBLIC_SOURCE_STATUS.md).
 
 ### Hosted ArangoDB and QuestDB teaching fixtures (11 November 2026)
 
@@ -1170,3 +1343,34 @@ H1 corrected verification: root SDK lifecycle fix frozen fbe6c724;44985151774/co
 H1 completed: corrected44985151774/job137093990560 SUCCESS,0error4m17.55 build; real controlled-sink SDK submission+identical provider-ID replay/native acknowledgement passed. Both temporary CI secrets deleted and exact-name404absence verified after run. No deployment credential changed. Inbox delivery, enabled OPORTAL browser and hosted acceptance remain separate engineering work. No David action remains for H1.
 
 H1 enabled-button follow-up (22 November):44990168013/job137109268095 SUCCESS on6de38f50. Actual Portal SDK/fragment/button accepted one controlled-recipient warning and second click reported previously accepted; one native provider acknowledgement, unchanged avatar/quota. Both temporary CI secrets removed and exact-name GET404 absence verified after terminal; CI DB/tempDNA/container/browser runtime/cache absent. H1 remains complete; no David action. Current Development integration/full Startup/hosted are agent-owned open work.
+---
+
+## Part G — WEB6 model catalogue prices (14 November 2026)
+
+### G1. Review estimated prices before pushing WEB6 `main`
+
+**Status:** open, 14 November 2026. Two commits are on local WEB6 `main` and not pushed: `a1b17fc` (catalogue v4) and `eaa02a3` (catalogue v5).
+
+**Why it needs you:** the catalogue in `WEB6/NextGenSoftware.OASIS.Web6.Core/Configuration/web6-model-catalogue.json` is what WEB4 billing charges. A model only runs if it has a price, and that price is charged. The prices and model IDs added in v4 and v5 are agent estimates, not checked against provider price lists.
+
+**Check:**
+- v4 (8 models): Azure OpenAI, Vertex AI, LG EXAONE, Naver HCX-003, Featherless, Kluster.ai, Chutes AI, NLP Cloud. Least certain: the Kluster.ai and NLP Cloud model IDs, and the Azure deployment name `gpt-4o`.
+- v5 (9 models): NVIDIA NIM, Meta Llama API, Reka Core, Writer Palmyra X 004, AI71 Falcon 180B, JAIS 30B, and three named OpenRouter models. Least certain: NIM, AI71 and JAIS prices.
+- v5 media unit prices: StabilityAI image $0.03, OpenAI gpt-image-1 1024x1024 medium $0.042, Runway 5s $0.25, Luma $0.40, Pika 3s $0.20, Kling 5s std $0.14, ElevenLabs $0.30 per 1,000 characters, AssemblyAI nano $0.12/hour, Deepgram nova-3 $0.0043/minute.
+- Limits: ElevenLabs calls are capped at 4,000 characters and transcription at 4 hours per call. Longer inputs are rejected before the provider is called. The cap keeps the per-request hold at the existing $2.70.
+- Behaviour change: OpenAI image calls now send `quality=medium`.
+
+Then run `git -C WEB6 push origin main`, and advance the WEB6 gitlink and `OASIS_WEB6_COMMIT` together (see `Docs/Devs/RAILWAY_DEPENDENCY_PINS.md`).
+
+### G2. Decide whether OpenRouter should bill from OpenRouter's reported cost
+
+**Status:** open decision, 14 November 2026. Not implemented.
+
+Today every billed model needs a fixed, reviewed price, and each request holds back the worst-case cost up front. So only named OpenRouter models are priced, and `openrouter/auto` is deliberately not priced: a flat price would undercharge whenever OpenRouter picks an expensive model. Billing each call from the cost OpenRouter reports would open up all of its models. But that cost isn't known before the call, so it needs a per-call spending cap and a change to how billing settles. Decide whether you want that.
+
+### G3. Fix the WEB6 pin on `work/cosmic-cql-ton-public`
+
+**Status:** open, 14 November 2026. Found by the agent; this is agent work, but changing it needs a push to a shared branch.
+
+WEB6 `origin/main` was rewritten around 11 November (Round 9 became `030b7dd`, and PR #38 was added on top). The WEB6 gitlink and `OASIS_WEB6_COMMIT` on `work/cosmic-cql-ton-public` still point at `6394d6e`, which is no longer on any WEB6 branch, so a Railway WEB6 build from that branch may fail to fetch it. Fix: point both at the pushed WEB6 commit once G1 is pushed (or at `5a93979` now), run `python3 Scripts/sync_railway_dependency_manifest.py`, and commit both together. `Development` is not affected (it points at `8e5747a`).
+
