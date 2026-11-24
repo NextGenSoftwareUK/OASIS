@@ -48,7 +48,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
 
         private Task<string> UpsertRecordWithHashAsync(string recordType, string providerKey, object value)
         {
-            var payload = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(value));
+            // Canonical OASIS record JSON keeps concrete types for interface members and skips holon navigation.
+            var payload = Encoding.UTF8.GetBytes(NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Serialize(value));
             return ExecuteEntryFunctionAsync(
                 "upsert_record",
                 Encoding.UTF8.GetBytes(recordType),
@@ -85,7 +86,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             };
             if (bytes == null || bytes.Length == 0)
                 throw new System.IO.InvalidDataException("Aptos get_record returned an empty canonical payload.");
-            var record = JsonConvert.DeserializeObject<T>(new UTF8Encoding(false, true).GetString(bytes));
+            var record = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<T>(new UTF8Encoding(false, true).GetString(bytes));
             if (record is null)
                 throw new System.IO.InvalidDataException("Aptos get_record returned a null canonical record.");
             return record;

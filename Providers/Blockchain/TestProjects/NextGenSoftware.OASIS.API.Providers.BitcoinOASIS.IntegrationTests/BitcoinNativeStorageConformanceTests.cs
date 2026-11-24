@@ -6,7 +6,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests;
 
 /// <summary>
 /// Shared core storage suite against a disposable Bitcoin Core regtest node, Esplora and an offline Kubo node.
-/// A background miner confirms each storage transaction while the suite runs.
+/// Publications are read from the mempool; the fixture mines once after each mode.
 /// </summary>
 [TestClass, DoNotParallelize]
 public sealed class BitcoinNativeStorageConformanceTests
@@ -48,15 +48,8 @@ public sealed class BitcoinNativeStorageConformanceTests
             }
         }
 
-        using var miner = new CancellationTokenSource();
-        var mining = Task.Run(async () =>
-        {
-            while (!miner.IsCancellationRequested)
-            {
-                await BitcoinCliAsync(container, "generatetoaddress", "1", minerAddress);
-                try { await Task.Delay(1500, miner.Token); } catch (OperationCanceledException) { }
-            }
-        });
+        // No background mining: the provider reads unconfirmed publications from the mempool, and its wallet scan
+        // correctly rejects a tip change mid-read. One suite mode publishes far fewer than Esplora's 50-entry mempool page.
 
         var reportPath = Path.Combine(directory, synchronous ? "sync.json" : "async.json");
         Assert.IsFalse(File.Exists(reportPath) || File.Exists(reportPath + ".next"));
@@ -89,8 +82,7 @@ public sealed class BitcoinNativeStorageConformanceTests
         }
         finally
         {
-            miner.Cancel();
-            await mining;
+            await BitcoinCliAsync(container, "generatetoaddress", "1", minerAddress);
         }
 
         Assert.IsTrue(report.Succeeded, $"{report.CurrentCase}: {report.FailureType} {report.FailureContract}; {report.Passed.Count} checks passed.");
