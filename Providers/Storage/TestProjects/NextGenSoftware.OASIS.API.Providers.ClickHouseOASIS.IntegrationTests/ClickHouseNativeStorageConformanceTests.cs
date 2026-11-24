@@ -30,6 +30,21 @@ public sealed class ClickHouseNativeStorageConformanceTests
                 File.Move(reportPath + ".next", reportPath, overwrite: true);
             });
 
+        if (!report.Succeeded)
+        {
+            var probes = new (string, Func<Task<string>>)[]
+            {
+                ("avatar", async () => (await provider.LoadAvatarAsync(report.OwnerId)).Message),
+                ("detail", async () => (await provider.LoadAvatarDetailAsync(report.OwnerId)).Message),
+                ("holon", async () => (await provider.LoadHolonAsync(report.RootId, loadChildren: false)).Message),
+                ("all", async () => (await provider.LoadAllHolonsAsync(loadChildren: false)).Message),
+            };
+            foreach (var (name, probe) in probes)
+            {
+                try { Console.WriteLine($"Diagnose({name}): {await probe()}"); }
+                catch (Exception error) { Console.WriteLine($"Diagnose({name}): {error.GetType().Name} {error.Message}"); }
+            }
+        }
         Assert.IsTrue(report.Succeeded, $"{report.CurrentCase}: {report.FailureType} {report.FailureContract}; {report.Passed.Count} checks passed.");
         Assert.IsTrue(report.FixtureCleanupComplete);
         Assert.AreEqual(CoreStorageConformance.ChecksPerMode, report.Passed.Count);
