@@ -409,7 +409,7 @@ older chronological roadmap is supporting history, not the source of green statu
 | ID | EF / NHibernate feature and required semantics | SQLite | MongoDB | Neo4j | Proving evidence or exact remaining gap |
 |---|---|---|---|---|---|
 | A01 | Arbitrary one-to-many entity relationships | ❌ | ❌ | ❌ | Parent/child holons are narrower than arbitrary mapped associations. |
-| A02 | One-to-one entity relationships | ❌ | ❌ | ❌ | No full mapping/constraint/fix-up proof. |
+| A02 | One-to-one entity relationships | ✅ | ✅ | ✅ | **DEMO** — EF's FK + unique index pattern: `HasUniqueKey<T>(scope, row => row.ParentHolonId)` makes the parent→child link one-to-one, enforced natively in the write transaction (a second dependent fails with COSMIC_UNIQUE_KEY_CONFLICT); `FindByKeyAsync(scope, parentId)` reads the dependent and `LoadParentAsync` the principal. All three in [45452551451](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/45452551451). |
 | A03 | Many-to-many relationships with join entities | ❌ | ❌ | ❌ | No complete association CRUD/query proof. |
 | A04 | Many-to-many skip navigations | ❌ | ❌ | ❌ | No equivalent proof. |
 | A05 | Bidirectional navigation fix-up / inverse ownership | ❌ | ❌ | ❌ | Loaded child collections are fixed up after each commit (a child created, re-parented or deleted joins/leaves the loaded parent `Children`); native on all three in [45428799034](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/45428799034). Open: inverse reference (`ParentHolon`) fix-up, which needs a cycle-safe, non-persisted navigation first. |
