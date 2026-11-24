@@ -58,7 +58,11 @@ public sealed partial class CqlV1Web4NativeTests
         using var third=Open();
         var c=New("unique-c");c.Description="a2@example.test";Assert.IsFalse(third.Add(c).IsError);
         var reused=await Save(third);Assert.IsFalse(reused.IsError,"A deleted record releases its key: "+reused.ErrorCode+": "+reused.Message);checks++;
+        var byKey=await third.FindByKeyAsync<Holon>(scope,"a2@example.test");
+        Assert.IsFalse(byKey.IsError,byKey.ErrorCode+": "+byKey.Message);Assert.AreEqual(c.Id,byKey.Result.Id);
+        Assert.AreEqual(b.Id,(await third.FindByKeyAsync<Holon>(scope,"a@example.test")).Result.Id);
+        Assert.IsNull((await third.FindByKeyAsync<Holon>(scope,"missing@example.test")).Result);checks++;
         return new NativeFixtureJourneyProof(checks,5,new Dictionary<string,bool>{
-            ["duplicateRefusedVerified"]=true,["keyMoveReleasesVerified"]=true,["deleteReleasesVerified"]=true});
+            ["duplicateRefusedVerified"]=true,["keyMoveReleasesVerified"]=true,["deleteReleasesVerified"]=true,["findByKeyVerified"]=true});
     }
 }
