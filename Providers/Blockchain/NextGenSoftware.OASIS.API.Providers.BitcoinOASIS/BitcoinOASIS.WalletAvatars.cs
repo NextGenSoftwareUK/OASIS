@@ -25,6 +25,11 @@ public partial class BitcoinOASIS
                 result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
                 OASISErrorHandling.HandleError(ref result, "The Bitcoin wallet has no matching record.");
             }
+            else
+            {
+                result.IsLoaded = true;
+                result.LoadedCount = 1;
+            }
         }
         catch (Exception ex)
         {
@@ -34,7 +39,26 @@ public partial class BitcoinOASIS
         return result;
     }
 
+    /// <summary>Owner-erased publications are listed by the tombstone that shredded them (comma-separated transaction IDs).</summary>
+    internal const string ErasedPublicationsMetadataKey = "BitcoinErasedPublications";
+
     private async Task<IReadOnlyList<T>> ReadWalletRecordsAsync<T>(Func<Transaction, Task<T>> decode, int version)
+        where T : class, IHolonBase
+    {
+        var records = await ReadWalletRecordHistoryAsync(decode, version);
+        return records.GroupBy(record => record.Id)
+            .Where(group => !group.Any(record => record.IsDeleted))
+            .Select(group =>
+            {
+                var latestVersion = group.Max(record => record.Version);
+                return group.Single(record => record.Version == latestVersion);
+            })
+            .OrderBy(record => record.Id)
+            .ToArray();
+    }
+
+    /// <summary>Every decoded wallet publication (all versions, tombstones included) with its transaction ID as storage key.</summary>
+    private async Task<IReadOnlyList<T>> ReadWalletRecordHistoryAsync<T>(Func<Transaction, Task<T>> decode, int version)
         where T : class, IHolonBase
     {
         if (version < 0)
@@ -70,12 +94,15 @@ public partial class BitcoinOASIS
         }
 
         var records = new List<T>();
+        var unavailable = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var candidate in candidates)
         {
             var transaction = await ReadVerifiedTransactionAsync(candidate);
             if (!await SpendsWalletOutputsAsync(transaction, wallet.ScriptPubKey))
                 continue;
-            var record = await decode(transaction);
+            T record;
+            try { record = await decode(transaction); }
+            catch (BitcoinRecordUnavailableException) { unavailable.Add(candidate.ToString()); continue; }
             if (record == null || (version > 0 && record.Version != version))
                 continue;
             record.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
@@ -86,15 +113,18 @@ public partial class BitcoinOASIS
         if ((await _httpClient.GetStringAsync("blocks/tip/hash")).Trim() != tip)
             throw new InvalidOperationException("The Bitcoin tip changed during wallet history lookup.");
 
-        return records.GroupBy(record => record.Id)
-            .Where(group => !group.Any(record => record.IsDeleted))
-            .Select(group =>
-            {
-                var latestVersion = group.Max(record => record.Version);
-                return group.Single(record => record.Version == latestVersion);
-            })
-            .OrderBy(record => record.Id)
-            .ToArray();
+        // A missing envelope is only acceptable when a wallet tombstone records its owner erasure; anything else is data loss.
+        if (unavailable.Count > 0)
+        {
+            var erased = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var tombstone in records.Where(record => record.IsDeleted && record.MetaData != null))
+                if (tombstone.MetaData.TryGetValue(ErasedPublicationsMetadataKey, out var list) && list != null)
+                    erased.UnionWith(list.ToString().Split(',', StringSplitOptions.RemoveEmptyEntries));
+            if (!unavailable.IsSubsetOf(erased))
+                throw new InvalidOperationException("A Bitcoin wallet record envelope is unavailable without an owner erasure tombstone.");
+        }
+
+        return records;
 
         void AddCandidates(JsonElement[] page)
         {

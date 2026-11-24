@@ -136,7 +136,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     return response;
                 }
 
-                if (saveChildren && saveChildrenOnProvider && holon.Children?.Count > 0)
+                if (saveChildren && holon.Children?.Count > 0)
                     return await SaveWalletHolonGraphAsync(holon, recursive, maxChildDepth, continueOnError);
 
                 response = await CommitEncryptedRecordAsync<IHolon>(holon, HolonRecordScope);
@@ -180,6 +180,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             stored.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
             stored.ProviderUniqueStorageKey[Core.Enums.ProviderType.BitcoinOASIS] = publication.Result.TransactionResult;
             result.Result = stored;
+            result.IsSaved = true;
+            result.SavedCount = 1;
             return result;
         }
 
@@ -210,6 +212,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     detail.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
                     detail.ProviderUniqueStorageKey[Core.Enums.ProviderType.BitcoinOASIS] = transactionId.ToString();
                     result.Result = detail;
+                    result.IsLoaded = true;
+                    result.LoadedCount = 1;
                     return result;
                 }
 

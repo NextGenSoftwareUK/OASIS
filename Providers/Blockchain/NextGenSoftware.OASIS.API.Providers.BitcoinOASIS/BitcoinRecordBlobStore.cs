@@ -80,6 +80,17 @@ internal sealed class BitcoinRecordBlobStore(HttpClient kubo, EncryptedRecordCod
             throw new FormatException("The Bitcoin record commitment is invalid.");
 
         var cid = EncodeCid(commitment.AsSpan(Magic.Length, 34));
+        // Offline Kubo reports a missing root block explicitly; an erased record is then unavailable, never "corrupt".
+        using (var stat = await kubo.PostAsync($"api/v0/block/stat?arg={cid}&offline=true", null))
+        {
+            if (!stat.IsSuccessStatusCode)
+            {
+                var body = await stat.Content.ReadAsStringAsync();
+                if (body.Contains("not found", StringComparison.OrdinalIgnoreCase))
+                    throw new BitcoinRecordUnavailableException(cid);
+                stat.EnsureSuccessStatusCode();
+            }
+        }
         using var request = new HttpRequestMessage(HttpMethod.Post, $"api/v0/cat?arg={cid}&length={MaximumEnvelopeBytes + 1}");
         using var response = await kubo.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
         response.EnsureSuccessStatusCode();
@@ -129,6 +140,13 @@ internal sealed class BitcoinRecordBlobStore(HttpClient kubo, EncryptedRecordCod
 
         return new string(result);
     }
+}
+
+/// <summary>The encrypted envelope behind a Bitcoin commitment is no longer held by the record store.</summary>
+internal sealed class BitcoinRecordUnavailableException(string cid)
+    : InvalidOperationException("The encrypted Bitcoin record envelope is no longer available.")
+{
+    public string Cid { get; } = cid;
 }
 
 internal enum BitcoinRecordKind

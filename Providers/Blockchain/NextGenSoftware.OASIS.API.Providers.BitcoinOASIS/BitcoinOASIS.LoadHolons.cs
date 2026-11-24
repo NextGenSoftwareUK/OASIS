@@ -106,7 +106,10 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     response.InnerMessages.AddRange(failures);
                 }
                 else
+                {
+                    response.IsSaved = response.SavedCount > 0;
                     response.Message = $"Bitcoin acknowledged {response.SavedCount} holon publications.";
+                }
             }
             catch (Exception ex)
             {
@@ -164,7 +167,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 }
 
                 // Import holons to Bitcoin blockchain
-                var importResult = await SaveHolonsAsync(holons);
+                var importResult = await SaveHolonsAsync(holons, saveChildren: false, continueOnError: false);
                 response.SavedCount = importResult.SavedCount;
                 response.ErrorCode = importResult.ErrorCode;
                 response.MetaData = importResult.MetaData;
@@ -178,6 +181,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
 
                 response.Result = true;
                 response.IsError = false;
+                response.IsSaved = importResult.IsSaved;
                 response.Message = $"Bitcoin acknowledged {response.SavedCount} imported holons.";
             }
             catch (Exception ex)

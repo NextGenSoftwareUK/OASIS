@@ -87,6 +87,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
 
                 result.Result = matchingHolons;
                 result.IsError = false;
+                result.IsLoaded = true;
+                result.LoadedCount = matchingHolons.Count;
                 result.Message = $"Found {matchingHolons.Count} holons matching metadata criteria";
             }
             catch (Exception ex)
@@ -171,8 +173,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                         metaData.Any(kvp => h.MetaData.TryGetValue(kvp.Key, out var val) && val?.ToString() == kvp.Value));
                 }
 
-                result.Result = matchingHolons.ToList();
+                var matched = matchingHolons.ToList();
+                result.Result = matched;
                 result.IsError = false;
+                result.IsLoaded = true;
+                result.LoadedCount = matched.Count;
                 result.Message = $"Found {result.Result.Count()} holons matching metadata criteria";
             }
             catch (Exception ex)
@@ -223,6 +228,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 
                 result.Result = childrenResult.Result;
                 result.IsError = childrenResult.IsError;
+                result.IsLoaded = childrenResult.IsLoaded;
+                result.LoadedCount = childrenResult.LoadedCount;
                 result.Message = childrenResult.Message;
             }
             catch (Exception ex)
