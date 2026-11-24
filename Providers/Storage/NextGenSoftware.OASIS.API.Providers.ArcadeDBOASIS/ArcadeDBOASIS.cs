@@ -51,6 +51,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS
         public ArcadeDBOASIS(string baseUrl = "http://localhost:2480", string username = "root", string password = "playwithdata")
         {
             _baseUrl = baseUrl.TrimEnd('/');
+            ProviderName = "ArcadeDBOASIS";
+            ProviderDescription = "ArcadeDB multi-model document storage via its HTTP SQL API.";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ArcadeDBOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
 
@@ -116,11 +118,11 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS
             {
                 var doc = await GetDocAsync<Avatar>(CollAvatars, id.ToString());
                 if (doc == null)
-                    OASISErrorHandling.HandleError(ref result, $"ArcadeDBOASIS: Avatar {id} not found.");
+                    { OASISErrorHandling.HandleError(ref result, $"ArcadeDBOASIS: Avatar {id} not found."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else if (doc.IsDeleted)
-                    OASISErrorHandling.HandleError(ref result, $"ArcadeDBOASIS: Avatar {id} has been deleted.");
+                    { OASISErrorHandling.HandleError(ref result, $"ArcadeDBOASIS: Avatar {id} has been deleted."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else
-                    result.Result = doc;
+                { result.Result = doc; result.IsLoaded = true; result.LoadedCount = 1; }
             }
             catch (Exception ex)
             {
@@ -139,9 +141,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS
             {
                 var doc = await FindOneAsync<Avatar>(CollAvatars, "Username", username);
                 if (doc == null || doc.IsDeleted)
-                    OASISErrorHandling.HandleError(ref result, $"ArcadeDBOASIS: Avatar with username '{username}' not found.");
+                    { OASISErrorHandling.HandleError(ref result, $"ArcadeDBOASIS: Avatar with username '{username}' not found."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else
-                    result.Result = doc;
+                { result.Result = doc; result.IsLoaded = true; result.LoadedCount = 1; }
             }
             catch (Exception ex)
             {
@@ -160,9 +162,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS
             {
                 var doc = await FindOneAsync<Avatar>(CollAvatars, "Email", email);
                 if (doc == null || doc.IsDeleted)
-                    OASISErrorHandling.HandleError(ref result, $"ArcadeDBOASIS: Avatar with email '{email}' not found.");
+                    { OASISErrorHandling.HandleError(ref result, $"ArcadeDBOASIS: Avatar with email '{email}' not found."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else
-                    result.Result = doc;
+                { result.Result = doc; result.IsLoaded = true; result.LoadedCount = 1; }
             }
             catch (Exception ex)
             {
@@ -180,7 +182,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS
             try
             {
                 var docs = await GetAllDocsAsync<Avatar>(CollAvatars);
-                result.Result = docs.FindAll(a => !a.IsDeleted);
+                var live = docs.FindAll(a => !a.IsDeleted); result.Result = live; result.IsLoaded = true; result.LoadedCount = live.Count;
             }
             catch (Exception ex)
             {
@@ -200,7 +202,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS
                 if (avatar.Id == Guid.Empty)
                     avatar.Id = Guid.NewGuid();
                 await UpsertDocAsync(CollAvatars, avatar.Id.ToString(), avatar);
-                result.Result = avatar;
+                result.Result = avatar; result.IsSaved = true; result.SavedCount = 1;
             }
             catch (Exception ex)
             {
@@ -217,20 +219,27 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS
             var result = new OASISResult<bool>();
             try
             {
+                var avatar = await GetDocAsync<Avatar>(CollAvatars, id.ToString());
+                if (avatar == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"ArcadeDBOASIS: Avatar {id} not found.");
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    return result;
+                }
                 if (softDelete)
                 {
-                    var avatar = await GetDocAsync<Avatar>(CollAvatars, id.ToString());
-                    if (avatar != null)
-                    {
-                        avatar.DeletedDate = DateTime.UtcNow;
-                        await UpsertDocAsync(CollAvatars, id.ToString(), avatar);
-                    }
+                    avatar.DeletedDate = DateTime.UtcNow;
+                    await UpsertDocAsync(CollAvatars, id.ToString(), avatar);
                 }
                 else
                 {
                     await DeleteDocAsync(CollAvatars, id.ToString());
+                    if (await GetDocAsync<AvatarDetail>(CollAvatarDetails, id.ToString()) != null)
+                        await DeleteDocAsync(CollAvatarDetails, id.ToString());
                 }
                 result.Result = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
             }
             catch (Exception ex)
             {
@@ -249,7 +258,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS
             {
                 var avatar = await FindOneAsync<Avatar>(CollAvatars, "Username", username);
                 if (avatar == null)
-                    OASISErrorHandling.HandleError(ref result, $"ArcadeDBOASIS: Avatar '{username}' not found.");
+                    { OASISErrorHandling.HandleError(ref result, $"ArcadeDBOASIS: Avatar '{username}' not found."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else
                     return await DeleteAvatarAsync(avatar.Id, softDelete);
             }
@@ -270,7 +279,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS
             {
                 var avatar = await FindOneAsync<Avatar>(CollAvatars, "Email", email);
                 if (avatar == null)
-                    OASISErrorHandling.HandleError(ref result, $"ArcadeDBOASIS: Avatar with email '{email}' not found.");
+                    { OASISErrorHandling.HandleError(ref result, $"ArcadeDBOASIS: Avatar with email '{email}' not found."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else
                     return await DeleteAvatarAsync(avatar.Id, softDelete);
             }
@@ -293,9 +302,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS
             {
                 var doc = await GetDocAsync<AvatarDetail>(CollAvatarDetails, id.ToString());
                 if (doc == null)
-                    OASISErrorHandling.HandleError(ref result, $"ArcadeDBOASIS: AvatarDetail {id} not found.");
+                    { OASISErrorHandling.HandleError(ref result, $"ArcadeDBOASIS: AvatarDetail {id} not found."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else
-                    result.Result = doc;
+                { result.Result = doc; result.IsLoaded = true; result.LoadedCount = 1; }
             }
             catch (Exception ex)
             {
@@ -314,9 +323,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS
             {
                 var doc = await FindOneAsync<AvatarDetail>(CollAvatarDetails, "Username", username);
                 if (doc == null)
-                    OASISErrorHandling.HandleError(ref result, $"ArcadeDBOASIS: AvatarDetail '{username}' not found.");
+                    { OASISErrorHandling.HandleError(ref result, $"ArcadeDBOASIS: AvatarDetail '{username}' not found."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else
-                    result.Result = doc;
+                { result.Result = doc; result.IsLoaded = true; result.LoadedCount = 1; }
             }
             catch (Exception ex)
             {
@@ -335,9 +344,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS
             {
                 var doc = await FindOneAsync<AvatarDetail>(CollAvatarDetails, "Email", email);
                 if (doc == null)
-                    OASISErrorHandling.HandleError(ref result, $"ArcadeDBOASIS: AvatarDetail '{email}' not found.");
+                    { OASISErrorHandling.HandleError(ref result, $"ArcadeDBOASIS: AvatarDetail '{email}' not found."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else
-                    result.Result = doc;
+                { result.Result = doc; result.IsLoaded = true; result.LoadedCount = 1; }
             }
             catch (Exception ex)
             {
@@ -355,7 +364,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS
             try
             {
                 var docs = await GetAllDocsAsync<AvatarDetail>(CollAvatarDetails);
-                result.Result = docs;
+                result.Result = docs; result.IsLoaded = true; result.LoadedCount = docs.Count;
             }
             catch (Exception ex)
             {
@@ -375,7 +384,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS
                 if (detail.Id == Guid.Empty)
                     detail.Id = Guid.NewGuid();
                 await UpsertDocAsync(CollAvatarDetails, detail.Id.ToString(), detail);
-                result.Result = detail;
+                result.Result = detail; result.IsSaved = true; result.SavedCount = 1;
             }
             catch (Exception ex)
             {
@@ -396,11 +405,11 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS
             {
                 var doc = await GetDocAsync<Holon>(CollHolons, id.ToString());
                 if (doc == null)
-                    OASISErrorHandling.HandleError(ref result, $"ArcadeDBOASIS: Holon {id} not found.");
+                    { OASISErrorHandling.HandleError(ref result, $"ArcadeDBOASIS: Holon {id} not found."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else if (doc.IsDeleted)
-                    OASISErrorHandling.HandleError(ref result, $"ArcadeDBOASIS: Holon {id} has been deleted.");
+                    { OASISErrorHandling.HandleError(ref result, $"ArcadeDBOASIS: Holon {id} has been deleted."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else
-                    result.Result = doc;
+                { result.Result = doc; result.IsLoaded = true; result.LoadedCount = 1; }
             }
             catch (Exception ex)
             {
@@ -418,7 +427,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS
             try
             {
                 var all = await FindAllAsync<Holon>(CollHolons, "ParentHolonId", id.ToString());
-                result.Result = all.FindAll(h => !h.IsDeleted);
+                var live = all.FindAll(h => !h.IsDeleted); result.Result = live; result.IsLoaded = true; result.LoadedCount = live.Count;
             }
             catch (Exception ex)
             {
@@ -436,7 +445,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS
             try
             {
                 var docs = await GetAllDocsAsync<Holon>(CollHolons);
-                result.Result = docs.FindAll(h => !h.IsDeleted);
+                var live = docs.FindAll(h => !h.IsDeleted); result.Result = live; result.IsLoaded = true; result.LoadedCount = live.Count;
             }
             catch (Exception ex)
             {
@@ -453,10 +462,29 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS
             var result = new OASISResult<IHolon>();
             try
             {
+                if (holon == null) throw new ArgumentNullException(nameof(holon));
                 if (holon.Id == Guid.Empty)
                     holon.Id = Guid.NewGuid();
-                await UpsertDocAsync(CollHolons, holon.Id.ToString(), holon);
+                var id = holon.Id;
+                holon.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.ArcadeDBOASIS] = id.ToString("D");
+                await UpsertDocAsync(CollHolons, id.ToString(), holon);
+                var savedCount = 1;
+                if (saveChildren && holon.Children != null)
+                {
+                    foreach (var child in holon.Children)
+                    {
+                        if (child == null) continue;
+                        child.ParentHolonId = id;
+                        var childResult = await SaveHolonAsync(child, recursive, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                        if (childResult.IsError || !childResult.IsSaved)
+                            throw new System.IO.InvalidDataException($"Child holon {child.Id} was not saved: {childResult.Message}");
+                        savedCount += childResult.SavedCount;
+                    }
+                }
                 result.Result = holon;
+                result.IsSaved = true;
+                result.SavedCount = savedCount;
             }
             catch (Exception ex)
             {
@@ -474,12 +502,24 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS
             var saved = new List<IHolon>();
             try
             {
+                var savedTotal = 0;
                 foreach (var h in holons)
                 {
                     var r = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
-                    if (!r.IsError) saved.Add(r.Result);
+                    if (r.IsError || !r.IsSaved)
+                    {
+                        result.IsError = true;
+                        result.ErrorCount += Math.Max(1, r.ErrorCount);
+                        result.Message += r.Message + Environment.NewLine;
+                        if (!continueOnError) break;
+                        continue;
+                    }
+                    saved.Add(r.Result);
+                    savedTotal += r.SavedCount;
                 }
                 result.Result = saved;
+                result.IsSaved = saved.Count > 0;
+                result.SavedCount = savedTotal;
             }
             catch (Exception ex)
             {
@@ -496,20 +536,26 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS
             var result = new OASISResult<bool>();
             try
             {
+                var holon = await GetDocAsync<Holon>(CollHolons, id.ToString());
+                if (holon == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"ArcadeDBOASIS: Holon {id} not found.");
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    return result;
+                }
                 if (softDelete)
                 {
-                    var holon = await GetDocAsync<Holon>(CollHolons, id.ToString());
-                    if (holon != null)
-                    {
-                        holon.DeletedDate = DateTime.UtcNow;
-                        await UpsertDocAsync(CollHolons, id.ToString(), holon);
-                    }
+                    holon.DeletedDate = DateTime.UtcNow;
+                    var saved = await SaveHolonAsync(holon, saveChildren: false);
+                    if (saved.IsError || !saved.IsSaved) { OASISErrorHandling.HandleError(ref result, saved.Message); return result; }
                 }
                 else
                 {
                     await DeleteDocAsync(CollHolons, id.ToString());
                 }
                 result.Result = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
             }
             catch (Exception ex)
             {
@@ -520,6 +566,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS
 
         public OASISResult<bool> DeleteHolonSoft(Guid id, bool softDelete = true)
             => DeleteHolonSoftAsync(id, softDelete).GetAwaiter().GetResult();
+
+        public string GetProviderVersion() => "1.0.0";
+        public Task<string> GetProviderVersionAsync() => Task.FromResult("1.0.0");
 
         // ─── Search ─────────────────────────────────────────────────────────────
 
@@ -537,11 +586,10 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS
             throw new HttpRequestException($"ArcadeDB returned {(int)response.StatusCode} ({response.ReasonPhrase}): {body}");
         }
 
-        private static string Esc(string v) => v.Replace("'", "''");
 
-        private async Task<HttpResponseMessage> CommandAsync(string sql)
+        private async Task<HttpResponseMessage> CommandAsync(string sql, Dictionary<string, object>? parameters = null)
             => await _http.PostAsync($"{_baseUrl}/api/v1/command/{Database}",
-                Json(new { language = "sql", command = sql }));
+                Json(new { language = "sql", command = sql, @params = parameters ?? new Dictionary<string, object>() }));
 
         private async Task ExecuteCommandAsync(string sql)
         {
@@ -549,11 +597,11 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS
             await EnsureSuccessAsync(response);
         }
 
-        private async Task<List<T>> QueryAsync<T>(string sql) where T : class
+        private async Task<List<T>> QueryAsync<T>(string sql, Dictionary<string, object>? parameters = null) where T : class
         {
             var resp = await _http.PostAsync($"{_baseUrl}/api/v1/query/{Database}",
-                Json(new { language = "sql", command = sql }));
-            if (!resp.IsSuccessStatusCode) return new List<T>();
+                Json(new { language = "sql", command = sql, @params = parameters ?? new Dictionary<string, object>() }));
+            await EnsureSuccessAsync(resp);
 
             var json = await resp.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(json);
@@ -566,7 +614,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS
                 if (!row.TryGetProperty("doc", out var docEl)) continue;
                 var raw = docEl.GetString();
                 if (string.IsNullOrEmpty(raw)) continue;
-                var item = JsonSerializer.Deserialize<T>(raw, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                var item = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<T>(raw);
                 if (item != null) list.Add(item);
             }
             return list;
@@ -582,13 +630,13 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS
 
         private async Task<T?> GetDocAsync<T>(string type, string id) where T : class
         {
-            var results = await QueryAsync<T>($"SELECT doc FROM {type} WHERE oasisId = '{Esc(id)}' LIMIT 1");
+            var results = await QueryAsync<T>($"SELECT doc FROM {type} WHERE oasisId = :id LIMIT 1", new() { ["id"] = id });
             return results.Count > 0 ? results[0] : null;
         }
 
         private async Task UpsertDocAsync<T>(string type, string id, T obj)
         {
-            var json = JsonSerializer.Serialize(obj);
+            var json = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Serialize(obj);
             string username = "", email = "", parent = "";
             using (var d = JsonDocument.Parse(json))
             {
@@ -597,26 +645,26 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS
                 if (d.RootElement.TryGetProperty("ParentHolonId", out var p) && p.ValueKind == JsonValueKind.String) parent = p.GetString() ?? "";
             }
 
-            var sql = $@"UPDATE {type} SET oasisId = '{Esc(id)}', doc = '{Esc(json)}', username = '{Esc(username)}', email = '{Esc(email)}', parentHolonId = '{Esc(parent)}' UPSERT WHERE oasisId = '{Esc(id)}'";
-            var resp = await CommandAsync(sql);
+            var sql = $"UPDATE {type} SET oasisId = :id, doc = :doc, username = :username, email = :email, parentHolonId = :parent UPSERT WHERE oasisId = :id";
+            var resp = await CommandAsync(sql, new() { ["id"] = id, ["doc"] = json, ["username"] = username, ["email"] = email, ["parent"] = parent });
             await EnsureSuccessAsync(resp);
         }
 
         private async Task DeleteDocAsync(string type, string id)
         {
-            var resp = await CommandAsync($"DELETE FROM {type} WHERE oasisId = '{Esc(id)}'");
+            var resp = await CommandAsync($"DELETE FROM {type} WHERE oasisId = :id", new() { ["id"] = id });
             if (resp.StatusCode != System.Net.HttpStatusCode.NotFound)
                 await EnsureSuccessAsync(resp);
         }
 
         private async Task<T?> FindOneAsync<T>(string type, string field, string value) where T : class
         {
-            var results = await QueryAsync<T>($"SELECT doc FROM {type} WHERE {FieldColumn(field)} = '{Esc(value)}' LIMIT 1");
+            var results = await QueryAsync<T>($"SELECT doc FROM {type} WHERE {FieldColumn(field)} = :value LIMIT 1", new() { ["value"] = value });
             return results.Count > 0 ? results[0] : null;
         }
 
         private async Task<List<T>> FindAllAsync<T>(string type, string field, string value) where T : class
-            => await QueryAsync<T>($"SELECT doc FROM {type} WHERE {FieldColumn(field)} = '{Esc(value)}' LIMIT 1000");
+            => await QueryAsync<T>($"SELECT doc FROM {type} WHERE {FieldColumn(field)} = :value LIMIT 1000", new() { ["value"] = value });
 
         private async Task<List<T>> GetAllDocsAsync<T>(string type) where T : class
             => await QueryAsync<T>($"SELECT doc FROM {type} LIMIT 1000");
@@ -724,18 +772,23 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
             var result = new OASISResult<IHolon>();
-            var loaded = await LoadHolonAsync(id);
+            var loaded = await LoadHolonAsync(id, loadChildren: false);
             if (loaded.IsError || loaded.Result == null)
             {
                 OASISErrorHandling.HandleError(ref result, loaded.Message);
+                result.ErrorCode = loaded.ErrorCode;
                 return result;
             }
 
             var deleted = await DeleteHolonSoftAsync(id, true);
-            if (deleted.IsError)
+            if (deleted.IsError || !deleted.IsDeleted)
                 OASISErrorHandling.HandleError(ref result, deleted.Message);
             else
+            {
                 result.Result = loaded.Result;
+                result.IsDeleted = true;
+                result.DeletedCount = deleted.DeletedCount;
+            }
 
             return result;
         }
@@ -777,7 +830,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS
                     matches.Add(holon);
             }
 
-            result.Result = matches;
+            result.Result = matches; result.IsLoaded = true; result.LoadedCount = matches.Count;
             return result;
         }
 
@@ -796,7 +849,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS
 
             if (metaKeyValuePairs == null || metaKeyValuePairs.Count == 0)
             {
-                result.Result = new List<IHolon>(all.Result);
+                var everything = new List<IHolon>(all.Result); result.Result = everything; result.IsLoaded = true; result.LoadedCount = everything.Count;
                 return result;
             }
 
@@ -819,7 +872,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS
                 if (isMatch) matches.Add(holon);
             }
 
-            result.Result = matches;
+            result.Result = matches; result.IsLoaded = true; result.LoadedCount = matches.Count;
             return result;
         }
 
@@ -829,11 +882,15 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
             var result = new OASISResult<bool>();
-            var saved = await SaveHolonsAsync(holons);
-            if (saved.IsError)
+            var saved = await SaveHolonsAsync(holons, saveChildren: false, continueOnError: false);
+            if (saved.IsError || !saved.IsSaved)
                 OASISErrorHandling.HandleError(ref result, saved.Message);
             else
+            {
                 result.Result = true;
+                result.IsSaved = true;
+                result.SavedCount = saved.SavedCount;
+            }
             return result;
         }
 
@@ -863,7 +920,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS
                     owned.Add(holon);
             }
 
-            result.Result = owned;
+            result.Result = owned; result.IsLoaded = true; result.LoadedCount = owned.Count;
             return result;
         }
 

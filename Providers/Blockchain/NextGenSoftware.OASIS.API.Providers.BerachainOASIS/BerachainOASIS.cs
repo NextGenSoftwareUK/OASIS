@@ -27,8 +27,13 @@ namespace NextGenSoftware.OASIS.API.Providers.BerachainOASIS
             string hostUri = "https://rpc.berachain.com",
             string chainPrivateKey = "",
             string contractAddress = "")
-            : base(hostUri, chainPrivateKey, contractAddress)
+            : this(hostUri, chainPrivateKey, contractAddress, new System.Numerics.BigInteger(80094)) { }
+
+        /// <summary>Signing, storage preparation and token flows require an explicit EVM chain identity.</summary>
+        public BerachainOASIS(string hostUri, string chainPrivateKey, string contractAddress, System.Numerics.BigInteger chainId)
+            : base(hostUri, chainPrivateKey, contractAddress, chainId)
         {
+            if (chainId <= 0) throw new System.ArgumentOutOfRangeException(nameof(chainId));
             ProviderName = "BerachainOASIS";
             ProviderDescription = "Berachain EVM L1 Provider — Proof-of-Liquidity Blockchain";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.BerachainOASIS);

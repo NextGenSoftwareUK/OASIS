@@ -104,58 +104,83 @@ namespace NextGenSoftware.OASIS.API.Providers.PouchDBOASIS
         /// <summary>Gets the current _rev of a doc, or null if it doesn't exist.</summary>
         private async Task<string?> GetRevAsync(string db, string id)
         {
-            var resp = await _http.GetAsync($"{_base}/{db}/{Uri.EscapeDataString(id)}");
-            if (!resp.IsSuccessStatusCode) return null;
-            var json = await resp.Content.ReadAsStringAsync();
+            var json = await GetDocJsonAsync(db, id);
+            if (json == null) return null;
             using var doc = JsonDocument.Parse(json);
             return doc.RootElement.TryGetProperty("_rev", out var rev) ? rev.GetString() : null;
         }
 
         private async Task<string?> GetDocJsonAsync(string db, string id)
         {
-            var resp = await _http.GetAsync($"{_base}/{db}/{Uri.EscapeDataString(id)}");
-            if (!resp.IsSuccessStatusCode) return null;
+            using var resp = await _http.GetAsync($"{_base}/{db}/{Uri.EscapeDataString(id)}");
+            // A missing document is absence; every other native failure is an error, never "not found".
+            if (resp.StatusCode == System.Net.HttpStatusCode.NotFound) return null;
+            await EnsureSuccessAsync(resp);
             return await resp.Content.ReadAsStringAsync();
         }
 
         private async Task UpsertDocAsync(string db, string id, object data)
         {
-            // Merge _id and optional _rev into the document
-            var rawJson = Ser(data);
-            var dict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(rawJson, _jsonOpts)!;
-            dict["_id"] = JsonDocument.Parse($"\"{id}\"").RootElement;
+            // Canonical OASIS record JSON (concrete types kept) with camelCase top-level fields for Mango selectors.
+            var document = ToStoredDocument(data);
+            document["_id"] = id;
             var rev = await GetRevAsync(db, id);
-            if (rev != null) dict["_rev"] = JsonDocument.Parse($"\"{rev}\"").RootElement;
-            var content = new StringContent(Ser(dict), Encoding.UTF8, "application/json");
-            await _http.PutAsync($"{_base}/{db}/{Uri.EscapeDataString(id)}", content);
+            if (rev != null) document["_rev"] = rev;
+            using var resp = await _http.PutAsync($"{_base}/{db}/{Uri.EscapeDataString(id)}",
+                new StringContent(document.ToJsonString(), Encoding.UTF8, "application/json"));
+            await EnsureSuccessAsync(resp);
+            using var receipt = JsonDocument.Parse(await resp.Content.ReadAsStringAsync());
+            if (!receipt.RootElement.TryGetProperty("ok", out var ok) || ok.ValueKind != JsonValueKind.True ||
+                receipt.RootElement.GetProperty("id").GetString() != id)
+                throw new System.IO.InvalidDataException("PouchDB/CouchDB did not acknowledge the staged document.");
         }
 
         private async Task<T?> GetDocAsync<T>(string db, string id)
         {
             var json = await GetDocJsonAsync(db, id);
             if (json == null) return default;
-            return JsonSerializer.Deserialize<T>(json, _jsonOpts);
+            return NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<T>(json);
+        }
+
+        private static System.Text.Json.Nodes.JsonObject ToStoredDocument(object obj)
+        {
+            var canonical = System.Text.Json.Nodes.JsonNode.Parse(NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Serialize(obj))!.AsObject();
+            var document = new System.Text.Json.Nodes.JsonObject();
+            foreach (var property in System.Linq.Enumerable.ToList(canonical))
+            {
+                canonical.Remove(property.Key);
+                var name = property.Key.StartsWith("$") || property.Key.Length == 0 ? property.Key
+                    : char.ToLowerInvariant(property.Key[0]) + property.Key.Substring(1);
+                document[name] = property.Value;
+            }
+            return document;
+        }
+
+        private static async Task EnsureSuccessAsync(HttpResponseMessage response)
+        {
+            if (response.IsSuccessStatusCode) return;
+            var body = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException($"PouchDB/CouchDB returned {(int)response.StatusCode}: {body}");
         }
 
         private async Task<List<T>> MangoQueryAsync<T>(string db, string field, string value)
         {
-            var body = new { selector = new Dictionary<string, object> { { field, new { _eq = value } } }, limit = 1 };
-            // Mango syntax uses $eq
-            var mangoBody = $"{{\"selector\":{{\"{field}\":{{\"$eq\":\"{value}\"}}}},\"limit\":1}}";
-            var resp = await _http.PostAsync($"{_base}/{db}/_find", new StringContent(mangoBody, Encoding.UTF8, "application/json"));
-            if (!resp.IsSuccessStatusCode) return new List<T>();
+            var selector = new System.Text.Json.Nodes.JsonObject { [field] = new System.Text.Json.Nodes.JsonObject { ["$eq"] = value } };
+            var mangoBody = new System.Text.Json.Nodes.JsonObject { ["selector"] = selector, ["limit"] = 1000 }.ToJsonString();
+            using var resp = await _http.PostAsync($"{_base}/{db}/_find", new StringContent(mangoBody, Encoding.UTF8, "application/json"));
+            await EnsureSuccessAsync(resp);
             var json = await resp.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(json);
             if (!doc.RootElement.TryGetProperty("docs", out var docs)) return new List<T>();
             var list = new List<T>();
-            foreach (var d in docs.EnumerateArray()) { var item = JsonSerializer.Deserialize<T>(d.GetRawText(), _jsonOpts); if (item != null) list.Add(item); }
+            foreach (var d in docs.EnumerateArray()) { var item = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<T>(d.GetRawText()); if (item != null) list.Add(item); }
             return list;
         }
 
         private async Task<List<T>> GetAllDocsAsync<T>(string db)
         {
-            var resp = await _http.GetAsync($"{_base}/{db}/_all_docs?include_docs=true");
-            if (!resp.IsSuccessStatusCode) return new List<T>();
+            using var resp = await _http.GetAsync($"{_base}/{db}/_all_docs?include_docs=true");
+            await EnsureSuccessAsync(resp);
             var json = await resp.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(json);
             if (!doc.RootElement.TryGetProperty("rows", out var rows)) return new List<T>();
@@ -165,18 +190,18 @@ namespace NextGenSoftware.OASIS.API.Providers.PouchDBOASIS
                 if (!row.TryGetProperty("doc", out var d)) continue;
                 var idProp = d.TryGetProperty("_id", out var idEl) ? idEl.GetString() : null;
                 if (idProp != null && idProp.StartsWith("_design/")) continue; // skip design docs
-                var item = JsonSerializer.Deserialize<T>(d.GetRawText(), _jsonOpts);
+                var item = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<T>(d.GetRawText());
                 if (item != null) list.Add(item);
             }
             return list;
         }
 
-        private async Task SoftDeleteAsync(string db, string id)
+        private async Task NativeDeleteAsync(string db, string id)
         {
             var rev = await GetRevAsync(db, id);
             if (rev == null) return;
-            var deleteBody = $"{{\"_id\":\"{id}\",\"_rev\":\"{rev}\",\"_deleted\":true}}";
-            await _http.PutAsync($"{_base}/{db}/{Uri.EscapeDataString(id)}", new StringContent(deleteBody, Encoding.UTF8, "application/json"));
+            using var resp = await _http.DeleteAsync($"{_base}/{db}/{Uri.EscapeDataString(id)}?rev={Uri.EscapeDataString(rev)}");
+            await EnsureSuccessAsync(resp);
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
@@ -213,7 +238,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PouchDBOASIS
                 if (avatar.ProviderUniqueStorageKey == null) avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.PouchDBOASIS] = avatar.Id.ToString();
                 await UpsertDocAsync(DbAvatars, avatar.Id.ToString(), avatar);
-                result.Result = avatar; result.IsError = false; result.Message = $"PouchDBOASIS: Avatar '{avatar.Username}' saved.";
+                result.Result = avatar; result.IsError = false; result.IsSaved = true; result.SavedCount = 1; result.Message = $"PouchDBOASIS: Avatar '{avatar.Username}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PouchDBOASIS: Error saving avatar: {ex.Message}"); }
             return result;
@@ -227,8 +252,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PouchDBOASIS
             try
             {
                 var a = await GetDocAsync<Avatar>(DbAvatars, id.ToString());
-                if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"PouchDBOASIS: No avatar for ID '{id}'."); return result; }
-                result.Result = a; result.IsError = false; result.Message = "PouchDBOASIS: Avatar loaded.";
+                if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"PouchDBOASIS: No avatar for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = a; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "PouchDBOASIS: loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PouchDBOASIS: {ex.Message}"); }
             return result;
@@ -243,8 +268,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PouchDBOASIS
             {
                 var hits = await MangoQueryAsync<Avatar>(DbAvatars, "username", username);
                 var a = hits.Count > 0 ? hits[0] : null;
-                if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"PouchDBOASIS: No avatar for username '{username}'."); return result; }
-                result.Result = a; result.IsError = false; result.Message = "PouchDBOASIS: Avatar loaded.";
+                if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"PouchDBOASIS: No avatar for username '{username}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = a; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "PouchDBOASIS: loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PouchDBOASIS: {ex.Message}"); }
             return result;
@@ -259,8 +284,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PouchDBOASIS
             {
                 var hits = await MangoQueryAsync<Avatar>(DbAvatars, "email", avatarEmail);
                 var a = hits.Count > 0 ? hits[0] : null;
-                if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"PouchDBOASIS: No avatar for email '{avatarEmail}'."); return result; }
-                result.Result = a; result.IsError = false; result.Message = "PouchDBOASIS: Avatar loaded.";
+                if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"PouchDBOASIS: No avatar for email '{avatarEmail}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = a; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "PouchDBOASIS: loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PouchDBOASIS: {ex.Message}"); }
             return result;
@@ -283,7 +308,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PouchDBOASIS
             {
                 var all = await GetAllDocsAsync<Avatar>(DbAvatars);
                 var list = new List<IAvatar>(); foreach (var a in all) { if (!a.IsDeleted) list.Add(a); }
-                result.Result = list; result.IsError = false; result.Message = $"PouchDBOASIS: Loaded {list.Count} avatar(s).";
+                result.Result = list; result.IsError = false; result.IsLoaded = true; result.LoadedCount = list.Count; result.Message = $"PouchDBOASIS: Loaded {list.Count} avatar(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PouchDBOASIS: {ex.Message}"); }
             return result;
@@ -296,9 +321,15 @@ namespace NextGenSoftware.OASIS.API.Providers.PouchDBOASIS
             var result = new OASISResult<bool>();
             try
             {
-                if (softDelete) { var l = await LoadAvatarAsync(id); if (!l.IsError && l.Result != null) { var a = (Avatar)l.Result; a.DeletedDate = DateTime.UtcNow; await SaveAvatarAsync(a); } }
-                else { await SoftDeleteAsync(DbAvatars, id.ToString()); }
-                result.Result = true; result.IsError = false; result.Message = $"PouchDBOASIS: Avatar '{id}' deleted.";
+                var a = await GetDocAsync<Avatar>(DbAvatars, id.ToString());
+                if (a == null) { OASISErrorHandling.HandleError(ref result, $"PouchDBOASIS: No avatar for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                if (softDelete) { a.DeletedDate = DateTime.UtcNow; var saved = await SaveAvatarAsync(a); if (saved.IsError || !saved.IsSaved) { OASISErrorHandling.HandleError(ref result, saved.Message); return result; } }
+                else
+                {
+                    await NativeDeleteAsync(DbAvatars, id.ToString());
+                    await NativeDeleteAsync(DbDetails, id.ToString());
+                }
+                result.Result = true; result.IsError = false; result.IsDeleted = true; result.DeletedCount = 1; result.Message = $"PouchDBOASIS: Avatar '{id}' deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PouchDBOASIS: {ex.Message}"); }
             return result;
@@ -322,7 +353,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PouchDBOASIS
             {
                 if (d.Id == Guid.Empty) d.Id = Guid.NewGuid();
                 await UpsertDocAsync(DbDetails, d.Id.ToString(), d);
-                result.Result = d; result.IsError = false; result.Message = "PouchDBOASIS: AvatarDetail saved.";
+                result.Result = d; result.IsError = false; result.IsSaved = true; result.SavedCount = 1; result.Message = "PouchDBOASIS: AvatarDetail saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PouchDBOASIS: {ex.Message}"); }
             return result;
@@ -333,7 +364,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PouchDBOASIS
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
         {
             var result = new OASISResult<IAvatarDetail>();
-            try { var d = await GetDocAsync<AvatarDetail>(DbDetails, id.ToString()); if (d == null) { OASISErrorHandling.HandleError(ref result, $"PouchDBOASIS: No detail for ID '{id}'."); return result; } result.Result = d; result.IsError = false; result.Message = "PouchDBOASIS: AvatarDetail loaded."; }
+            try { var d = await GetDocAsync<AvatarDetail>(DbDetails, id.ToString()); if (d == null) { OASISErrorHandling.HandleError(ref result, $"PouchDBOASIS: No detail for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; } result.Result = d; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "PouchDBOASIS: loaded."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PouchDBOASIS: {ex.Message}"); }
             return result;
         }
@@ -343,7 +374,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PouchDBOASIS
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0)
         {
             var result = new OASISResult<IAvatarDetail>();
-            try { var hits = await MangoQueryAsync<AvatarDetail>(DbDetails, "username", u); var d = hits.Count > 0 ? hits[0] : null; if (d == null) { OASISErrorHandling.HandleError(ref result, $"PouchDBOASIS: No detail for username '{u}'."); return result; } result.Result = d; result.IsError = false; result.Message = "PouchDBOASIS: AvatarDetail loaded."; }
+            try { var hits = await MangoQueryAsync<AvatarDetail>(DbDetails, "username", u); var d = hits.Count > 0 ? hits[0] : null; if (d == null) { OASISErrorHandling.HandleError(ref result, $"PouchDBOASIS: No detail for username '{u}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; } result.Result = d; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "PouchDBOASIS: loaded."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PouchDBOASIS: {ex.Message}"); }
             return result;
         }
@@ -353,7 +384,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PouchDBOASIS
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int version = 0)
         {
             var result = new OASISResult<IAvatarDetail>();
-            try { var hits = await MangoQueryAsync<AvatarDetail>(DbDetails, "email", e); var d = hits.Count > 0 ? hits[0] : null; if (d == null) { OASISErrorHandling.HandleError(ref result, $"PouchDBOASIS: No detail for email '{e}'."); return result; } result.Result = d; result.IsError = false; result.Message = "PouchDBOASIS: AvatarDetail loaded."; }
+            try { var hits = await MangoQueryAsync<AvatarDetail>(DbDetails, "email", e); var d = hits.Count > 0 ? hits[0] : null; if (d == null) { OASISErrorHandling.HandleError(ref result, $"PouchDBOASIS: No detail for email '{e}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; } result.Result = d; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "PouchDBOASIS: loaded."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PouchDBOASIS: {ex.Message}"); }
             return result;
         }
@@ -363,7 +394,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PouchDBOASIS
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
             var result = new OASISResult<IEnumerable<IAvatarDetail>>();
-            try { var all = await GetAllDocsAsync<AvatarDetail>(DbDetails); result.Result = new List<IAvatarDetail>(all); result.IsError = false; result.Message = $"PouchDBOASIS: Loaded {all.Count} detail(s)."; }
+            try { var all = await GetAllDocsAsync<AvatarDetail>(DbDetails); result.Result = new List<IAvatarDetail>(all); result.IsError = false; result.IsLoaded = true; result.LoadedCount = all.Count; result.Message = $"PouchDBOASIS: Loaded {all.Count} detail(s)."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PouchDBOASIS: {ex.Message}"); }
             return result;
         }
@@ -377,9 +408,26 @@ namespace NextGenSoftware.OASIS.API.Providers.PouchDBOASIS
             var result = new OASISResult<IHolon>();
             try
             {
+                if (holon == null) throw new ArgumentNullException(nameof(holon));
                 if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
-                await UpsertDocAsync(DbHolons, holon.Id.ToString(), holon);
-                result.Result = holon; result.IsError = false; result.Message = $"PouchDBOASIS: Holon '{holon.Name}' saved.";
+                var id = holon.Id;
+                holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.PouchDBOASIS] = id.ToString("D");
+                await UpsertDocAsync(DbHolons, id.ToString(), holon);
+                var savedCount = 1;
+                if (saveChildren && holon.Children != null)
+                {
+                    foreach (var child in holon.Children)
+                    {
+                        if (child == null) continue;
+                        child.ParentHolonId = id;
+                        var childResult = await SaveHolonAsync(child, recursive, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                        if (childResult.IsError || !childResult.IsSaved)
+                            throw new System.IO.InvalidDataException($"Child holon {child.Id} was not saved: {childResult.Message}");
+                        savedCount += childResult.SavedCount;
+                    }
+                }
+                result.Result = holon; result.IsError = false; result.IsSaved = true; result.SavedCount = savedCount; result.Message = $"PouchDBOASIS: Holon '{holon.Name}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PouchDBOASIS: Error saving holon: {ex.Message}"); }
             return result;
@@ -389,9 +437,16 @@ namespace NextGenSoftware.OASIS.API.Providers.PouchDBOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            var result = new OASISResult<IEnumerable<IHolon>>(); var saved = new List<IHolon>();
-            foreach (var h in holons) { var r = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider); if (!r.IsError && r.Result != null) saved.Add(r.Result); }
-            result.Result = saved; result.IsError = false; result.Message = $"PouchDBOASIS: Saved {saved.Count} holons."; return result;
+            var result = new OASISResult<IEnumerable<IHolon>>(); var saved = new List<IHolon>(); var errors = new List<string>(); var savedTotal = 0;
+            foreach (var h in holons)
+            {
+                var r = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                if (r.IsError || !r.IsSaved) { errors.Add(r.Message); if (!continueOnError) break; continue; }
+                saved.Add(r.Result); savedTotal += r.SavedCount;
+            }
+            result.Result = saved; result.IsError = errors.Count > 0; result.ErrorCount = errors.Count;
+            result.IsSaved = saved.Count > 0; result.SavedCount = savedTotal;
+            result.Message = errors.Count > 0 ? string.Join("; ", errors) : $"PouchDBOASIS: Saved {saved.Count} holons."; return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
@@ -402,8 +457,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PouchDBOASIS
             try
             {
                 var h = await GetDocAsync<Holon>(DbHolons, id.ToString());
-                if (h == null || h.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"PouchDBOASIS: No holon for ID '{id}'."); return result; }
-                result.Result = h; result.IsError = false; result.Message = "PouchDBOASIS: Holon loaded.";
+                if (h == null || h.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"PouchDBOASIS: No holon for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = h; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "PouchDBOASIS: loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PouchDBOASIS: {ex.Message}"); }
             return result;
@@ -421,7 +476,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PouchDBOASIS
             {
                 var all = await GetAllDocsAsync<Holon>(DbHolons); var list = new List<IHolon>();
                 foreach (var h in all) { if (h.IsDeleted) continue; if (holonType != HolonType.All && h.HolonType != holonType) continue; list.Add(h); }
-                result.Result = list; result.IsError = false; result.Message = $"PouchDBOASIS: Loaded {list.Count} holon(s).";
+                result.Result = list; result.IsError = false; result.IsLoaded = true; result.LoadedCount = list.Count; result.Message = $"PouchDBOASIS: Loaded {list.Count} holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PouchDBOASIS: {ex.Message}"); }
             return result;
@@ -436,7 +491,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PouchDBOASIS
             {
                 var all = await GetAllDocsAsync<Holon>(DbHolons); var list = new List<IHolon>();
                 foreach (var h in all) { if (h.IsDeleted || h.ParentHolonId != id) continue; if (holonType != HolonType.All && h.HolonType != holonType) continue; list.Add(h); }
-                result.Result = list; result.IsError = false; result.Message = $"PouchDBOASIS: Loaded {list.Count} child holon(s).";
+                result.Result = list; result.IsError = false; result.IsLoaded = true; result.LoadedCount = list.Count; result.Message = $"PouchDBOASIS: Loaded {list.Count} child holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PouchDBOASIS: {ex.Message}"); }
             return result;
@@ -452,9 +507,11 @@ namespace NextGenSoftware.OASIS.API.Providers.PouchDBOASIS
             var result = new OASISResult<bool>();
             try
             {
-                if (softDelete) { var l = await LoadHolonAsync(id); if (!l.IsError && l.Result != null) { var h = (Holon)l.Result; h.DeletedDate = DateTime.UtcNow; await SaveHolonAsync(h); } }
-                else { await SoftDeleteAsync(DbHolons, id.ToString()); }
-                result.Result = true; result.IsError = false; result.Message = $"PouchDBOASIS: Holon '{id}' deleted.";
+                var h = await GetDocAsync<Holon>(DbHolons, id.ToString());
+                if (h == null) { OASISErrorHandling.HandleError(ref result, $"PouchDBOASIS: No holon for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                if (softDelete) { h.DeletedDate = DateTime.UtcNow; var saved = await SaveHolonAsync(h, saveChildren: false); if (saved.IsError || !saved.IsSaved) { OASISErrorHandling.HandleError(ref result, saved.Message); return result; } }
+                else { await NativeDeleteAsync(DbHolons, id.ToString()); }
+                result.Result = true; result.IsError = false; result.IsDeleted = true; result.DeletedCount = 1; result.Message = $"PouchDBOASIS: Holon '{id}' deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PouchDBOASIS: {ex.Message}"); }
             return result;
@@ -512,18 +569,23 @@ namespace NextGenSoftware.OASIS.API.Providers.PouchDBOASIS
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
             var result = new OASISResult<IHolon>();
-            var loaded = await LoadHolonAsync(id);
+            var loaded = await LoadHolonAsync(id, loadChildren: false);
             if (loaded.IsError || loaded.Result == null)
             {
                 OASISErrorHandling.HandleError(ref result, loaded.Message);
+                result.ErrorCode = loaded.ErrorCode;
                 return result;
             }
 
             var deleted = await DeleteHolonSoftAsync(id, true);
-            if (deleted.IsError)
+            if (deleted.IsError || !deleted.IsDeleted)
                 OASISErrorHandling.HandleError(ref result, deleted.Message);
             else
+            {
                 result.Result = loaded.Result;
+                result.IsDeleted = true;
+                result.DeletedCount = deleted.DeletedCount;
+            }
 
             return result;
         }
@@ -565,7 +627,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PouchDBOASIS
                     matches.Add(holon);
             }
 
-            result.Result = matches;
+            result.Result = matches; result.IsLoaded = true; result.LoadedCount = matches.Count;
             return result;
         }
 
@@ -584,7 +646,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PouchDBOASIS
 
             if (metaKeyValuePairs == null || metaKeyValuePairs.Count == 0)
             {
-                result.Result = new List<IHolon>(all.Result);
+                var everything = new List<IHolon>(all.Result); result.Result = everything; result.IsLoaded = true; result.LoadedCount = everything.Count;
                 return result;
             }
 
@@ -607,7 +669,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PouchDBOASIS
                 if (isMatch) matches.Add(holon);
             }
 
-            result.Result = matches;
+            result.Result = matches; result.IsLoaded = true; result.LoadedCount = matches.Count;
             return result;
         }
 
@@ -617,11 +679,15 @@ namespace NextGenSoftware.OASIS.API.Providers.PouchDBOASIS
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
             var result = new OASISResult<bool>();
-            var saved = await SaveHolonsAsync(holons);
-            if (saved.IsError)
+            var saved = await SaveHolonsAsync(holons, saveChildren: false, continueOnError: false);
+            if (saved.IsError || !saved.IsSaved)
                 OASISErrorHandling.HandleError(ref result, saved.Message);
             else
+            {
                 result.Result = true;
+                result.IsSaved = true;
+                result.SavedCount = saved.SavedCount;
+            }
             return result;
         }
 
@@ -651,7 +717,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PouchDBOASIS
                     owned.Add(holon);
             }
 
-            result.Result = owned;
+            result.Result = owned; result.IsLoaded = true; result.LoadedCount = owned.Count;
             return result;
         }
 

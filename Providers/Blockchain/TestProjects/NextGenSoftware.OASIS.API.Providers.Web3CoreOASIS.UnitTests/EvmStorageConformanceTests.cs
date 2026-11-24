@@ -21,6 +21,12 @@ public class EvmStorageConformanceTests
     [DataRow("LineaOASIS",false)] [DataRow("LineaOASIS",true)]
     [DataRow("ScrollOASIS",false)] [DataRow("ScrollOASIS",true)]
     [DataRow("zkSyncOASIS",false)] [DataRow("zkSyncOASIS",true)]
+    [DataRow("AbstractOASIS",false)] [DataRow("AbstractOASIS",true)]
+    [DataRow("BerachainOASIS",false)] [DataRow("BerachainOASIS",true)]
+    [DataRow("FantomOASIS",false)] [DataRow("FantomOASIS",true)]
+    [DataRow("MonadOASIS",false)] [DataRow("MonadOASIS",true)]
+    [DataRow("RootstockOASIS",false)] [DataRow("RootstockOASIS",true)]
+    [DataRow("SeiOASIS",false)] [DataRow("SeiOASIS",true)]
     public async Task SharedStorageInterfaceAgainstConfiguredLocalEvm(string name,bool sync)
     {
         var root=new DirectoryInfo(AppContext.BaseDirectory);
@@ -56,6 +62,12 @@ public class EvmStorageConformanceTests
                 "LineaOASIS"=>new NextGenSoftware.OASIS.API.Providers.LineaOASIS.LineaOASIS(endpoint.AbsoluteUri,key,contract,chain),
                 "ScrollOASIS"=>new NextGenSoftware.OASIS.API.Providers.ScrollOASIS.ScrollOASIS(endpoint.AbsoluteUri,key,contract,chain),
                 "zkSyncOASIS"=>new NextGenSoftware.OASIS.API.Providers.zkSyncOASIS.zkSyncOASIS(endpoint.AbsoluteUri,key,contract,chain),
+                "AbstractOASIS"=>new NextGenSoftware.OASIS.API.Providers.AbstractOASIS.AbstractOASIS(endpoint.AbsoluteUri,key,contract,chain),
+                "BerachainOASIS"=>new NextGenSoftware.OASIS.API.Providers.BerachainOASIS.BerachainOASIS(endpoint.AbsoluteUri,key,contract,chain),
+                "FantomOASIS"=>new NextGenSoftware.OASIS.API.Providers.FantomOASIS.FantomOASIS(endpoint.AbsoluteUri,key,contract,chain),
+                "MonadOASIS"=>new NextGenSoftware.OASIS.API.Providers.MonadOASIS.MonadOASIS(endpoint.AbsoluteUri,key,contract,chain),
+                "RootstockOASIS"=>new NextGenSoftware.OASIS.API.Providers.RootstockOASIS.RootstockOASIS(endpoint.AbsoluteUri,key,contract,chain),
+                "SeiOASIS"=>new NextGenSoftware.OASIS.API.Providers.SeiOASIS.SeiOASIS(endpoint.AbsoluteUri,key,contract,chain),
                 _=>(IOASISStorageProvider?)null
             } ?? (name=="EthereumOASIS"
                 ? EthereumProviderFactory.CreateForMode(new EthereumOASISProviderSettings{ConnectionString=endpoint.AbsoluteUri,ChainPrivateKey=key,ContractAddress=contract,ChainId=checked((long)chain)},HyperDriveModes.V2,null!)

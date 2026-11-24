@@ -45,8 +45,9 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
         };
 
-        private static string Ser(object obj) => JsonSerializer.Serialize(obj, _jsonOpts);
-        private static T? Des<T>(string? s) => s == null ? default : JsonSerializer.Deserialize<T>(s, _jsonOpts);
+        // Canonical OASIS record JSON keeps concrete types for interface members and skips holon navigation.
+        private static string Ser(object obj) => NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Serialize(obj);
+        private static T? Des<T>(string? s) => s == null ? default : NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<T>(s);
 
         public QuestDBOASIS(string connectionString = "Host=localhost;Port=8812;Database=qdb;Username=admin;Password=quest")
             : this(() => new NpgsqlConnection(connectionString))
@@ -93,7 +94,8 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
 
         private async Task UpsertAsync(string table, string id, object obj)
         {
-            var json = Ser(obj);
+            // Staged JSON documents are already canonical; records are serialised canonically here.
+            var json = obj is System.Text.Json.Nodes.JsonNode node ? node.ToJsonString() : Ser(obj);
             if (Encoding.UTF8.GetByteCount(json) > 1024 * 1024)
                 throw new System.IO.InvalidDataException("QuestDB document exceeds the1MiB adapter budget.");
             using var conn = await OpenConnectionAsync();
@@ -105,6 +107,33 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
             TextParameter(cmd, "data", json);
             if (await cmd.ExecuteNonQueryAsync() != 1)
                 throw new System.IO.InvalidDataException("QuestDB must acknowledge exactly one inserted row.");
+            await WaitForWalAppliedAsync(conn, table);
+        }
+
+        /// <summary>
+        /// WAL tables apply committed rows asynchronously. A write is acknowledged to callers only once the table
+        /// writer has applied every sequenced transaction, so the next read observes it.
+        /// </summary>
+        private static async Task WaitForWalAppliedAsync(DbConnection conn, string table)
+        {
+            var deadline = DateTime.UtcNow.AddSeconds(15);
+            while (true)
+            {
+                using (var status = Command(conn, "SELECT writerTxn, sequencerTxn, suspended FROM wal_tables() WHERE name = @name;"))
+                {
+                    TextParameter(status, "name", table);
+                    using var reader = await status.ExecuteReaderAsync();
+                    if (!await reader.ReadAsync())
+                        throw new System.IO.InvalidDataException($"QuestDB reports no WAL status for table '{table}'.");
+                    if (reader.GetBoolean(2))
+                        throw new System.IO.InvalidDataException($"QuestDB suspended WAL apply for table '{table}'.");
+                    if (Convert.ToInt64(reader.GetValue(0)) >= Convert.ToInt64(reader.GetValue(1)))
+                        return;
+                }
+                if (DateTime.UtcNow >= deadline)
+                    throw new TimeoutException($"QuestDB did not apply the WAL for table '{table}' within 15 seconds.");
+                await Task.Delay(50);
+            }
         }
 
         private async Task<T?> GetByIdAsync<T>(string table, string id)
@@ -114,7 +143,8 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
             TextParameter(cmd, "id", id);
             using var reader = await cmd.ExecuteReaderAsync();
             if (!reader.Read()) return default;
-            return Des<T>(reader.GetString(0));
+            var data = reader.GetString(0);
+            return data.Length == 0 ? default : Des<T>(data);
         }
 
         private async Task<List<T>> QueryAsync<T>(string table, string? whereClause = null, string? paramName = null, string? paramValue = null)
@@ -127,18 +157,28 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
             var list = new List<T>();
             while (reader.Read())
             {
-                var item = Des<T>(reader.GetString(0));
+                var data = reader.GetString(0);
+                if (data.Length == 0) continue; // erased record marker
+                var item = Des<T>(data);
                 if (item != null) list.Add(item);
             }
             return list;
         }
 
+        /// <summary>
+        /// QuestDB has no row DELETE. The DEDUP upsert key (ts,id) lets an empty erasure marker replace the row, so the
+        /// record content no longer exists in the table and every read treats the identity as absent.
+        /// </summary>
         private async Task DeleteByIdAsync(string table, string id)
         {
             using var conn = await OpenConnectionAsync();
-            using var cmd = Command(conn, $"DELETE FROM {table} WHERE id = @id;");
+            using var cmd = Command(conn,
+                $"INSERT INTO {table} (id, data, ts) VALUES (@id, '', " +
+                "to_timestamp('1970-01-01T00:00:00.000000Z', 'yyyy-MM-ddTHH:mm:ss.SSSUUUZ'));");
             TextParameter(cmd, "id", id);
-            await cmd.ExecuteNonQueryAsync();
+            if (await cmd.ExecuteNonQueryAsync() != 1)
+                throw new System.IO.InvalidDataException("QuestDB must acknowledge exactly one erasure row.");
+            await WaitForWalAppliedAsync(conn, table);
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
@@ -169,7 +209,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
                 if (avatar.ProviderUniqueStorageKey == null) avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.QuestDBOASIS] = avatar.Id.ToString();
                 await UpsertAsync("oasis_avatars", avatar.Id.ToString(), avatar);
-                result.Result = avatar; result.IsError = false; result.Message = $"QuestDBOASIS: Avatar '{avatar.Username}' saved.";
+                result.Result = avatar; result.IsError = false; result.IsSaved = true; result.SavedCount = 1; result.Message = $"QuestDBOASIS: Avatar '{avatar.Username}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QuestDBOASIS: Error saving avatar: {ex.Message}"); }
             return result;
@@ -183,8 +223,8 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
             try
             {
                 var a = await GetByIdAsync<Avatar>("oasis_avatars", id.ToString());
-                if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"QuestDBOASIS: No avatar for ID '{id}'."); return result; }
-                result.Result = a; result.IsError = false; result.Message = "QuestDBOASIS: Avatar loaded.";
+                if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"QuestDBOASIS: No avatar for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = a; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "QuestDBOASIS: loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QuestDBOASIS: {ex.Message}"); }
             return result;
@@ -199,8 +239,8 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
             {
                 var all = await QueryAsync<Avatar>("oasis_avatars");
                 var a = all.Find(x => x.Username == username && !x.IsDeleted);
-                if (a == null) { OASISErrorHandling.HandleError(ref result, $"QuestDBOASIS: No avatar for username '{username}'."); return result; }
-                result.Result = a; result.IsError = false; result.Message = "QuestDBOASIS: Avatar loaded.";
+                if (a == null) { OASISErrorHandling.HandleError(ref result, $"QuestDBOASIS: No avatar for username '{username}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = a; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "QuestDBOASIS: loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QuestDBOASIS: {ex.Message}"); }
             return result;
@@ -215,8 +255,8 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
             {
                 var all = await QueryAsync<Avatar>("oasis_avatars");
                 var a = all.Find(x => x.Email == avatarEmail && !x.IsDeleted);
-                if (a == null) { OASISErrorHandling.HandleError(ref result, $"QuestDBOASIS: No avatar for email '{avatarEmail}'."); return result; }
-                result.Result = a; result.IsError = false; result.Message = "QuestDBOASIS: Avatar loaded.";
+                if (a == null) { OASISErrorHandling.HandleError(ref result, $"QuestDBOASIS: No avatar for email '{avatarEmail}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = a; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "QuestDBOASIS: loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QuestDBOASIS: {ex.Message}"); }
             return result;
@@ -233,7 +273,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
             {
                 var all = await QueryAsync<Avatar>("oasis_avatars");
                 var list = new List<IAvatar>(); foreach (var a in all) { if (!a.IsDeleted) list.Add(a); }
-                result.Result = list; result.IsError = false; result.Message = $"QuestDBOASIS: Loaded {list.Count} avatar(s).";
+                result.Result = list; result.IsError = false; result.IsLoaded = true; result.LoadedCount = list.Count; result.Message = $"QuestDBOASIS: Loaded {list.Count} avatar(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QuestDBOASIS: {ex.Message}"); }
             return result;
@@ -246,9 +286,15 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
             var result = new OASISResult<bool>();
             try
             {
-                if (softDelete) { var load = await LoadAvatarAsync(id); if (!load.IsError && load.Result != null) { var a = (Avatar)load.Result; a.DeletedDate = DateTime.UtcNow; await SaveAvatarAsync(a); } }
-                else { await DeleteByIdAsync("oasis_avatars", id.ToString()); }
-                result.Result = true; result.IsError = false; result.Message = $"QuestDBOASIS: Avatar '{id}' deleted.";
+                var a = await GetByIdAsync<Avatar>("oasis_avatars", id.ToString());
+                if (a == null) { OASISErrorHandling.HandleError(ref result, $"QuestDBOASIS: No avatar for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                if (softDelete) { a.DeletedDate = DateTime.UtcNow; var saved = await SaveAvatarAsync(a); if (saved.IsError || !saved.IsSaved) { OASISErrorHandling.HandleError(ref result, saved.Message); return result; } }
+                else
+                {
+                    await DeleteByIdAsync("oasis_avatars", id.ToString());
+                    if (await GetByIdAsync<AvatarDetail>("oasis_avatar_details", id.ToString()) != null) await DeleteByIdAsync("oasis_avatar_details", id.ToString());
+                }
+                result.Result = true; result.IsError = false; result.IsDeleted = true; result.DeletedCount = 1; result.Message = $"QuestDBOASIS: Avatar '{id}' deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QuestDBOASIS: {ex.Message}"); }
             return result;
@@ -272,7 +318,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
             {
                 if (d.Id == Guid.Empty) d.Id = Guid.NewGuid();
                 await UpsertAsync("oasis_avatar_details", d.Id.ToString(), d);
-                result.Result = d; result.IsError = false; result.Message = "QuestDBOASIS: AvatarDetail saved.";
+                result.Result = d; result.IsError = false; result.IsSaved = true; result.SavedCount = 1; result.Message = "QuestDBOASIS: AvatarDetail saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QuestDBOASIS: {ex.Message}"); }
             return result;
@@ -286,23 +332,23 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
             try
             {
                 var d = await GetByIdAsync<AvatarDetail>("oasis_avatar_details", id.ToString());
-                if (d == null) { OASISErrorHandling.HandleError(ref result, $"QuestDBOASIS: No detail for ID '{id}'."); return result; }
-                result.Result = d; result.IsError = false; result.Message = "QuestDBOASIS: AvatarDetail loaded.";
+                if (d == null) { OASISErrorHandling.HandleError(ref result, $"QuestDBOASIS: No detail for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = d; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "QuestDBOASIS: loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QuestDBOASIS: {ex.Message}"); }
             return result;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) => LoadAvatarDetailAsync(id, version).Result;
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var all = await QueryAsync<AvatarDetail>("oasis_avatar_details"); var d = all.Find(x => x.Username == u); if (d == null) { OASISErrorHandling.HandleError(ref result, $"QuestDBOASIS: No detail for username '{u}'."); return result; } result.Result = d; result.IsError = false; result.Message = "QuestDBOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QuestDBOASIS: {ex.Message}"); } return result; }
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var all = await QueryAsync<AvatarDetail>("oasis_avatar_details"); var d = all.Find(x => x.Username == u); if (d == null) { OASISErrorHandling.HandleError(ref result, $"QuestDBOASIS: No detail for username '{u}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; } result.Result = d; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "QuestDBOASIS: loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QuestDBOASIS: {ex.Message}"); } return result; }
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string u, int version = 0) => LoadAvatarDetailByUsernameAsync(u, version).Result;
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var all = await QueryAsync<AvatarDetail>("oasis_avatar_details"); var d = all.Find(x => x.Email == e); if (d == null) { OASISErrorHandling.HandleError(ref result, $"QuestDBOASIS: No detail for email '{e}'."); return result; } result.Result = d; result.IsError = false; result.Message = "QuestDBOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QuestDBOASIS: {ex.Message}"); } return result; }
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var all = await QueryAsync<AvatarDetail>("oasis_avatar_details"); var d = all.Find(x => x.Email == e); if (d == null) { OASISErrorHandling.HandleError(ref result, $"QuestDBOASIS: No detail for email '{e}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; } result.Result = d; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "QuestDBOASIS: loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QuestDBOASIS: {ex.Message}"); } return result; }
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string e, int version = 0) => LoadAvatarDetailByEmailAsync(e, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
             var result = new OASISResult<IEnumerable<IAvatarDetail>>();
-            try { var all = await QueryAsync<AvatarDetail>("oasis_avatar_details"); result.Result = new List<IAvatarDetail>(all); result.IsError = false; result.Message = $"QuestDBOASIS: Loaded {all.Count} detail(s)."; }
+            try { var all = await QueryAsync<AvatarDetail>("oasis_avatar_details"); result.Result = new List<IAvatarDetail>(all); result.IsError = false; result.IsLoaded = true; result.LoadedCount = all.Count; result.Message = $"QuestDBOASIS: Loaded {all.Count} detail(s)."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QuestDBOASIS: {ex.Message}"); }
             return result;
         }
@@ -326,17 +372,30 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
                 keys[Core.Enums.ProviderType.QuestDBOASIS] = id.ToString("D");
 
                 // Stage identity in the wire document; HolonManager owns tracking acceptance.
-                var payload = JsonSerializer.SerializeToNode(holon, holon.GetType(), _jsonOpts)!.AsObject();
-                payload["id"] = id;
-                payload["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys);
+                var payload = System.Text.Json.Nodes.JsonNode.Parse(Ser(holon))!.AsObject();
+                payload["Id"] = id.ToString("D");
+                payload["ProviderUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys);
                 await UpsertAsync("oasis_holons", id.ToString("D"), payload);
 
                 holon.Id = id;
                 holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
                 holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.QuestDBOASIS] = id.ToString("D");
+                var savedCount = 1;
+                if (saveChildren && holon.Children != null)
+                {
+                    foreach (var child in holon.Children)
+                    {
+                        if (child == null) continue;
+                        child.ParentHolonId = id;
+                        var childResult = await SaveHolonAsync(child, recursive, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                        if (childResult.IsError || !childResult.IsSaved)
+                            throw new System.IO.InvalidDataException($"Child holon {child.Id} was not saved: {childResult.Message}");
+                        savedCount += childResult.SavedCount;
+                    }
+                }
                 result.Result = holon;
                 result.IsSaved = true;
-                result.SavedCount = 1;
+                result.SavedCount = savedCount;
             }
             catch (Exception ex)
             {
@@ -354,6 +413,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             var saved = new List<IHolon>();
             var errors = new List<string>();
+            var savedTotal = 0;
             foreach (var holon in holons)
             {
                 var write = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
@@ -362,13 +422,13 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
                     errors.Add(write.Message);
                     if (!continueOnError) break;
                 }
-                else if (write.IsSaved && write.Result != null) saved.Add(write.Result);
+                else if (write.IsSaved && write.Result != null) { saved.Add(write.Result); savedTotal += write.SavedCount; }
             }
             result.Result = saved;
             result.IsError = errors.Count > 0;
             result.ErrorCount = errors.Count;
             result.IsSaved = saved.Count > 0;
-            result.SavedCount = saved.Count;
+            result.SavedCount = savedTotal;
             result.Message = string.Join("; ", errors);
             return result;
         }
@@ -382,8 +442,8 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
             try
             {
                 var h = await GetByIdAsync<Holon>("oasis_holons", id.ToString());
-                if (h == null || h.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"QuestDBOASIS: No holon for ID '{id}'."); return result; }
-                result.Result = h; result.IsError = false; result.Message = "QuestDBOASIS: Holon loaded.";
+                if (h == null || h.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"QuestDBOASIS: No holon for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = h; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "QuestDBOASIS: loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QuestDBOASIS: {ex.Message}"); }
             return result;
@@ -400,7 +460,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
             {
                 var all = await QueryAsync<Holon>("oasis_holons");
                 var list = new List<IHolon>(); foreach (var h in all) { if (h.IsDeleted) continue; if (holonType != HolonType.All && h.HolonType != holonType) continue; list.Add(h); }
-                result.Result = list; result.IsError = false; result.Message = $"QuestDBOASIS: Loaded {list.Count} holon(s).";
+                result.Result = list; result.IsError = false; result.IsLoaded = true; result.LoadedCount = list.Count; result.Message = $"QuestDBOASIS: Loaded {list.Count} holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QuestDBOASIS: {ex.Message}"); }
             return result;
@@ -409,13 +469,21 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadAllHolonsAsync(holonType, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        { var result = new OASISResult<IEnumerable<IHolon>>(); try { var all = await QueryAsync<Holon>("oasis_holons"); var list = new List<IHolon>(); foreach (var h in all) { if (h.IsDeleted || h.ParentHolonId != id) continue; if (holonType != HolonType.All && h.HolonType != holonType) continue; list.Add(h); } result.Result = list; result.IsError = false; result.Message = $"QuestDBOASIS: Loaded {list.Count} child holon(s)."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QuestDBOASIS: {ex.Message}"); } return result; }
+        { var result = new OASISResult<IEnumerable<IHolon>>(); try { var all = await QueryAsync<Holon>("oasis_holons"); var list = new List<IHolon>(); foreach (var h in all) { if (h.IsDeleted || h.ParentHolonId != id) continue; if (holonType != HolonType.All && h.HolonType != holonType) continue; list.Add(h); } result.Result = list; result.IsError = false; result.IsLoaded = true; result.LoadedCount = list.Count; result.Message = $"QuestDBOASIS: Loaded {list.Count} child holon(s)."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QuestDBOASIS: {ex.Message}"); } return result; }
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsForParentAsync(id, holonType, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string pk, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) { if (Guid.TryParse(pk, out Guid id)) return await LoadHolonsForParentAsync(id, holonType, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version); var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, $"QuestDBOASIS: Invalid GUID '{pk}'."); return r; }
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string pk, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsForParentAsync(pk, holonType, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
         public async Task<OASISResult<bool>> DeleteHolonSoftAsync(Guid id, bool softDelete = true)
-        { var result = new OASISResult<bool>(); try { if (softDelete) { var load = await LoadHolonAsync(id); if (!load.IsError && load.Result != null) { var h = (Holon)load.Result; h.DeletedDate = DateTime.UtcNow; await SaveHolonAsync(h); } } else { await DeleteByIdAsync("oasis_holons", id.ToString()); } result.Result = true; result.IsError = false; result.Message = $"QuestDBOASIS: Holon '{id}' deleted."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QuestDBOASIS: {ex.Message}"); } return result; }
+        {
+            var result = new OASISResult<bool>();
+            try
+            {
+                var h = await GetByIdAsync<Holon>("oasis_holons", id.ToString());
+                if (h == null) { OASISErrorHandling.HandleError(ref result, $"QuestDBOASIS: No holon for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                if (softDelete) { h.DeletedDate = DateTime.UtcNow; var saved = await SaveHolonAsync(h, saveChildren: false); if (saved.IsError || !saved.IsSaved) { OASISErrorHandling.HandleError(ref result, saved.Message); return result; } }
+                else { await DeleteByIdAsync("oasis_holons", id.ToString()); }
+                result.Result = true; result.IsError = false; result.IsDeleted = true; result.DeletedCount = 1; result.Message = $"QuestDBOASIS: Holon '{id}' deleted."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QuestDBOASIS: {ex.Message}"); } return result; }
         public OASISResult<bool> DeleteHolonSoft(Guid id, bool softDelete = true) => DeleteHolonSoftAsync(id, softDelete).Result;
         public async Task<OASISResult<bool>> DeleteHolonSoftAsync(string pk, bool softDelete = true) { if (Guid.TryParse(pk, out Guid id)) return await DeleteHolonSoftAsync(id, softDelete); var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, $"QuestDBOASIS: Invalid GUID '{pk}'."); return r; }
         public OASISResult<bool> DeleteHolonSoft(string pk, bool softDelete = true) => DeleteHolonSoftAsync(pk, softDelete).Result;
@@ -467,18 +535,23 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
             var result = new OASISResult<IHolon>();
-            var loaded = await LoadHolonAsync(id);
+            var loaded = await LoadHolonAsync(id, loadChildren: false);
             if (loaded.IsError || loaded.Result == null)
             {
                 OASISErrorHandling.HandleError(ref result, loaded.Message);
+                result.ErrorCode = loaded.ErrorCode;
                 return result;
             }
 
             var deleted = await DeleteHolonSoftAsync(id, true);
-            if (deleted.IsError)
+            if (deleted.IsError || !deleted.IsDeleted)
                 OASISErrorHandling.HandleError(ref result, deleted.Message);
             else
+            {
                 result.Result = loaded.Result;
+                result.IsDeleted = true;
+                result.DeletedCount = deleted.DeletedCount;
+            }
 
             return result;
         }
@@ -520,7 +593,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
                     matches.Add(holon);
             }
 
-            result.Result = matches;
+            result.Result = matches; result.IsLoaded = true; result.LoadedCount = matches.Count;
             return result;
         }
 
@@ -539,7 +612,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
 
             if (metaKeyValuePairs == null || metaKeyValuePairs.Count == 0)
             {
-                result.Result = new List<IHolon>(all.Result);
+                var everything = new List<IHolon>(all.Result); result.Result = everything; result.IsLoaded = true; result.LoadedCount = everything.Count;
                 return result;
             }
 
@@ -562,7 +635,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
                 if (isMatch) matches.Add(holon);
             }
 
-            result.Result = matches;
+            result.Result = matches; result.IsLoaded = true; result.LoadedCount = matches.Count;
             return result;
         }
 
@@ -572,11 +645,15 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
             var result = new OASISResult<bool>();
-            var saved = await SaveHolonsAsync(holons);
-            if (saved.IsError)
+            var saved = await SaveHolonsAsync(holons, saveChildren: false, continueOnError: false);
+            if (saved.IsError || !saved.IsSaved)
                 OASISErrorHandling.HandleError(ref result, saved.Message);
             else
+            {
                 result.Result = true;
+                result.IsSaved = true;
+                result.SavedCount = saved.SavedCount;
+            }
             return result;
         }
 
@@ -606,7 +683,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
                     owned.Add(holon);
             }
 
-            result.Result = owned;
+            result.Result = owned; result.IsLoaded = true; result.LoadedCount = owned.Count;
             return result;
         }
 

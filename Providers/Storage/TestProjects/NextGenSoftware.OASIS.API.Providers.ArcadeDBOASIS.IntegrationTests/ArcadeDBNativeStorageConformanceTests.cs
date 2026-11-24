@@ -28,6 +28,25 @@ public sealed class ArcadeDBNativeStorageConformanceTests
             {
                 await File.WriteAllTextAsync(reportPath + ".next", JsonSerializer.Serialize(checkpoint));
                 File.Move(reportPath + ".next", reportPath, overwrite: true);
+            },
+            (id, sync) => sync ? Task.FromResult(provider.DeleteHolonSoft(id, false)) : provider.DeleteHolonSoftAsync(id, false),
+            expectedDefaultDeletion: "soft",
+            observeNativeTombstone: async (id, owner, name) =>
+            {
+                using var http = new HttpClient();
+                http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic",
+                    Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("root:" + Env("OASIS_NATIVE_PASSWORD"))));
+                var body = JsonSerializer.Serialize(new { language = "sql", command = "SELECT doc FROM Holon WHERE oasisId = :id", @params = new Dictionary<string, object> { ["id"] = id.ToString() } });
+                using var response = await http.PostAsync("http://127.0.0.1:12480/api/v1/query/oasis", new StringContent(body, System.Text.Encoding.UTF8, "application/json"));
+                response.EnsureSuccessStatusCode();
+                using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                var rows = doc.RootElement.GetProperty("result");
+                if (rows.GetArrayLength() == 0) return false;
+                var raw = rows[0].GetProperty("doc").GetString()!;
+                StringAssert.Contains(raw, name);
+                StringAssert.Contains(raw, owner.ToString("D"));
+                StringAssert.Contains(raw, "DeletedDate");
+                return true;
             });
 
         if (!report.Succeeded)

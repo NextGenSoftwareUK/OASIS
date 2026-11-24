@@ -26,8 +26,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SeiOASIS
             string hostUri = "https://evm-rpc.sei-apis.com",
             string chainPrivateKey = "",
             string contractAddress = "")
-            : base(hostUri, chainPrivateKey, contractAddress)
+            : this(hostUri, chainPrivateKey, contractAddress, new System.Numerics.BigInteger(1329)) { }
+
+        /// <summary>Signing, storage preparation and token flows require an explicit EVM chain identity.</summary>
+        public SeiOASIS(string hostUri, string chainPrivateKey, string contractAddress, System.Numerics.BigInteger chainId)
+            : base(hostUri, chainPrivateKey, contractAddress, chainId)
         {
+            if (chainId <= 0) throw new System.ArgumentOutOfRangeException(nameof(chainId));
             ProviderName = "SeiOASIS";
             ProviderDescription = "Sei EVM Provider — High-Performance L1 (400ms finality)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.SeiOASIS);

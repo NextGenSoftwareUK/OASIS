@@ -15,7 +15,17 @@ public class QuestDbSaveOwnershipTests
     internal sealed class Connection : DbConnection
     {
         public Func<DbCommand, CancellationToken, Task<int>> Execute = (_, _) => throw new InvalidOperationException();
-        public Func<DbCommand, CancellationToken, Task<DbDataReader>> Read = (_, _) => throw new InvalidOperationException();
+        // Writes are acknowledged after the table writer has applied the WAL; the fake reports it as applied.
+        public Func<DbCommand, CancellationToken, Task<DbDataReader>> Read = (command, _) =>
+        {
+            if (!command.CommandText.Contains("wal_tables()")) throw new InvalidOperationException();
+            var table = new System.Data.DataTable();
+            table.Columns.Add("writerTxn", typeof(long));
+            table.Columns.Add("sequencerTxn", typeof(long));
+            table.Columns.Add("suspended", typeof(bool));
+            table.Rows.Add(1L, 1L, false);
+            return Task.FromResult<DbDataReader>(table.CreateDataReader());
+        };
         public bool FailOpen, Disposed;
         private ConnectionState state;
         public override string ConnectionString { get; set; } = "";
@@ -80,10 +90,10 @@ public class QuestDbSaveOwnershipTests
             StringAssert.Contains(command.CommandText, "1970-01-01T00:00:00.000000Z");
             var id = Guid.Parse((string)command.Parameters["id"].Value!);
             using var payload = JsonDocument.Parse((string)command.Parameters["data"].Value!);
-            Assert.AreEqual(id, payload.RootElement.GetProperty("id").GetGuid());
-            Assert.AreEqual("coffee", payload.RootElement.GetProperty("category").GetString());
-            Assert.AreEqual(1234567890.123456789012345678m, payload.RootElement.GetProperty("metaData").GetProperty("precise").GetDecimal());
-            Assert.AreEqual(id.ToString("D"), payload.RootElement.GetProperty("providerUniqueStorageKey").GetProperty("QuestDBOASIS").GetString());
+            Assert.AreEqual(id, payload.RootElement.GetProperty("Id").GetGuid());
+            Assert.AreEqual("coffee", payload.RootElement.GetProperty("Category").GetString());
+            Assert.AreEqual(1234567890.123456789012345678m, payload.RootElement.GetProperty("MetaData").GetProperty("precise").GetDecimal());
+            Assert.AreEqual(id.ToString("D"), payload.RootElement.GetProperty("ProviderUniqueStorageKey").GetProperty("QuestDBOASIS").GetString());
             if (mode == "disconnect") throw new IOException("Unknown write outcome");
             return Task.FromResult(mode == "zero" ? 0 : mode == "unknown" ? -1 : mode == "multiple" ? 2 : 1);
         } };

@@ -42,6 +42,11 @@
     <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.LineaOASIS/NextGenSoftware.OASIS.API.Providers.LineaOASIS.csproj" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
     <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.ScrollOASIS/NextGenSoftware.OASIS.API.Providers.ScrollOASIS.csproj" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
     <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.ZkSyncOASIS/NextGenSoftware.OASIS.API.Providers.ZkSyncOASIS.csproj" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
+    <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.AbstractOASIS/NextGenSoftware.OASIS.API.Providers.AbstractOASIS.csproj" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
+    <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.BerachainOASIS/NextGenSoftware.OASIS.API.Providers.BerachainOASIS.csproj" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
+    <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.FantomOASIS/NextGenSoftware.OASIS.API.Providers.FantomOASIS.csproj" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
+    <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.MonadOASIS/NextGenSoftware.OASIS.API.Providers.MonadOASIS.csproj" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
+    <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.SeiOASIS/NextGenSoftware.OASIS.API.Providers.SeiOASIS.csproj" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
   </ItemGroup>
 
 </Project>
