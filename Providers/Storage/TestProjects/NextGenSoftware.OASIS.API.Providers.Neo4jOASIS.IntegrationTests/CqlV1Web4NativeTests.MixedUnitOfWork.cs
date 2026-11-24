@@ -95,7 +95,16 @@ public sealed partial class CqlV1Web4NativeTests
         var unchanged=await Stored(keep.Id,added.Id);
         Assert.AreEqual(2,unchanged.Count,"The deletion must roll back with the stale update.");
         Assert.AreEqual("uow-rival",unchanged.Single(row=>row.Id==keep.Id).Name);checks++;
+        // Q64: async streaming page by page (page size 1) yields every row exactly once.
+        using(var streamer=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            var wanted=new[]{keep.Id,added.Id};var streamed=new List<Guid>();
+            await foreach(var row in streamer.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>wanted.Contains(row.Id)).ToCosmicAsyncEnumerable(1))
+                streamed.Add(row.Id);
+            CollectionAssert.AreEquivalent(wanted,streamed.ToArray());Assert.AreEqual(2,streamed.Count);
+        }
+        checks++;
         return new NativeFixtureJourneyProof(checks,4,new Dictionary<string,bool>{
-            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true});
+            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true});
     }
 }
