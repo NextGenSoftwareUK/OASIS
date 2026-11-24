@@ -1,11 +1,11 @@
 # COSMIC / CQL status (plain English)
 
-Updated 23 November 2026. Checked against the LIVE dev sandbox API `https://dev.api.web4.oasisomniverse.one` (`/api/data/query-cql`), signed in as a sandbox visitor, running every preset in the provider catalogue.
+Updated 24 November 2026. Checked against the LIVE dev sandbox API `https://dev.api.web4.oasisomniverse.one` (`/api/data/query-cql`), signed in as a sandbox visitor, running every preset in the provider catalogue.
 
 ## Headline
 
 - **102 providers return real records** for their full and filtered presets in the live sandbox (plus MongoDB, SQLite and Neo4j, which take your own data rather than presets).
-- **12 of 15 priority providers are live.** Cosmos, Hedera and TRON are blocked (reasons below).
+- **14 of 15 priority providers are live.** Only TRON is blocked (needs a TronGrid key from David).
 - All of this runs through the real provider classes (`*OASIS.Cql.cs`), not ONODE adapters.
 
 ## Priority providers
@@ -22,11 +22,11 @@ Updated 23 November 2026. Checked against the LIVE dev sandbox API `https://dev.
 | SOLID | Yes: full preset 3 records, filtered preset 2 records |
 | IPFS | Yes: full preset 3 records, filtered preset 2 records |
 | ActivityPub | Yes: full preset 3 records, filtered preset 2 records |
-| CosmosBlockChain | BLOCKED: fails at startup, empty fee-ceiling placeholder {} in DNA treated as invalid config. Fixed in BootLoader on this branch, needs deploy. |
+| CosmosBlockChain | Yes: full preset 3 records, filtered preset 2 records (fixed 24 Nov: empty DNA fee/escrow placeholders no longer break startup) |
 | Polkadot | Yes: full preset 3 records, filtered preset 2 records |
 | TON | Yes: full preset 3 records, filtered preset 2 records |
 | TRON | BLOCKED: not enrolled on Railway (CQL_TRON_PUBLIC_HEADER_QUERY_SOURCE_JSON and COSMIC_TRON_PUBLIC_READER_KEY unset). Anonymous TronGrid returned HTTP429 in the native test, so it needs a dedicated TronGrid API key from David. |
-| Hashgraph | BLOCKED: fails at startup, zero/empty StorageQueryPreparation placeholder in DNA treated as invalid config. Fixed in BootLoader on this branch, needs deploy. |
+| Hashgraph | Yes: full preset 3 records, filtered preset 2 records (fixed 24 Nov: empty DNA query-policy placeholder no longer breaks startup) |
 
 ## Every provider with a working live demo
 
@@ -41,7 +41,7 @@ AWSS3, Abstract, ActivityPub, Akash, Algorand, Aptos, Arbitrum, Arweave, Avalanc
 ## Still open (not done, not claimed)
 
 - HoloOASIS: cold-start reliability, private-data copies and live HyperDrive writes. The public read works.
-- Cosmos and Hedera: the fix needs one WEB4 deploy and then a re-check.
+- Providers whose own public APIs are down at startup (e.g. Chainflip HTTP 525, Blockscout timing out above 15s per address on 24 Nov) show as unavailable until the next restart or an operator recovery call.
 - TRON: needs a TronGrid API key from David (see ACTIONS-FOR-DAVID.md).
 - Full EF/NHibernate parity, general (non-preset) queries and writes on chain providers: see the archive.
 
