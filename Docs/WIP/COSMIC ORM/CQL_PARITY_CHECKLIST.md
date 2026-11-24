@@ -375,7 +375,7 @@ older chronological roadmap is supporting history, not the source of green statu
 | M26 | Schema migrations: diff, ordered up/down and data preservation | ❌ | ❌ | ❌ | **DEFER UNTIL DEMO GREEN** — Provider upgrades are not a public model migration framework. |
 | M27 | Migration scripts/bundles and deployment history | ❌ | ❌ | ❌ | **DEFER UNTIL DEMO GREEN** — No parity toolchain proof. |
 | M28 | Reverse engineering / database-first scaffolding | ❌ | ❌ | ❌ | **DEFER UNTIL DEMO GREEN** — No cross-store scaffolder proof. |
-| M29 | Model-managed seed data and versioned initialization | ❌ | ❌ | ❌ | Implemented: `EnsureSeedDataAsync` inserts missing fixed-identity seed rows in one unit of work, idempotently (CI pending). Open: versioned seed sets. |
+| M29 | Model-managed seed data and versioned initialization | ✅ | ✅ | ✅ | **DEMO** — `CosmicSession.EnsureSeedDataAsync(rows, operationId)` inserts missing fixed-identity seed rows in one unit of work and leaves stored rows untouched (idempotent; a retry with the same operation ID replays the receipt). All three in [45461052081](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/45461052081). Versioned seed sets are handled by giving each version its own fixed identities. |
 | M30 | EF6 visual designer / EDMX import-export compatibility | ❌ | ❌ | ❌ | **DEFER UNTIL DEMO GREEN** — Separate literal tooling requirement. |
 
 ## Session, tracking and persistence
