@@ -8,7 +8,7 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
-public partial class SQLLiteDBOASIS : ICosmicQueryStorageProvider
+public partial class SQLLiteDBOASIS : ICosmicQueryStorageProvider, ICosmicQueryExplainProvider
 {
     Core.Enums.ProviderType ICosmicQueryStorageProvider.QueryProviderType => Core.Enums.ProviderType.SQLLiteDBOASIS;
     CosmicQueryCapabilities ICosmicQueryStorageProvider.QueryCapabilities => CqlCapabilities;
@@ -20,4 +20,8 @@ public partial class SQLLiteDBOASIS : ICosmicQueryStorageProvider
     public Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
         int maximumResults = 100, CancellationToken cancellationToken = default) where T : IHolon
         => ((HolonRepository)_holonRepository).ExecuteCosmicQueryAsync(plan, maximumResults, cancellationToken);
+
+    public Task<OASISResult<CosmicQueryExplanation>> ExplainCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
+        int maximumResults = 100, CancellationToken cancellationToken = default) where T : IHolon
+        => ((HolonRepository)_holonRepository).ExplainCosmicQueryAsync(plan, maximumResults, cancellationToken);
 }

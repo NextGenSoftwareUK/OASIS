@@ -42,7 +42,7 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider
 
     private async Task<OASISResult<CqlReadOutcome>> ExecuteCqlReadAsync<T>(CosmicQueryPlan<T> plan,
         int maximumResults, CancellationToken cancellationToken, CosmicEntityCompositionPlan<T> composition=null,
-        bool countOnly=false,CosmicSetQueryPlan<T> set=null) where T:IHolon
+        bool countOnly=false,CosmicSetQueryPlan<T> set=null,Action<string,IReadOnlyDictionary<string,object>> explain=null) where T:IHolon
     {
         OASISResult<CqlReadOutcome> Error(string code,string message,Exception cause=null)
             => new(){IsError=true,ErrorCount=1,ErrorCode=code,Message=message,Exception=cause};
@@ -78,7 +78,7 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider
             translator.Parameters.Add("limit", fetch);
             translator.Parameters.Add("offset",plan.Query.Offset);
             cancellationToken.ThrowIfCancellationRequested();
-            if(composition == null && set == null && fetch==0 && !translator.HasRelationship)return new OASISResult<CqlReadOutcome>(new CqlReadOutcome(Array.Empty<IHolon>())){IsLoaded=true};
+            if(explain==null && composition == null && set == null && fetch==0 && !translator.HasRelationship)return new OASISResult<CqlReadOutcome>(new CqlReadOutcome(Array.Empty<IHolon>())){IsLoaded=true};
             if (!IsQuerySourceActivated || _driver == null) return Error("CQL_PROVIDER_INACTIVE", "Neo4j provider is not activated.");
             // Validation is outside the page branch: SKIP must never hide an invalid
             // projection. Both branches execute inside one native read query.
@@ -120,6 +120,7 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider
             if (plan.PostWindowPredicate != null) query = CompileCqlPostWindowElement(compiled, plan);
             if (composition != null) query = CompileCqlEntityComposition(compiled, composition, maximumResults,countOnly);
             if(set!=null)query=CompileCqlSet(compiled,set,maximumResults,countOnly:countOnly);
+            if(explain!=null){explain(query,translator.Parameters);return new OASISResult<CqlReadOutcome>(new CqlReadOutcome(Array.Empty<IHolon>())){IsLoaded=true};}
             using var budget=readBudget=new NeoCqlReadBudget(plan.Query.GraphOptions?.MaximumPayloadBytes??32*1024*1024,cancellationToken);
             budget.Check();
             await using var readOwner = await LeaseCqlReadAsync(budget.Token).ConfigureAwait(false);
