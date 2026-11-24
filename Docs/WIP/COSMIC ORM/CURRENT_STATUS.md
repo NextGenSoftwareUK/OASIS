@@ -42,7 +42,7 @@ Each one was checked on all three real stores, in throwaway CI containers (never
 - **Load a record's children on demand (A10).** `LoadChildrenAsync`. Run 45424767497.
 - **Integer sequences and HiLo ID blocks (M08).** Native and atomic on each store, and checked with 20 callers at once. CI is running.
 
-Also fixed: WEB4 did not compile on Development. The avatar-password JSON filter added in cee7dc1d was never committed, because its file name matched the repo's `*secret*` ignore rule. It is now `AvatarCredentialJsonContracts`.
+Also: WEB4 did not compile, because the avatar-password JSON filter from cee7dc1d was never committed (its file name matched the repo's `*secret*` ignore rule). Development fixed this in b66e3d4e, and this branch now uses that fix.
 
 ## Calling the API yourself
 
