@@ -121,6 +121,23 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.IsTrue(months.IsError,"Month arithmetic is not linear and is refused.");
         }
         checks++;
+        // S06 notification tracking: only raised PropertyChanged marks a notifying entity Modified.
+        using(var notifying=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            Assert.IsFalse(notifying.SetChangeTrackingStrategy(CosmicChangeTrackingStrategy.ChangedNotifications).IsError);
+            var watched=new Holon{Id=Guid.NewGuid(),Name="notify-row",CreatedByAvatarId=actor,IsActive=true,IsPublic=false,IsNewHolon=true};
+            owned.Add(watched.Id);Assert.IsFalse(notifying.Add(watched).IsError);
+            Assert.IsFalse((await notifying.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()))).IsError);
+            watched.Description="silent edit";
+            Assert.AreEqual(CosmicEntityState.Unchanged,notifying.State(watched).Result,"No notification, no change.");
+            watched.NotifyPropertyChanged(nameof(Holon.Description));
+            Assert.AreEqual(CosmicEntityState.Modified,notifying.State(watched).Result);
+            var notifiedSave=await notifying.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));
+            Assert.IsFalse(notifiedSave.IsError,notifiedSave.ErrorCode+": "+notifiedSave.Message);
+            Assert.AreEqual(CosmicEntityState.Unchanged,notifying.State(watched).Result);
+            Assert.AreEqual("silent edit",(await Stored(watched.Id)).Single().Description);
+        }
+        checks++;
         // M29 seed data: idempotent insert of fixed-identity rows in one unit of work.
         Holon[] Seed()=>new[]{
             new Holon{Id=seedIds[0],Name="seed-one",CreatedByAvatarId=actor,IsActive=true,IsPublic=false},
@@ -137,6 +154,6 @@ public sealed partial class CqlV1Web4NativeTests
         }
         Assert.AreEqual(2,(await Stored(seedIds)).Count);checks++;
         return new NativeFixtureJourneyProof(checks,4,new Dictionary<string,bool>{
-            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true});
+            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true,["notificationTrackingVerified"]=true});
     }
 }
