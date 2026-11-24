@@ -59,7 +59,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS.TestHarness
             Console.WriteLine(saveResult.IsError ? $"FAIL Save: {saveResult.Message}" : $"PASS Save");
             var loadResult = await _provider.LoadHolonAsync(holon.Id);
             Console.WriteLine(loadResult.IsError ? $"FAIL Load: {loadResult.Message}" : $"PASS Load");
-            var deleteResult = await _provider.DeleteHolonAsync(holon.Id, softDelete: true);
+            var deleteResult = await _provider.DeleteHolonAsync(holon.Id);
             Console.WriteLine(deleteResult.IsError ? $"FAIL Delete: {deleteResult.Message}" : $"PASS Delete");
         }
 

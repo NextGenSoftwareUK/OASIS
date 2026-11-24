@@ -1,3 +1,4 @@
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using System;
@@ -49,9 +50,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS.TestHarness
         private static async Task TestProviderInformation()
         {
             Console.WriteLine("--- Testing Provider Information ---");
-            Console.WriteLine($"Provider Version: {_provider.GetProviderVersion()}");
-            Console.WriteLine($"Provider Type: {_provider.GetProviderType()}");
-            Console.WriteLine($"Provider Category: {_provider.GetProviderCategory()}");
+            Console.WriteLine($"Provider Version: {_provider.GetType().Assembly.GetName().Version}");
+            Console.WriteLine($"Provider Type: {_provider.ProviderType.Value}");
+            Console.WriteLine($"Provider Category: {_provider.ProviderCategory.Value}");
             Console.WriteLine($"Description: {_provider.ProviderDescription}");
             Console.WriteLine();
         }

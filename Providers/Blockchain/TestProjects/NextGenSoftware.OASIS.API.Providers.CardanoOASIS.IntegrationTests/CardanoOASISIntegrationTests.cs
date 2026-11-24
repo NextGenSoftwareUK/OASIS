@@ -1,6 +1,3 @@
-using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.OASIS.API.Core.Objects.Search;
-using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Providers.CardanoOASIS;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -97,12 +94,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CardanoOASIS.IntegrationTests
             // Arrange
             var searchParams = new SearchParams
             {
-                SearchOnlyForCurrentAvatar = false,
-                SearchGroups = new List<ISearchGroupBase> { new SearchTextGroup { SearchQuery = "test", SearchAvatars = true } }
+                SearchQuery = "test",
+                SearchType = SearchType.Avatar
             };
 
             // Act
-            var result = await _provider.SearchAsync(searchParams);
+            var result = await _provider.SearchAvatarsAsync(searchParams);
 
             // Assert
             Assert.IsNotNull(result);
@@ -116,12 +113,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CardanoOASIS.IntegrationTests
             // Arrange
             var searchParams = new SearchParams
             {
-                SearchOnlyForCurrentAvatar = false,
-                SearchGroups = new List<ISearchGroupBase> { new SearchTextGroup { SearchQuery = "test", SearchHolons = true } }
+                SearchQuery = "test",
+                SearchType = SearchType.Holon
             };
 
             // Act
-            var result = await _provider.SearchAsync(searchParams);
+            var result = await _provider.SearchHolonsAsync(searchParams);
 
             // Assert
             Assert.IsNotNull(result);

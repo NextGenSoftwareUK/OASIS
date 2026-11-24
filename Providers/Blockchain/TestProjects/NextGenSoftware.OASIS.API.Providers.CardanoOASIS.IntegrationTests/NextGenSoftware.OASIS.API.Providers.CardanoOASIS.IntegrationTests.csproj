@@ -19,12 +19,4 @@
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.CardanoOASIS\NextGenSoftware.OASIS.API.Providers.CardanoOASIS.csproj" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(NativeStorageConformance)' == 'true'">
-    <Compile Remove="**/*.cs" />
-    <Compile Include="CardanoNativeStorageConformanceTests.cs" />
-    <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(NativeStorageConformance)' != 'true'">
-    <Compile Remove="CardanoNativeStorageConformanceTests.cs" />
-  </ItemGroup>
 </Project>

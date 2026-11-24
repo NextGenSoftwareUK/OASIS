@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -28,9 +28,46 @@ namespace NextGenSoftware.OASIS.API.Providers.StarknetOASIS;
 
 public sealed partial class StarknetOASIS
 {
+    public override Task<OASISResult<bool>> ActivateProviderAsync()
+    {
+        var result = new OASISResult<bool>();
+        try
+        {
+            _isActivated = true;
+            IsProviderActivated = true;
+            result.Result = true;
+            result.IsError = false;
+            result.Message = $"{ProviderName} activated against {_network}";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Failed to activate {ProviderName}: {ex.Message}", ex);
+        }
 
+        return Task.FromResult(result);
+    }
 
+    public override OASISResult<bool> ActivateProvider()
+    {
+        return ActivateProviderAsync().Result;
+    }
 
+    public override Task<OASISResult<bool>> DeActivateProviderAsync()
+    {
+        _isActivated = false;
+        IsProviderActivated = false;
+        return Task.FromResult(new OASISResult<bool>
+        {
+            Result = true,
+            Message = $"{ProviderName} deactivated",
+            IsError = false
+        });
+    }
+
+    public override OASISResult<bool> DeActivateProvider()
+    {
+        return DeActivateProviderAsync().Result;
+    }
 
 //    public async Task<OASISResult<string>> CreateAtomicSwapIntentAsync(string starknetAddress, decimal amount, string zcashAddress)
 //    {
@@ -278,7 +315,143 @@ public sealed partial class StarknetOASIS
 //    public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0) => NotImplemented<IAvatarDetail>(nameof(LoadAvatarDetailByUsername));
 //    public override Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0) => NotImplementedAsync<IEnumerable<IAvatarDetail>>(nameof(LoadAllAvatarDetailsAsync));
 //    public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0) => NotImplemented<IEnumerable<IAvatarDetail>>(nameof(LoadAllAvatarDetails));
+    public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar Avatar)
+    {
+        var result = new OASISResult<IAvatar>();
+        try
+        {
+            if (!_isActivated)
+            {
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Starknet provider: {activateResult.Message}");
+                    return result;
+                }
+            }
+            if (_rpcClient == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Starknet RPC client is not initialized");
+                return result;
+            }
 
+            if (Avatar == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar cannot be null");
+                return result;
+            }
+
+            // Get wallet for the avatar
+            var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(Avatar.Id, Core.Enums.ProviderType.StarknetOASIS);
+            if (walletResult.IsError || walletResult.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Could not retrieve wallet address for avatar");
+                return result;
+            }
+
+            // Serialize avatar to JSON
+            string avatarInfo = JsonSerializer.Serialize(Avatar);
+            string avatarId = Avatar.Id.ToString();
+
+            // Use Starknet contract to store avatar data
+            if (string.IsNullOrEmpty(_contractAddress))
+            {
+                // No contract configured - delegate to ProviderManager as fallback
+                return await AvatarManager.Instance.SaveAvatarAsync(Avatar);
+            }
+
+            // Call Starknet contract using RPC client with proper invoke transaction
+            // Note: This requires a deployed OASIS contract on Starknet with create_avatar function
+            // Build proper Starknet invoke transaction with entry point selector and calldata
+            var avatarIdBytes = System.Text.Encoding.UTF8.GetBytes(avatarId);
+            var avatarInfoBytes = System.Text.Encoding.UTF8.GetBytes(avatarInfo);
+            
+            // Convert to hex strings for Starknet calldata
+            var avatarIdHex = "0x" + Convert.ToHexString(avatarIdBytes).ToLowerInvariant();
+            var avatarInfoHex = "0x" + Convert.ToHexString(avatarInfoBytes).ToLowerInvariant();
+            
+            // Build invoke transaction payload for Starknet contract call
+            var invokePayload = new
+            {
+                contract_address = _contractAddress,
+                entry_point_selector = GetEntryPointSelector("create_avatar"), // Keccak256 hash of function name
+                calldata = new[]
+                {
+                    avatarIdHex,
+                    avatarInfoHex
+                }
+            };
+
+            // Submit invoke transaction via Starknet RPC
+            var rpcRequest = new
+            {
+                jsonrpc = "2.0",
+                method = "starknet_addInvokeTransaction",
+                @params = new
+                {
+                    invoke_transaction = invokePayload
+                },
+                id = 1
+            };
+
+            var jsonContent = JsonSerializer.Serialize(rpcRequest);
+            var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
+            var httpResponse = await _httpClient.PostAsync("", content);
+
+            string transactionHash = null;
+            if (httpResponse.IsSuccessStatusCode)
+            {
+                var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                var responseJson = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                
+                if (responseJson.TryGetProperty("result", out var result2) && 
+                    result2.TryGetProperty("transaction_hash", out var txHash))
+                {
+                    transactionHash = txHash.GetString();
+                }
+            }
+
+            if (string.IsNullOrEmpty(transactionHash))
+            {
+                // Fallback to RPC client if direct HTTP call fails
+                var payload = new StarknetTransactionPayload
+                {
+                    From = walletResult.Result.WalletAddress,
+                    To = _contractAddress,
+                    Amount = 0m,
+                    Memo = avatarInfo
+                };
+                var txResult = await _rpcClient.SubmitTransactionAsync(payload);
+                if (txResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to save avatar to Starknet contract: {txResult.Message}");
+                    return result;
+                }
+                transactionHash = txResult.Result;
+            }
+
+            // Store transaction hash in provider unique storage key
+            if (Avatar.ProviderUniqueStorageKey == null)
+                Avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
+            Avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.StarknetOASIS] = transactionHash;
+
+            result.Result = Avatar;
+            result.IsError = false;
+            result.IsSaved = true;
+            //result.Message = $"Avatar saved successfully to Starknet contract: {txResult.Result}";
+            result.Message = $"Avatar saved successfully to Starknet";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error saving avatar to Starknet: {ex.Message}", ex);
+        }
+        return result;
+    }
+
+    public override OASISResult<IAvatar> SaveAvatar(IAvatar Avatar)
+    {
+        return SaveAvatarAsync(Avatar).Result;
+    }
 //    public override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail Avatar) => NotImplementedAsync<IAvatarDetail>(nameof(SaveAvatarDetailAsync));
 //    public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail Avatar) => NotImplemented<IAvatarDetail>(nameof(SaveAvatarDetail));
 //    public override Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true) => NotImplementedAsync<bool>(nameof(DeleteAvatarAsync));

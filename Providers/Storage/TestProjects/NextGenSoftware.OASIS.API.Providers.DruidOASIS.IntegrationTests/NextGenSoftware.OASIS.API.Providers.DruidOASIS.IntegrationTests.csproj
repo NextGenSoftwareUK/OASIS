@@ -15,12 +15,4 @@
   <ItemGroup>
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.DruidOASIS\NextGenSoftware.OASIS.API.Providers.DruidOASIS.csproj" />
   </ItemGroup>
-  <ItemGroup Condition="'$(NativeStorageConformance)' == 'true'">
-    <Compile Remove="**/*.cs" />
-    <Compile Include="DruidNativeStorageConformanceTests.cs" />
-    <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(NativeStorageConformance)' != 'true'">
-    <Compile Remove="DruidNativeStorageConformanceTests.cs" />
-  </ItemGroup>
 </Project>

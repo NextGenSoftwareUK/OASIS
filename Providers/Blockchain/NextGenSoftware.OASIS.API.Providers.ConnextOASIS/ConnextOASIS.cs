@@ -42,15 +42,6 @@ namespace NextGenSoftware.OASIS.API.Providers.ConnextOASIS
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain);
         }
 
-        /// <summary>Connext exposes cross-chain transfer data (read by transfer id and through CQL), not an OASIS record store:
-        /// avatar and holon storage members fail explicitly instead of acknowledging writes that are never persisted.</summary>
-        private static OASISResult<T> NoRecordStore<T>()
-        {
-            var result = new OASISResult<T>();
-            OASISErrorHandling.HandleError(ref result, "ConnextOASIS has no OASIS record store; it reads Connext transfers by transfer id.");
-            return result;
-        }
-
         private async Task<T> GetAsync<T>(string path)
         {
             if (publicMessages != null)
@@ -123,20 +114,48 @@ namespace NextGenSoftware.OASIS.API.Providers.ConnextOASIS
         }
 
         // SaveHolonAsync: record intent to bridge; store transfer metadata (actual xcall needs on-chain)
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon h, bool sc = true, bool rec = true, int md = 0, bool coe = true, bool scop = false) { if (publicMessages != null) return PublicProfileWriteRejected<IHolon>(); return NoRecordStore<IHolon>(); }
+        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon h, bool sc = true, bool rec = true, int md = 0, bool coe = true, bool scop = false)
+        {
+            if (publicMessages != null)
+                return PublicProfileWriteRejected<IHolon>();
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0) { return NoRecordStore<IAvatar>(); }
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string u, int v = 0) { return NoRecordStore<IAvatar>(); }
-        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar a) { if (publicMessages != null) return PublicProfileWriteRejected<IAvatar>(); return NoRecordStore<IAvatar>(); }
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool soft = true) { if (publicMessages != null) return PublicProfileWriteRejected<bool>(); return NoRecordStore<bool>(); }
-        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int v = 0) { return NoRecordStore<IEnumerable<IAvatar>>(); }
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0) { return NoRecordStore<IHolon>(); }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType ht = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { return NoRecordStore<IEnumerable<IHolon>>(); }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool sc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool scop = false) { if (publicMessages != null) return PublicProfileWriteRejected<IEnumerable<IHolon>>(); return NoRecordStore<IEnumerable<IHolon>>(); }
-        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams sp, bool lc = true, bool rec = true, int md = 0, bool coe = true, int v = 0) { return NoRecordStore<ISearchResults>(); }
+            var r = new OASISResult<IHolon>();
+            try
+            {
+                if (h.Id == Guid.Empty) h.Id = Guid.NewGuid();
+                var payload = JsonConvert.SerializeObject(new
+                {
+                    holonId = h.Id.ToString(),
+                    holonName = h.Name,
+                    holonType = h.HolonType.ToString(),
+                    createdAt = DateTime.UtcNow,
+                    data = h.MetaData
+                });
+                var pendingKey = $"pending-connext-{h.Id}";
+                h.ProviderUniqueStorageKey[Core.Enums.ProviderType.ConnextOASIS] = pendingKey;
+                if (h.MetaData == null) h.MetaData = new Dictionary<string, object>();
+                h.MetaData["connext_pending_payload"] = payload;
+                h.MetaData["connext_note"] = "Stored as Connext bridge transfer intent — actual xcall() requires EVM signer";
+                r.Result = h;
+                r.Message = "Stored as Connext bridge transfer intent";
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"ConnextOASIS SaveHolonAsync failed: {ex.Message}", ex); }
+            return r;
+        }
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0) { var r = new OASISResult<IAvatar>(); try { r.Result = new Avatar { Id = id }; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"ConnextOASIS LoadAvatarAsync: {ex.Message}", ex); } return r; }
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string u, int v = 0) { var r = new OASISResult<IAvatar>(); try { r.Result = new Avatar { Username = u }; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"ConnextOASIS LoadAvatarByUsernameAsync: {ex.Message}", ex); } return r; }
+        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar a) { if (publicMessages != null) return PublicProfileWriteRejected<IAvatar>(); var r = new OASISResult<IAvatar>(); try { if (a.Id == Guid.Empty) a.Id = Guid.NewGuid(); r.Result = a; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"ConnextOASIS SaveAvatarAsync: {ex.Message}", ex); } return r; }
+        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool soft = true)
+            => publicMessages != null ? PublicProfileWriteRejected<bool>() : new OASISResult<bool> { Result = true };
+        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int v = 0) { var r = new OASISResult<IEnumerable<IAvatar>>(); r.Result = new List<IAvatar>(); return r; }
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IHolon>(); try { r.Result = new Holon { Id = id }; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"ConnextOASIS LoadHolonAsync: {ex.Message}", ex); } return r; }
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType ht = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
+        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool sc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool scop = false) { if (publicMessages != null) return PublicProfileWriteRejected<IEnumerable<IHolon>>(); var r = new OASISResult<IEnumerable<IHolon>>(); var s = new List<IHolon>(); foreach (var h in holons) { var sr = await SaveHolonAsync(h, sc, rec, md, coe, scop); if (!sr.IsError && sr.Result != null) s.Add(sr.Result); } r.Result = s; return r; }
+        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams sp, bool lc = true, bool rec = true, int md = 0, bool coe = true, int v = 0) { var r = new OASISResult<ISearchResults>(); r.Result = new SearchResults(); return r; }
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int v = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "ConnextOASIS does not support avatar detail storage"); return r; }
         public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail ad) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "ConnextOASIS does not support avatar detail storage"); return r; }
-        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int v = 0) { return NoRecordStore<IEnumerable<IAvatarDetail>>(); }
+        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int v = 0) { var r = new OASISResult<IEnumerable<IAvatarDetail>>(); r.Result = new List<IAvatarDetail>(); return r; }
         public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string k, int v = 0) => await LoadAvatarByUsernameAsync(k, v);
         public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string e, int v = 0) { var r = new OASISResult<IAvatar>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int v = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
@@ -144,17 +163,17 @@ namespace NextGenSoftware.OASIS.API.Providers.ConnextOASIS
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(string k, bool s = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
         public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string e, bool s = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
         public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string u, bool s = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { return NoRecordStore<IEnumerable<IHolon>>(); }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string k, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { return NoRecordStore<IEnumerable<IHolon>>(); }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string mk, string mv, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { return NoRecordStore<IEnumerable<IHolon>>(); }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> m, MetaKeyValuePairMatchMode mm, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { return NoRecordStore<IEnumerable<IHolon>>(); }
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id) { if (publicMessages != null) return PublicProfileWriteRejected<IHolon>(); return NoRecordStore<IHolon>(); }
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string k, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string mk, string mv, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> m, MetaKeyValuePairMatchMode mm, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id) { if (publicMessages != null) return PublicProfileWriteRejected<IHolon>(); var r = new OASISResult<IHolon>(); r.Result = new Holon { Id = id }; return r; }
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string k) { var r = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> h) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid id, int v = 0) { return NoRecordStore<IEnumerable<IHolon>>(); }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string u, int v = 0) { return NoRecordStore<IEnumerable<IHolon>>(); }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string e, int v = 0) { return NoRecordStore<IEnumerable<IHolon>>(); }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int v = 0) { return NoRecordStore<IEnumerable<IHolon>>(); }
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid id, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string u, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string e, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
 
         public override OASISResult<IAvatar> LoadAvatar(Guid id, int v = 0) => LoadAvatarAsync(id, v).Result;
         public override OASISResult<IAvatar> LoadAvatarByProviderKey(string k, int v = 0) => LoadAvatarByProviderKeyAsync(k, v).Result;

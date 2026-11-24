@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -530,10 +530,10 @@ namespace NextGenSoftware.OASIS.API.Providers.CardanoOASIS
                     rng.GetBytes(privateKeyBytes);
                 }
 
-                // Generate Ed25519 key pair for Cardano using BouncyCastle Ed25519
+                // Generate Ed25519 key pair for Cardano using Chaos.NaCl
                 byte[] publicKeyBytes = new byte[32];
                 byte[] expandedPrivateKeyBytes = new byte[64];
-                CardanoEd25519Signer.KeyPairFromSeed(publicKeyBytes, expandedPrivateKeyBytes, privateKeyBytes);
+                Chaos.NaCl.Ed25519.KeyPairFromSeed(publicKeyBytes, expandedPrivateKeyBytes, privateKeyBytes);
                 
                 var privateKey = Convert.ToBase64String(expandedPrivateKeyBytes);
                 var publicKey = Convert.ToBase64String(publicKeyBytes);
@@ -585,10 +585,10 @@ namespace NextGenSoftware.OASIS.API.Providers.CardanoOASIS
                     rng.GetBytes(privateKeyBytes);
                 }
 
-                // Generate Ed25519 key pair for Cardano using BouncyCastle Ed25519
+                // Generate Ed25519 key pair for Cardano using Chaos.NaCl
                 byte[] publicKeyBytes = new byte[32];
                 byte[] expandedPrivateKeyBytes = new byte[64];
-                CardanoEd25519Signer.KeyPairFromSeed(publicKeyBytes, expandedPrivateKeyBytes, privateKeyBytes);
+                Chaos.NaCl.Ed25519.KeyPairFromSeed(publicKeyBytes, expandedPrivateKeyBytes, privateKeyBytes);
                 
                 var privateKey = Convert.ToBase64String(expandedPrivateKeyBytes);
                 var publicKey = Convert.ToBase64String(publicKeyBytes);

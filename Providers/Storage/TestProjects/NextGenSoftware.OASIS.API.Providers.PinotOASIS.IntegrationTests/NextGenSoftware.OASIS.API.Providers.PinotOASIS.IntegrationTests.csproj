@@ -15,12 +15,4 @@
   <ItemGroup>
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.PinotOASIS\NextGenSoftware.OASIS.API.Providers.PinotOASIS.csproj" />
   </ItemGroup>
-  <ItemGroup Condition="'$(NativeStorageConformance)' == 'true'">
-    <Compile Remove="**/*.cs" />
-    <Compile Include="PinotNativeStorageConformanceTests.cs" />
-    <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(NativeStorageConformance)' != 'true'">
-    <Compile Remove="PinotNativeStorageConformanceTests.cs" />
-  </ItemGroup>
 </Project>

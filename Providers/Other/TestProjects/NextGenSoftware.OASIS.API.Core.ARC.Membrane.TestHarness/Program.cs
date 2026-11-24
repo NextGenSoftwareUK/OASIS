@@ -1,4 +1,4 @@
-﻿using NextGenSoftware.OASIS.ARC.Core;
+﻿using NextGenSoftware.OASIS.API.Core.ARC.Membrane;
 using System;
 
 namespace NextGenSoftware.OASIS.API.Core.ARC.Membrane.TestHarness
@@ -7,13 +7,12 @@ namespace NextGenSoftware.OASIS.API.Core.ARC.Membrane.TestHarness
     {
         static void Main(string[] args)
         {
-            DeviceManager deviceManager = new DeviceManager();
-            
-            string result = deviceManager.CallNodeAddNumbers().Result;
-            Console.WriteLine(string.Concat("Result: ", result));
+            PsyberManager psyberManager = new PsyberManager();
 
-            //result = deviceAPIManager.CallNodeAddNumbersExternal().Result;
-            //Console.WriteLine(string.Concat("Result From External: ", result));
+            Console.WriteLine($"DrawCircle: {psyberManager.DrawCircle(10, 10, 5, 1, "#FF0000", 255)}");
+            Console.WriteLine($"DrawRect: {psyberManager.DrawRect(0, 0, 10, 0, 10, 10, 0, 10, 1, "#00FF00", 255)}");
+            Console.WriteLine($"DrawPoints: {psyberManager.DrawPoints(new float[] { 0, 5, 10 }, new float[] { 0, 10, 0 }, new float[] { 0, 0, 0 }, 1, "#0000FF", 255)}");
+            Console.WriteLine($"RenderText: {psyberManager.RenderText(1, 1, 0, "OASIS", 1, "#FFFFFF", 255)}");
         }
     }
 }

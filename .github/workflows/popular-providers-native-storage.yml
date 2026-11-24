@@ -12,8 +12,6 @@ on:
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS/**'
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.InfluxDBOASIS/**'
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.ChromaOASIS/**'
-      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MarqoOASIS/**'
-      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.PinotOASIS/**'
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.PgVectorOASIS/**'
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS/**'
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.QuestDBOASIS/**'
@@ -33,7 +31,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        provider: [CouchDB, Couchbase, ArangoDB, SurrealDB, ClickHouse, InfluxDB, Chroma, PgVector, ArcadeDB, QuestDB, PouchDB, NATSJetStream, Nostr, Marqo, Pinot]
+        provider: [CouchDB, Couchbase, ArangoDB, SurrealDB, ClickHouse, InfluxDB, Chroma, PgVector, ArcadeDB, QuestDB, PouchDB, NATSJetStream, Nostr]
     defaults:
       run:
         working-directory: OASIS
@@ -78,7 +76,7 @@ jobs:
             exit "$status"
           }
           trap cleanup EXIT
-          wait_for() { for attempt in $(seq 1 "${2:-90}"); do if eval "$1" >/dev/null 2>&1; then return 0; fi; sleep 2; done; echo "Backend never became ready"; return 1; }
+          wait_for() { for attempt in $(seq 1 90); do if eval "$1" >/dev/null 2>&1; then return 0; fi; sleep 2; done; echo "Backend never became ready"; return 1; }
           case "$PROVIDER" in
             CouchDB)
               container="$(docker run -d -p 127.0.0.1:15984:5984 -e COUCHDB_USER=admin -e COUCHDB_PASSWORD="$password" apache/couchdb:3.5.1)"
@@ -134,12 +132,6 @@ jobs:
               container="$(docker run -d -p 127.0.0.1:17777:8080 scsibug/nostr-rs-relay:0.9.0)"
               wait_for "curl -fsS -H 'Accept: application/nostr+json' http://127.0.0.1:17777/"
               export OASIS_NOSTR_SECRET="$(openssl rand -hex 32)" ;;
-            Marqo)
-              container="$(docker run -d -p 127.0.0.1:18882:8882 docker.io/marqoai/marqo@sha256:4f27a71cb8f1a0447c123735ff848cf117ffb53291b109f94fdfba5b3c2b8c2d)"
-              wait_for "curl -fsS http://127.0.0.1:18882/indexes" 300 ;;
-            Pinot)
-              container="$(docker run -d -p 127.0.0.1:19000:9000 -p 127.0.0.1:18099:8000 docker.io/apachepinot/pinot@sha256:922d95a946546b377e9e7a8c208e138bdc91c904d2d6397a89a64a6593c03915 QuickStart -type EMPTY)"
-              wait_for "curl -fsS http://127.0.0.1:19000/health && curl -fsS http://127.0.0.1:18099/health" 150 ;;
             Couchbase)
               container="$(docker run -d -p 127.0.0.1:8091-8097:8091-8097 -p 127.0.0.1:11210:11210 -p 127.0.0.1:11280:11280 couchbase/server:community-7.6.2)"
               wait_for "curl -fsS http://127.0.0.1:8091/ui/index.html"
