@@ -89,8 +89,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
             }
         }
 
-        private static string Ser(object obj) => JsonSerializer.Serialize(obj, _jsonOpts);
-        private static T? Des<T>(string? json) => json == null ? default : JsonSerializer.Deserialize<T>(json, _jsonOpts);
+        // Canonical OASIS record JSON keeps concrete types for interface members and skips holon navigation.
+        private static string Ser(object obj) => NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Serialize(obj);
+        private static T? Des<T>(string? json) => json == null ? default : NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<T>(json);
 
         // ─── Record envelope ──────────────────────────────────────────────────────
         // SurrealDB records need a record id. SurrealDb.Net 1.0 models this as
@@ -379,16 +380,16 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
                 keys[Core.Enums.ProviderType.SurrealDBOASIS] = id.ToString("D");
 
                 // Stage the wire identity without changing the caller before native acknowledgement.
-                var payload = JsonSerializer.SerializeToNode(holon, holon.GetType(), _jsonOpts)!.AsObject();
-                payload["id"] = id;
-                payload["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
+                var payload = System.Text.Json.Nodes.JsonNode.Parse(Ser(holon))!.AsObject();
+                payload["Id"] = id.ToString("D");
+                payload["ProviderUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys);
                 var rec = new HolonRecord
                 {
                     Id = SurrealDb.Net.Models.RecordId.From("oasis_holons", id.ToString("D")),
                     ParentHolonId = holon.ParentHolonId.ToString(),
                     HolonType = (int)holon.HolonType,
                     IsDeleted = holon.IsDeleted,
-                    DataJson = payload.ToJsonString(_jsonOpts)
+                    DataJson = payload.ToJsonString()
                 };
                 await using var client = await GetClientAsync();
                 var acknowledged = await client.Upsert(rec);
