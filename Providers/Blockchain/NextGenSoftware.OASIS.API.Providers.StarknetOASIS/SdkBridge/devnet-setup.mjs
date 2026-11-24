@@ -26,7 +26,7 @@ const { deploy } = await deployer.declareAndDeploy({
 await provider.waitForTransaction(deploy.transaction_hash);
 
 const classHash = num.toHex(await provider.getClassHashAt(predeployed.address));
-const keys = keysFromPrivateKey(num.toHex(ec.starkCurve.utils.randomPrivateKey()));
+const keys = keysFromPrivateKey('0x' + Buffer.from(ec.starkCurve.utils.randomPrivateKey()).toString('hex'));
 const address = accountAddress(keys.publicKey, classHash);
 await devnetRpc('devnet_mint', { address, amount: 1e20, unit: 'FRI' });
 const storage = new Account({ provider, address, signer: keys.privateKey });

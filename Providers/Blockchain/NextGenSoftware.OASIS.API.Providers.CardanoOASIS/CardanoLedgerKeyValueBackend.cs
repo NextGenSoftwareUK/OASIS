@@ -115,9 +115,14 @@ internal sealed class CardanoLedgerKeyValueBackend : IKeyValueBackend, IDisposab
             using var doc = await GetJsonAsync($"addresses/{_signer.Address}/transactions?order=asc&count=100&page={page}", cancellationToken, allowNotFound: true);
             if (doc == null) break;
             var rows = doc.RootElement.EnumerateArray().ToArray();
-            transactions.AddRange(rows.Select(r => (r.GetProperty("block_height").GetInt64(), r.GetProperty("tx_index").GetInt32(), r.GetProperty("tx_hash").GetString()!)));
+            // Blockfrost returns tx_index; some compatible APIs (yaci-store) omit it. Without it, order within a block is unknown.
+            transactions.AddRange(rows.Select(r => (r.GetProperty("block_height").GetInt64(),
+                r.TryGetProperty("tx_index", out var txIndex) ? txIndex.GetInt32() : -1, r.GetProperty("tx_hash").GetString()!)));
             if (rows.Length < 100) break;
         }
+        foreach (var block in transactions.GroupBy(t => t.Height).Where(g => g.Count() > 1))
+            if (block.Any(t => t.Index < 0))
+                throw new InvalidDataException($"Cardano block {block.Key} holds several storage transactions but the API gives no tx_index to order them.");
         var index = new Dictionary<string, IndexEntry>(StringComparer.Ordinal);
         foreach (var (_, _, hash) in transactions.OrderBy(t => t.Height).ThenBy(t => t.Index))
         {
