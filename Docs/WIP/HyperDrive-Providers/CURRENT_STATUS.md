@@ -1,7 +1,7 @@
 # HyperDrive and provider completion: current status
 
-Last updated: 2026-11-23. This file stays short. The old 700 KB running log, which also covered OPORTAL and billing, is now
-`Archive/CURRENT_STATUS_LOG_TO_2026-11-23.md`. The per-provider detail is in `PROVIDER_MATRIX.md` and
+Last updated: 2026-11-24. This file stays short: replace sections, do not prepend log entries (append them to the archive). The old 700 KB running log, which also covered OPORTAL and billing, is now
+`Archive/CURRENT_STATUS_LOG_MASTER_TO_2026-11-23.md`. The per-provider detail is in `PROVIDER_MATRIX.md` and
 `CONFORMANCE_RESULTS.json`.
 
 Scope of this workstream: HyperDrive failover, replication and load balancing, plus provider storage completion.
@@ -47,7 +47,7 @@ Not yet covered:
 
 There are 234 shipping provider projects: 178 storage or specialised storage, 56 non-storage.
 
-Done (61 pass the native core-storage-v2 suite 52/52 against their real backend; ActivityPub passes capability-v1 5/5):
+Done (74 pass the native core-storage-v2 suite 52/52 against their real backend; ActivityPub passes capability-v1 5/5):
 
 - Every priority provider is done: HoloOASIS, Solana, MongoDB, SQLite, Neo4j, Supabase, SQL Server, Oracle (OracleDB),
   AWS, IPFS, NEAR, Cosmos, Azure (CosmosDB + Storage), Google Cloud, Polkadot, ActivityPub, SOLID, Polygon, Arbitrum,
@@ -58,6 +58,18 @@ Done (61 pass the native core-storage-v2 suite 52/52 against their real backend;
   ThreeFold, Cassandra, CockroachDB, Dragonfly, DuckDB, Elasticsearch, Garnet, KeyDB, LocalFile, Meilisearch, Memcached,
   Milvus, MinIO, OpenSearch, PlanetScale, PostgreSQL, Qdrant, RavenDB, Redis, ScyllaDB, Solr, TimescaleDB, Typesense,
   ValKey, Weaviate.
+- Added on 2026-11-24, all 26/26 checks in both sync and async modes against real servers in CI
+  (`.github/workflows/popular-providers-native-storage.yml`): CouchDB, Couchbase, ArangoDB, SurrealDB, ClickHouse,
+  InfluxDB, Chroma and PgVector. On a local Hardhat chain (`Scripts/TestHosts/run-local-evm-storage-conformance.cjs`):
+  Optimism, Base, Linea, Scroll and zkSync, alongside Ethereum, Arbitrum and Polygon (16/16).
+- Root-cause fixes in that batch, each provider: exact save/load/delete acknowledgements and counts; RecordNotFound on
+  absence; child holons saved with their parent; avatar hard delete also removes the avatar detail; records stored as
+  canonical `StoredRecordJson` so interface-typed members and holon children round-trip; a native hard delete for the
+  fixture cleanup. Also: ClickHouse `Esc` escaped quotes before backslashes (broken SQL strings) and used asynchronous
+  `ALTER ... DELETE`; Couchbase read documents as `JsonElement` through its Newtonsoft transcoder (always failed) and
+  ran SQL++ lookups without request-plus consistency; Chroma turned native HTTP failures into "not found"; PgVector
+  serialised through the interface type (lost members) and had no ProviderName/Description. The CouchDB, ArangoDB and
+  SurrealDB CQL workflows were re-run after the serializer change and pass.
 
 Partly done, with open items:
 - Turso: managed Turso and hosted WEB4 activation are still open.
@@ -65,13 +77,12 @@ Partly done, with open items:
 - HoloOASIS.Unity: the Android conductor device lifecycle is still open.
 - Algorand: chain reads and payments pass; durable storage is still open.
 
-Next, breadth first, in order of popularity (shared suite not yet run). Each needs its real backend; this machine has
-no Docker, so these run in CI service containers:
-1. CouchDB, Couchbase, ArangoDB, SurrealDB, ClickHouse, InfluxDB
-2. Pinecone, Chroma, PgVector, LanceDB, Zilliz (vector stores)
-3. Appwrite, Fauna, Xata, Nile, CloudflareD1, VercelKV, NetlifyBlobs, Tigris (hosted; need accounts, see ACTIONS-FOR-DAVID)
-4. BigQuery, Snowflake, Redshift, Databricks, MotherDuck (hosted analytics; need accounts)
-5. The remaining chains (Bitcoin, Cardano, Stellar, XRPL, Aptos, Starknet, Optimism, Base, Linea, zkSync, Scroll ...)
+Next, breadth first, in order of popularity (shared suite not yet run):
+1. Pinecone, LanceDB (Cloud), Zilliz: hosted vector stores, need accounts
+2. Appwrite, Fauna, Xata, Nile, CloudflareD1, VercelKV, NetlifyBlobs, Tigris (hosted; need accounts, see ACTIONS-FOR-DAVID)
+3. BigQuery, Snowflake, Redshift, Databricks, MotherDuck (hosted analytics; need accounts)
+4. The remaining non-EVM chains (Bitcoin, Cardano, Stellar, XRPL, Aptos, Starknet ...). Each needs a local node and an
+   on-chain storage program; Stellar's holon save is still an explicit not-implemented error.
 
 Blocked: nothing new is blocked. Hosted-account blockers are already tracked in `Docs/WIP/Release and Status/ACTIONS-FOR-DAVID.md`.
 
