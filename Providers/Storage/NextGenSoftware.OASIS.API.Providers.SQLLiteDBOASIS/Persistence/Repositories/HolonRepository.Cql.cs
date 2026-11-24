@@ -539,8 +539,11 @@ public partial class HolonRepository
             if (predicate is CosmicQueryMetadataContains contains)
             {
                 var element = Bind(contains.Element);
-                return MetadataPredicate(contains.Segments, alias => alias + ".type = 'array' AND EXISTS (SELECT 1 FROM json_each(" + alias
-                    + ".value) AS cqlElement WHERE cqlElement.type = 'text' AND cqlElement.value COLLATE BINARY = " + element + ")");
+                // Canonical record JSON wraps typed collections as {"$type":…,"$values":[…]}; both forms are arrays.
+                return MetadataPredicate(contains.Segments, alias => "EXISTS (SELECT 1 FROM json_each(CASE WHEN " + alias + ".type = 'array' THEN "
+                    + alias + ".value WHEN " + alias + ".type = 'object' AND json_type(" + alias + ".value,'$.\"$values\"') = 'array' THEN json_extract("
+                    + alias + ".value,'$.\"$values\"') ELSE json_array() END) AS cqlElement WHERE cqlElement.type = 'text' AND cqlElement.value COLLATE BINARY = "
+                    + element + ")");
             }
             if (predicate is CosmicQueryBoolean boolean) return boolean.Value ? "1" : "0";
             if (predicate is CosmicQueryLogical logical)
