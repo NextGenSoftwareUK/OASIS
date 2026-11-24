@@ -52,11 +52,11 @@ Each one was checked on all three real stores, in throwaway CI containers (never
 - **Synchronous forms of all of the above (S14).** Run 45450233980.
 - **Relationships (A01-A04).** One-to-many through any foreign-key metadata key, one-to-one (a unique key on the foreign key), and many-to-many through join records with a loader that skips the join rows. Runs 45452551451, 45455392584 and 45458370855.
 - **Insert from a query (S18) and a session factory (O11).** Runs 45458370896 and 45458371046.
-- **In CI now:** seed data (M29) and refusing parent cycles (A17).
+- **Seed data (M29), parent-cycle refusal (A17) and query interceptors (O13).** Runs 45461052081, 45463218586 and 45461718171.
 
 Development has these batches up to 4b9b0d70, and the docs are on master.
 
-Checklist: 67 of 181 rows are still open, down from 107 this morning. Each remaining row now names its gap or blocker; the transaction rows (O02-O07) are blocked on session-held native transactions across reads and writes.
+Checklist: 64 of 181 rows are still open, down from 107 this morning. Each remaining row now names its gap or blocker; the transaction rows (O02-O07) are blocked on session-held native transactions across reads and writes.
 
 Also: WEB4 did not compile, because the avatar-password JSON filter from cee7dc1d was never committed (its file name matched the repo's `*secret*` ignore rule). Development fixed this in b66e3d4e, and this branch now uses that fix.
 
