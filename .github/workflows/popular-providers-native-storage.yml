@@ -16,6 +16,7 @@ on:
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS/**'
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.QuestDBOASIS/**'
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.PouchDBOASIS/**'
+      - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS/**'
       - 'Providers/*/TestProjects/*/*NativeStorageConformanceTests.cs'
   workflow_dispatch:
 
@@ -29,7 +30,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        provider: [CouchDB, Couchbase, ArangoDB, SurrealDB, ClickHouse, InfluxDB, Chroma, PgVector, ArcadeDB, QuestDB, PouchDB]
+        provider: [CouchDB, Couchbase, ArangoDB, SurrealDB, ClickHouse, InfluxDB, Chroma, PgVector, ArcadeDB, QuestDB, PouchDB, NATSJetStream]
     defaults:
       run:
         working-directory: OASIS
@@ -123,6 +124,9 @@ jobs:
               container="$(docker run -d -p 127.0.0.1:15985:5984 -e COUCHDB_USER=admin -e COUCHDB_PASSWORD="$password" apache/couchdb:3.5.1)"
               wait_for "curl -fsS -u admin:$password http://127.0.0.1:15985/_up"
               for db in _users _replicator; do curl -fsS -u "admin:$password" -X PUT "http://127.0.0.1:15985/$db" || true; done ;;
+            NATSJetStream)
+              container="$(docker run -d -p 127.0.0.1:14222:4222 -p 127.0.0.1:18222:8222 nats:2.11.8 -js -m 8222)"
+              wait_for "curl -fsS http://127.0.0.1:18222/healthz?js-enabled-only=true" ;;
             Couchbase)
               container="$(docker run -d -p 127.0.0.1:8091-8097:8091-8097 -p 127.0.0.1:11210:11210 -p 127.0.0.1:11280:11280 couchbase/server:community-7.6.2)"
               wait_for "curl -fsS http://127.0.0.1:8091/ui/index.html"
