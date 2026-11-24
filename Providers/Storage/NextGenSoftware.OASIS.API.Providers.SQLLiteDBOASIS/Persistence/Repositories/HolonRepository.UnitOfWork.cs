@@ -23,8 +23,8 @@ public partial class HolonRepository
         if (request.Write.Authority != Core.Enums.ProviderType.SQLLiteDBOASIS)
             return ConditionalError("COSMIC_AUTHORITY_MISMATCH", "The unit of work belongs to another provider authority.");
         var (save, delete) = request.CreatePartRequests();
-        if (save == null || delete == null)
-            return ConditionalError("COSMIC_UNIT_OF_WORK_INVALID", "A unit of work needs at least one save and one deletion.");
+        if (save == null && delete == null)
+            return ConditionalError("COSMIC_UNIT_OF_WORK_INVALID", "A unit of work needs at least one entry.");
         if (_dbContext.ChangeTracker.HasChanges())
             return ConditionalError("COSMIC_CONTEXT_HAS_PENDING_CHANGES", "A conditional transaction cannot commit unrelated pending context changes.");
         SqliteTransaction native = null; Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction enlisted = null;
@@ -49,10 +49,15 @@ public partial class HolonRepository
                 return Rollback(ConditionalError("COSMIC_OPERATION_ID_REUSED", "This operation ID is already bound to different write content or actor."));
             if (storedParent != null && !PartReceiptsExist(connection, native, request))
                 return Rollback(ConditionalError("COSMIC_RECEIPT_INVALID", "The unit-of-work receipt is missing a committed part."));
-            var saved = ExecuteAtomicHolonWrite(save, null, token, ambient: native);
+            var saved = save == null ? Empty() : ExecuteAtomicHolonWrite(save, null, token, ambient: native);
             if (saved == null || saved.IsError) return Rollback(saved);
-            var deleted = ExecuteAtomicHolonWrite(delete, null, token, ambient: native);
+            var deleted = delete == null ? Empty() : ExecuteAtomicHolonWrite(delete, null, token, ambient: native);
             if (deleted == null || deleted.IsError) return Rollback(deleted);
+            if (storedParent == null)
+            {
+                var conflict = ApplyUniqueKeyClaims(connection, native, request);
+                if (conflict != null) return Rollback(conflict);
+            }
             if (storedParent == null)
                 using (var receipt = connection.CreateCommand())
                 {
@@ -87,6 +92,8 @@ public partial class HolonRepository
         result.MetaData["COSMIC.OperationId"] = request.Write.OperationId.ToString("D");
         return result;
 
+        static OASISResult<IEnumerable<IHolon>> Empty() => new(Array.Empty<IHolon>());
+
         OASISResult<IEnumerable<IHolon>> Rollback(OASISResult<IEnumerable<IHolon>> failure)
         {
             native.Rollback(); DetachAll();
@@ -103,17 +110,53 @@ public partial class HolonRepository
     {
         using var command = connection.CreateCommand();
         command.Transaction = native;
+        var (save, delete) = request.CreatePartRequests();
         command.CommandText = "SELECT COUNT(*) FROM CosmicWriteReceipt WHERE OperationId IN ($save, $delete)";
         command.Parameters.AddWithValue("$save", request.SaveOperationId.ToString("D"));
         command.Parameters.AddWithValue("$delete", request.DeleteOperationId.ToString("D"));
-        return Convert.ToInt64(command.ExecuteScalar()) == 2;
+        return Convert.ToInt64(command.ExecuteScalar()) == (save == null ? 0 : 1) + (delete == null ? 0 : 1);
+    }
+
+    /// <summary>M10 claims inside the unit-of-work transaction; returns a conflict or null.</summary>
+    private static OASISResult<IEnumerable<IHolon>> ApplyUniqueKeyClaims(SqliteConnection connection, SqliteTransaction native,
+        ConditionalHolonUnitOfWorkRequest request)
+    {
+        void Run(string sql, params (string Name, object Value)[] parameters)
+        {
+            using var command = connection.CreateCommand();
+            command.Transaction = native; command.CommandText = sql;
+            foreach (var (name, value) in parameters) command.Parameters.AddWithValue(name, value);
+            command.ExecuteNonQuery();
+        }
+        Run("CREATE TABLE IF NOT EXISTS CosmicUniqueKey (KeyId TEXT NOT NULL PRIMARY KEY, Scope TEXT NOT NULL, HolonId TEXT NOT NULL)");
+        Run("CREATE UNIQUE INDEX IF NOT EXISTS IX_CosmicUniqueKey_Holon ON CosmicUniqueKey(HolonId, Scope)");
+        foreach (var deleted in request.Deletes)
+            Run("DELETE FROM CosmicUniqueKey WHERE HolonId = $holon", ("$holon", deleted.Id.ToString("D")));
+        foreach (var claim in request.UniqueKeys)
+        {
+            var holon = claim.HolonId.ToString("D");
+            Run("DELETE FROM CosmicUniqueKey WHERE HolonId = $holon AND Scope = $scope AND ($key IS NULL OR KeyId <> $key)",
+                ("$holon", holon), ("$scope", claim.Scope), ("$key", claim.Value == null ? DBNull.Value : claim.NativeKey));
+            if (claim.Value == null) continue;
+            using var owner = connection.CreateCommand();
+            owner.Transaction = native;
+            owner.CommandText = "SELECT HolonId FROM CosmicUniqueKey WHERE KeyId = $key";
+            owner.Parameters.AddWithValue("$key", claim.NativeKey);
+            var held = owner.ExecuteScalar() as string;
+            if (held != null && held != holon)
+                return ConditionalError("COSMIC_UNIQUE_KEY_CONFLICT", "The '" + claim.Scope + "' key is already held by another record.");
+            if (held == null)
+                Run("INSERT INTO CosmicUniqueKey(KeyId, Scope, HolonId) VALUES ($key, $scope, $holon)",
+                    ("$key", claim.NativeKey), ("$scope", claim.Scope), ("$holon", holon));
+        }
+        return null;
     }
 
     internal static OASISResult<IEnumerable<IHolon>> Combine(ConditionalHolonUnitOfWorkRequest request,
         OASISResult<IEnumerable<IHolon>> saved, OASISResult<IEnumerable<IHolon>> deleted)
     {
         var combined = new OASISResult<IEnumerable<IHolon>>(saved.Result.Concat(deleted.Result).ToList()) {
-            IsSaved = true, IsDeleted = true, HasAnyHolonsChanged = true,
+            IsSaved = true, IsDeleted = deleted.Result.Any(), HasAnyHolonsChanged = true,
             SavedCount = saved.SavedCount, DeletedCount = deleted.DeletedCount,
             IsWarning = saved.IsWarning || deleted.IsWarning, WarningCount = saved.WarningCount + deleted.WarningCount };
         combined.MetaData = new Dictionary<string, string>();

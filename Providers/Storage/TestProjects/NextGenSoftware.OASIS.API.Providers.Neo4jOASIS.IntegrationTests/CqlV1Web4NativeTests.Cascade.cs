@@ -48,25 +48,50 @@ public sealed partial class CqlV1Web4NativeTests
         grandchild.ParentHolonId=child.Id;Assert.IsFalse(session.Add(grandchild).IsError);
         var built=await session.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));
         Assert.IsFalse(built.IsError,built.Message);checks++;
+        // A06 cascade insert: a new child placed in a tracked parent's Children is inserted by SaveChanges.
+        var navChild=new Holon{Name="cascade-nav-child",CreatedByAvatarId=actor,IsActive=true,IsPublic=false,IsNewHolon=true};
+        root.Children.Add(navChild);
+        var navSaved=await session.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));
+        Assert.IsFalse(navSaved.IsError,navSaved.ErrorCode+": "+navSaved.Message);owned.Add(navChild.Id);
+        var navStored=(await Stored(navChild.Id)).Single();Assert.AreEqual(root.Id,navStored.ParentHolonId);checks++;
         using var deleter=CosmicSession.Create(manager,adapter,access).Result;
         var loaded=(await deleter.FindAsync<Holon>(root.Id)).Result;Assert.IsNotNull(loaded);
         // A10: explicit loading assigns tracked children without dirtying the parent.
-        var children=await deleter.LoadChildrenAsync(loaded);
+        var children=await deleter.LoadChildrenAsync<Holon>(loaded);
         Assert.IsFalse(children.IsError,children.ErrorCode+": "+children.Message);
-        CollectionAssert.AreEqual(new[]{child.Id},children.Result.Select(row=>row.Id).ToArray());
-        Assert.AreSame(children.Result[0],loaded.Children.Single());checks++;
+        CollectionAssert.AreEquivalent(new[]{child.Id,navChild.Id},children.Result.Select(row=>row.Id).ToArray());
+        Assert.AreEqual(2,loaded.Children.Count);checks++;
         Assert.AreEqual(CosmicEntityState.Unchanged,deleter.State(loaded).Result);
-        Assert.AreSame(children.Result[0],(await deleter.FindAsync<Holon>(child.Id)).Result,"Loaded children join the identity map.");checks++;
+        Assert.AreSame(children.Result.Single(row=>row.Id==child.Id),(await deleter.FindAsync<Holon>(child.Id)).Result,"Loaded children join the identity map.");checks++;
+        // A05: a child created under the loaded parent joins its Children after commit.
+        var late=New("cascade-late-child");late.ParentHolonId=root.Id;Assert.IsFalse(deleter.Add(late).IsError);
+        var lateSaved=await deleter.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));
+        Assert.IsFalse(lateSaved.IsError,lateSaved.Message);
+        CollectionAssert.AreEquivalent(new[]{child.Id,navChild.Id,late.Id},loaded.Children.Select(row=>row.Id).ToArray());checks++;
+        // A12: extra-lazy count, membership and element access without loading the collection.
+        var count=await deleter.CountChildrenAsync(loaded);Assert.IsFalse(count.IsError,count.Message);Assert.AreEqual(3,count.Result);
+        Assert.IsTrue((await deleter.ContainsChildAsync(loaded,child.Id)).Result);
+        Assert.IsFalse((await deleter.ContainsChildAsync(loaded,other.Id)).Result);checks++;
+        var firstChild=await deleter.ChildAtAsync(loaded,0);Assert.IsFalse(firstChild.IsError,firstChild.Message);
+        Assert.AreEqual(child.Id,firstChild.Result.Id);
+        Assert.IsNull((await deleter.ChildAtAsync(loaded,5)).Result);checks++;
+        // A07 delete-orphan: removing a child from the loaded collection deletes it on SaveChanges.
+        Assert.IsFalse(deleter.SetDeleteOrphans(true,softDelete:false).IsError);
+        loaded.Children.Remove(loaded.Children.Single(row=>row.Id==late.Id));
+        var orphaned=await deleter.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));
+        Assert.IsFalse(orphaned.IsError,orphaned.ErrorCode+": "+orphaned.Message);
+        Assert.AreEqual(0,(await Stored(late.Id)).Count,"The orphan is deleted.");
+        Assert.AreEqual(1,(await Stored(root.Id)).Count,"The parent stays.");checks++;
         var bounded=await deleter.RemoveCascadeAsync(loaded,softDelete:false,maximumDescendants:1);
         Assert.IsTrue(bounded.IsError);Assert.AreEqual("COSMIC_CASCADE_LIMIT_EXCEEDED",bounded.ErrorCode);checks++;
         var queued=await deleter.RemoveCascadeAsync(loaded,softDelete:false);
-        Assert.IsFalse(queued.IsError,queued.ErrorCode+": "+queued.Message);Assert.AreEqual(3,queued.Result);checks++;
+        Assert.IsFalse(queued.IsError,queued.ErrorCode+": "+queued.Message);Assert.AreEqual(4,queued.Result);checks++;
         var clock=System.Diagnostics.Stopwatch.StartNew();
         var deleted=await deleter.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));
         timings.Add("cascade-commit",clock.ElapsedMilliseconds);
         Assert.IsFalse(deleted.IsError,deleted.ErrorCode+": "+deleted.Message);checks++;
-        CollectionAssert.AreEquivalent(new[]{other.Id},(await Stored(root.Id,child.Id,grandchild.Id,other.Id)).Select(row=>row.Id).ToArray());checks++;
+        CollectionAssert.AreEquivalent(new[]{other.Id},(await Stored(root.Id,child.Id,grandchild.Id,late.Id,navChild.Id,other.Id)).Select(row=>row.Id).ToArray());checks++;
         return new NativeFixtureJourneyProof(checks,4,new Dictionary<string,bool>{
-            ["cascadeDeleteVerified"]=true,["cascadeBoundRefusedVerified"]=true,["siblingPreservedVerified"]=true,["explicitChildLoadingVerified"]=true});
+            ["cascadeDeleteVerified"]=true,["cascadeBoundRefusedVerified"]=true,["siblingPreservedVerified"]=true,["explicitChildLoadingVerified"]=true,["loadedCollectionFixUpVerified"]=true,["extraLazyCollectionVerified"]=true,["navigationCascadeInsertVerified"]=true,["deleteOrphanVerified"]=true});
     }
 }
