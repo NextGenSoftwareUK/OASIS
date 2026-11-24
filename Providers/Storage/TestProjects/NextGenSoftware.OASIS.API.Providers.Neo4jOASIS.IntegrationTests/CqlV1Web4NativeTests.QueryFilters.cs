@@ -88,7 +88,9 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.IsFalse((await tenantA.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()))).IsError);
             Assert.IsFalse((await tenantB.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()))).IsError);
             var both=new[]{x.Id,y.Id};
-            var seenByA=await tenantA.Linq<Holon>(CosmicQueryTrackingMode.NoTracking,100,ignoreQueryFilters:true).Result.Where(row=>both.Contains(row.Id)).ToCosmicListAsync();
+            var tenantQuery=tenantA.Linq<Holon>(CosmicQueryTrackingMode.NoTracking,100,ignoreQueryFilters:true);
+            Assert.IsFalse(tenantQuery.IsError,"Tenant query: "+tenantQuery.ErrorCode+": "+tenantQuery.Message+" "+tenantQuery.Exception);
+            var seenByA=await tenantQuery.Result.Where(row=>both.Contains(row.Id)).ToCosmicListAsync();
             Assert.IsFalse(seenByA.IsError,seenByA.ErrorCode+": "+seenByA.Message);
             CollectionAssert.AreEqual(new[]{x.Id},seenByA.Result.Select(row=>row.Id).ToArray(),"The tenant predicate is not bypassable.");
             Assert.IsNull((await tenantA.FindAsync<Holon>(y.Id)).Result,"Find stays inside the tenant.");
