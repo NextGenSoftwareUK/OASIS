@@ -40,7 +40,13 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
     {
         private readonly string _host;
         private readonly HttpClient _http;
-        private readonly Weaviate.Client.WeaviateClient? _queryClient;
+        private Weaviate.Client.WeaviateClient? _queryClient;
+        /// <summary>Binds the explicit gRPC query client once (read-only hosted sources build it at activation).</summary>
+        protected void BindQueryClient(Weaviate.Client.WeaviateClient client)
+        {
+            if (_queryClient != null) throw new InvalidOperationException("The query client is already bound.");
+            _queryClient = client ?? throw new ArgumentNullException(nameof(client));
+        }
 
         private static readonly JsonSerializerOptions _jsonOpts = new JsonSerializerOptions
         {
