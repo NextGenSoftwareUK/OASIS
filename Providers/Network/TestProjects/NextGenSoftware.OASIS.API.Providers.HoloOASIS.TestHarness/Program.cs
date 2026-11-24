@@ -18,7 +18,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness
             try
             {
                 // Initialize Holo provider
-                var holoProvider = new HoloOASIS();
+                OASISDNA dna = OASISDNAManager.LoadDNA("OASIS_DNA.Development.json").Result;
+                var holo = dna.OASIS.StorageProviders.HoloOASIS;
+                var holoProvider = new HoloOASIS(holo.LocalNodeURI, dna, holo.HoloNetworkURI, holo.UseLocalNode, holo.UseHoloNetwork, holo.HoloNETORMUseReflection);
                 
                 Console.WriteLine("✅ Holo Provider initialized successfully");
                 Console.WriteLine($"Provider Name: {holoProvider.ProviderName}");
