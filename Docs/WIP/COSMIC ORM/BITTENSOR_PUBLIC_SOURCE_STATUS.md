@@ -200,3 +200,5 @@ The milestone is frozen; next work is red Aztec source discovery. Earlier
 "next step" sections above record historical stages, not outstanding deployment.
 No remaining Bittensor runtime work absent a reproducible bug. Broader ORM/
 AI/subnet/native-write/finality-proof and browser scopes remain unachieved.
+
+11 November UTC: Bittensor public Finney header presets rendered 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. The original-owner private paired browser check remains open.

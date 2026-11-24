@@ -7,6 +7,7 @@ from pathlib import Path
 import copy
 import importlib.util
 import json
+import os
 import sys
 import uuid
 
@@ -58,10 +59,11 @@ def candidate(before, source):
                 "value": source["accounts"][:count]}]}
         suffix = "records" if count == 3 else "subset"
         rows.append({"id": "public-" + suffix, "label": "Hedera latest-indexed public accounts (" + str(count) + " accounts)",
-            "request": {"provider": "HashgraphOASIS", **selection}})
+            "request": {"provider": "HashgraphOASIS", "maximumDurationMilliseconds": 20000, **selection}})
         rows.append({"id": "mongo-public-" + suffix, "label": "Hedera public metadata + my Mongo records",
             "operation": "Federation", "request": {"scope": "Named", "providers": ["MongoDBOASIS", "HashgraphOASIS"],
-                "source": selection, "identityMode": "PreserveCopies", "maximumProviderAttempts": 2, "take": 25}})
+                "source": selection, "identityMode": "PreserveCopies", "maximumProviderAttempts": 2,
+                "maximumDurationMilliseconds": 20000, "take": 25}})
     after[KEYS[0]] = configuration.compact(source)
     after[KEYS[1]] = configuration.compact(admission)
     after[KEYS[2]] = configuration.compact(rows)
@@ -74,19 +76,44 @@ def candidate(before, source):
     return after
 
 
-def prepare():
+def amend_preset_deadlines(before):
+    rows = json.loads(before[KEYS[2]])
+    expected = {"public-records", "public-subset", "mongo-public-records", "mongo-public-subset"}
+    if len(rows) != len(expected) or {row["id"] for row in rows} != expected:
+        raise ValueError("Expected four existing Hedera presets.")
+    for row in rows:
+        request = row["request"]
+        if row["id"].startswith("mongo-"):
+            if row.get("operation") != "Federation" or request.get("providers") != ["MongoDBOASIS", "HashgraphOASIS"]:
+                raise ValueError("Existing Hedera paired preset has a different provider scope.")
+        elif request.get("provider") != "HashgraphOASIS":
+            raise ValueError("Existing Hedera public preset has a different provider.")
+        request["maximumDurationMilliseconds"] = 20000
+    return {**before, KEYS[2]: configuration.compact(rows)}
+
+
+def prepare(*, amend_deadlines=False):
     state = configuration.STATE
-    snapshot = state / (PREFIX + "-before-variables.dpapi")
+    prefix = PREFIX + "-deadlines" if amend_deadlines else PREFIX
+    snapshot = state / (prefix + "-before-variables.dpapi")
     before = configuration.variables()
     if snapshot.exists():
         if configuration.protected_read(snapshot.name) != before:
             raise RuntimeError("Configuration changed since snapshot; reconcile first.")
     else:
         configuration.write_new(snapshot, configuration.verification.protected_token(configuration.compact(before).encode()))
-    source = json.loads((ROOT / "LocalState/COSMIC/HostedHederaPublicSourceCurrent/source.json").read_text(encoding="utf-8-sig"))
-    after = candidate(before, source)
-    configuration.write_new(state / (PREFIX + "-candidate-variables.dpapi"),
+    if amend_deadlines:
+        after = amend_preset_deadlines(before)
+        if len(after[KEYS[2]]) > 32768:
+            raise ValueError("Hosted variable character limit exceeded.")
+    else:
+        source = json.loads((ROOT / "LocalState/COSMIC/HostedHederaPublicSourceCurrent/source.json").read_text(encoding="utf-8-sig"))
+        after = candidate(before, source)
+    configuration.write_new(state / (prefix + "-candidate-variables.dpapi"),
         configuration.verification.protected_token(configuration.compact(after).encode()))
+    if amend_deadlines:
+        print("Protected Hedera deadline amendment prepared: one setting, four presets; no deployment.")
+        return
     review = {"profiles": {"HashgraphOASIS": source},
         "examples": {"HashgraphOASIS": json.loads(after[KEYS[2]])}}
     target = ROOT / "TestResults/HederaPublicSourceCandidateCurrent/hedera-prepared-review.json"
@@ -97,11 +124,16 @@ def prepare():
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         prepare()
-    elif sys.argv[1:] == ["apply"]:
+    elif sys.argv[1:] == ["prepare-deadlines"]:
+        prepare(amend_deadlines=True)
+    elif sys.argv[1:] in (["apply"], ["apply-deadlines"]):
         spec = importlib.util.spec_from_file_location("release_guard", Path(__file__).with_name("Prepare-TenSourcePublicBatch.py"))
         guard = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(guard)
-        guard.require_matching_release(configuration)
-        configuration.apply_values(PREFIX, KEYS)
+        guard.require_matching_release(configuration, release_ref=os.environ.get("COSMIC_CQL_REVIEWED_RELEASE_REF", "HEAD"))
+        if sys.argv[1:] == ["apply-deadlines"]:
+            configuration.apply_values(PREFIX + "-deadlines", (KEYS[2],))
+        else:
+            configuration.apply_values(PREFIX, KEYS)
     else:
-        raise SystemExit("Use no arguments to prepare, or apply for the reviewed candidate.")
+        raise SystemExit("Use no arguments to prepare, apply for a reviewed enrollment, or prepare-deadlines/apply-deadlines for existing presets.")

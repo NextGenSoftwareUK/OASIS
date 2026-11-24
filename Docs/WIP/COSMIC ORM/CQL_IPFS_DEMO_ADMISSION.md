@@ -258,3 +258,26 @@ IPFS/SOLID point teachinghost is now native-tested withreadableHTML/API and expl
 ## Current scoped multi-record proof
 
 23 shared capability controls +17IPFS query controls pass. Real pinned Kubo0.43.1 test passes selected3encrypted records, two-record subset, exact key/ID/visibility and complete-result-before-page rules, shared SDK/HTTP teaching host, and Mongo pairing5/4physical copies. Source key membership is explicitly enabled; no general catalogue scan/text filtering enrolled. Current owned fixture closure phasecomplete, Mongo journalabsent/database removed and both daemons stopped. Original repository/key/immutable archive retained. Exact hashes/resources in release report/current ledger; broader hosted/provider acceptance remains separate.
+11 November UTC: HyperDrive verified IPFS encrypted current and historical holon versions after a graceful Kubo daemon restart and a fresh provider process in CI 43007340696. This used one disposable repository across both phases. Historical fixture recovery and concurrent publication remain open. The existing hosted CQL acceptance stands, and the live cutover for Development c686a8618d is still building.
+
+11 November UTC: HyperDrive IPFS native concurrency CI 43008085065 reproduced a shared catalogue enumeration failure in PublishAcknowledgedRecordAsync. The shipping provider reported acknowledged CIDs before the overall graph save failed. HyperDrive owns the publication fix. Keep earlier native restart and public CQL evidence within their verified scopes.
+
+11 November UTC: Railway WEB4 deployment c7b533e2 succeeded on Development c686a8618d with the verified native Kubo activation change. Fresh browser catalogue reads during warmup showed 19 then 26 available sources. Final readiness is pending. Preserve prior IPFS CQL query acceptance and separate native storage evidence.
+
+11 November UTC: fresh Development WEB4 discovery on the IPFS activation deployment c686a8618d reached 42 available hosted sources during warmup. IPFSOASIS was selectable and loaded its native public CID preset. Existing query results were preserved without replay. Full catalogue readiness remains pending.
+
+11 November UTC: solution CI 43007093453 passed enrollment, full production build and WEB4-WEB10 GraphQL on 4a3118bd93. Before push, Development advanced to 2c11a120ae with HyperDrive's verified IPFS catalogue publication fix. Native Kubo CI 43008574348 passed eight overlapping saves with exact readback through a fresh provider. The two-file solution candidate 7de3c00dad now includes that base and is submitted to remote CI. Cross-instance IPFS writers and historical fixture recovery remain open.
+
+11 November UTC: IPFS independent-writer baseline CI 43009364727 showed an acknowledgement versus persistence mismatch. Two instances sharing one DNA file acknowledged eight records, but a fresh reader recovered only four. HyperDrive's candidate reloads the persisted catalogue before mutation and serializes by DNA path; native verification 43009731953 is running. This differs from the earlier single-instance enumeration failure.
+
+11 November UTC: IPFS independent-writer CI 43009731953 passed on native Kubo 0.43.1. Two provider instances in one process shared a DNA file, and a fresh reader recovered all eight acknowledged records. The tested fix is owned by HyperDrive. Separate processes, historical fixture recovery and rollout of this follow-up remain open.
+
+11 November UTC: Development 323c4f54da includes HyperDrive's independently verified two-instance IPFS publication fix. Railway 5c6a6f59 is queued behind a1749dd8. Exact two-file solution candidate 7854ac618f incorporates the new base and has been submitted to remote CI. No Development push from COSMIC.
+
+11 November UTC: Railway WEB4 deployment a1749dd8 succeeded at Development 2c11a120ae with the verified single-instance IPFS publication fix. The application reported startup on port 8080. The two-instance successor 323c4f54da remains queued as 5c6a6f59. Catalogue readiness for this cutover remains pending. Exact solution CI on 323c4f54da is 43010606987.
+
+11 November UTC: Development 9aaed91520 contains HyperDrive's verified IPFS writer-process fix. Native Kubo CI 43010855757 preserved all eight acknowledged records across two Windows writer processes sharing a local DNA file. Railway fc8ccf36 is queued. Exact two-file solution candidate d8b50fa36f now verifies the latest Development base.
+
+11 November UTC: Railway 5c6a6f59 succeeded on Development 323c4f54da with the two-instance IPFS publication fix. The retained browser visitor refreshed to 20 available hosted sources during startup. Final readiness remains pending, and the writer-process revision 9aaed91520 was queued at the cutover check.
+
+11 November UTC: HyperDrive CI 43011806925 also verified IPFS writer-process publication on Linux with native Kubo 0.43.1. Two writer processes sharing one local DNA file and a fresh reader preserved all eight acknowledged records. This matches Development 9aaed91520; Railway cutover and historical fixture recovery remain open.

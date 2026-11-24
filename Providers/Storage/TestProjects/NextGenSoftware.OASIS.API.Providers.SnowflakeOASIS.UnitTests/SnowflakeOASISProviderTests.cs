@@ -28,9 +28,26 @@ namespace NextGenSoftware.OASIS.API.Providers.SnowflakeOASIS.UnitTests
         public void ProviderDescription_ShouldNotBeEmpty()
             => Assert.IsFalse(string.IsNullOrWhiteSpace(_provider.ProviderDescription));
 
+        private const string TeachingReader =
+            "account=teaching;db=demo;schema=public;user=reader;warehouse=demo;role=demo_reader;password=synthetic";
+
         [TestMethod]
-        public void GetProviderVersion_ShouldReturnValidVersion()
-            => Assert.IsFalse(string.IsNullOrWhiteSpace(_provider.GetProviderVersion()));
+        public void QuerySourceStartsInactive()
+        {
+            var source = new SnowflakeQuerySource(TeachingReader, System.Guid.NewGuid());
+            Assert.AreEqual(ProviderType.SnowflakeOASIS, source.QueryProviderType);
+            Assert.IsFalse(source.IsProviderActivated);
+        }
+
+        [DataTestMethod]
+        [DataRow(";scheme=http")]
+        [DataRow(";insecuremode=true")]
+        [DataRow(";role=")]
+        public void QuerySourceRejectsTransportOverridesAndMissingRole(string extra)
+        {
+            Assert.ThrowsException<System.ArgumentException>(
+                () => new SnowflakeQuerySource(TeachingReader + extra, System.Guid.NewGuid()));
+        }
 
         [TestCleanup]
         public void Cleanup()

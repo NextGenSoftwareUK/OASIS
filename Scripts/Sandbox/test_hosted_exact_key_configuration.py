@@ -1,3 +1,5 @@
+import base64
+import hashlib
 import importlib.util
 import json
 import os
@@ -113,6 +115,7 @@ def exact_key_catalogue(provider):
         "OrbitDBOASIS": {"Sidecar": "http://127.0.0.1:54869/"},
         "GUNOASIS": {"Sidecar": "http://127.0.0.1:54870/"},
         "MilvusOASIS": {"Origin": "https://milvus.example.com"},
+        "ZillizOASIS": {"Origin": "https://fixture.us-west-2.vectordb.zillizcloud.com:19530"},
         "PgVectorOASIS": {"Host": "teaching.pgvector.example", "Database": "oasis_teaching",
                           "ReaderUsername": "cosmic_reader"},
         "NetlifyBlobsOASIS": {"SiteId": str(uuid.UUID(int=7)), "Store": "oasis", "ObjectOrigin": "https://objects.example"},
@@ -138,6 +141,138 @@ def exact_key_catalogue(provider):
 
 
 class ExactKeyConfigurationTests(unittest.TestCase):
+    def test_holooasis_binds_reviewed_cell_and_keeps_signing_credentials_protected(self):
+        provider = "HoloOASIS"
+        prefix = "CQL_HOLOOASIS_QUERY__"
+        catalogue, (_, first, second, third, _, _) = exact_key_catalogue(provider)
+        catalogue.update({
+            "Endpoint": "wss://conductor.example.test/app", "InstalledAppId": "oasis-demo",
+            "DnaHash": base64.b64encode(b"d" * 39).decode(),
+            "AgentKey": base64.b64encode(b"a" * 39).decode(),
+        })
+        with tempfile.TemporaryDirectory() as directory:
+            descriptor = Path(directory) / "catalogue.json"
+            descriptor.write_text(json.dumps(catalogue | {"Endpoint": "ws://conductor.example.test/app"}))
+            with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
+                configuration.verifier.reviewed_exact_key_source(provider, descriptor)
+            descriptor.write_text(json.dumps(catalogue))
+            review = configuration.verifier.reviewed_exact_key_source(provider, descriptor)
+
+        credentials = {prefix + key: base64.b64encode(key.encode()[:1] * length).decode()
+                       for key, length in (("AppToken", 32), ("CapabilitySecret", 64),
+                                           ("SigningKey", 39), ("SigningPrivateKey", 64))}
+        baseline = {
+            "OASIS_DNA_JSON": '{"OASIS":{"Sandbox":{"Enabled":true}}}',
+            configuration.ADMISSION: json.dumps({
+                "ordinaryProviders": ["MongoDBOASIS"], "nativeProviders": [],
+                "queryOnlyProviders": ["IPFSOASIS"],
+                "queryTariffs": [{"provider": "IPFSOASIS", "costUsd": 0}],
+            }),
+        } | review["sourceBinding"] | credentials
+        self.assertEqual(first, review["sourceBinding"][prefix + "ProbeId"])
+        with self.assertRaisesRegex(ValueError, "do not match"):
+            configuration.candidate(baseline | {prefix + "AgentKey": catalogue["DnaHash"]}, provider, review)
+        with self.assertRaisesRegex(ValueError, "protected SigningPrivateKey"):
+            configuration.candidate(baseline | {prefix + "SigningPrivateKey": "invalid"}, provider, review)
+        result = configuration.candidate(baseline, provider, review)
+        self.assertEqual([first, second, third], json.loads(result[configuration.GRANTS])[provider])
+        self.assertEqual(credentials, {key: result[key] for key in credentials})
+        presets = result["CQL_HOSTED_QUERY_EXAMPLES__" + provider]
+        self.assertEqual(4, len(json.loads(presets)))
+        for secret in credentials.values():
+            self.assertNotIn(secret, presets)
+
+    def test_holooasis_managed_catalogue_generates_admission_without_external_credentials(self):
+        provider = "HoloOASIS"
+        catalogue, (_, first, second, third, _, _) = exact_key_catalogue(provider)
+        with tempfile.TemporaryDirectory() as directory:
+            descriptor = Path(directory) / "catalogue.json"
+            descriptor.write_text(json.dumps(catalogue | {"Mode": "ManagedLocal"}))
+            review = configuration.verifier.reviewed_exact_key_source(provider, descriptor)
+
+        baseline = {
+            "OASIS_DNA_JSON": '{"OASIS":{"Sandbox":{"Enabled":true}}}',
+            configuration.ADMISSION: json.dumps({
+                "ordinaryProviders": ["MongoDBOASIS"], "nativeProviders": [],
+                "queryOnlyProviders": ["IPFSOASIS"],
+                "queryTariffs": [{"provider": "IPFSOASIS", "costUsd": 0}],
+            }),
+        }
+        result = configuration.candidate(baseline, provider, review)
+        self.assertEqual("true", result["CQL_HOLOOASIS_LOCAL_DEMO__Enabled"])
+        self.assertEqual("/data/COSMIC/HoloOasisCql/tools", result["HOLONET_CONDUCTOR_FOLDER"])
+        self.assertEqual([first, second, third], json.loads(result[configuration.GRANTS])[provider])
+        self.assertFalse(any(key.startswith("CQL_HOLOOASIS_QUERY__") for key in result))
+        with self.assertRaisesRegex(ValueError, "empty external reader configuration"):
+            configuration.candidate(baseline | {"CQL_HOLOOASIS_QUERY__Endpoint": "wss://external.example/"}, provider, review)
+
+    def test_sign_candidate_preserves_existing_provider_settings(self):
+        provider = "SignProtocolOASIS"
+        source = {"schema": 1, "origin": "https://mainnet-rpc.sign.global/api/",
+                  "sourceOwner": "9d5e4243-a525-4bec-9c8d-622b04cc413e",
+                  "uids": [f"onchain_evm_8453_0x{i}" for i in range(1, 4)]}
+        with tempfile.TemporaryDirectory() as directory:
+            descriptor = Path(directory) / "source.json"
+            descriptor.write_text(json.dumps(source))
+            review = configuration.verifier.reviewed_exact_key_source(provider, descriptor)
+        admission = {"ordinaryProviders": ["MongoDBOASIS"], "nativeProviders": [],
+                     "queryOnlyProviders": ["IPFSOASIS"],
+                     "queryTariffs": [{"provider": "IPFSOASIS", "costUsd": 0, "tariffVersion": "demo-read-v1"}]}
+        baseline = {"OASIS_DNA_JSON": '{"OASIS":{"Sandbox":{"Enabled":true}}}',
+                    configuration.ADMISSION: json.dumps(admission),
+                    configuration.GRANTS: '{"IPFSOASIS":["retained"]}'}
+        prepared = configuration.candidate(baseline, provider, review)
+        self.assertEqual(review["sourceBinding"]["CQL_SIGN_PUBLIC_SOURCE_JSON"],
+                         prepared["CQL_SIGN_PUBLIC_SOURCE_JSON"])
+        self.assertEqual(4, sum(baseline.get(key) != value for key, value in prepared.items()))
+        self.assertEqual(["IPFSOASIS", provider],
+                         json.loads(prepared[configuration.ADMISSION])["queryOnlyProviders"])
+        grants = json.loads(prepared[configuration.GRANTS])
+        self.assertEqual(["retained"], grants["IPFSOASIS"])
+        self.assertEqual(review["presets"][0]["request"]["filters"][0]["value"], grants[provider])
+        presets = json.loads(prepared["CQL_HOSTED_QUERY_EXAMPLES__" + provider])
+        self.assertEqual(4, len(presets))
+        for preset in presets:
+            request = preset["request"]
+            self.assertEqual(8, request["take"])
+            self.assertEqual(5000, request["maximumDurationMilliseconds"])
+            self.assertEqual(8, request.get("source", request)["take"])
+        with self.assertRaisesRegex(ValueError, "Existing provider settings"):
+            configuration.candidate(prepared, provider, review)
+        with self.assertRaisesRegex(ValueError, "Protected source settings"):
+            configuration.candidate(baseline | {"CQL_SIGN_PUBLIC_SOURCE_JSON": "{}"}, provider, review)
+
+    def test_chroma_candidate_requires_matching_qualified_collection(self):
+        provider = "ChromaOASIS"
+        ids = [str(uuid.UUID(int=i)) for i in range(1, 4)]
+        source = {"origin": "https://chroma.example", "tenant": "demo", "database": "teaching",
+                  "collectionId": str(uuid.UUID(int=4)), "ids": ids}
+        with tempfile.TemporaryDirectory() as directory:
+            catalogue = Path(directory) / "source.json"
+            receipt = Path(directory) / "qualification.acknowledged.json"
+            raw = json.dumps(source).encode()
+            catalogue.write_bytes(raw)
+            receipt.write_text(json.dumps({"sourceSha256": hashlib.sha256(raw).hexdigest(),
+                                           "nativeCounts": [3, 2], "requests": 3, "writes": 0}))
+            review = configuration.reviewed_chroma_source(catalogue, receipt)
+            baseline = dict(review["sourceBinding"], CQL_CHROMA_QUERY_BEARER_TOKEN="synthetic",
+                            OASIS_DNA_JSON='{"OASIS":{"Sandbox":{"Enabled":true}}}')
+            baseline[configuration.ADMISSION] = json.dumps({"queryOnlyProviders": [], "ordinaryProviders": [],
+                "nativeProviders": [], "queryTariffs": [{"provider": "IPFSOASIS", "costUsd": 0}]})
+            candidate = configuration.candidate(baseline, provider, review)
+            self.assertEqual(ids, json.loads(candidate[configuration.GRANTS])[provider])
+            self.assertEqual(3, sum(baseline.get(key) != value for key, value in candidate.items()))
+            with self.assertRaisesRegex(ValueError, "do not match"):
+                configuration.candidate(dict(baseline, CQL_CHROMA_QUERY_COLLECTION_ID=ids[0]), provider, review)
+            failure = receipt.with_name("qualification.failed.json")
+            failure.write_text("{}")
+            with self.assertRaisesRegex(ValueError, "matching native-read qualification receipt"):
+                configuration.reviewed_chroma_source(catalogue, receipt)
+            failure.unlink()
+            catalogue.write_bytes(raw + b"\n")
+            with self.assertRaisesRegex(ValueError, "matching native-read qualification receipt"):
+                configuration.reviewed_chroma_source(catalogue, receipt)
+
     def test_candidate_preserves_existing_providers_and_refuses_replacement(self):
         self.check_candidate("QdrantOASIS")
 
@@ -146,11 +281,6 @@ class ExactKeyConfigurationTests(unittest.TestCase):
 
     def test_tigris_candidate_preserves_existing_providers(self):
         self.check_candidate("TigrisOASIS")
-
-    def test_redis_family_candidates_preserve_existing_providers(self):
-        for provider in ("GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS"):
-            with self.subTest(provider=provider):
-                self.check_candidate(provider)
 
     def test_upstash_candidate_preserves_existing_providers(self):
         self.check_candidate("UpstashOASIS")
@@ -363,6 +493,19 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                 for names in (["VITALIK.eth", "nick.eth", "luc.eth"], ["vitalik.eth", "nick.eth", "nick.eth"],
                               ["vitalik.eth", "nick.eth", "other/foreign.eth"], ["vitalik.eth"]):
                     descriptor.write_text(json.dumps(catalogue | {"Names": names}))
+                    with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
+                        configuration.verifier.reviewed_exact_key_source(provider, descriptor)
+            if provider in configuration.verifier.REDIS_FAMILY_PROVIDERS:
+                for invalid in ({"Address": "127.0.0.1"}, {"Address": "ff02::1"},
+                                {"Address": "fec0::1"}, {"Address": "2606:4700::1111%eth0"},
+                                {"Port": True}, {"TlsHost": "https://redis.example"}):
+                    descriptor.write_text(json.dumps(catalogue | invalid))
+                    with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
+                        configuration.verifier.reviewed_exact_key_source(provider, descriptor)
+            if provider in ("QdrantOASIS", "WeaviateOASIS", "UpstashOASIS", "InfluxDBOASIS"):
+                for origin in ("http://qdrant.example", "https://127.0.0.1", "https://qdrant.example/collections",
+                               "https://user@qdrant.example", "https://qdrant.example:65536"):
+                    descriptor.write_text(json.dumps(catalogue | {"Origin": origin}))
                     with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             if provider == "FastlyOASIS":

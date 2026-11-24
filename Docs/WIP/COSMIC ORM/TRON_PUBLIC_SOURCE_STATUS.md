@@ -74,4 +74,55 @@ from this checkout. The runner checks the catalogue and controlled assembly
 hashes under the shared lease and requires one passed native test with zero
 skips. It keeps a unique intent, log and TRX for each execution. The missing
 key preflight passed without creating a run directory or making a request.
-Authenticated native qualification and WEB4 admission remain open.
+Authenticated native qualification and live WEB4 enrollment remain open. The offline admission candidate and exact image evidence are recorded below.
+
+On replacement WEB4 deployment 7f8f646e, the Development configuration
+inventory still showed no CQL_TRON_ settings. The dedicated reader variable
+was absent from the process, Windows user, and Windows machine environment.
+No credential values were displayed and no anonymous request was replayed.
+The existing private-configuration action remains open in ACTIONS-FOR-DAVID.
+
+## Prepared WEB4 admission and remaining live gate
+
+WEB4 now has an opt-in registration for the authenticated header reader.
+It requires sandbox mode, the reviewed catalogue in
+`CQL_TRON_PUBLIC_HEADER_QUERY_SOURCE_JSON`, and the separate protected
+`COSMIC_TRON_PUBLIC_READER_KEY`. The hosted preparer binds the same
+catalogue to four full/subset native and paired presets. Existing
+enrollment controls passed 46 of 46 with outbound HTTP forbidden.
+
+The exact scoped image for source beee2d25 and Core 7b426c9 passed the
+real WEB4 startup and cleanup check. This evidence closes the image gate.
+Authenticated native results, hosted enrollment, live paired reads and
+browser verification are open. Resume with the existing private reader
+access action and retained catalogue. Keep the original anonymous denial
+evidence and the recovered authenticated cohort separate.
+
+[Exact image and enrollment evidence](CURRENT_STATUS.md)
+
+[Existing reader access action](../Release%20and%20Status/ACTIONS-FOR-DAVID.md#tron-priority-demo-dedicated-trongrid-reader-access--8-november-2026)
+
+### Recovery build for authenticated qualification
+
+The replacement test build passed with zero errors and four warnings.
+The 38 offline header controls passed with zero skips against these
+binaries. The local native verifier checks their SHA-256 values before
+opening a qualification run.
+
+| Artifact | SHA-256 |
+|---|---|
+| TRON test assembly | b452f8a10aebc1e90d1861c310f9ebbd9718d331cb387adcec28631928a86041 |
+| TRON provider assembly | d2c6e547054d9c24a33762b8e87b1ea9b2dd76792813e0e01c9d9e08b784357b |
+| API Core assembly | aafc70259341ae9d2867c0ebb821b9fb793c65f1b39a4aa363ca953bd4c743eb |
+
+The original catalogue digest matched. Authenticated execution remains
+open. Preserve the prior anonymous evidence and original source cohort.
+Once the protected key is available in the current process, run LocalState/COSMIC/HostedTronAuthenticatedQualification/verify-native.ps1 from the repository root. The recovery runner refuses a second native run while any prior native run directory is retained. Reconcile the original intent and result before any further request.
+
+Recovery cleanup removed the three pinned Debug assemblies from the verifier path. The retained runner and source catalogue are present, and there is no native-run directory to reconcile. Once the dedicated reader key is available, restore the exact pinned artifacts or rebuild under the provider build lease and record the replacement hashes before authenticated qualification.
+
+11 November UTC: HyperDrive verified a public TRON wallet balance through its native gRPC client at `6e4449a68f`. Independently probed the published Solidity gRPC GetBlock header-only method for the CQL reader. The genesis reply was 231 bytes with HTTP 200, gRPC OK, no transaction entries and the expected mainnet block ID. The height-1 reply had no block ID and failed validation, so heights 2 and 3 were not requested. This endpoint did not qualify the retained CQL catalogue. Preserve the original authenticated reader path and cohort. [PublicNode endpoints](https://tron.publicnode.com/) and [official TRON protocol](https://raw.githubusercontent.com/tronprotocol/protocol/master/api/api.proto).
+
+11 November UTC: Railway marked standalone NEAR wallet revision `ae885fc092` removed after build logs reached image export. The building Cosmos revision `f4d314f7a3` includes NEAR. Development head `6ce625714f` adds the HyperDrive TRON wallet gRPC change on top of both and is queued in Railway. Live WEB4 still serves `fcf2a522e6`. The wallet change is separate from the TRON CQL header reader and its restricted access requirement.
+
+11 November UTC: HyperDrive verified all 52 TRON native storage cases on disposable TRE nodes through the shipping TronNet gRPC adapter. Both modes used independent contract deployments, and native reads confirmed both contracts empty after cleanup. Development `6103e4e632` contains the verified CI changes. Hosted storage, retained ledger recovery and authenticated TronGrid CQL remain open. [TRON native CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43035175165)

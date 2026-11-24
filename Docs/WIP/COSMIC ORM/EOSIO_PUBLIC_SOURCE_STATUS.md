@@ -1,6 +1,6 @@
 # EOSIO / Vaulta public account source status
 
-Updated 1 November 2026. Scoped hosted HTTP acceptance complete; browser interaction remains unverified. This read-only profile is not full EOSIO storage/ORM certification.
+Updated 11 November 2026. Scoped hosted HTTP and public browser acceptance are complete. Original-owner private paired browser verification and native storage parity remain open.
 
 ## Verified contract
 
@@ -56,3 +56,41 @@ Next: preserve this completed scope and qualify the next red shipping provider, 
 - `TestResults/HostedCqlIntegrationCurrent/EOSIOOASIS-isolation-http.json`: 4775bytes; SHA256 `a01dfa23bf162f23de4aebb8562ea09a8ad90070c270f7c2d2538315256ae8fc`.
 
 Primary references: [Vaulta reading state](https://docs.vaulta.com/docs/latest/web-applications/reading-state/), [native Chain API](https://docs.eosnetwork.com/apis/spring/latest/chain.api/).
+
+### Recovery laptop evidence availability
+
+The three historical EOSIO HTTP reports listed above are absent from this
+checkout's TestResults and LocalState. Their recorded hashes identify the
+original reports for recovery from the originating machine. Preserve the
+accepted cohort as historical evidence. Before citing a report as locally
+reverified, recover it and match its SHA256. The rendered WEB4 browser flow
+remains a separate open check. Missing local reports do not justify replaying
+the original owner's preparation.
+
+On 9 November the recovery laptop had no EOSIO-specific directory under
+`LocalState/COSMIC`. The browser check can establish the rendered public
+presets once Edge access is available. Paired private-copy browser acceptance
+requires the original prepared identity. If it cannot be recovered, record
+the public browser result separately and leave that private check open.
+
+The 10 November recovery search found none of the three report filenames in
+this checkout's LocalState or TestResults, the sibling OASIS, OASIS-master,
+OASIS2-hyperdrive and Web4Site checkouts, or C:/Source/BACKUP. Recover the
+original files from the originating machine or its artifact archive and match
+the recorded hashes before marking them recovered.
+
+### Live public browser acceptance — 10 November 2026
+
+A fresh temporary WEB4 demo session on Development ran both EOSIOOASIS public presets in CQL Playground. The browser rendered three rows for the full account preset and two for the subset, labeled EOSIOOASIS. The original prepared cohort was preserved. Private MongoDB paired browser acceptance remains open.
+
+11 November UTC: Railway WEB4 deployment `10675f44-7aab-4589-83d7-730d248638a1` at EOSIO wallet revision `3f5d781f29` succeeded. Authenticated discovery progressed 70/106 to 106/106 ready. EOSIO, Hedera and the other listed priority sources and LocalFile reported native and federated readiness. TRON and Supabase remain absent. This is CQL readiness evidence; the live wallet test is in the HyperDrive handoff.
+
+11 November UTC: the documented original EOSIO owner journal and HTTP reports are still absent from this recovery checkout. Public browser acceptance and prior hosted HTTP/replica receipts remain recorded. Original-owner private browser verification requires recovering that identity and confirming the existing two copies. HyperDrive's contract artifact CI is separate.
+
+11 November UTC: HyperDrive's [Antelope contract build](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43025526058) passed the ABI build/validation and uploaded the antelope-oasis-contract artifact (13857555218, 8,222 bytes) at d4c06c9c91. This is build evidence. Dedicated live deployment and storage lifecycle remain open.
+
+11 November UTC: Development a5e8fc36c4 includes the verified Antelope contract build workflow and ABI/WASM artifacts. Native live deployment and storage lifecycle remain open.
+
+11 November UTC: HyperDrive verified the shipping EOSIO adapter against an official Antelope Spring 1.2.2 chain. All three native storage cases passed, covering avatar and holon CRUD and avatar-detail update, soft delete and hard delete. Independent chain-table checks confirmed cleanup. Development `c0b8c1eef1` includes the verified changes. Hosted contract deployment, the full shared suite and the original-owner private CQL browser check remain open. [Native storage CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43026743854)
+
+11 November UTC: Development c8832feaa7 integrates HyperDrive EOSIO native storage conformance. CI 43048799690 passed 52/52 across both shipping modes on independent Antelope Spring 1.2.2 ledgers. Independent reads confirmed empty avatar, avatar-detail and holon tables. Hosted signed storage and the original-owner paired CQL browser check remain open.

@@ -1,4 +1,5 @@
 """Qualify explicit latest-indexed account observations; not consensus proof."""
+import argparse
 import hashlib
 import json
 import re
@@ -58,8 +59,9 @@ def account(body, expected):
 
 
 def main():
-    folder = Path(__file__).resolve().parents[2] / "TestResults/HederaPublicSourceCandidateCurrent"
-    folder.mkdir(parents=True, exist_ok=True)
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--no-report", action="store_true", help="Print the summary without writing a report.")
+    options = parser.parse_args()
     report = {"utc": datetime.now(timezone.utc).isoformat(), "endpoint": ENDPOINT,
               "networkBinding": "Explicit official Mainnet endpoint; account response has no independent network ID",
               "scope": "Mirror-indexed per-account observations; no freshness/shared snapshot/consensus proof",
@@ -78,7 +80,10 @@ def main():
         report.update(passed=True, records=rows)
     except Exception as error:
         report.update(passed=False, errorType=type(error).__name__, httpStatus=getattr(error, "code", None))
-    (folder / "readiness.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    if not options.no_report:
+        folder = Path(__file__).resolve().parents[2] / "TestResults/HederaPublicSourceCandidateCurrent"
+        folder.mkdir(parents=True, exist_ok=True)
+        (folder / "readiness.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({"passed": report["passed"], "requests": len(report["requests"]),
                       "records": len(report.get("records", [])), "errorType": report.get("errorType")}))
     return 0 if report["passed"] else 1

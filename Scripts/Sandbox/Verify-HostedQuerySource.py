@@ -15,6 +15,7 @@ import os
 import re
 import subprocess
 import urllib.error
+import urllib.parse
 import urllib.request
 import uuid
 
@@ -23,7 +24,10 @@ import HostedSessionCredentials as session_credentials
 ROOT = Path(__file__).resolve().parents[2]
 BASE = "https://dev.api.web4.oasisomniverse.one/api/"
 BROWSER_ORIGIN = "https://web4.oasisomniverse.one"
+REDIS_FAMILY_PROVIDERS = ("RedisOASIS", "ValKeyOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS")
+
 REVIEWED_EXACT_KEY_PROVIDERS = (
+    "HoloOASIS",
     "MeilisearchOASIS", "SolrOASIS", "ElasticsearchOASIS", "OpenSearchOASIS",
     "ArcadeDBOASIS", "SurrealDBOASIS", "QdrantOASIS", "RedisOASIS", "ValKeyOASIS",
     "DynamoDBOASIS", "TypesenseOASIS", "MinIOOASIS", "PocketBaseOASIS", "SupabaseOASIS", "FirebaseOASIS",
@@ -236,17 +240,26 @@ def session(state, label, *, allow_create=True, allow_renewal=True):
     return recorded, avatar["jwtToken"]
 
 
+def public_preset_ids(provider):
+    full = "public-posts" if provider == "ActivityPubOASIS" else "public-records"
+    return full, "public-subset", "mongo-" + full, "mongo-public-subset"
+
+
 def ready_source(provider, token, require_pair):
     discovery = call("data/query-cql/providers?examplesVersion=2", token, method="GET")
     matches = [row for row in discovery["result"] if row["provider"] == provider]
     if len(matches) > 1:
         raise RuntimeError(f"{provider} appeared more than once in hosted discovery.")
     source = matches[0] if matches else None
-    if source is None or source.get("available") is not True or (require_pair and source.get("federationAvailable") is not True):
+    if source is None or source.get("available") is not True:
+        code = source.get("errorCode") if source is not None else None
+        if code in ("CQL_SOURCE_NOT_READY", "CQL_SOURCE_UNAVAILABLE"):
+            raise RuntimeError(f"{provider} hosted discovery reports {code}.")
         raise RuntimeError(f"{provider} is absent or unavailable in hosted discovery.")
-    required = {"public-records", "public-subset"}
-    if require_pair:
-        required.update(("mongo-public-records", "mongo-public-subset"))
+    if require_pair and source.get("federationAvailable") is not True:
+        raise RuntimeError(f"{provider} is absent or unavailable for federation in hosted discovery.")
+    ids = public_preset_ids(provider)
+    required = set(ids if require_pair else ids[:2])
     examples = source["examples"]
     if len({row["id"] for row in examples}) != len(examples):
         raise RuntimeError(f"{provider} returned duplicate hosted preset IDs.")
@@ -295,7 +308,7 @@ def normalized_preset_request(request, paired):
 
     def selection(value):
         normalized = selection_defaults | value
-        normalized["filters"] = [{"metadataPath": None} | row for row in normalized["filters"]]
+        normalized["filters"] = [{"field": None, "metadataPath": None} | row for row in normalized["filters"]]
         return normalized
 
     if not paired:
@@ -317,7 +330,7 @@ def require_reviewed_presets(provider, source, review):
         raise RuntimeError(f"Hosted {provider} preset IDs must be unique.")
     if provider in REVIEWED_EXACT_KEY_PROVIDERS and actual.keys() != expected.keys():
         raise RuntimeError(f"Hosted {provider} preset set differs from the reviewed rollout.")
-    for key in ("public-records", "public-subset", "mongo-public-records", "mongo-public-subset"):
+    for key in public_preset_ids(provider):
         observed = actual.get(key, {}).get("request", {})
         reviewed = expected.get(key, {}).get("request", {})
         paired = key.startswith("mongo-")
@@ -326,7 +339,7 @@ def require_reviewed_presets(provider, source, review):
         filters = observed_selection.get("filters", [])
         reviewed_filters = reviewed_selection.get("filters", [])
         if (actual.get(key, {}).get("operation", "Rows") != expected.get(key, {}).get("operation", "Rows")
-                or ((provider == "LocalFile" or provider in REVIEWED_EXACT_KEY_PROVIDERS)
+                or ((provider in ("LocalFile", "ActivityPubOASIS") or provider in REVIEWED_EXACT_KEY_PROVIDERS)
                     and json.dumps(normalized_preset_request(observed, paired), sort_keys=True)
                     != json.dumps(normalized_preset_request(reviewed, paired), sort_keys=True))
                 or (paired and any(observed.get(field) != reviewed.get(field)
@@ -337,6 +350,49 @@ def require_reviewed_presets(provider, source, review):
                 or observed.get("providers" if paired else "provider")
                 != reviewed.get("providers" if paired else "provider")):
             raise RuntimeError(f"Hosted {provider} preset {key} differs from the reviewed rollout.")
+
+
+def verify_public_readiness_queries(provider, token, source, review):
+    require_reviewed_presets("LocalFile" if provider == "LocalFileOASIS" else provider, source, review)
+    examples = {row["id"]: row for row in review["presets"]}
+    full, subset, paired_full, paired_subset = public_preset_ids(provider)
+    full_filter = examples[full]["request"]["filters"][0]
+    subset_filter = examples[subset]["request"]["filters"][0]
+    full_keys = full_filter.get("value")
+    subset_keys = subset_filter.get("value")
+    if (not isinstance(full_keys, list) or not isinstance(subset_keys, list)
+            or not all(isinstance(key, str) for key in full_keys + subset_keys)
+            or len(full_keys) != 3 or len(set(full_keys)) != 3
+            or len(subset_keys) != 2 or len(set(subset_keys)) != 2
+            or not set(subset_keys) < set(full_keys)):
+        raise RuntimeError(f"{provider} reviewed presets must select three distinct keys and a two-key subset.")
+    for native_filter, paired_key in ((full_filter, paired_full), (subset_filter, paired_subset)):
+        paired_filter = examples[paired_key]["request"]["source"]["filters"][0]
+        if any(paired_filter.get(field) != native_filter.get(field)
+               for field in ("field", "scalar", "operator", "value", "metadataPath")):
+            raise RuntimeError(f"{provider} reviewed preset {paired_key} differs from its native selection.")
+    full_ids = None
+    verified = {}
+    for count, native_key, paired_key in ((3, full, paired_full), (2, subset, paired_subset)):
+        native = examples[native_key]
+        result = call("data/query-cql", token, native["request"])
+        require_native_rows(result, native, count, review.get("publicIds"))
+        ids = {row["id"] for row in result["result"]["rows"]}
+        if full_ids is not None and not ids < full_ids:
+            raise RuntimeError(f"{provider} public subset contains records outside the full selection.")
+        full_ids = ids
+        rows = call("data/query-cql/federation", token, examples[paired_key]["request"])["result"]["rows"]
+        if (len(ids) != count or len(rows) != count
+                or {row["selected"]["row"]["id"] for row in rows} != ids
+                or any(row["selected"]["provider"] != provider
+                       or not row["copies"]
+                       or any(copy["provider"] != provider
+                              or copy["row"]["id"] != row["selected"]["row"]["id"]
+                              for copy in row["copies"]) for row in rows)):
+            raise RuntimeError(f"{provider} paired public rows differ from native rows or contain foreign copies.")
+        verified[native_key] = sorted(ids)
+        verified[paired_key] = sorted(ids)
+    return verified
 
 
 def localfile_review(*, require_mount=False):
@@ -486,8 +542,10 @@ def native_logical_id(actor, provider, source, key):
 def reviewed_exact_key_source(provider, path):
     if path is None or not path.is_file() or not 0 < path.stat().st_size <= 16384:
         raise RuntimeError("An explicit reviewed native teaching catalogue is required.")
-    catalogue = json.loads(path.read_bytes())
     try:
+        catalogue = json.loads(path.read_bytes(), object_pairs_hook=unique_catalogue_properties)
+        if not isinstance(catalogue, dict):
+            raise ValueError("Catalogue must be a JSON object.")
         names_only = provider == "ENSOffchainOASIS"
         fixed_public = FIXED_PUBLIC_CATALOGUES.get(provider)
         polygon_gateway = POLYGON_GATEWAY_CATALOGUES.get(provider)
@@ -531,6 +589,9 @@ def reviewed_exact_key_source(provider, path):
             fields |= {"Endpoint", "Bucket", "Originals"}
         if provider == "MinIOOASIS":
             fields.add("Region")
+            if (not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,62}", catalogue["Region"])
+                    or not re.fullmatch(r"[a-z0-9][a-z0-9-]{1,61}[a-z0-9]", catalogue["Bucket"])):
+                raise ValueError("An explicit MinIO signing region and DNS-safe bucket are required.")
         if provider == "CassandraOASIS":
             fields.add("BundleSha256")
             if not re.fullmatch(r"[0-9a-f]{64}", catalogue["BundleSha256"]):
@@ -552,6 +613,12 @@ def reviewed_exact_key_source(provider, path):
                     or not re.fullmatch(r"https://(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+api\.lancedb\.com", origin)
                     or not re.fullmatch(r"[a-z][a-z0-9_-]{0,62}", catalogue["Database"])):
                 raise ValueError("Unexpected LanceDB origin or database.")
+        if provider == "ZillizOASIS":
+            fields.add("Origin")
+            origin = catalogue.get("Origin")
+            if not isinstance(origin, str) or not re.fullmatch(
+                    r"https://[a-z0-9-]+\.(?:serverless\.)?[a-z0-9-]+\.vectordb\.zillizcloud\.com(?::19530)?", origin):
+                raise ValueError("Unexpected Zilliz cluster origin.")
         if provider == "MilvusOASIS":
             fields.add("Origin")
             origin = catalogue["Origin"]
@@ -587,6 +654,22 @@ def reviewed_exact_key_source(provider, path):
             fields.add("StoreId")
             if not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", catalogue["StoreId"]):
                 raise ValueError("Unexpected Fastly KV store ID.")
+        if provider == "HoloOASIS" and catalogue.get("Mode") == "ManagedLocal":
+            fields.add("Mode")
+        elif provider == "HoloOASIS":
+            fields |= {"Endpoint", "InstalledAppId", "DnaHash", "AgentKey"}
+            endpoint = catalogue["Endpoint"]
+            address = urllib.parse.urlsplit(endpoint)
+            if (not 1 <= len(endpoint) <= 512 or any(ord(character) < 33 for character in endpoint)
+                    or not address.hostname or address.username is not None or "?" in endpoint or "#" in endpoint
+                    or not (address.scheme == "wss"
+                            or address.scheme == "ws" and address.hostname in ("127.0.0.1", "::1", "localhost"))
+                    or address.port == 0
+                    or not re.fullmatch(r"[A-Za-z0-9._-]{1,128}", catalogue["InstalledAppId"])):
+                raise ValueError("Invalid HoloOASIS teaching app endpoint or ID.")
+            for field in ("DnaHash", "AgentKey"):
+                if len(base64.b64decode(catalogue[field], validate=True)) != 39:
+                    raise ValueError("HoloOASIS requires a reviewed native cell identity.")
         if provider == "DaprOASIS":
             fields |= {"Store", "GrpcEndpoint"}
             port = re.fullmatch(r"http://127\.0\.0\.1:([1-9][0-9]{0,4})/", catalogue["GrpcEndpoint"])
@@ -738,7 +821,7 @@ def reviewed_exact_key_source(provider, path):
                            for row in originals)
                     or {row["Id"] for row in originals} != set(record_ids[:-1])):
                 raise ValueError("Object-store descriptor requires exact original object receipts.")
-    except (AttributeError, KeyError, TypeError, ValueError) as error:
+    except (AttributeError, KeyError, TypeError, ValueError):
         raise RuntimeError("The reviewed teaching catalogue requires canonical, distinct record identities"
                            " and any provider-specific original receipts.") from error
     presets = []
@@ -810,6 +893,17 @@ def reviewed_exact_key_source(provider, path):
     elif provider == "FastlyOASIS":
         review["sourceBinding"] = {"CQL_FASTLY_QUERY_STORE_ID": catalogue["StoreId"],
                                    "CQL_FASTLY_QUERY_PROBE_ID": ids[0]}
+    elif provider == "HoloOASIS" and catalogue.get("Mode") == "ManagedLocal":
+        review["sourceBinding"] = {
+            "CQL_HOLOOASIS_LOCAL_DEMO__Enabled": "true",
+            "HOLONET_CONDUCTOR_FOLDER": "/data/COSMIC/HoloOasisCql/tools",
+        }
+        review["managedLocalHoloOasis"] = True
+    elif provider == "HoloOASIS":
+        prefix = "CQL_HOLOOASIS_QUERY__"
+        review["sourceBinding"] = {prefix + key: catalogue[key]
+                                   for key in ("Endpoint", "InstalledAppId", "DnaHash", "AgentKey")}
+        review["sourceBinding"].update({prefix + "Zome": "oasis", prefix + "ProbeId": ids[0]})
     elif provider == "DaprOASIS":
         review["sourceBinding"] = {"CQL_DAPR_QUERY_STORE": catalogue["Store"],
                                    "CQL_DAPR_QUERY_GRPC_ENDPOINT": catalogue["GrpcEndpoint"],
@@ -863,6 +957,9 @@ def reviewed_exact_key_source(provider, path):
     elif provider in ("OrbitDBOASIS", "GUNOASIS"):
         prefix = "CQL_" + provider.removesuffix("OASIS").upper() + "_QUERY_"
         review["sourceBinding"] = {prefix + "SIDECAR": catalogue["Sidecar"], prefix + "PROBE_ID": ids[0]}
+    elif provider == "ZillizOASIS":
+        review["sourceBinding"] = {"CQL_ZILLIZ_QUERY_ORIGIN": catalogue["Origin"],
+                                   "CQL_ZILLIZ_QUERY_PROBE_ID": ids[0]}
     elif provider == "MilvusOASIS":
         review["sourceBinding"] = {"CQL_MILVUS_QUERY_ORIGIN": catalogue["Origin"],
                                    "CQL_MILVUS_QUERY_PROBE_ID": ids[0]}
@@ -884,9 +981,6 @@ def reviewed_exact_key_source(provider, path):
         source = ({"sourceOwner": catalogue["Actor"], "messageHashes": logical_keys} if provider == "WakuOASIS"
                   else {"owner": catalogue["Actor"], key_field.lower(): logical_keys, "probe": logical_keys[0]})
         review["sourceBinding"] = {setting: json.dumps(source, separators=(",", ":"))}
-    elif provider in ("WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS"):
-        product = provider.removesuffix("OASIS").upper()
-        review["sourceBinding"] = {f"CQL_{product}_QUERY_PROBE_ID": ids[0]}
     return review
 
 
@@ -912,8 +1006,12 @@ def verify_private_visibility(token, ids, providers):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("provider", choices=["ThreeFoldOASIS", "ClickHouseOASIS", "QuestDBOASIS", "SQLServerDBOASIS", "CouchDBOASIS", "PouchDBOASIS", "ChromaOASIS", "CloudflareD1OASIS", "NATSJetStreamOASIS", "ZcashOASIS", "BittensorOASIS", "AkashOASIS", "EclipseOASIS", "ENSOASIS", "BlockscoutOASIS", "CelestiaOASIS", "ChainflipOASIS", "LocalFileOASIS", "HyperlaneOASIS", "LayerZeroV2OASIS", "StargateOASIS", "deBridgeOASIS", "SynapseOASIS", "ConnextOASIS", "MidenOASIS", "EspressoSystemsOASIS", "EigenLayerOASIS", "FhenixOASIS", "AxelarOASIS", "RitualOASIS", "WormholeOASIS", "BlockStackOASIS", "MatrixOASIS", "NostrOASIS", "BlueSkyOASIS", "ChainLinkOASIS", "EOSIOOASIS", "TelosOASIS", "FilecoinOASIS", "FantomOASIS", "AzureStorageOASIS", "SOLIDOASIS", "AWSS3OASIS", "SolanaOASIS", "GoogleCloudOASIS", "EthereumOASIS", "PolygonOASIS", "ArbitrumOASIS", "CosmosBlockChainOASIS", "PolkadotOASIS", "NEAROASIS", "BaseOASIS", "AvalancheOASIS", "BNBChainOASIS", "OptimismOASIS", "LineaOASIS", "ScrollOASIS", "ZkSyncOASIS", "AbstractOASIS", "MonadOASIS", "SeiOASIS", "BerachainOASIS", "BitcoinOASIS", "XRPLOASIS", "StellarOASIS", "AlgorandOASIS", "AptosOASIS", "HashgraphOASIS", "SuiOASIS", "ElrondOASIS", "RadixOASIS", "StarknetOASIS", "CardanoOASIS", "ArweaveOASIS", "TONOASIS", *REVIEWED_EXACT_KEY_PROVIDERS])
+    parser.add_argument("provider", choices=["ThreeFoldOASIS", "ClickHouseOASIS", "QuestDBOASIS", "CouchDBOASIS", "PouchDBOASIS", "ChromaOASIS", "CloudflareD1OASIS", "NATSJetStreamOASIS", "ZcashOASIS", "BittensorOASIS", "AkashOASIS", "EclipseOASIS", "ENSOASIS", "BlockscoutOASIS", "CelestiaOASIS", "ChainflipOASIS", "LocalFileOASIS", "HyperlaneOASIS", "LayerZeroV2OASIS", "StargateOASIS", "deBridgeOASIS", "SynapseOASIS", "ConnextOASIS", "MidenOASIS", "EspressoSystemsOASIS", "EigenLayerOASIS", "FhenixOASIS", "AxelarOASIS", "RitualOASIS", "WormholeOASIS", "BlockStackOASIS", "MatrixOASIS", "NostrOASIS", "BlueSkyOASIS", "ChainLinkOASIS", "EOSIOOASIS", "TelosOASIS", "FilecoinOASIS", "FantomOASIS", "AzureStorageOASIS", "SOLIDOASIS", "IPFSOASIS", "ActivityPubOASIS", "AWSS3OASIS", "SolanaOASIS", "GoogleCloudOASIS", "EthereumOASIS", "PolygonOASIS", "ArbitrumOASIS", "CosmosBlockChainOASIS", "PolkadotOASIS", "NEAROASIS", "BaseOASIS", "AvalancheOASIS", "BNBChainOASIS", "OptimismOASIS", "LineaOASIS", "ScrollOASIS", "ZkSyncOASIS", "AbstractOASIS", "MonadOASIS", "SeiOASIS", "BerachainOASIS", "BitcoinOASIS", "XRPLOASIS", "StellarOASIS", "AlgorandOASIS", "AptosOASIS", "HashgraphOASIS", "SuiOASIS", "ElrondOASIS", "RadixOASIS", "StarknetOASIS", "CardanoOASIS", "ArweaveOASIS", "TONOASIS", *REVIEWED_EXACT_KEY_PROVIDERS])
     parser.add_argument("--prepare", action="store_true")
+    parser.add_argument("--read-only-readiness", action="store_true",
+                        help="With --readiness, require an existing session without creating or renewing it.")
+    parser.add_argument("--public-readiness-settings", type=Path,
+                        help="With read-only readiness, execute four presets from a protected reviewed settings snapshot.")
     parser.add_argument("--readiness", action="store_true", help="Check discovery using the retained rehearsal visitor; create no cohort.")
     parser.add_argument("--localfile-deployment-visitor", action="store_true",
                         help="Use a separate visitor for the verified LocalFile settings deployment.")
@@ -988,7 +1086,7 @@ def main():
     if options.reviewed_deployment_visitor:
         rehearsal = reviewed_deployment_visitor(options.provider)
     if options.reuse_acknowledged_readiness is not None:
-        if not options.reviewed_deployment_visitor:
+        if not options.reviewed_deployment_visitor and options.public_readiness_settings is None:
             require_readiness_release()
         rehearsal = acknowledged_readiness_visitor(options.reuse_acknowledged_readiness)
     if options.provider in ("WakuOASIS", "DuckDBOASIS", "NATSJetStreamOASIS") and not options.prepare_exact_key_presets and not options.reviewed_deployment_visitor:
@@ -1010,6 +1108,53 @@ def main():
         parser.error("--continue-settled-read requires --prepare for the original client-flow gate")
     if options.resume_unstarted_native and (not options.prepare or continuing):
         parser.error("Unstarted-native continuation requires --prepare and cannot resume settled writes.")
+    if options.read_only_readiness and not options.readiness:
+        parser.error("--read-only-readiness requires --readiness.")
+    if options.public_readiness_settings is not None and not (
+            options.readiness and options.read_only_readiness and options.reuse_acknowledged_readiness):
+        parser.error("--public-readiness-settings requires read-only readiness and explicit retained visitor reuse.")
+    if options.provider in ("IPFSOASIS", "ActivityPubOASIS") and options.public_readiness_settings is None:
+        parser.error("This provider requires protected settings for read-only public readiness.")
+    if options.provider in ("SignProtocolOASIS", "EASOASIS", "FlowOASIS", "RoninOASIS", "ImmutableZkEVMOASIS") and options.public_readiness_settings is None:
+        parser.error("These public providers require protected settings and an acknowledged visitor for read-only readiness.")
+    public_review = None
+    if options.public_readiness_settings is not None:
+        try:
+            settings = json.loads(verification.protected_token(
+                options.public_readiness_settings.read_bytes(), decrypt=True))
+            partition = "CQL_HOSTED_QUERY_EXAMPLES__" + options.provider
+            presets = (json.loads(settings[partition]) if partition in settings else
+                       json.loads(settings["CQL_HOSTED_QUERY_EXAMPLES_JSON"])[options.provider])
+            if not isinstance(presets, list) or not set(public_preset_ids(options.provider)).issubset(
+                    row["id"] for row in presets):
+                raise ValueError("Incomplete reviewed preset set.")
+        except (OSError, ValueError, TypeError, KeyError, RuntimeError):
+            parser.error("The protected settings snapshot must contain all four reviewed provider presets.")
+        if options.provider in (*REDIS_FAMILY_PROVIDERS, "SignProtocolOASIS", "EASOASIS", "FlowOASIS",
+                                "RoninOASIS", "ImmutableZkEVMOASIS", "SupabaseOASIS", "SQLServerDBOASIS",
+                                "ElasticsearchOASIS", "OpenSearchOASIS", "PgVectorOASIS"):
+            binding = reviewed_source.get("sourceBinding", {})
+            if any(settings.get(key) != value for key, value in binding.items()):
+                parser.error("The protected source settings must match the reviewed catalogue.")
+            if options.provider == "SQLServerDBOASIS":
+                connection = settings.get("CQL_SQLSERVER_QUERY_CONNECTION_STRING")
+                if (not isinstance(connection, str)
+                        or hashlib.sha256(connection.encode()).hexdigest() != reviewed_source["connectionSha256"]):
+                    parser.error("The protected SQL Server connection must match the reviewed digest.")
+            if presets != reviewed_source["presets"]:
+                parser.error("The protected presets must match the reviewed catalogue.")
+            expected_ids = reviewed_source.get("publicIds") or next(
+                row for row in presets if row["id"] == "public-records")["request"]["filters"][0]["value"]
+            try:
+                grants = json.loads(settings["CQL_PUBLIC_READ_CATALOGUES_JSON"],
+                                    object_pairs_hook=unique_catalogue_properties)
+                granted = grants[options.provider]
+                if (not isinstance(granted, list) or len(granted) != len(expected_ids)
+                        or sorted(granted) != sorted(expected_ids)):
+                    raise ValueError("Unexpected grant.")
+            except (KeyError, TypeError, ValueError):
+                parser.error("The protected public read grant must contain exactly the reviewed record IDs.")
+        public_review = dict(reviewed_source or {}, presets=presets)
     if options.readiness:
         if options.prepare or continuing or options.resume_unstarted_native or options.cohort != "current":
             parser.error("--readiness cannot be combined with cohort execution.")
@@ -1018,11 +1163,30 @@ def main():
             rehearsal, reviewed_localfile = localfile_deployment_visitor()
         create_readiness_visitor = (options.localfile_deployment_visitor or options.pouchdb_deployment_visitor
                                     or options.decentraland_deployment_visitor or options.reviewed_deployment_visitor) and options.reuse_acknowledged_readiness is None
-        if create_readiness_visitor:
-            rehearsal.mkdir(exist_ok=True)
-        _, token = session(rehearsal, "visitor", allow_create=create_readiness_visitor)
+        if options.read_only_readiness:
+            _, token = session(rehearsal, "visitor", allow_create=False, allow_renewal=False)
+        else:
+            if create_readiness_visitor:
+                rehearsal.mkdir(exist_ok=True)
+            _, token = session(rehearsal, "visitor", allow_create=create_readiness_visitor)
         try:
+            if public_review is not None:
+                deployment = require_readiness_release()
+                usage = call("subscription/usage/current", token, method="GET")
+                remaining = usage.get("dailyCallsRemaining")
+                if type(remaining) is not int or (remaining != -1 and remaining < 4):
+                    raise RuntimeError("The retained visitor must have at least four daily calls available.")
             source = ready_source(options.provider, token, require_pair=True)
+            if public_review is not None:
+                if reviewed_source is not None:
+                    require_reviewed_presets(options.provider, source, reviewed_source)
+                verified = verify_public_readiness_queries(options.provider, token, source, public_review)
+                if require_readiness_release() != deployment:
+                    raise RuntimeError("The reviewed deployment changed during the public readiness queries.")
+                print(f"{options.provider} native and public-only paired full/subset queries passed (3/2 each).")
+                print(json.dumps({"deployment": deployment, "provider": options.provider, "presetRowIds": verified},
+                                 sort_keys=True))
+                return
             if options.provider == "LocalFileOASIS":
                 require_reviewed_presets("LocalFile", source, reviewed_localfile or localfile_review())
             if reviewed_source is not None:

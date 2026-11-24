@@ -73,3 +73,32 @@ returned. Keep both observations and seek a supported Tableland query gateway.
 Evidence under TestResults/TablelandRecoveryLaptopCurrent/bound-query.*.
 
 [Operator parameter contract](https://blog.textile.io/weeknotes-base-sepolia).
+
+The validator repository still links to the operator gateway documentation,
+but that documentation also redirects to the Textile homepage. The validator,
+SDK and docs repositories are not marked archived by GitHub. No operator
+announcement of a successor public endpoint or a network shutdown was found.
+Treat this as a public gateway access gap. The validator repository documents
+a separately operated native validator, which would require its own RPC access
+and resources before it could qualify as a demo source.
+
+[Validator operator documentation](https://github.com/tablelandnetwork/go-tableland#running-a-validator).
+
+The adapter now surfaces gateway redirects as HTTP failures and uses the
+shared OASIS activation state. The existing metadata unit suite passed 5/5.
+Native gateway and CQL acceptance are still open.
+
+Follow-up loopback HTTP controls passed 7/7 with the metadata suite. A 200
+health response activates the provider, deactivation clears the shared flag,
+and a 302 leaves it inactive without requesting the redirect target.
+
+## 9 November 2026 testnet gateway disposition
+
+The documented testnet host, testnets.tableland.network, returned HTTP 302
+to https://textile.io/ for an anonymous SELECT 1 request with a 12-second
+transport limit. The redirect was not followed and the response body was
+discarded. The mainnet host returned the same redirect. This rules out
+using the historical testnet host as the next public teaching source.
+A reachable validator with confirmed network identity and three reviewed
+public records remains the admission gate. No SDK, runtime, database,
+wallet or cloud resources were created for this observation.

@@ -88,3 +88,37 @@ atomic concurrency, avatar/detail ownership, central registration, full storage
 conformance and HyperDrive/failover/load-balancing remain separate acceptance work.
 [Historical proof](Archive/FIREBASE_CQL_MVP_PRESERVED_2026-10-30.md),
 [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md), [later work](AFTER_DEMO_BACKLOG.md).
+
+## Development WEB4 preparation
+
+An explicit query source now activates through one exact native Realtime
+Database key read using the existing REST adapter. Activation verifies a
+public canonical record and refuses missing, deleted, private or mismatched
+rows. The canonical storage provider and CQL query keep their existing
+entry points. Hosted credential scoping, logging review, WEB4 enrollment
+and native hosted qualification remain open.
+[Firebase REST authentication](https://firebase.google.com/docs/database/rest/auth) ·
+[Realtime Database rules](https://firebase.google.com/docs/database/security/rules-conditions).
+
+The WEB4 candidate requires `CQL_FIREBASE_QUERY_ORIGIN`,
+`CQL_FIREBASE_QUERY_PROJECT_ID`, a protected project-bound Firebase ID token
+in `CQL_FIREBASE_QUERY_READER_TOKEN`, and `CQL_FIREBASE_QUERY_PROBE_ID`.
+The guarded client only permits exact teaching-key GETs on the reviewed
+managed HTTPS database. It uses a direct connection and requires .NET
+URI query redaction because Firebase's REST ID token travels in the query.
+Review any deployed request instrumentation and the database's Security
+Rules for the dedicated reader before enrollment.
+[.NET HTTP event redaction](https://learn.microsoft.com/en-us/dotnet/core/compatibility/networking/9.0/query-redaction-events).
+
+The native HTTPS fixture uses `TestCategory=FirebaseHostedCqlNative` and a
+reviewed `COSMIC_FIREBASE_HOSTED_CQL_SOURCE` catalogue with `Actor`,
+three `LiveIds`, `DeletedId` and `MissingId`. Choose a live ID as the
+probe. All eight WEB4 admission tests passed. The native HTTPS fixture
+compiled and awaits a reviewed database and reader.
+
+The offline enrollment descriptor adds Origin and ProjectId to the native
+fixture fields. The protected settings must match the reviewed origin,
+project and first LiveIds entry as probe. The reader token stays protected.
+Preflight checks the token's project claims and rejects settings that
+disable HTTP URI query redaction. Firebase still verifies the token
+signature and Security Rules during native qualification.

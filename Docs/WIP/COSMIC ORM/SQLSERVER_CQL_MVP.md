@@ -85,3 +85,143 @@ separate red gates. A local catalogue card does not certify those requirements.
 [Preserved history](Archive/SQLSERVER_CQL_MVP_PRESERVED_2026-10-30.md) ·
 [Current status](CURRENT_STATUS.md) · [After-demo backlog](AFTER_DEMO_BACKLOG.md) ·
 [Resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+
+## Recovery laptop verification and Development gate
+
+The retained synthetic LocalDB source now passes native identity/restart,
+native content and Mongo-paired SDK/HTTP tests on the recovery laptop. Read-only
+activation checks existing table access and column types without provisioning.
+Cancellation and source fingerprint preservation passed in the native suite.
+
+```powershell
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider SQLServer -Federated -RecoveryMongo -VerifyOnly
+```
+
+For Development, use an explicitly configured SQL Server query source with an
+already provisioned synthetic dataset, a reachable endpoint and a SELECT-only
+credential. LocalDB on this laptop is local evidence. WEB4 needs an opt-in
+CqlReadSourceProfile for SQLServerDBOASIS and public catalogue grants limited
+to the admitted IDs. Update both the API CQL compiler's hosted-source admission
+and Core PreparedStorageExecution's explicit query-tariff allowlist. Pin the
+reviewed Core commit with the matching Railway manifest. Verify no enrollment
+without configuration and no storage write tariff for the query-only profile.
+Then verify discovery, native and Mongo-paired presets, isolation and replicas
+through the live Development service. LocalFile remains the first rollout.
+
+Core admission candidate 2ef15c3d7ad3c68c97d3b0dcd32ee24c2428b33a is on local
+Core branch work/cosmic-sqlserver-admission, based on parent pin 47c3a841.
+It adds SQL Server to the explicit query-tariff allowlist. The shared Core
+checkout was untouched. Build and verify query-only admission before publishing
+the Core commit or advancing the parent manifest and gitlink.
+
+WEB4 opt-in registration, published Core admission and the parent pin are
+ready on the task branch. The four canonical verifier presets passed the
+focused admission test with no skips. Receipt:
+TestResults/SqlServerCqlCurrent/web4-preset-names.log. Reused existing test
+outputs and started no services. The hosted source is still pending.
+
+### Development configuration review
+
+The rollout uses four settings. SQL Server provisioning is separate from WEB4
+configuration. Seed and qualify the three teaching records on the reachable
+database before enrolling their IDs.
+
+| Setting | Required value |
+|---|---|
+| CQL_SQLSERVER_QUERY_CONNECTION_STRING | Secret connection string for the qualified SELECT-only login |
+| PREPARED_STORAGE_ADMISSION_JSON | Preserve existing entries and add SQLServerDBOASIS as query-only with an explicit zero-cost read tariff |
+| CQL_PUBLIC_READ_CATALOGUES_JSON | Preserve existing catalogues and add exactly the three qualified GUIDs for SQLServerDBOASIS |
+| CQL_HOSTED_QUERY_EXAMPLES__SQLServerDBOASIS | public-records, public-subset, mongo-public-records, mongo-public-subset |
+
+Use the [four-preset generator](DUCKDB_CQL_MVP.md) with provider
+`SQLServerDBOASIS`, SQL Server labels, and the seed whose IDs were qualified
+on the target database. The retained local seed at
+`LocalState/COSMIC/SqlServerCql/demo-seed.json` passed offline verification
+against Web4Site `2170b67`. Both paired presets select the first two native
+IDs for preparation and keep their original three- and two-ID filters.
+
+Use the tested identity predicates and preserve physical copies in paired
+queries. Verify the exact reviewed Development release and settings, then run
+the cohort-free check before any snapshot preparation:
+
+```powershell
+python -B Scripts/Sandbox/Verify-HostedQuerySource.py SQLServerDBOASIS --readiness --read-only-readiness `
+  --reviewed-exact-key-source $reviewedCatalogue `
+  --reuse-acknowledged-readiness $retainedVisitorDirectory `
+  --public-readiness-settings $reviewedProtectedSettings
+```
+
+Set `$reviewedCatalogue` to the private SQL Server descriptor described
+below and `$reviewedProtectedSettings` to the DPAPI snapshot of the enrolled
+settings. Use the existing acknowledged visitor directory. Set the reviewed
+commit in `COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT` and
+`COSMIC_CQL_REVIEWED_RELEASE_REF`. The verifier checks all four live presets
+and emits a deployment-bound receipt after they pass.
+
+Before enrolling the source, connect as the proposed WEB4 query login and
+verify its effective permissions on the same table that activation resolves.
+This probe does not change the database:
+
+```sql
+DECLARE @ObjectId int = OBJECT_ID(N'OASISHolons', N'U');
+IF @ObjectId IS NULL
+    THROW 50001, 'The query login must resolve an existing OASISHolons table.', 1;
+
+DECLARE @Table nvarchar(517) =
+    QUOTENAME(OBJECT_SCHEMA_NAME(@ObjectId)) + N'.' + QUOTENAME(OBJECT_NAME(@ObjectId));
+SELECT DB_NAME() AS DatabaseName, @Table AS ResolvedTable,
+       HAS_PERMS_BY_NAME(@Table, N'OBJECT', N'SELECT') AS CanRead,
+       HAS_PERMS_BY_NAME(@Table, N'OBJECT', N'INSERT') AS CanInsert,
+       HAS_PERMS_BY_NAME(@Table, N'OBJECT', N'UPDATE') AS CanUpdate,
+       HAS_PERMS_BY_NAME(@Table, N'OBJECT', N'DELETE') AS CanDelete,
+       HAS_PERMS_BY_NAME(@Table, N'OBJECT', N'ALTER') AS CanAlter,
+       HAS_PERMS_BY_NAME(DB_NAME(), N'DATABASE', N'CREATE TABLE') AS CanCreateTable;
+SELECT TOP (0) Id, DataJson, IsDeleted FROM OASISHolons;
+```
+
+Require the reviewed database and resolved schema-qualified table, `CanRead = 1`, and zero for each write
+or schema permission. An unknown permission result leaves this gate open.
+Then run the native full and subset reads with the same login and record the
+exact returned IDs before enrolling them. The LocalDB files on the recovery
+laptop are local evidence. The permissions and query results from a reachable
+Development source still need verification.
+
+The cohort-free Development discovery check using the retained rehearsal
+visitor reported SQLServerDBOASIS absent or unavailable. Source qualification
+and enrollment remain prerequisites for the hosted query and browser runs.
+
+The offline exact-key preparer now accepts SQLServerDBOASIS. Use a protected
+descriptor with Actor, LiveIds, DeletedId, MissingId and ConnectionSha256.
+Compute the digest over the exact UTF-8 connection string qualified by the
+native reader. Keep the string in protected settings and keep the descriptor
+private. The preparer refuses missing or different connection settings.
+Supply this descriptor with --reviewed-exact-key-source for readiness.
+The offline digest check does not establish SQL permissions or connectivity.
+
+The hosted fixture is selected with `TestCategory=SqlServerHostedCqlNative`.
+Set `COSMIC_SQLSERVER_HOSTED_CQL_SOURCE` to the reviewed descriptor and
+`CQL_SQLSERVER_QUERY_CONNECTION_STRING` privately to the same connection
+used for enrollment. The fixture verifies the digest before opening SQL,
+checks effective permissions, and reads the full, subset and excluded keys.
+The fixture and WEB4 use the same hosted query-source factory. It rejects
+optional encryption and certificate validation bypass before connecting.
+The fixture and WEB4 compiled locally with zero errors. Four offline
+connection policy cases passed. They cover optional encryption, certificate
+bypass, mandatory encryption and strict encryption without opening a SQL
+connection. The first hosted reader run still needs the private descriptor
+and matching restricted connection. Existing local acceptance carries forward.
+
+### Hosted public read verification
+
+After the restricted native reader qualifies and the reviewed Development
+release is serving, run Verify-HostedQuerySource.py SQLServerDBOASIS with
+--reviewed-exact-key-source pointing to the same descriptor, --readiness
+--read-only-readiness, --public-readiness-settings pointing to the protected
+deployed snapshot, and --reuse-acknowledged-readiness pointing to an eligible
+visitor. The verifier checks the connection digest, four presets and exact
+public grant before using the visitor session. The offline response suite
+passed 44 checks, including rejection of a mismatched SQL Server digest and
+acceptance of a matching digest up to the simulated release guard. The
+public-only paired query does not establish private copies or replica delivery.
+
+11 November UTC: Development e5e3ca694c integrates HyperDrive SQL Server native workflow. CI 43050650521 passed both uninterrupted storage modes on SQL Server 2022 Linux 16.0.4222.2. Native SQL verified and removed ten exact owned tombstones, then confirmed all six fixture tables empty. Hosted WEB4 activation remains open.

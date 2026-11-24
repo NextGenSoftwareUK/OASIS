@@ -38,6 +38,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
         private readonly string _baseUrl;
         private readonly string _tenant;
         private readonly string _database;
+        private readonly Guid? _reviewedQueryCollectionId;
         private readonly Dictionary<string, string> _collectionIds = new();
 
         private const string CollAvatars = "oasis_avatars";
@@ -51,8 +52,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
 
         /// <summary>The caller owns the dedicated client and any configured authentication.</summary>
         public ChromaOASIS(HttpClient http, string baseUrl = "http://localhost:8000", string tenant = "default_tenant", string database = "default_database")
+            : this(http, baseUrl, tenant, database, null)
+        {
+        }
+
+        public ChromaOASIS(HttpClient http, string baseUrl, string tenant, string database, Guid? reviewedQueryCollectionId)
         {
             _http = http ?? throw new ArgumentNullException(nameof(http));
+            _reviewedQueryCollectionId = reviewedQueryCollectionId;
             _baseUrl = baseUrl.TrimEnd('/');
             _tenant = tenant;
             _database = database;

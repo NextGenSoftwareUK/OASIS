@@ -25,6 +25,8 @@ public sealed class TronPublicHeaderMetadataSource : KeyValueStorageProviderBase
     ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation, IDisposable
 {
     public const string AddressMetadata = "TronBlockHeight";
+    internal static readonly CosmicQueryCapabilities PublicCapabilities =
+        CosmicQueryCapabilities.ForStringMetadataKeyLookup(AddressMetadata, 19, 8);
     private readonly HeadersBackend blockHeights;
     private bool disposed;
 
@@ -42,24 +44,29 @@ public sealed class TronPublicHeaderMetadataSource : KeyValueStorageProviderBase
         ProviderDescription = "Read-only solidified public TRON headers";
         ProviderType = new EnumValue<PType>(PType.TRONOASIS);
         ProviderCategory = new EnumValue<Core.Enums.ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-        QueryCapabilities = CosmicQueryCapabilities.ForStringMetadataKeyLookup(AddressMetadata, 19, 8);
     }
 
     public PType QueryProviderType => PType.TRONOASIS;
-    public CosmicQueryCapabilities QueryCapabilities { get; }
+    public CosmicQueryCapabilities QueryCapabilities => PublicCapabilities;
 
     /// <summary>Separate host query-profile configuration, never the existing
     /// signed Tron storage settings. Reject unknown fields rather than ignore keys.</summary>
     public static TronPublicHeaderMetadataSource FromJson(string json) => CreateFromJson(json, null);
 
     public static TronPublicHeaderMetadataSource FromAuthenticatedJson(string json, string readerKey)
+        => new(CreateAuthenticatedHeaders(json, readerKey));
+
+    internal static HeadersBackend CreateAuthenticatedHeaders(string json, string readerKey)
     {
         if (readerKey is not { Length: > 0 and <= 256 } || readerKey.Any(c => c <= ' ' || c > '~' || c == ','))
             throw new ArgumentException("A dedicated TronGrid reader key is required.", nameof(readerKey));
-        return CreateFromJson(json, readerKey);
+        return CreateHeaders(json, readerKey);
     }
 
     private static TronPublicHeaderMetadataSource CreateFromJson(string json, string readerKey)
+        => new(CreateHeaders(json, readerKey));
+
+    private static HeadersBackend CreateHeaders(string json, string readerKey)
     {
         if (json == null || Encoding.UTF8.GetByteCount(json) > 8192)
             throw new ArgumentException("Bounded explicit Tron public source required.");
@@ -82,7 +89,7 @@ public sealed class TronPublicHeaderMetadataSource : KeyValueStorageProviderBase
         try
         {
             if (readerKey != null) client.DefaultRequestHeaders.Add("TRON-PRO-API-KEY", readerKey);
-            return new TronPublicHeaderMetadataSource(client,
+            return new HeadersBackend(client,
                 new Uri(root.GetProperty("rpcUrl").GetString(), UriKind.Absolute),
                 blockHeights, root.GetProperty("sourceOwner").GetGuid(), true);
         }
@@ -107,34 +114,38 @@ public sealed class TronPublicHeaderMetadataSource : KeyValueStorageProviderBase
         }
     }
 
-    public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
+    public Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
         int maximumResults = 100, CancellationToken cancellationToken = default) where T : IHolon
+        => ExecutePublicQueryAsync(blockHeights, !disposed && IsProviderActivated, plan, maximumResults, cancellationToken);
+
+    internal static async Task<OASISResult<IReadOnlyList<IHolon>>> ExecutePublicQueryAsync<T>(
+        HeadersBackend blockHeights, bool activated, CosmicQueryPlan<T> plan, int maximumResults,
+        CancellationToken cancellationToken) where T : IHolon
     {
         try
         {
-            ObjectDisposedException.ThrowIf(disposed, this);
-            if (plan == null || plan.Targets.Count != 1 || plan.Targets[0].Provider != QueryProviderType)
+            if (plan == null || plan.Targets.Count != 1 || plan.Targets[0].Provider != PType.TRONOASIS)
                 return Failure("CQL_PLAN_TARGET_UNAVAILABLE", "One explicitly admitted public Tron source is required.");
             if (maximumResults is < 1 or > 10000) return Failure("CQL_QUERY_LIMIT", "A bounded result budget is required.");
-            var admitted = QueryCapabilities.AdmitPlan(plan);
+            var admitted = PublicCapabilities.AdmitPlan(plan);
             if (admitted.IsError) return Failure(admitted.ErrorCode, admitted.Message);
             IReadOnlyList<string> keys;
-            if (QueryCapabilities.StringKeySetLookup.IsKeySetQuery(plan.Query))
+            if (PublicCapabilities.StringKeySetLookup.IsKeySetQuery(plan.Query))
             {
-                var selected = QueryCapabilities.StringKeySetLookup.SelectKeys(plan.Query);
+                var selected = PublicCapabilities.StringKeySetLookup.SelectKeys(plan.Query);
                 if (selected.IsError) return Failure(selected.ErrorCode, selected.Message);
                 keys = selected.Result;
             }
             else
             {
-                var selected = QueryCapabilities.StringPointLookup.SelectKey(plan.Query);
+                var selected = PublicCapabilities.StringPointLookup.SelectKey(plan.Query);
                 if (selected.IsError) return Failure(selected.ErrorCode, selected.Message);
                 keys = new[] { selected.Result };
             }
             if (keys.Any(key => !blockHeights.Addresses.Contains(key, StringComparer.Ordinal)))
                 return Failure("CQL_INVALID_SOURCE_KEY", "Select addresses from the configured block catalogue.");
             cancellationToken.ThrowIfCancellationRequested();
-            if (!IsProviderActivated) return Failure("CQL_PROVIDER_INACTIVE", "Activate the configured public source first.");
+            if (!activated) return Failure("CQL_PROVIDER_INACTIVE", "Activate the configured public source first.");
             var native = await blockHeights.ReadAsync(keys, cancellationToken);
             var rows = native.Where(row => plan.Query.ReadAccess == null || plan.Query.ReadAccess.CanRead(row))
                 .Skip(plan.Query.Offset).Take(plan.Query.Limit ?? native.Count).ToArray();
@@ -193,7 +204,7 @@ public sealed class TronPublicHeaderMetadataSource : KeyValueStorageProviderBase
             foreach (var entry in value.EnumerateArray()) Unique(entry);
     }
 
-    private sealed class HeadersBackend : IKeyValueBackend, IDisposable
+    internal sealed class HeadersBackend : IKeyValueBackend, IDisposable
     {
         private readonly HttpClient client;
         private readonly Uri endpoint;

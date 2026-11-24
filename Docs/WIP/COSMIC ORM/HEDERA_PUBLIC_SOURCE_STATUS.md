@@ -89,3 +89,62 @@ Evidence is retained under `TestResults/HostedCqlIntegrationCurrent/`; durable o
 | HashgraphOASIS-isolation-http.json | 2c10605fa0a9bf5461e51e1587b6f4271233a1f66ee8e9e24470369f8bbe2eba |
 
 Scheduling is bounded to three concurrent reads **per native query**, with the existing five-second budget. Per-account index timestamps can differ; no freshness, shared snapshot, independent consensus proof or source writes are claimed.
+Development 91493edb browser on 10 November: public subset rendered two HashgraphOASIS rows. The full preset again returned HTTP 504 CQL_QUERY_CANCELLED. Both exact presets passed over HTTP in the separate earlier proof. Preserve the browser failure and original private cohort.
+Replacement Development deployment ab73f09f at af621f3c: public full browser attempt returned HTTP 503 CQL_PROVIDER_UNAVAILABLE. The exact deployment startup log records HashgraphOASIS activation cancellation, unclassified stage, with no upstream HTTP status. Retain the previously rendered two-row subset and earlier HTTP acceptance as scoped evidence. Current activation recovery is open.
+On 4907da23, refreshed browser discovery marked HashgraphOASIS unavailable and the exact deployment log confirmed activation cancellation without an upstream HTTP status. No browser query was dispatched. Existing Wizard recovery is needed; previous subset and HTTP proofs remain release-scoped.
+Activation diagnosis: HederaPublicAccountMetadataSource.ActivateQuerySourceAsync calls VerifyAsync, which reads the entire configured account catalogue using the activation cancellation token before marking the source active. The prepared four-preset deadline amendment only changes query execution and cannot recover a source that fails activation. Keep it unapplied as an activation fix. The next diagnostic is to correlate the exact deployment activation budget with mirror request timing and cancellation, preserving the all-accounts admission check.
+Working-tree deadline trace: CqlV1Providers uses a 30-second activation budget linked to its caller token. FromJson gives the mirror HttpClient a 15-second per-request timeout. The current unclassified cancellation log does not identify which deadline or caller cancellation fired. Confirm these limits against the exact deployed revision and gather stage timing before changing either budget.
+Exact release check: the source blobs at 9419d463 (deployment 4907da23) confirm both the 30-second WEB4 activation limit and the 15-second mirror request limit. CqlNativeFailureDiagnostics classifies OperationCanceledException but currently records neither elapsed activation time nor which linked token expired. The existing Development Wizard action covers the controlled recovery; no new operator action or deployment is needed to establish the limits.
+Native failure logging now recognizes nested timeout exceptions without logging exception messages. Focused WEB4 diagnostics suite: 5 passed, 0 failed, 0 skipped. Scoped two-file change published as bf42a9d06a on the existing COSMIC branch. Exact Development validation and live recovery remain open.
+
+Development 85df5709 (9eb5284b73): guarded .NET startup activation hit the 15-second response-header deadline at 15,007 ms without upstream status. An exact-container, read-only Node probe matched all three configured account identities with HTTP 200 headers at 353 ms, 690 ms and 9,611 ms. This confirms reachability and variable latency for the sample. The guarded .NET path and recovery remain open under the existing Wizard action. No settings, files, installs or artifacts were created by the probe.
+
+Development fbc0e08e (1f1021ec6a): Hedera moved from unavailable during startup to native and federated catalogue readiness. Both reviewed public native presets passed the row checks (3 full and 2 subset) using the retained demo visitor. Paired browser verification and startup reliability across deployments remain open. No new avatar, query report, local build, or download was created.
+
+On Development fbc0e08e the two reviewed federation presets returned three and two public Hedera rows with exact provider and copy identity checks and strict subset containment. The existing visitor had no prepared Mongo copies. The private paired browser flow remains open. No report file or local build output was created.
+
+On fbc0e08e, the browser displayed 3/2 public Hedera rows under the disposable demo visitor. The original private cohort directory is absent on this recovery checkout. Recover the original identity and its completion acknowledgement from the originating machine before verifying the private paired presets. Do not replay the two accepted writes.
+
+At 00:06 UTC on 11 November the recovery laptop reached the configured public mirror probe endpoint and validated all three teaching accounts. This is laptop-to-mirror evidence. Development startup recovery is still open.
+
+The feature image build 42925770019 passed for b5a01a8030. The Development-based image run 42926699339 reached Build and push after checkout and provider SDK publication checks passed. Its input is 2b828fd377. The standalone classifier passed three cases and the two WEB4 test cases remain unrun. Probe e754304684 passed eight existing tests and returned three live accounts with --no-report, without writing a report. Development integration and live activation remain open.
+
+Railway a64672cb deployed 2b828fd377 after exact CI 42926699339 passed. Hedera activation again timed out awaiting response headers at 15,009 ms without an HTTP status. The catalogue settled at 104/106 ready, with Hedera and Nostr unavailable. Preserve the public browser 3/2 result on fbc0e08e. Recovery still requires successful activation on the current release and private paired verification with the original cohort.
+
+11 November UTC guarded .NET comparison: a 9,728-byte temporary probe loaded NativeConnectionGuard.CreateGuardedHttpHandler from the shipped /app Core assembly over Railway SSH. Three concurrent mirror reads returned HTTP 200 with response headers at 335, 617 and 3,551 ms. Standard SocketsHttpHandler controls also returned HTTP 200 at 16, 531 and 925 ms. This establishes post-startup guarded HTTP reachability; it does not identify the cause of the earlier activation timeout or recover registry readiness. No deadlines/settings changed.
+
+11 November UTC full shipped-provider activation probe: an isolated .NET process in the current Development container loaded HederaPublicAccountMetadataSource from the deployed provider assembly and invoked FromJson with the existing CQL_HEDERA_PUBLIC_SOURCE_JSON environment value without printing it. ActivateQuerySourceAsync completed in 2,727 ms with IsError=False, Result=True and IsProviderActivated=True under the existing 30-second caller budget and 15-second HTTP timeout. This exercises all configured account reads, identity validation and mapping. The process disposed its source. The running WEB4 registry was not changed; its controlled recovery remains open.
+
+WEB4 diagnostic regression gate complete: CI 42938257820/job 130253566184 succeeded on fda32cf5d3 with all 13 selected cases passing, including the seven native diagnostic cases and both Hedera stage cases previously unrun. This replaces the earlier unrun-test checkpoint. Current-release registry recovery and live query acceptance remain open.
+
+
+11 November UTC: Railway Development WEB4 deployment 345d9ec9-7810-4251-9cbf-f2c6e697a738 succeeded on 9b8a30a65c. Its startup log independently reproduced the HashgraphOASIS response_headers activation timeout at 15,008 ms with no upstream HTTP status. The historical public 3/2 browser proof remains recorded. Current-release registry recovery and live query verification remain open.
+
+
+11 November UTC: Development fd40b1ad12 reproduced the Hedera startup response_headers timeout in 15,017 ms without an HTTP status. Authenticated discovery returned CQL_SOURCE_UNAVAILABLE. Earlier browser acceptance is preserved. Current release recovery remains open.
+
+
+11 November UTC: the new c39eba5cd1 WEB4 instance advertised Hedera native and federated readiness. Both native public presets passed authenticated live HTTP with exact row IDs and counts 3/2. Prior startup failures remain recorded. Private paired browser and restart reliability remain open.
+
+
+11 November UTC: on Development c39eba5cd1, Hedera's two MongoDB-paired public presets returned 3 full and 2 filtered rows through the live WEB4 federation endpoint. The selections matched the native preset keys and all returned copies were from Hedera. The independent visitor saw no MongoDB copies. Original private paired browser verification and restart reliability remain open.
+
+11 November UTC: standalone Hedera Railway deployment `09567e4c-41ea-4418-a32e-8c1150572d47` at `a7522f4286` is REMOVED. Build logs reached Docker image export and no deployment logs were returned. Live WEB4 still serves `3f5d781f29`. Building successor `fcf2a522e6` includes the Hedera commit by Git ancestry, so verify Hedera and ActivityPub on that successor after cutover.
+
+11 November UTC: verified Railway Development deployment `5e1e3ab0-81f9-4fea-83b8-12e851c999ed` at `fcf2a522e6`. ActivityPubOASIS and HashgraphOASIS both returned three full and two subset rows through their live native public CQL presets. Discovery also reported federation ready. Prior paired and browser evidence retains its original scope.
+
+11 November UTC: Development b1d78063c7 integrates HyperDrive Hedera native storage conformance. CI 43056077700 passed 52/52 on independent Hiero consensus ledgers using compression before encryption, with both contracts confirmed empty afterward. Hosted signed storage and the original-owner paired CQL browser check remain open.
+
+11 November UTC: live WEB4 ea614f3fc6 reports Hedera activation timed out awaiting response headers after 15,008 ms with no HTTP status. Nostr's relay returned HTTP 503 during WebSocket upgrade (NotAWebSocket). Discovery remains 104/106. The protected Development Wizard session is absent on this laptop. Keep the existing operator recovery action open.
+
+11 November UTC: Railway WEB4 cut over to e5e3ca694c, deployment a1f0917e-b72a-4b5a-8732-0b6547f41687. Authenticated discovery warmed from 92/106 to 105/106 native and federation ready. Hedera and TON recovered readiness on this revision; Nostr remains CQL_SOURCE_UNAVAILABLE. Supabase, TRON and CouchDB remain absent. Prior functional cohorts were left intact.
+
+11 November UTC: Railway WEB4 moved to ea54de967e. Authenticated discovery reported 104/106 native and federated ready. Hedera and Nostr returned CQL_SOURCE_UNAVAILABLE. Supabase, TRON and CouchDB remain absent. Development 73f8b98967 added verified RavenDB storage (52/52 and four write-ownership checks, CI 43071621377). Prepared Supabase integration c9e1e98548 preserves all nine qualified Supabase blobs on that head. Image run 43071690459 still builds the preceding security-patched candidate.
+
+11 November UTC: Railway WEB4 cut over to d93d984b7b, deployment d04ed4c4-2d76-4ea1-b261-393da541fe3b. Authenticated discovery returned 105/106 native and federation ready. Hedera recovered readiness. Nostr remains CQL_SOURCE_UNAVAILABLE. Supabase, TRON and CouchDB remain absent. No accepted query cohort was replayed.
+
+11 November UTC: Railway WEB4 cut over to Sui storage revision 31db62c741 (deployment 1974ed95-8e85-4c76-80a0-3ec9f9b4fea8). Authenticated discovery returned 104/106 native and federated ready. Hedera and Nostr reported CQL_SOURCE_UNAVAILABLE. Supabase, TRON and CouchDB remain absent. CockroachDB revision 2dd52cf6c0 is building. Exact Supabase image CI 43072535002 remains active.
+
+11 November UTC: Railway deployed WEB4 cadf5bf85b (c08e176d). Authenticated discovery warmed from 18/106 to 68/106 to 104/106 ready for native and federated CQL. Hedera timed out awaiting headers after 15,007 ms; Nostr received WebSocket HTTP 503 after 129 ms. Supabase, TRON and CouchDB remain absent. Prior functional receipts retain their scope.
+
+11 November UTC: after the AvalancheGo WEB4 rollout restored Cosmos and Hedera readiness, the authenticated visitor ran both native public HTTP presets for each provider. Both returned three full and two filtered rows, with exact preset selections and strict subset containment. Prior private cohorts were preserved.

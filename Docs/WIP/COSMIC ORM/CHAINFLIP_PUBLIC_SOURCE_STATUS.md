@@ -165,3 +165,5 @@ remains open; original cohort/config/owners/save ACKs remain frozen.
 | `web4-sandbox.html` | 182914 | `bb0edff202f1b25d46ed5412f0953b0134387ee9bbcc9192a89368261e4aaad8` |
 | `cql-demo-preparation.js` | 10241 | `c1006abf6074616428f93e83e13774ba8a6198f35d8ed097d84323466a8b309a` |
 | `cql-playground.js` | 21871 | `7cb6210b9adda1e83630fc966926772f8338c43163c24d1abd88c626ad1ad649` |
+
+11 November UTC: Chainflip native public completed-swap presets rendered 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. The original-owner private paired browser check remains open.

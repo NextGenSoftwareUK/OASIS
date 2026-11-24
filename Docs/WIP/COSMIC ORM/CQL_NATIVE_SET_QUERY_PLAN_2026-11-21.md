@@ -17,6 +17,7 @@ Union/Intersect/Except remove duplicates according to the declared entity or sel
 Concat preserves duplicates and the left sequence before the right, including duplicate identity occurrences.
 An outer Take must not hide an invalid, unauthorized-scope or over-budget input.
 Compute the combined result in native SQL/aggregation under one owned native read snapshot. Existing bounded input/traversal proof commands may run in that same snapshot; their streamed resource checks must not become managed set mathematics. Reuse hydration/error/permission owners, not two client query results combined in memory.
+Use a single native statement/aggregation and existing hydration/error/permission owners, not two buffered client queries.
 Preserve cancellation, separate operand/result limits and payload/work bounds; return OASISResult errors on unsupported semantics.
 Do not introduce automatic read retries or claim transaction isolation beyond the provider's actual operation.
 
