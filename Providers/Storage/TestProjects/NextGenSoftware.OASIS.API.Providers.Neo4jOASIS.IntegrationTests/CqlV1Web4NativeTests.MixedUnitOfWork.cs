@@ -70,12 +70,17 @@ public sealed partial class CqlV1Web4NativeTests
         }
         keep.Name="uow-stale";Assert.IsFalse(session.Update(keep).IsError);
         Assert.IsFalse(session.Remove(added,softDelete:false).IsError);
+        var failedCalls=0;
+        Assert.IsFalse(session.SetLifecycle(new CosmicSessionLifecycle(saveFailed:(context,failed)=>{
+            failedCalls++;Assert.AreEqual(CosmicConcurrencyException.Code,failed.ErrorCode);Assert.IsFalse(context.IsCommitted);
+            return Task.CompletedTask;})).IsError);
         var stale=await session.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));
         Assert.IsTrue(stale.IsError);Assert.AreEqual(CosmicConcurrencyException.Code,stale.ErrorCode,stale.Message);checks++;
+        Assert.AreEqual(1,failedCalls,"S21: the failed-save callback observes the native refusal once.");checks++;
         var unchanged=await Stored(keep.Id,added.Id);
         Assert.AreEqual(2,unchanged.Count,"The deletion must roll back with the stale update.");
         Assert.AreEqual("uow-rival",unchanged.Single(row=>row.Id==keep.Id).Name);checks++;
         return new NativeFixtureJourneyProof(checks,4,new Dictionary<string,bool>{
-            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true});
+            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true});
     }
 }
