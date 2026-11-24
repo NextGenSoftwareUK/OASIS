@@ -28,6 +28,26 @@ public sealed class ChromaNativeStorageConformanceTests
             {
                 await File.WriteAllTextAsync(reportPath + ".next", JsonSerializer.Serialize(checkpoint));
                 File.Move(reportPath + ".next", reportPath, overwrite: true);
+            },
+            (id, sync) => sync ? Task.FromResult(provider.DeleteHolonSoft(id, false)) : provider.DeleteHolonSoftAsync(id, false),
+            expectedDefaultDeletion: "soft",
+            observeNativeTombstone: async (id, owner, name) =>
+            {
+                using var http = new HttpClient();
+                const string collections = "http://127.0.0.1:18001/api/v2/tenants/default_tenant/databases/default_database/collections";
+                using var described = JsonDocument.Parse(await http.GetStringAsync(collections + "/oasis_holons"));
+                var cid = described.RootElement.GetProperty("id").GetString();
+                using var response = await http.PostAsync($"{collections}/{cid}/get",
+                    new StringContent(JsonSerializer.Serialize(new { ids = new[] { id.ToString() }, include = new[] { "documents" } }), System.Text.Encoding.UTF8, "application/json"));
+                response.EnsureSuccessStatusCode();
+                using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                var docs = doc.RootElement.GetProperty("documents");
+                if (docs.GetArrayLength() == 0) return false;
+                var raw = docs[0].GetString()!;
+                StringAssert.Contains(raw, name);
+                StringAssert.Contains(raw, owner.ToString("D"));
+                StringAssert.Contains(raw, "DeletedDate");
+                return true;
             });
 
         if (!report.Succeeded)

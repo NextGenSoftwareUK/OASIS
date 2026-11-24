@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 
@@ -113,11 +114,11 @@ namespace NextGenSoftware.OASIS.API.Providers.PgVectorOASIS
             {
                 var doc = await GetDocAsync<Avatar>(CollAvatars, id.ToString());
                 if (doc == null)
-                    OASISErrorHandling.HandleError(ref result, $"PgVectorOASIS: Avatar {id} not found.");
+                    { OASISErrorHandling.HandleError(ref result, $"PgVectorOASIS: Avatar {id} not found."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else if (doc.IsDeleted)
-                    OASISErrorHandling.HandleError(ref result, $"PgVectorOASIS: Avatar {id} has been deleted.");
+                    { OASISErrorHandling.HandleError(ref result, $"PgVectorOASIS: Avatar {id} has been deleted."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else
-                    result.Result = doc;
+                { result.Result = doc; result.IsLoaded = true; result.LoadedCount = 1; }
             }
             catch (Exception ex)
             {
@@ -136,9 +137,9 @@ namespace NextGenSoftware.OASIS.API.Providers.PgVectorOASIS
             {
                 var doc = await FindOneAsync<Avatar>(CollAvatars, "Username", username);
                 if (doc == null || doc.IsDeleted)
-                    OASISErrorHandling.HandleError(ref result, $"PgVectorOASIS: Avatar with username '{username}' not found.");
+                    { OASISErrorHandling.HandleError(ref result, $"PgVectorOASIS: Avatar with username '{username}' not found."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else
-                    result.Result = doc;
+                { result.Result = doc; result.IsLoaded = true; result.LoadedCount = 1; }
             }
             catch (Exception ex)
             {
@@ -157,9 +158,9 @@ namespace NextGenSoftware.OASIS.API.Providers.PgVectorOASIS
             {
                 var doc = await FindOneAsync<Avatar>(CollAvatars, "Email", email);
                 if (doc == null || doc.IsDeleted)
-                    OASISErrorHandling.HandleError(ref result, $"PgVectorOASIS: Avatar with email '{email}' not found.");
+                    { OASISErrorHandling.HandleError(ref result, $"PgVectorOASIS: Avatar with email '{email}' not found."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else
-                    result.Result = doc;
+                { result.Result = doc; result.IsLoaded = true; result.LoadedCount = 1; }
             }
             catch (Exception ex)
             {
@@ -177,7 +178,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PgVectorOASIS
             try
             {
                 var docs = await GetAllDocsAsync<Avatar>(CollAvatars);
-                result.Result = docs.FindAll(a => !a.IsDeleted);
+                var live = docs.FindAll(a => !a.IsDeleted); result.Result = live; result.IsLoaded = true; result.LoadedCount = live.Count;
             }
             catch (Exception ex)
             {
@@ -197,7 +198,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PgVectorOASIS
                 if (avatar.Id == Guid.Empty)
                     avatar.Id = Guid.NewGuid();
                 await UpsertDocAsync(CollAvatars, avatar.Id.ToString(), avatar);
-                result.Result = avatar;
+                result.Result = avatar; result.IsSaved = true; result.SavedCount = 1;
             }
             catch (Exception ex)
             {
@@ -214,20 +215,27 @@ namespace NextGenSoftware.OASIS.API.Providers.PgVectorOASIS
             var result = new OASISResult<bool>();
             try
             {
+                var avatar = await GetDocAsync<Avatar>(CollAvatars, id.ToString());
+                if (avatar == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"PgVectorOASIS: Avatar {id} not found.");
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    return result;
+                }
                 if (softDelete)
                 {
-                    var avatar = await GetDocAsync<Avatar>(CollAvatars, id.ToString());
-                    if (avatar != null)
-                    {
-                        avatar.DeletedDate = DateTime.UtcNow;
-                        await UpsertDocAsync(CollAvatars, id.ToString(), avatar);
-                    }
+                    avatar.DeletedDate = DateTime.UtcNow;
+                    await UpsertDocAsync(CollAvatars, id.ToString(), avatar);
                 }
                 else
                 {
                     await DeleteDocAsync(CollAvatars, id.ToString());
+                    if (await GetDocAsync<AvatarDetail>(CollAvatarDetails, id.ToString()) != null)
+                        await DeleteDocAsync(CollAvatarDetails, id.ToString());
                 }
                 result.Result = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
             }
             catch (Exception ex)
             {
@@ -246,7 +254,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PgVectorOASIS
             {
                 var avatar = await FindOneAsync<Avatar>(CollAvatars, "Username", username);
                 if (avatar == null)
-                    OASISErrorHandling.HandleError(ref result, $"PgVectorOASIS: Avatar '{username}' not found.");
+                    { OASISErrorHandling.HandleError(ref result, $"PgVectorOASIS: Avatar '{username}' not found."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else
                     return await DeleteAvatarAsync(avatar.Id, softDelete);
             }
@@ -267,7 +275,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PgVectorOASIS
             {
                 var avatar = await FindOneAsync<Avatar>(CollAvatars, "Email", email);
                 if (avatar == null)
-                    OASISErrorHandling.HandleError(ref result, $"PgVectorOASIS: Avatar with email '{email}' not found.");
+                    { OASISErrorHandling.HandleError(ref result, $"PgVectorOASIS: Avatar with email '{email}' not found."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else
                     return await DeleteAvatarAsync(avatar.Id, softDelete);
             }
@@ -290,9 +298,9 @@ namespace NextGenSoftware.OASIS.API.Providers.PgVectorOASIS
             {
                 var doc = await GetDocAsync<AvatarDetail>(CollAvatarDetails, id.ToString());
                 if (doc == null)
-                    OASISErrorHandling.HandleError(ref result, $"PgVectorOASIS: AvatarDetail {id} not found.");
+                    { OASISErrorHandling.HandleError(ref result, $"PgVectorOASIS: AvatarDetail {id} not found."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else
-                    result.Result = doc;
+                { result.Result = doc; result.IsLoaded = true; result.LoadedCount = 1; }
             }
             catch (Exception ex)
             {
@@ -311,9 +319,9 @@ namespace NextGenSoftware.OASIS.API.Providers.PgVectorOASIS
             {
                 var doc = await FindOneAsync<AvatarDetail>(CollAvatarDetails, "Username", username);
                 if (doc == null)
-                    OASISErrorHandling.HandleError(ref result, $"PgVectorOASIS: AvatarDetail '{username}' not found.");
+                    { OASISErrorHandling.HandleError(ref result, $"PgVectorOASIS: AvatarDetail '{username}' not found."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else
-                    result.Result = doc;
+                { result.Result = doc; result.IsLoaded = true; result.LoadedCount = 1; }
             }
             catch (Exception ex)
             {
@@ -332,9 +340,9 @@ namespace NextGenSoftware.OASIS.API.Providers.PgVectorOASIS
             {
                 var doc = await FindOneAsync<AvatarDetail>(CollAvatarDetails, "Email", email);
                 if (doc == null)
-                    OASISErrorHandling.HandleError(ref result, $"PgVectorOASIS: AvatarDetail '{email}' not found.");
+                    { OASISErrorHandling.HandleError(ref result, $"PgVectorOASIS: AvatarDetail '{email}' not found."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else
-                    result.Result = doc;
+                { result.Result = doc; result.IsLoaded = true; result.LoadedCount = 1; }
             }
             catch (Exception ex)
             {
@@ -352,7 +360,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PgVectorOASIS
             try
             {
                 var docs = await GetAllDocsAsync<AvatarDetail>(CollAvatarDetails);
-                result.Result = docs;
+                result.Result = docs; result.IsLoaded = true; result.LoadedCount = docs.Count;
             }
             catch (Exception ex)
             {
@@ -372,7 +380,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PgVectorOASIS
                 if (detail.Id == Guid.Empty)
                     detail.Id = Guid.NewGuid();
                 await UpsertDocAsync(CollAvatarDetails, detail.Id.ToString(), detail);
-                result.Result = detail;
+                result.Result = detail; result.IsSaved = true; result.SavedCount = 1;
             }
             catch (Exception ex)
             {
@@ -393,11 +401,11 @@ namespace NextGenSoftware.OASIS.API.Providers.PgVectorOASIS
             {
                 var doc = await GetDocAsync<Holon>(CollHolons, id.ToString());
                 if (doc == null)
-                    OASISErrorHandling.HandleError(ref result, $"PgVectorOASIS: Holon {id} not found.");
+                    { OASISErrorHandling.HandleError(ref result, $"PgVectorOASIS: Holon {id} not found."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else if (doc.IsDeleted)
-                    OASISErrorHandling.HandleError(ref result, $"PgVectorOASIS: Holon {id} has been deleted.");
+                    { OASISErrorHandling.HandleError(ref result, $"PgVectorOASIS: Holon {id} has been deleted."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else
-                    result.Result = doc;
+                { result.Result = doc; result.IsLoaded = true; result.LoadedCount = 1; }
             }
             catch (Exception ex)
             {
@@ -415,7 +423,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PgVectorOASIS
             try
             {
                 var all = await FindAllAsync<Holon>(CollHolons, "ParentHolonId", id.ToString());
-                result.Result = all.FindAll(h => !h.IsDeleted);
+                var live = all.FindAll(h => !h.IsDeleted); result.Result = live; result.IsLoaded = true; result.LoadedCount = live.Count;
             }
             catch (Exception ex)
             {
@@ -433,7 +441,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PgVectorOASIS
             try
             {
                 var docs = await GetAllDocsAsync<Holon>(CollHolons);
-                result.Result = docs.FindAll(h => !h.IsDeleted);
+                var live = docs.FindAll(h => !h.IsDeleted); result.Result = live; result.IsLoaded = true; result.LoadedCount = live.Count;
             }
             catch (Exception ex)
             {
@@ -450,10 +458,29 @@ namespace NextGenSoftware.OASIS.API.Providers.PgVectorOASIS
             var result = new OASISResult<IHolon>();
             try
             {
+                if (holon == null) throw new ArgumentNullException(nameof(holon));
                 if (holon.Id == Guid.Empty)
                     holon.Id = Guid.NewGuid();
-                await UpsertDocAsync(CollHolons, holon.Id.ToString(), holon);
+                var id = holon.Id;
+                holon.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.PgVectorOASIS] = id.ToString("D");
+                await UpsertDocAsync(CollHolons, id.ToString(), holon);
+                var savedCount = 1;
+                if (saveChildren && holon.Children != null)
+                {
+                    foreach (var child in holon.Children)
+                    {
+                        if (child == null) continue;
+                        child.ParentHolonId = id;
+                        var childResult = await SaveHolonAsync(child, recursive, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                        if (childResult.IsError || !childResult.IsSaved)
+                            throw new System.IO.InvalidDataException($"Child holon {child.Id} was not saved: {childResult.Message}");
+                        savedCount += childResult.SavedCount;
+                    }
+                }
                 result.Result = holon;
+                result.IsSaved = true;
+                result.SavedCount = savedCount;
             }
             catch (Exception ex)
             {
@@ -471,12 +498,24 @@ namespace NextGenSoftware.OASIS.API.Providers.PgVectorOASIS
             var saved = new List<IHolon>();
             try
             {
+                var savedTotal = 0;
                 foreach (var h in holons)
                 {
                     var r = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
-                    if (!r.IsError) saved.Add(r.Result);
+                    if (r.IsError || !r.IsSaved)
+                    {
+                        result.IsError = true;
+                        result.ErrorCount += Math.Max(1, r.ErrorCount);
+                        result.Message += r.Message + Environment.NewLine;
+                        if (!continueOnError) break;
+                        continue;
+                    }
+                    saved.Add(r.Result);
+                    savedTotal += r.SavedCount;
                 }
                 result.Result = saved;
+                result.IsSaved = saved.Count > 0;
+                result.SavedCount = savedTotal;
             }
             catch (Exception ex)
             {
@@ -493,20 +532,26 @@ namespace NextGenSoftware.OASIS.API.Providers.PgVectorOASIS
             var result = new OASISResult<bool>();
             try
             {
+                var holon = await GetDocAsync<Holon>(CollHolons, id.ToString());
+                if (holon == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"PgVectorOASIS: Holon {id} not found.");
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    return result;
+                }
                 if (softDelete)
                 {
-                    var holon = await GetDocAsync<Holon>(CollHolons, id.ToString());
-                    if (holon != null)
-                    {
-                        holon.DeletedDate = DateTime.UtcNow;
-                        await UpsertDocAsync(CollHolons, id.ToString(), holon);
-                    }
+                    holon.DeletedDate = DateTime.UtcNow;
+                    var saved = await SaveHolonAsync(holon, saveChildren: false);
+                    if (saved.IsError || !saved.IsSaved) { OASISErrorHandling.HandleError(ref result, saved.Message); return result; }
                 }
                 else
                 {
                     await DeleteDocAsync(CollHolons, id.ToString());
                 }
                 result.Result = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
             }
             catch (Exception ex)
             {
@@ -539,12 +584,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PgVectorOASIS
             await using var cmd = new NpgsqlCommand($"SELECT doc FROM {table} WHERE id = @id LIMIT 1", conn);
             cmd.Parameters.AddWithValue("id", Guid.Parse(id));
             var raw = await cmd.ExecuteScalarAsync() as string;
-            return string.IsNullOrEmpty(raw) ? null : JsonSerializer.Deserialize<T>(raw, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            return string.IsNullOrEmpty(raw) ? null : StoredRecordJson.DeserializeStored<T>(raw);
         }
 
         private async Task UpsertDocAsync<T>(string table, string id, T obj)
         {
-            var json = JsonSerializer.Serialize(obj);
+            var json = StoredRecordJson.Serialize(obj);
             string username = "", email = "", parent = "";
             using (var d = JsonDocument.Parse(json))
             {
@@ -590,7 +635,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PgVectorOASIS
             while (await reader.ReadAsync())
             {
                 var raw = reader.GetString(0);
-                var item = JsonSerializer.Deserialize<T>(raw, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                var item = StoredRecordJson.DeserializeStored<T>(raw);
                 if (item != null) list.Add(item);
             }
             return list;
@@ -726,18 +771,23 @@ namespace NextGenSoftware.OASIS.API.Providers.PgVectorOASIS
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
             var result = new OASISResult<IHolon>();
-            var loaded = await LoadHolonAsync(id);
+            var loaded = await LoadHolonAsync(id, loadChildren: false);
             if (loaded.IsError || loaded.Result == null)
             {
                 OASISErrorHandling.HandleError(ref result, loaded.Message);
+                result.ErrorCode = loaded.ErrorCode;
                 return result;
             }
 
             var deleted = await DeleteHolonSoftAsync(id, true);
-            if (deleted.IsError)
+            if (deleted.IsError || !deleted.IsDeleted)
                 OASISErrorHandling.HandleError(ref result, deleted.Message);
             else
+            {
                 result.Result = loaded.Result;
+                result.IsDeleted = true;
+                result.DeletedCount = deleted.DeletedCount;
+            }
 
             return result;
         }
@@ -779,7 +829,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PgVectorOASIS
                     matches.Add(holon);
             }
 
-            result.Result = matches;
+            result.Result = matches; result.IsLoaded = true; result.LoadedCount = matches.Count;
             return result;
         }
 
@@ -798,7 +848,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PgVectorOASIS
 
             if (metaKeyValuePairs == null || metaKeyValuePairs.Count == 0)
             {
-                result.Result = new List<IHolon>(all.Result);
+                var everything = new List<IHolon>(all.Result); result.Result = everything; result.IsLoaded = true; result.LoadedCount = everything.Count;
                 return result;
             }
 
@@ -821,7 +871,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PgVectorOASIS
                 if (isMatch) matches.Add(holon);
             }
 
-            result.Result = matches;
+            result.Result = matches; result.IsLoaded = true; result.LoadedCount = matches.Count;
             return result;
         }
 
@@ -831,11 +881,15 @@ namespace NextGenSoftware.OASIS.API.Providers.PgVectorOASIS
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
             var result = new OASISResult<bool>();
-            var saved = await SaveHolonsAsync(holons);
-            if (saved.IsError)
+            var saved = await SaveHolonsAsync(holons, saveChildren: false, continueOnError: false);
+            if (saved.IsError || !saved.IsSaved)
                 OASISErrorHandling.HandleError(ref result, saved.Message);
             else
+            {
                 result.Result = true;
+                result.IsSaved = true;
+                result.SavedCount = saved.SavedCount;
+            }
             return result;
         }
 
@@ -865,7 +919,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PgVectorOASIS
                     owned.Add(holon);
             }
 
-            result.Result = owned;
+            result.Result = owned; result.IsLoaded = true; result.LoadedCount = owned.Count;
             return result;
         }
 

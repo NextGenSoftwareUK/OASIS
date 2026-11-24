@@ -28,6 +28,21 @@ public sealed class PgVectorNativeStorageConformanceTests
             {
                 await File.WriteAllTextAsync(reportPath + ".next", JsonSerializer.Serialize(checkpoint));
                 File.Move(reportPath + ".next", reportPath, overwrite: true);
+            },
+            (id, sync) => sync ? Task.FromResult(provider.DeleteHolonSoft(id, false)) : provider.DeleteHolonSoftAsync(id, false),
+            expectedDefaultDeletion: "soft",
+            observeNativeTombstone: async (id, owner, name) =>
+            {
+                await using var conn = new Npgsql.NpgsqlConnection($"Host=127.0.0.1;Port=15433;Username=postgres;Password={Env("OASIS_NATIVE_PASSWORD")};Database=oasis");
+                await conn.OpenAsync();
+                await using var cmd = new Npgsql.NpgsqlCommand("SELECT doc::text FROM oasis_holons WHERE id = @id", conn);
+                cmd.Parameters.AddWithValue("id", id);
+                var raw = await cmd.ExecuteScalarAsync() as string;
+                if (raw == null) return false;
+                StringAssert.Contains(raw, name);
+                StringAssert.Contains(raw, owner.ToString("D"));
+                StringAssert.Contains(raw, "DeletedDate");
+                return true;
             });
 
         if (!report.Succeeded)

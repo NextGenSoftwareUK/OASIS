@@ -95,8 +95,12 @@ jobs:
               curl -fsS -X POST -H "Authorization: Token $password" -H 'Content-Type: application/json' \
                 -d "{\"orgID\":\"$org_id\",\"name\":\"oasis_sync\",\"retentionRules\":[]}" http://127.0.0.1:18086/api/v2/buckets >/dev/null ;;
             Chroma)
-              container="$(docker run -d -p 127.0.0.1:18001:8000 chromadb/chroma:1.0.15)"
-              wait_for "curl -fsS http://127.0.0.1:18001/api/v2/heartbeat" ;;
+              container="$(docker run -d -p 127.0.0.1:18001:8000 docker.io/chromadb/chroma@sha256:abcce7c335e2dab9f11ef629296f7309b09cb19ae4b34da32ac7e34ff5773140)"
+              wait_for "curl -fsS http://127.0.0.1:18001/api/v2/heartbeat"
+              # The provider never creates collections; provision the COSMIC document schema explicitly.
+              for name in oasis_avatars oasis_avatar_details oasis_holons; do
+                curl -fsS -X POST -H 'Content-Type: application/json'                   -d "{\"name\":\"$name\",\"get_or_create\":false,\"metadata\":{\"cosmic_storage_schema\":\"chroma-doc-v1\",\"cosmic_embedding_dimension\":1}}"                   http://127.0.0.1:18001/api/v2/tenants/default_tenant/databases/default_database/collections >/dev/null
+              done ;;
             PgVector)
               container="$(docker run -d -p 127.0.0.1:15433:5432 -e POSTGRES_PASSWORD="$password" -e POSTGRES_DB=oasis pgvector/pgvector:pg17)"
               wait_for "docker exec $container pg_isready -U postgres -d oasis"
