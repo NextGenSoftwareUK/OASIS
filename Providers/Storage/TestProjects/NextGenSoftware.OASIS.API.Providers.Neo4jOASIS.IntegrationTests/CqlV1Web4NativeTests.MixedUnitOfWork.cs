@@ -105,6 +105,22 @@ public sealed partial class CqlV1Web4NativeTests
             CollectionAssert.AreEquivalent(wanted,streamed.ToArray());Assert.AreEqual(2,streamed.Count);
         }
         checks++;
+        // Q31 date arithmetic: field.AddX(k) compared with a closed date runs natively.
+        using(var dates=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            var wanted=new[]{keep.Id,added.Id};var now=DateTime.UtcNow;
+            async Task<int> Count(System.Linq.Expressions.Expression<Func<Holon,bool>> filter)
+            {
+                var rows=await dates.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>wanted.Contains(row.Id)).Where(filter).ToCosmicListAsync();
+                Assert.IsFalse(rows.IsError,rows.ErrorCode+": "+rows.Message);return rows.Result.Count;
+            }
+            Assert.AreEqual(2,await Count(row=>row.CreatedDate.AddDays(1)>now));
+            Assert.AreEqual(0,await Count(row=>row.CreatedDate.AddDays(-1)>now));
+            Assert.AreEqual(2,await Count(row=>row.CreatedDate.AddHours(-48)<now));
+            var months=await dates.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>row.CreatedDate.AddMonths(1)>now).ToCosmicListAsync();
+            Assert.IsTrue(months.IsError,"Month arithmetic is not linear and is refused.");
+        }
+        checks++;
         // M29 seed data: idempotent insert of fixed-identity rows in one unit of work.
         Holon[] Seed()=>new[]{
             new Holon{Id=seedIds[0],Name="seed-one",CreatedByAvatarId=actor,IsActive=true,IsPublic=false},
@@ -121,6 +137,6 @@ public sealed partial class CqlV1Web4NativeTests
         }
         Assert.AreEqual(2,(await Stored(seedIds)).Count);checks++;
         return new NativeFixtureJourneyProof(checks,4,new Dictionary<string,bool>{
-            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true});
+            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true});
     }
 }
