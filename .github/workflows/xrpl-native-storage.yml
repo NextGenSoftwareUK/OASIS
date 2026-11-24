@@ -84,8 +84,7 @@ jobs:
           0
           CFG
           sed -i 's/^          //' "$config/rippled.cfg"
-          printf '[validators]
-' > "$config/validators.txt"
+          echo '[validators]' > "$config/validators.txt"
           rippled="$(docker run -d -p 127.0.0.1:15005:5005 -v "$config:/etc/opt/ripple:ro" --entrypoint rippled             xrpllabsofficial/xrpld:3.3.0 --conf /etc/opt/ripple/rippled.cfg -a --start)"
           kubo="$(docker run -d -p 127.0.0.1:15001:5001 ipfs/kubo@sha256:97ece99cfccea95613ab3634f761d0200e9e8b1f49294b5428e19b5b9056759d daemon --offline)"
           for attempt in $(seq 1 90); do
