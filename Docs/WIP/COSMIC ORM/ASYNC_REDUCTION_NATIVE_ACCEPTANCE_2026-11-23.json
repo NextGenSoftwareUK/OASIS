@@ -1,0 +1,121 @@
+{
+  "run": 45183982238,
+  "job": 137724683553,
+  "artifact": 14824360351,
+  "archiveBytes": 4865,
+  "archiveSha256": "fb60d092c4f589775965c2b5f809b1b4b25c1e34f4db9d57a0ac1a18f7e93558",
+  "archiveSavedLocally": false,
+  "source": {
+    "source": "734f43904b2c60a78225991b1493532fb281445d",
+    "sharedDatabaseCalls": 0,
+    "actualWeb4Compiled": true,
+    "asyncReductionVerified": true,
+    "ownedFixturesAbsent": true,
+    "boundaryControlsPassed": 1,
+    "nativePassed": 3,
+    "core": "def8cf76c73ed6495155dd16077a58030af33067",
+    "deployed": false
+  },
+  "reports": {
+    "MongoDBOASIS": {
+      "provider": "MongoDBOASIS",
+      "checks": 7,
+      "ownedCleanupIds": 2,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "create": 581,
+        "selector-sum": 117,
+        "integer-average": 25,
+        "decimal-average": 43,
+        "string-min": 28,
+        "string-max": 4,
+        "post-window-sum": 82,
+        "entity-selected-decimal": 71,
+        "nullable-empty": 33,
+        "session-sum": 11,
+        "disposed-session": 1,
+        "cancelled": 1,
+        "reject-local": 0
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "nativeSelectorSumAndIntegerAverage": true,
+        "exactDecimalAverage": true,
+        "nativeStringExtrema": true,
+        "postWindowReduction": true,
+        "selectedAndNullableResults": true,
+        "sessionReductionLifetime": true,
+        "cancellationAndNoEnumerableReduction": true
+      },
+      "exactCleanupVerified": true
+    },
+    "SQLLiteDBOASIS": {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 7,
+      "ownedCleanupIds": 2,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "create": 793,
+        "selector-sum": 25,
+        "integer-average": 9,
+        "decimal-average": 25,
+        "string-min": 13,
+        "string-max": 2,
+        "post-window-sum": 80,
+        "entity-selected-decimal": 45,
+        "nullable-empty": 9,
+        "session-sum": 1,
+        "disposed-session": 0,
+        "cancelled": 0,
+        "reject-local": 0
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "nativeSelectorSumAndIntegerAverage": true,
+        "exactDecimalAverage": true,
+        "nativeStringExtrema": true,
+        "postWindowReduction": true,
+        "selectedAndNullableResults": true,
+        "sessionReductionLifetime": true,
+        "cancellationAndNoEnumerableReduction": true
+      },
+      "exactCleanupVerified": true
+    },
+    "Neo4jOASIS": {
+      "provider": "Neo4jOASIS",
+      "checks": 7,
+      "ownedCleanupIds": 2,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "create": 1152,
+        "selector-sum": 642,
+        "integer-average": 27,
+        "decimal-average": 1780,
+        "string-min": 525,
+        "string-max": 521,
+        "post-window-sum": 1228,
+        "entity-selected-decimal": 1634,
+        "nullable-empty": 932,
+        "session-sum": 236,
+        "disposed-session": 0,
+        "cancelled": 0,
+        "reject-local": 0
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "nativeSelectorSumAndIntegerAverage": true,
+        "exactDecimalAverage": true,
+        "nativeStringExtrema": true,
+        "postWindowReduction": true,
+        "selectedAndNullableResults": true,
+        "sessionReductionLifetime": true,
+        "cancellationAndNoEnumerableReduction": true
+      },
+      "exactCleanupVerified": true
+    }
+  },
+  "nativeAccepted": true,
+  "fullParityClaimed": false,
+  "deployed": false,
+  "observedUtc": "2026-11-23T13:36:10.444145+00:00"
+}

@@ -1,0 +1,133 @@
+{
+  "run": 45181628686,
+  "job": 137716593153,
+  "artifact": 14822881354,
+  "archiveBytes": 4924,
+  "archiveSha256": "696c5159f98fa94a241d6b5aa207151aed2657822b528fd724d33cd33b0550e1",
+  "archiveSavedLocally": false,
+  "source": {
+    "actualWeb4Compiled": true,
+    "ownedFixturesAbsent": true,
+    "source": "3786d21c88f74c0ca334c4c9e2a4e0448db4edae",
+    "sharedDatabaseCalls": 0,
+    "asyncCardinalityVerified": true,
+    "nativePassed": 3,
+    "deployed": false,
+    "boundaryControlsPassed": 1,
+    "core": "fb4a0821546143390e55cc44d2f23ac4a14ee4be"
+  },
+  "reports": {
+    "MongoDBOASIS": {
+      "provider": "MongoDBOASIS",
+      "checks": 7,
+      "ownedCleanupIds": 2,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "create": 497,
+        "count": 82,
+        "long-count": 15,
+        "any": 14,
+        "all-true": 9,
+        "all-false": 3,
+        "post-window-count": 5,
+        "post-window-all": 3,
+        "selected-count": 99,
+        "selected-all": 23,
+        "entity-stage-count": 29,
+        "entity-selected-any": 56,
+        "session-count": 9,
+        "disposed-session": 0,
+        "cancelled": 0,
+        "reject-local": 0,
+        "foreign-count": 2
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "nativeCounts": true,
+        "nativeAnyAll": true,
+        "postWindowPredicates": true,
+        "selectedAndEntityStageCardinality": true,
+        "sessionScalarLifetime": true,
+        "foreignVisibilityPreserved": true,
+        "cancellationAndNoEnumerableReduction": true
+      },
+      "exactCleanupVerified": true
+    },
+    "SQLLiteDBOASIS": {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 7,
+      "ownedCleanupIds": 2,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "create": 836,
+        "count": 29,
+        "long-count": 8,
+        "any": 7,
+        "all-true": 5,
+        "all-false": 3,
+        "post-window-count": 3,
+        "post-window-all": 1,
+        "selected-count": 31,
+        "selected-all": 4,
+        "entity-stage-count": 37,
+        "entity-selected-any": 20,
+        "session-count": 1,
+        "disposed-session": 0,
+        "cancelled": 0,
+        "reject-local": 0,
+        "foreign-count": 1
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "nativeCounts": true,
+        "nativeAnyAll": true,
+        "postWindowPredicates": true,
+        "selectedAndEntityStageCardinality": true,
+        "sessionScalarLifetime": true,
+        "foreignVisibilityPreserved": true,
+        "cancellationAndNoEnumerableReduction": true
+      },
+      "exactCleanupVerified": true
+    },
+    "Neo4jOASIS": {
+      "provider": "Neo4jOASIS",
+      "checks": 7,
+      "ownedCleanupIds": 2,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "create": 1224,
+        "count": 520,
+        "long-count": 357,
+        "any": 15,
+        "all-true": 627,
+        "all-false": 505,
+        "post-window-count": 162,
+        "post-window-all": 38,
+        "selected-count": 1313,
+        "selected-all": 799,
+        "entity-stage-count": 501,
+        "entity-selected-any": 905,
+        "session-count": 11,
+        "disposed-session": 0,
+        "cancelled": 0,
+        "reject-local": 0,
+        "foreign-count": 12
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "nativeCounts": true,
+        "nativeAnyAll": true,
+        "postWindowPredicates": true,
+        "selectedAndEntityStageCardinality": true,
+        "sessionScalarLifetime": true,
+        "foreignVisibilityPreserved": true,
+        "cancellationAndNoEnumerableReduction": true
+      },
+      "exactCleanupVerified": true
+    }
+  },
+  "nativeAccepted": true,
+  "fullParityClaimed": false,
+  "deployed": false,
+  "observedUtc": "2026-11-23T13:23:01.873627+00:00"
+}

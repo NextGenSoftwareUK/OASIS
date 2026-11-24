@@ -1,0 +1,154 @@
+{
+  "run": 45115667791,
+  "job": 137497811651,
+  "artifact": 14791419312,
+  "archiveBytes": 4874,
+  "archiveSha256": "4ace124f1e75ac6ede916649f61bf9b8d996d518b7edb7347daa0fbb71e8767c",
+  "archiveSavedLocally": false,
+  "source": {
+    "actualWeb4Compiled": true,
+    "deployed": false,
+    "sharedDatabaseCalls": 0,
+    "fluentGraphVerified": true,
+    "source": "045206ea73cfd8cff587896c3baca32087051575",
+    "fluentConventionsVerified": true,
+    "ownedFixturesAbsent": true,
+    "core": "a0714bfa39ae0b94c11935f92c3bb189a12d89fa",
+    "nativePassed": 6
+  },
+  "reports": {
+    "MongoDBOASIS/fluent-graph": {
+      "provider": "MongoDBOASIS",
+      "checks": 6,
+      "ownedCleanupIds": 3,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "invalid-grandchild": 15,
+        "create-graph": 139,
+        "read-graph": 47,
+        "foreign-selected-graph": 5
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "grandchildConstraintBeforeWrite": true,
+        "typedRootChildGrandchild": true,
+        "modelCodecWithoutLocalFactory": true,
+        "identityRevisionAndManifestPreserved": true,
+        "privateChildrenExcluded": true,
+        "selectedManifestRetained": true
+      },
+      "exactCleanupVerified": true
+    },
+    "MongoDBOASIS/fluent-conventions": {
+      "provider": "MongoDBOASIS",
+      "checks": 5,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create": 509,
+        "read": 97,
+        "update": 39,
+        "read-updated": 4
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "conventionStoredAndQueried": true,
+        "explicitAliasPrecedence": true,
+        "inheritedAnnotationPrecedence": true,
+        "immutableConventionSnapshot": true,
+        "collisionBeforeGetters": true
+      },
+      "exactCleanupVerified": true
+    },
+    "SQLLiteDBOASIS/fluent-graph": {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 6,
+      "ownedCleanupIds": 3,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "invalid-grandchild": 5,
+        "create-graph": 32,
+        "read-graph": 23,
+        "foreign-selected-graph": 9
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "grandchildConstraintBeforeWrite": true,
+        "typedRootChildGrandchild": true,
+        "modelCodecWithoutLocalFactory": true,
+        "identityRevisionAndManifestPreserved": true,
+        "privateChildrenExcluded": true,
+        "selectedManifestRetained": true
+      },
+      "exactCleanupVerified": true
+    },
+    "SQLLiteDBOASIS/fluent-conventions": {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 5,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create": 478,
+        "read": 39,
+        "update": 23,
+        "read-updated": 3
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "conventionStoredAndQueried": true,
+        "explicitAliasPrecedence": true,
+        "inheritedAnnotationPrecedence": true,
+        "immutableConventionSnapshot": true,
+        "collisionBeforeGetters": true
+      },
+      "exactCleanupVerified": true
+    },
+    "Neo4jOASIS/fluent-graph": {
+      "provider": "Neo4jOASIS",
+      "checks": 6,
+      "ownedCleanupIds": 3,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "invalid-grandchild": 6,
+        "create-graph": 397,
+        "read-graph": 578,
+        "foreign-selected-graph": 214
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "grandchildConstraintBeforeWrite": true,
+        "typedRootChildGrandchild": true,
+        "modelCodecWithoutLocalFactory": true,
+        "identityRevisionAndManifestPreserved": true,
+        "privateChildrenExcluded": true,
+        "selectedManifestRetained": true
+      },
+      "exactCleanupVerified": true
+    },
+    "Neo4jOASIS/fluent-conventions": {
+      "provider": "Neo4jOASIS",
+      "checks": 5,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create": 1086,
+        "read": 869,
+        "update": 68,
+        "read-updated": 16
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "conventionStoredAndQueried": true,
+        "explicitAliasPrecedence": true,
+        "inheritedAnnotationPrecedence": true,
+        "immutableConventionSnapshot": true,
+        "collisionBeforeGetters": true
+      },
+      "exactCleanupVerified": true
+    }
+  },
+  "nativeAccepted": true,
+  "fullParityClaimed": false,
+  "deployed": false,
+  "observedUtc": "2026-11-23T05:13:55.854155+00:00"
+}

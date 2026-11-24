@@ -1,0 +1,660 @@
+{
+  "date": "2026-11-23",
+  "overall": "Incomplete; OPORTAL breadth first remains priority. Goal active.",
+  "source": {
+    "taskBranch": "work/hyperdrive-provider-completion",
+    "taskWorktree": "C:/Source/OASIS2-hyperdrive",
+    "portalBranch": "dev",
+    "portalHead": "387812546a860120943259c72918ad4d5e142b73",
+    "reviewedDevelopment": "df5b838278bec4f58690bf5e600f5009552886c2",
+    "currentCore": "e6ff129e186f166c422aca697ff91e644d75642b",
+    "currentWeb6": "78a27a295e74721358eb2b02399f79eff5b21633",
+    "scope": "Developmenta918 retains accepted NFT decoder and CQL metadata. Latest selected running WEB4 observationa549/all3holds true; a918 successor rollout metadata observed separately. Current portal source includes accepted map pagination and owned detail editing; no whole-portal claim.",
+    "currentQualification": {
+      "root": "5442d4e9de89231a5a4bebe77c44374ab0920001",
+      "core": "cac5dba4d026cc19dcfe4440737b9de50a8ed20d",
+      "onode": "8745c95ef2f6150fafb1417122a20c020784b338",
+      "run": 45140498072,
+      "status": "published-a549-running-Web4-verified-successor-a918-observed",
+      "compiledCore": "13ca0e11c4320213485a19922a1f519736340ca1",
+      "coreSourceTree": "627e83871010638971aad96078e58843048233b6",
+      "publication": "a54956d1ffb3d45e699a9b0bd0a5f2a4c1e62c57"
+    }
+  },
+  "web6": {
+    "deployment": "c50654a6-5d5b-4a69-be04-3f1135713ddc",
+    "status": "SUCCESS",
+    "source": "73a7f82be3f6da1797d1400242c8d1bf0c13cf0b",
+    "sdk": "Bedrock3.7.415 verified in current source; earlier AWS major conflict corrected in newer shared work. Do not overwrite newer source with old candidate.",
+    "ownQualification": {
+      "run": 45018741401,
+      "job": 137196716513,
+      "conclusion": "success",
+      "web6Build": "0errors2m20.49",
+      "probeBuild": "0errors1.58s",
+      "actualAssemblyTypes": {
+        "Core": 924,
+        "DynamoDB": 932,
+        "S3": 978,
+        "Bedrock": 287
+      },
+      "scope": "Real compiled SDK type-loading, no clients/network; not full feature acceptance."
+    }
+  },
+  "portal": {
+    "retainedRepresentativePasses": [
+      "MFA Settings enrollment/recovery/disable browser/native",
+      "Quests and Missions details browsing",
+      "Competition list/rank and persisted join",
+      "Profile GET/PATCH/native revisions",
+      "Usage-warning actual button, Resend SDK and durable acknowledgement",
+      "Billing consent/no-charge/missing-statement/conflict handling",
+      "Native session listing",
+      "Actual persisted session issuance/global revocation45091356813",
+      "Settings selected/global sign-out browser45093523946",
+      "Changed MFA issuance/challenge/recovery/refresh45094516900",
+      "Read-only account-deletion requirements browser45096493185",
+      "Gifts send/receive/open/history/logout browser/native45104328970",
+      "Real WEB5 entry-point Games/OAPP full-page45128946718",
+      "Shipping WEB4 full-page Files/Wallet/Karma45132201881",
+      "Full portal Data browse and one real message send/recipient inbox readback/conversation45136761604",
+      "Actual full page NFT/GeoNFT/OLAND empty catalogues/grouping/tabs/close45140498072",
+      "Actual full page private GPX publish/rename/reopen/list45148541889",
+      "Actual owner Data detail edit with native persisted readback45149458665",
+      "Actual Files upload/list/download byte equality/delete/close45150357293",
+      "Actual incoming message/notification Mark All Read/native flags/dashboard refresh45151234976",
+      "Actual HyperDrive popup status/count/routing tabs/preferences read/close45152168295 (Chat failed separately)",
+      "Actual Clan create/edit/member native readback/delete/close45165837353",
+      "Actual chat start/send/participant history/resume/end/close45165837353",
+      "Actual directory search/composer/send/recipient readback/return45165837353"
+    ],
+    "latestDeliveredFixes": [
+      "Current subscription selection, retry states, real invoice/PDF links and exact-plan checkout activation confirmation",
+      "Selected/global sign-out native acknowledgement and seven-service session enforcement; component/browser acceptance retained",
+      "Read-only account closure requirements review; permanent erasure still unavailable",
+      "MCP readiness and renewal event; stale checkout actions give explicit reopen guidance",
+      "Gifts duplicate logout handler removed; complete representative real popup flow accepted",
+      "Games/OAPPs/Inventory combined native/browser45114577286 accepted and backend21abed0b published; later running WEB4 revision770 includes21ab source.",
+      "Inventory linked NFT/GeoNFT IDs, stack, dates and custom properties now rendered from existing response; Portal17ed8e4 script served exact, focused rendering check passed.",
+      "Real username sign-in form fixed; actual authenticated WEB4 page slice45120405171 accepted.",
+      "Map saved-route and place-visit terminal pagination respects null-omitting WEB4 JSON; route flow45148541889 accepted.",
+      "Data owner name/description edit uses observed provider revision and existing save API; persisted readback45149458665 accepted.",
+      "Dashboard message summary refreshes after acknowledged inbox changes; actual mark-read/native/dashboard flow45151234976 accepted."
+    ],
+    "remaining": [
+      "Remaining popup write actions, mapping flows, WEB6 full-host flows and permanent account erasure; representative accepted read/delivery journeys do not prove every action.",
+      "Hosted Stripe paid lifecycle and checkout recovery acceptance; existing owner action remains open",
+      "Permanent account and all-data/provider/replica erasure lifecycle",
+      "Current hosted dashboard/screen performance acceptance",
+      "Explicit assessment/migration of legacy string-encoded lists and previously omitted Inventory fields."
+    ]
+  },
+  "sessions": {
+    "middleware": {
+      "run": 45061982715,
+      "scope": "Actual WEB4-WEB10 middleware and framework policy; retained, not replayed",
+      "cases": 35
+    },
+    "localFileHttp": {
+      "scope": "Actual persisted issuance/protected reads, configured pause field, hard delete then401",
+      "run": 45098982294
+    },
+    "nativeSession": {
+      "scope": "Real Mongo/SQLite issuance, revocation, fresh login and incomplete-revocation refusal",
+      "run": 45091356813
+    },
+    "settingsBrowser": {
+      "scope": "Actual selected/global sign-out controls, native refusals and cleared session",
+      "run": 45093523946
+    },
+    "remaining": "Full production Startup/SSO/hosted portal acceptance and other credential entry points remain separate; no whole-provider HA claim.",
+    "mfa": {
+      "scope": "Actual changed HTTP/native password challenge/TOTP/recovery/refresh and read-only initial status",
+      "run": 45094516900
+    },
+    "status": "representative-native-and-component-browser-accepted-source-deployed"
+  },
+  "providers": {
+    "recordedShippingProjects": 234,
+    "roles": {
+      "nonStorage": 56,
+      "storageOrSpecialized": 178
+    },
+    "recordedNativeSharedStoragePasses": 59,
+    "reports": 23,
+    "verifiedCiRuns": 36,
+    "limits": "Inventory and historical hash-bound evidence; not234 fully implemented/hosted-certified providers. Recorded provider matrix explicitly does not claim full interface acceptance."
+  },
+  "hyperdrive": {
+    "retained": "Real-provider replication/failover/distribution evidence exists for selected provider pairs; priority routing ledger retains exact scopes.",
+    "remaining": "Global eligibility, all priority provider pairs, hosted write/session availability and protected queue repair not fully accepted; no100percent reliability claim.",
+    "protectedDeliveries": "535/543 not replayed; audit543 unavailable, preserve hold."
+  },
+  "cleanup": {
+    "freeDiskGB": 27.07,
+    "thisTurn": "No local build/env/download/runtime/database/results. Exact owned oasis-nft-empty-onode-20261123.index and oasis-nft-empty-root-20261123.index/locks removed in finally. Compact receipts RAM-only; source/Git objects and reports retained. C:27.07GiB observed.",
+    "temporaryEmailSecrets": "Previously deleted and absence verified; not restaged.",
+    "diskUnit": "GiB"
+  },
+  "deliveryPolicy": "Finish remaining OPORTAL user flows breadth first; one representative end-to-end verification for changed behavior, reuse accepted evidence. A blocked backend flow must not stop independent screen work.",
+  "accountDeletion": {
+    "status": "Incomplete. Dependency and billing-admission representative native markers passed at exact prior sources; first-write ordering and changed timeout/session composition qualifying. Permanent erasure and Settings deletion remain unfinished.",
+    "source": "21e9d634962",
+    "preparedRealCheck": "Admission closure, idempotent repeat and new billing/checkout/ownership refusal in existing native journey",
+    "nextCandidate": "97031a02b65d0e65ecf60db5e631afa1905ac4e9",
+    "currentSharedBase": "b82e1fa55a5",
+    "limits": [
+      "Closure admission and durable checkout intents",
+      "Subscription cancellation/ownership handling",
+      "Identity/profile/private data and replica deletion orchestration",
+      "Portal wiring and full browser acceptance"
+    ],
+    "checkoutJournal": {
+      "source": "aefabe4ad31",
+      "status": "Wired source; not compiled/native/Stripe/browser/deployed accepted",
+      "storage": "Existing billing audit collection; no new DB/collection/index/worker",
+      "behavior": "Persist request before Stripe; provider acknowledgement before redirect; close after confirmed activation or signed expiry; customerless unresolved requests visible to assessment",
+      "remaining": "Ambiguous creation reconciliation and full closure admission/erasure",
+      "recoverySource": "0f2efc4330e: pending list and canonical no-create recovery; uncompiled/unrun/undeployed and UI wiring pending",
+      "portalSource": "4baca47 on dev; on-demand review/resume/cancel source wired; not browser/Stripe/deployed accepted",
+      "reservationSource": "18b4ce801eb: transactional per-account reservation and terminal release, older-closure replay isolation; uncompiled/unrun/undeployed"
+    },
+    "admissionNext": "Source trace found existing per-subscription authorization version fence can be reused; admission-freeze implementation still pending. No new hot-path DB round trip proposed.",
+    "billingAdmissionProof": {
+      "run": 45082762807,
+      "job": 137394400180,
+      "candidate": "bc1ad3ac48826193eca7b93979b9d2b97e5bc0d5",
+      "build": "0errors7m19.59",
+      "marker": "BILLING_CLOSURE_ADMISSION_NATIVE_PROOF",
+      "scope": "Real service/Mongo read+write, owned-app refusal, free-account closure/idempotent repeat, checkout/free-plan/admin-grant/ownership/new-usage refusal. No avatar deletion, Stripe, browser or deployment acceptance.",
+      "retainedOnNewerSource": {
+        "run": 45084348607,
+        "job": 137399418954,
+        "candidate": "5d68ce8fb58a7cacd0e9110bc176eff15f74fef7",
+        "runtime": "Dependency/checkout and billing-admission markers passed, including first-write ownership initialization. Whole run failed later on session fixture.",
+        "reuse": "Candidate820b changes only Core, paired pin and Mongo account deadline helper; billing source unchanged. Billing assertions not replayed in new run."
+      }
+    }
+  },
+  "engineeringRemaining": [
+    "General V2 avatar-save per-call replication mode/completion semantics still need review; session issuance now has its own existing pinned authority contract.",
+    "Permanent account/private-data/provider-replica erasure and Settings deletion remain unfinished.",
+    "Whole-host DID/MFA frontend and WEB6 SSO acceptance remain open; existing changed-save/native45094516900 retained."
+  ],
+  "lastUpdatedUtc": "2026-11-23T08:57:49.910200+00:00",
+  "latestFocusedRun": {
+    "id": 45091356813,
+    "job": 137421421351,
+    "status": "success",
+    "candidate": "ec097f7eeefc20248de3f95522f2efbc7d4f83cd",
+    "scope": "general real Mongo/SQLite session native acceptance; browser/hosted and enabled MFA store acceptance remain open"
+  },
+  "latestPortalBreadth": {
+    "source": "a85a0c5",
+    "verification": "Gifts45104328970/job137462037424 SUCCESS actual SDK/browser/HTTP/native Mongo send-receive-open-history/logout and missing-recipient no-write; build0errors4m13.31; all owned fixture/runtime/cache cleanup success. Three changed static scripts HTTP200 match dev source.",
+    "changes": [
+      "Subscription/MCP renewal notification and stale checkout guidance",
+      "Single Gifts logout handler; no undeclared-variable error"
+    ],
+    "pending": "Actual Inventory quantity-loss found. Inventory18field declarations and Mongo native URI/list fixes in45114577286; strict current CQL helper inventory row reviewed, gate not skipped. Legacy/full portal remain open."
+  },
+  "settingsBrowserPreparation": {
+    "run": 45093523946,
+    "status": "accepted-component-browser",
+    "scope": "Selected/global sign-out; full Startup/hosted excluded"
+  },
+  "accountDeletionReview": {
+    "source": "c856109",
+    "status": "Read-only review actual browser/native accepted45096493185; permanent erasure incomplete",
+    "api": "GET api/avatar/account-closure/assessment",
+    "remaining": "Permanent deletion/data erasure coordinator remains incomplete; no mutation or deletion acceptance claimed",
+    "verificationRun": 45096493185
+  },
+  "sharedComposition": {
+    "root": "b71528fb0c851ba4501444de4198a5ddc04d4f5b",
+    "core": "6df988c8f802bc4fdfaebdc03f3dba8f9160c5f9",
+    "web6": "78a27a295e74721358eb2b02399f79eff5b21633",
+    "status": "All seven dev deployments SUCCESS and in-container revision6bbbae4b verified; WEB4 worker-pause flags true",
+    "latestReviewedDevelopment": "721f33130849794856c546218dceb06ee1396c87",
+    "publishedCommit": "6bbbae4be199eef55856df32476db5684ee05073"
+  },
+  "latestCombinedRun": {
+    "id": 45094516900,
+    "job": 137431237720,
+    "conclusion": "success",
+    "build": "0errors7m48.90",
+    "cleanup": "owned native fixture removed"
+  },
+  "broadCiRemaining": {
+    "run": 45095683887,
+    "failedJob": 137438374315,
+    "reason": "Old LocalFile HTTP fixture minted JWT with no persisted binding",
+    "sourceCorrection": "f4ff99ed8fa",
+    "status": "focused correction accepted1passed0failed; complete normal integration gate pending next scoped Development batch",
+    "focusedRun": 45098982294
+  },
+  "mcpReadiness": {
+    "source": "f573156",
+    "status": "await shared session readiness; source/syntax checked, browser pending",
+    "newRequests": 0
+  },
+  "workerStatus": {
+    "apiCandidate": "afbd5984e5a3b824080059e206331b727645c8de",
+    "field": "backgroundWorkersPauseConfigured",
+    "status": "All7deployed/running-source checked;2use tree-identicald74, public metadata field boolean, WEB4 pauses true; authenticated hosted status/UI not probed",
+    "portal": "43cf6d6",
+    "uiScope": "source/syntax checked, browser not newly accepted",
+    "publishedCommit": "bea1473a1bfa3c4260982728b4cdcdeed5570465",
+    "equivalentCommit": "d74ceb6d3e770691ef97b94a204adc4a3f96b855"
+  },
+  "storefrontPublication20261123": {
+    "run": 45114577286,
+    "job": 137494371969,
+    "conclusion": "success",
+    "development": "21abed0bedfde0399f66eef1da62cff0d92d34b7",
+    "core": "fc2470e77afa41e0a35850dbb2ce3c3f9e23b6dd",
+    "portal": "71ea1255c7e7241cdc766179aaf4d4525865004a",
+    "scope": "Combined Games/OAPPs/Inventory native browser accepted; published source, running Railway acceptance pending. Earlier candidate-pending fields are historical.",
+    "remaining": "Full page Startup/SSO, hosted Stripe, permanent deletion, existing catalogue migration and remaining portal breadth."
+  },
+  "inventoryUi20261123": {
+    "portal": "17ed8e4",
+    "publicDevScript": "HTTP200 canonical LF exact match",
+    "checks": "Rendering, syntax, endpoint drift and diff passed",
+    "scope": "New fields rendering only; no repeat native/browser cohort",
+    "backendDeployment": "0e9725b4-13cb-4bb0-92d1-4b1a902ee05c still QUEUED"
+  },
+  "actualAnonymousPage20261123": {
+    "run": 45117362822,
+    "job": 137503148480,
+    "conclusion": "success",
+    "portal": "81fc716d1dc37eeabdd70d501c2605c500f5d2f8",
+    "scope": "Actual portal page anonymous navigation and signup refresh; zero API traffic/page errors/missing local assets",
+    "excluded": "Authenticated dashboard/full backend Startup/SSO/Stripe",
+    "cleanup": "Verified server/browser closed and runtime/cache absent"
+  },
+  "shippingStartupAuth20261123": {
+    "run": 45118119727,
+    "job": 137505522533,
+    "source": "045206ea73cfd8cff587896c3baca32087051575",
+    "conclusion": "success",
+    "scope": "Production Program/Startup actual register/verify/password/session/subscription through owned native Mongo. WEB4 API/Core auth identical to deployed21ab/fc; image older Inventory excluded.",
+    "proofArtifact": 14792607082,
+    "cleanup": "Containers/network/DB volumes absent, graceful exit0",
+    "remaining": "Full authenticated portal browser, WEB5/6 SSO and Stripe"
+  },
+  "authenticatedPortalPage20261123": {
+    "run": 45120405171,
+    "job": 137512623138,
+    "status": "success",
+    "portal": "f89b2ec160bab77ebcf05d7ba5d343f328c0b493",
+    "scope": "Actual whole page username Beam In, dashboard counts/current plan, My Subscription/Orders, deep-link reload and explicit native renewal through production WEB4 Startup; real missing-Stripe error visible",
+    "source": "045206ea73cfd8cff587896c3baca32087051575",
+    "artifact": 14793447648,
+    "cleanup": "Containers/network/database volumes/runtime/cache/TLS absent",
+    "excluded": "Paid catalogue/checkout, WEB5/6 cards/SSO, hosted latency, all other popups and whole portal"
+  },
+  "web5FullEntryPoint20261123": {
+    "run": 45128946718,
+    "job": 137539728475,
+    "accepted": "Actual portal sign-in/free ledger/Games dashboard/all/mine and owned OAPP empty list",
+    "notAccepted": "Hosted/paid Stripe/WEB6/full portal"
+  },
+  "shippingPopupBreadth20261123": {
+    "status": "published-to-Development-rollout-pending",
+    "base": "9307d04330616f96982a01fd11b7497d08fc7aeb",
+    "core": "2356b0a8b4d8a425cf13a8abe45b0b4dfcd7defa",
+    "imageSource": "121dcb0287e5eaa4816fbbdf01645030613d264f",
+    "image": "sha256:6c78a1fa6df21bec4c5d62ab431ce7507062e0aa6edbd7c57ee34c4f02910910",
+    "imageRun": 45129737094,
+    "imageJob": 137542256591,
+    "packageAndPopupRun": 45132201881,
+    "packageAndPopupJob": 137550036297,
+    "artifact": 14798516434,
+    "archiveBytes": 4159,
+    "portal": "f89b2ec160bab77ebcf05d7ba5d343f328c0b493",
+    "accepted": "Exact CQL image package/source pins; actual full portal sign-in, Files empty list/count, Wallet empty list/count, Karma empty records/four stats and Stats tab, normal close controls through shipping WEB4 Program/Startup and isolated native Mongo.",
+    "retained": "Real WEB5 Games/OAPP full-entry-point45128946718 on authority sourcea208; current Core2356 preserves exact authority files plus accepted CQL718. Existing subscription/Gifts/Settings/populated catalogue cohorts retained, not replayed.",
+    "fix": "Explicit request collection authority, validated against admitted ordinary/native providers; shared async/sync selector, no global mutation or passive-boot activation.",
+    "corePublication": "Fast-forward2356 to Core Development completed; preserves already-pinned718 CQL work.",
+    "parentScope": "Current9307 sandbox script preserved; only paired Core pin, admission guide and named evidence/status are added. No unrelated dirty gitlinks staged.",
+    "cleanup": "RAM-only selected4159B artifact; package container absent/dataWrites0; runtime hosts exited0; owned containers/network/database volumes absent, generated WEB5 DNA absent/not used; runtime/cache/TLS removal verified. No local builds/downloads/env/database/results.",
+    "remaining": "Follow seven existing deployment handles; verify compatible WEB4 runtime, then declare dev WEB4 Mongo collection authority and verify saved/running config. Held-worker loading remains pending; no hosted auth/data test or full portal claim.",
+    "parentPublication": "bf14ebc8f82abf1a7a3f345b4a6df32c842581b0",
+    "branchGates": "All8 freshly fetched Development submodule branch gates and paired manifest passed."
+  },
+  "authorityDevRollout20261123": {
+    "source": "bf14ebc8f82abf1a7a3f345b4a6df32c842581b0",
+    "core": "2356b0a8b4d8a425cf13a8abe45b0b4dfcd7defa",
+    "environment": "dev",
+    "environmentId": "a31011a2-d047-4057-b5e8-57d52ebcfefe",
+    "services": [
+      {
+        "name": "WEB4",
+        "service": "5123199a-43c4-4439-9921-e10e2aec7841",
+        "deployment": "0a9eea0d-247e-4d3f-84d6-f606a90778bf",
+        "status": "QUEUED"
+      },
+      {
+        "name": "WEB5",
+        "service": "bb2c3e9a-ec96-44a5-9916-05e06d54b1f4",
+        "deployment": "1a897df1-cb54-40cd-851b-1d9ee3641b94",
+        "status": "QUEUED"
+      },
+      {
+        "name": "WEB6",
+        "service": "1e6ee65f-df5d-42b1-972e-97f3a560f5d3",
+        "deployment": "511ab86e-58fd-446c-b9ec-b957e7923c07",
+        "status": "BUILDING"
+      },
+      {
+        "name": "WEB7",
+        "service": "31bd0ff6-2d3d-4793-8197-eabcd3afcb75",
+        "deployment": "37111a7a-6f81-46bb-8ddb-56214a97273e",
+        "status": "BUILDING"
+      },
+      {
+        "name": "WEB8",
+        "service": "95c937b9-b4e8-4fd3-866f-bd98d5420b2f",
+        "deployment": "946b55cd-8288-418a-82f1-ffbf23fae533",
+        "status": "QUEUED"
+      },
+      {
+        "name": "WEB9",
+        "service": "36eda15e-fd28-4fc6-a0c9-7fe454829554",
+        "deployment": "a53f6925-5318-4aa3-9087-2c9b733d8ec1",
+        "status": "QUEUED"
+      },
+      {
+        "name": "WEB10",
+        "service": "6f9e4f24-29be-49d7-914b-f1f9b42790d6",
+        "deployment": "e72029aa-64c3-4856-a3b9-0d5578e7ca97",
+        "status": "BUILDING"
+      }
+    ],
+    "configuration": {
+      "savedDevWeb4Holds": {
+        "hyperdriveWorkers": true,
+        "usageReconciliation": true,
+        "applicationMaintenance": true
+      },
+      "method": "Restored two saved holds with skip-deploys; saved all3 true verified. Standing shared-cluster hold remains applicable. No additional deployment requested.",
+      "runningHolds": "Verified all3true on compatible runningbf14; not merely saved. Stand-down remains active.",
+      "collectionAuthority": "MongoDBOASIS saved and loaded after compatible binary. Existing ordinary Mongo/SQLite/Neo,104query-only and12routes preserved. WEB5 absent admission preserved; staging/production/source DNA unchanged."
+    },
+    "verification": "Metadata and selected environment fields only; no shared database/login/benchmark/API data calls.",
+    "remaining": "Authority rollout/settings accepted at selected source/runtime scope. NFT decoder is a separate newly qualified batch; full hosted page/performance and whole-portal acceptance remain open.",
+    "configurationRoll": {
+      "deployment": "d8fd5b36-67ef-4e85-9bf1-04c1ca5f995c",
+      "status": "SUCCESS",
+      "runningCommit": "bf14ebc8f82abf1a7a3f345b4a6df32c842581b0",
+      "runningAuthority": "MongoDBOASIS",
+      "runningHolds": [
+        true,
+        true,
+        true
+      ],
+      "scope": "Selected SSH fields only; no whole environment/DNA output or database request."
+    },
+    "successor": {
+      "source": "3b81b74946b488f871bd550ce101e2bdb3b5e9d2",
+      "core": "13ca0e11c4320213485a19922a1f519736340ca1",
+      "web4Deployment": "aff21e5a-b54c-4102-b4f4-c763bef3f5a7",
+      "web4Status": "SUCCESS",
+      "otherSixLatestStatus": "SUCCESS",
+      "scope": "WEB4 successor aff21 selected running fields verified. Other six successor deployments SUCCESS by metadata. No data/auth calls; source authority files identical to2356.",
+      "web4RunningRevision": "3b81b74946b488f871bd550ce101e2bdb3b5e9d2",
+      "runningAuthority": "MongoDBOASIS",
+      "runningHolds": [
+        true,
+        true,
+        true
+      ]
+    }
+  },
+  "nftDataMessaging20261123": {
+    "status": "accepted-scoped-journeys-decoder-published-running-Web4-verified",
+    "portal": "f5a1fd39f10fb8f2358150c4f5b142c9e0b38aeb",
+    "accepted": {
+      "run": 45136761604,
+      "job": 137564787594,
+      "control": "0d525153ca75562da9c3c8dced29591c9a3d99b1",
+      "imageSource": "121dcb0287e5eaa4816fbbdf01645030613d264f",
+      "image": "sha256:6c78a1fa6df21bec4c5d62ab431ce7507062e0aa6edbd7c57ee34c4f02910910",
+      "artifact": 14799708986,
+      "archiveBytes": 4372,
+      "outcomes": [
+        {
+          "name": "Data",
+          "passed": true,
+          "closePassed": true
+        },
+        {
+          "name": "Messaging",
+          "passed": true,
+          "closePassed": true
+        }
+      ],
+      "scope": "Actual full portal Data browse with shallow read body; one explicit UI message send, exactly one matching sender/recipient/content record through recipient native-backed GET, sender conversation render and normal close. Actual free accounts/password/JWT and owned Mongo; no synthetic responses.",
+      "cleanup": "Selected RAM receipt proves package container absent, all5 startup cleanup booleans true; runtime/cache/TLS removal verified."
+    },
+    "nftFailures": [
+      {
+        "run": 45134852192,
+        "job": 137558589045,
+        "artifact": 14798959105,
+        "bytes": 3454,
+        "stage": "NFT catalogue",
+        "finding": "NFT/GeoNFT HTTP200 IsErrorfalse, missing data suspected; OLAND price rejected missing count. Cleanup alltrue."
+      },
+      {
+        "run": 45135662091,
+        "job": 137561216754,
+        "artifact": 14799163756,
+        "bytes": 3420,
+        "stage": "NFT catalogue",
+        "finding": "NFT/GeoNFT resultShape undefined despite IsErrorfalse; OLAND real empty array and price number succeed after count1 fix. Cleanup alltrue."
+      }
+    ],
+    "nftRootCause": "Three shared ONODE collection decoders only assigned Result inside nonempty branch. Successful empty metadata reads left Result null/omitted. Source8745 assigns the decoded list on every successful read and enumerates once; actual failures remain failures.",
+    "candidate": {
+      "base": "3b81b74946b488f871bd550ce101e2bdb3b5e9d2",
+      "core": "13ca0e11c4320213485a19922a1f519736340ca1",
+      "onode": "8745c95ef2f6150fafb1417122a20c020784b338",
+      "root": "5442d4e9de89231a5a4bebe77c44374ab0920001",
+      "imageRun": 45137303528,
+      "imageJob": 137566541727,
+      "status": "image-and-NFT-only-startup-accepted",
+      "qualification": "Shipping image and exact package/native NFT-only portal check accepted; ONODE published. Parent publication/rollout pending.",
+      "preservation": "Current CQL source3b81/Core13ca retained; all three shared authority files identical to2356. Physical dirty submodules untouched.",
+      "image": "sha256:111cedaa725206875f2ef33d455bc4ea6f4dc241ed03c0753df5956152cf0893",
+      "qualificationRun": 45140498072,
+      "qualificationJob": 137577005852,
+      "artifact": 14801543271
+    },
+    "uiFixes": "Distinct loading/failed/empty NFT panels; grouping preserves catalogue state; positive count1 for real OLAND unit-price call. Four public dev assets HTTP200/source exact and canonical cache keys valid.",
+    "delivery": {
+      "origin": "https://dev.oportal.oasisomniverse.one",
+      "portalHash": "e4c52cbdfddf774198586d951911ab562c7907c376eab73e099d6e4721346b57",
+      "nftScript": "0c0fec186c55a46cbd7154db92bf57fa581ddec392fef832bec50e38ed6ebe9c",
+      "loader": "5c6132c259913d3b8caffcc507f0172f058e464436c0d720aae37ea7b4dc45c9",
+      "fragment": "717fdbd2056edb0084685f8f003a67b49c1e4bf8f444e17a893f9ebddf6a0730",
+      "scope": "Static source delivery only; four bounded memory-only requests, no shared database/auth/data request."
+    },
+    "next": "Continue unfinished popup actions; accepted map routes and Data detail edits are recorded separately. Mint-wallet key/depth source gap remains for later scoped repair.",
+    "remaining": "No NFT mint/transfer/Our World real-device/paid Stripe/WEB6/all popup actions/whole-portal or full-provider claim. Mint-wallet collection source still has explicit recursive loads and a sync metadata-key mismatch for later focused repair.",
+    "cleanup": "No local build/env/download/runtime/database/results. Exact owned oasis-nft-empty-onode-20261123.index and oasis-nft-empty-root-20261123.index/locks removed in finally. Compact receipts RAM-only; source/Git objects and reports retained. C:27.07GiB observed."
+  },
+  "nftCollectionAcceptance20261123": {
+    "status": "published-running-Web4-a549-verified-successor-a918-observed",
+    "base": "3b81b74946b488f871bd550ce101e2bdb3b5e9d2",
+    "imageSource": "5442d4e9de89231a5a4bebe77c44374ab0920001",
+    "core": "13ca0e11c4320213485a19922a1f519736340ca1",
+    "onode": "8745c95ef2f6150fafb1417122a20c020784b338",
+    "image": "sha256:111cedaa725206875f2ef33d455bc4ea6f4dc241ed03c0753df5956152cf0893",
+    "imageRun": 45137303528,
+    "imageJob": 137566541727,
+    "qualificationRun": 45140498072,
+    "qualificationJob": 137577005852,
+    "artifact": 14801543271,
+    "archiveBytes": 4270,
+    "portal": "f5a1fd39f10fb8f2358150c4f5b142c9e0b38aeb",
+    "accepted": "Exact source/image package plus actual portal NFT/GeoNFT/OLAND empty catalogues, grouping, tabs and normal close through shipping WEB4/native isolated Mongo. NFT-only selected; Data/Messaging and other cohorts retained.",
+    "fix": "All3 shared Web3/Web4/GeoNFT decoders assign the actual decoded list after every successful provider collection read, including empty. Native failures stay errors. Enumeration occurs once; no records/results manufactured. UI distinguishes missing data from real empty list and supplies count1 for OLAND price.",
+    "publication": "ONODE8745/Corecac5/roota549 pushed successfully after all8 fresh branch gates and paired manifest. Core source-tree-equivalence is recorded separately; no old-image/new-metadata identity claim.",
+    "cleanup": "4270B receipt inspected/disposed in RAM: package container absent/dataWrites0; all5 startup cleanup booleans true; browser/runtime/cache/TLS absence verified. No local build/download/env/database/results.",
+    "scopeLimits": "Empty catalogue/read/grouping only. Not NFT mint/transfer, populated NFT metadata interoperability, all UI actions, paid Stripe, WEB6, provider certification or whole portal100percent.",
+    "retained": "Data browse and actual message send/native recipient readback/conversation45136761604; Files/Wallet/Karma45132201881; WEB5 Games/OAPP45128946718; subscriptions/full page45120405171. No unchanged cohort replay.",
+    "coreSourceEquivalence": {
+      "compiledCore": "13ca0e11c4320213485a19922a1f519736340ca1",
+      "publishedCore": "cac5dba4d026cc19dcfe4440737b9de50a8ed20d",
+      "sourceTree": "627e83871010638971aad96078e58843048233b6",
+      "byteIdentical": true,
+      "parents": [
+        "2356b0a8b4d8a425cf13a8abe45b0b4dfcd7defa",
+        "13ca0e11c4320213485a19922a1f519736340ca1"
+      ],
+      "reason": "The already-deployed CQL snapshot copied the authority files without preserving shared Development ancestry. A normal two-parent merge is source-tree-identical to qualified13ca and advances shared Development without rewriting history.",
+      "verification": "git merge-tree output and resulting commit tree both equal13ca tree627e; git diff13ca..cac5 empty; fast-forward push completed. Retain functional evidence for unchanged source; verify new build/deployment provenance separately."
+    },
+    "publishedCore": "cac5dba4d026cc19dcfe4440737b9de50a8ed20d",
+    "parentPublication": "a54956d1ffb3d45e699a9b0bd0a5f2a4c1e62c57"
+  },
+  "coreSourceEquivalence20261123": {
+    "compiledCore": "13ca0e11c4320213485a19922a1f519736340ca1",
+    "publishedCore": "cac5dba4d026cc19dcfe4440737b9de50a8ed20d",
+    "sourceTree": "627e83871010638971aad96078e58843048233b6",
+    "byteIdentical": true,
+    "parents": [
+      "2356b0a8b4d8a425cf13a8abe45b0b4dfcd7defa",
+      "13ca0e11c4320213485a19922a1f519736340ca1"
+    ],
+    "reason": "The already-deployed CQL snapshot copied the authority files without preserving shared Development ancestry. A normal two-parent merge is source-tree-identical to qualified13ca and advances shared Development without rewriting history.",
+    "verification": "git merge-tree output and resulting commit tree both equal13ca tree627e; git diff13ca..cac5 empty; fast-forward push completed. Retain functional evidence for unchanged source; verify new build/deployment provenance separately."
+  },
+  "nftDevRollout20261123": {
+    "source": "a54956d1ffb3d45e699a9b0bd0a5f2a4c1e62c57",
+    "core": "cac5dba4d026cc19dcfe4440737b9de50a8ed20d",
+    "onode": "8745c95ef2f6150fafb1417122a20c020784b338",
+    "environment": "dev",
+    "environmentId": "a31011a2-d047-4057-b5e8-57d52ebcfefe",
+    "services": [
+      {
+        "name": "WEB4",
+        "service": "5123199a-43c4-4439-9921-e10e2aec7841",
+        "deployment": "964a24b7-8c01-4713-a601-1da00cc356f6",
+        "status": "QUEUED"
+      },
+      {
+        "name": "WEB5",
+        "service": "bb2c3e9a-ec96-44a5-9916-05e06d54b1f4",
+        "deployment": "41f5fb43-c8dc-48ae-a332-a12683eb8c2e",
+        "status": "QUEUED"
+      },
+      {
+        "name": "WEB6",
+        "service": "1e6ee65f-df5d-42b1-972e-97f3a560f5d3",
+        "deployment": "8bab8162-cab1-42d0-86fd-42a028733b7e",
+        "status": "QUEUED"
+      },
+      {
+        "name": "WEB7",
+        "service": "31bd0ff6-2d3d-4793-8197-eabcd3afcb75",
+        "deployment": "fe61ea6e-2078-4ac0-a9c3-d202d16caa29",
+        "status": "DEPLOYING"
+      },
+      {
+        "name": "WEB8",
+        "service": "95c937b9-b4e8-4fd3-866f-bd98d5420b2f",
+        "deployment": "f518c79c-3ff2-4c9f-b9b9-8b4421178f57",
+        "status": "BUILDING"
+      },
+      {
+        "name": "WEB9",
+        "service": "36eda15e-fd28-4fc6-a0c9-7fe454829554",
+        "deployment": "d86942bf-5347-48c4-b31e-73ed5c475bbc",
+        "status": "BUILDING"
+      },
+      {
+        "name": "WEB10",
+        "service": "6f9e4f24-29be-49d7-914b-f1f9b42790d6",
+        "deployment": "fb272054-4331-4513-83fa-9f58787c7162",
+        "status": "SUCCESS"
+      }
+    ],
+    "verification": "Initial selected deployment metadata only. Running revision/authority/holds checks pending these same handles. No shared database/auth calls.",
+    "sourceEquivalence": "Corecac5 complete tree627e equals already-qualified/deployed13ca; graph-only two-parent reconciliation. Exact image5442 compiled13ca; new running provenance must be verified separately.",
+    "next": "Follow existing handles; do not repeat source pushes or previously accepted functional cohorts. Continue remaining popup write actions and map workflows while rollout runs.",
+    "observation": {
+      "runningWeb4": "a54956d1ffb3d45e699a9b0bd0a5f2a4c1e62c57",
+      "runtimeWorkerHolds": {
+        "hyperdrive": true,
+        "usageReconciliation": true,
+        "applicationMaintenance": true
+      },
+      "successor": "a9184e7b108dc10f126ec0d1e01cee1d93de740a",
+      "successorStatus": "Latest metadata WEB4/6/8 building, WEB5 queued, WEB7/9/10 success. Peer Development retains NFT decoder; no duplicate deployment requested.",
+      "scope": "Selected runtime revision/hold fields only; no shared Mongo/auth test. Other previous handles were not individually reread here."
+    }
+  },
+  "nextBreadth": "Default-provider Data create/read/delete through the actual portal with explicit admitted free ordinary-write configuration; then recorded-map workflows. Existing native/component evidence remains retained, not whole-action acceptance.",
+  "latestMapRouteAcceptance": {
+    "date": "2026-11-23",
+    "run": 45148541889,
+    "portal": "b255f18f95eac84e1b951991a58a61b28b664b70",
+    "scope": "Private GPX publish/native readback/rename/reopen/list/close through real portal and shipping API with owned Mongo.",
+    "evidence": "OPORTAL_MAP_ROUTE_HTTP_2026-11-23.json",
+    "overallComplete": false
+  },
+  "latestDataEditAcceptance": {
+    "date": "2026-11-23",
+    "run": 45149458665,
+    "portal": "b1d85e9951edae4cf770f7c9295b1e4137e8f0fd",
+    "scope": "Actual owner name/description detail edit and native persisted readback; owned create/read/delete setup/cleanup.",
+    "evidence": "OPORTAL_DATA_EDIT_2026-11-23.json",
+    "overallComplete": false
+  },
+  "latestFilesWrite": {
+    "run": 45150357293,
+    "status": "accepted-representative-upload-download-delete",
+    "scope": "One tiny owned upload/download-byte-verification/delete through actual portal/HTTP, reused API image; no shared cluster test.",
+    "portal": "b1d85e9951edae4cf770f7c9295b1e4137e8f0fd",
+    "job": 137609920095,
+    "artifact": 14805258911,
+    "archiveBytes": 4271,
+    "evidence": "OPORTAL_FILES_WRITES_2026-11-23.json",
+    "cleanupVerified": true
+  },
+  "latestInboxRead": {
+    "run": 45151234976,
+    "status": "accepted-representative-native-read-flags-and-dashboard",
+    "artifact": 14806297696,
+    "evidence": "OPORTAL_INBOX_READ_2026-11-23.json",
+    "cleanupVerified": true
+  },
+  "latestChatHyperDrive": {
+    "run": 45152168295,
+    "HyperDrive": "accepted-status-tabs-preference-read-close",
+    "Chat": "accepted-actual-session-lifecycle45165837353",
+    "evidence": "OPORTAL_CHAT_HYPERDRIVE_2026-11-23.json",
+    "cleanupVerified": true,
+    "candidate": "f4ac6302cbeadf6b1af77cbd9c6cdf27cfec402b",
+    "imageRun": 45158527267,
+    "overallComplete": false,
+    "status": "qualified-backend-publication-ready"
+  },
+  "latestDirectoryMessage": {
+    "portal": "0bbe7e942b6e4ea3b59e692c0699ccf127e1be75",
+    "status": "accepted-real-directory-send-recipient-readback-navigation",
+    "evidence": "OPORTAL_CHAT_HYPERDRIVE_2026-11-23.json",
+    "nextGroup": "chat-directory",
+    "run": 45165837353
+  },
+  "latestPopupNavigation": {
+    "status": "three-real-journeys-and-navigation-accepted",
+    "portal": "387812546a860120943259c72918ad4d5e142b73",
+    "evidence": "OPORTAL_POPUP_NAVIGATION_2026-11-23.json",
+    "run": 45165837353,
+    "artifact": 14814813455
+  }
+}

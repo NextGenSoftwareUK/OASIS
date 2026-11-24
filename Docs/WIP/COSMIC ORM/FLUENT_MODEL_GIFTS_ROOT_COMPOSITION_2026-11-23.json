@@ -1,0 +1,20 @@
+{
+  "source": "338861825e50dbcd67216d3f8f4078c10c4df641",
+  "featureBefore": "0227b2829b104debc729eca99f95db8d38ab7a2e",
+  "incomingDevelopment": "ae9d72651bdffefce8d2695f09f9060f052c8703",
+  "combinedCore": "854b2b3129701b3a5162d49d55e7e8a86be4f6ef",
+  "mergeConflicts": [
+    "Docker/oasis-dependency-versions.env",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core"
+  ],
+  "resolution": "actual Git three-way tree with reviewed Core union and official manifest synchronization",
+  "incomingNonDependencyPathsBytePreserved": true,
+  "coreOnlyIncomingDelta": "Managers/GiftsManager.cs",
+  "nativeCodeUnchangedFromAcceptedModelScope": true,
+  "aliasGuardSourceUnchanged": true,
+  "nativeRun": 45104280443,
+  "aliasGuardRun": 45105765740,
+  "imageAccepted": false,
+  "packageAccepted": false,
+  "deployed": false
+}

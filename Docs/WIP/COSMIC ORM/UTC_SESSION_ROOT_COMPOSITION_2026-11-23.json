@@ -1,0 +1,24 @@
+{
+  "incomingDevelopment": "6bbbae4be199eef55856df32476db5684ee05073",
+  "basicQueryRoot": "e097b5c809599968c5e83c71d959344d2f4683b4",
+  "featureRootBefore": "d1f65c2708f3b4bbf3d85081e8797bf5d95bf023",
+  "qualifiedCore": "2fd96cc38209f9a388b977469399a966bde2173d",
+  "featureCore": "4c9ab36aaf6a41bf4ee0606950b291aa091ffbda",
+  "qualifiedMergeConflicts": [
+    "Docker/oasis-dependency-versions.env",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core"
+  ],
+  "sourceResolution": "actual Git three-way tree; manually choose reviewed Core union and regenerate manifest from incoming Development pins",
+  "web6Preserved": "78a27a295e74721358eb2b02399f79eff5b21633",
+  "starPreserved": "531c98973164a295c39e5c2bdcf1a4b1bc4ba789",
+  "incomingAuthQualifiedRun": 45094516900,
+  "combinedImageAccepted": false,
+  "combinedNativeAccepted": false,
+  "deployed": false,
+  "qualifiedRoot": "8127af04e98364b42134b3a139919c8b998a8a5e",
+  "featureMergeConflicts": [
+    "Docker/oasis-dependency-versions.env",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core"
+  ],
+  "featureRootPublished": "ced53621e4f6c070eb1b5ecc68f4a3c1f7a3831b"
+}

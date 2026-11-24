@@ -1,0 +1,22 @@
+{
+  "source": "7cfc1fbc4e646ba689bb723d69a11f8c5753f4c6",
+  "startupDnaAutoLoadBalanceEnabled": true,
+  "startupDnaAutoFailOverEnabled": true,
+  "startupDnaAutoReplicationEnabled": true,
+  "legacyStorageLoadBalanceEnabled": true,
+  "packagedConverterType": true,
+  "packagedConversionSemantics": true,
+  "packagedConversionBinding": true,
+  "packagedFluentConversion": true,
+  "coreAssemblySha256": "0076a9cf2c81dfc3cba188db55dc5d84c4c0977ea9cfd338560ca3e9c1cef8af",
+  "scope": "running source and selected startup DNA plus packaged Core symbol presence; not in-process flags or a hosted typed-model query",
+  "observedAt": "2026-11-23T18:20:34.285872+00:00",
+  "core": "a76c6593152730fb336b68253698abc34a245c85",
+  "allSevenDeploymentsSuccessful": true,
+  "actualWeb4ImageDigest": "sha256:afb45fdaec822e6d83c5a0bd15b5e102cf334f5fa993d60ac3b88e879be0b213",
+  "qualifiedProducerSource": "04dc4244bebb0280e06a556496202befc3e2dd4d",
+  "qualifiedProducerImageDigest": "sha256:e05299d40e9b17528d1d766bccc5b5e4c86bb3cdebcf011f7b463c7a9d457b7e",
+  "sharedDatabaseCalls": 0,
+  "applicationDataWrites": 0,
+  "authenticationSessionsIssued": 0
+}

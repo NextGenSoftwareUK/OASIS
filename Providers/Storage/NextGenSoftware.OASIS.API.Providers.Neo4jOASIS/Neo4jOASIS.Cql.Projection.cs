@@ -13,13 +13,21 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 
-public partial class Neo4jOASIS : ICosmicQueryEntityProjectionStorageProvider
+public partial class Neo4jOASIS : ICosmicQueryEntityProjectionStorageProvider,ICosmicQuerySetProjectionStorageProvider
 {
     public static CosmicProjectionCapabilities CqlProjectionCapabilities { get; } = new CosmicProjectionCapabilities(
         CqlCapabilities.CanonicalFields.Select(field => new CosmicProjectionFieldCapability(field.Name, field.ValueType)).ToArray(),
-        CqlCapabilities.MetadataTypes.Select(type => type.ValueType).ToArray()).WithFunctions(CosmicProjectionFunction.Utf16Length,CosmicProjectionFunction.TextCoalesce,CosmicProjectionFunction.BooleanTextCase,CosmicProjectionFunction.Int32Coalesce);
+        CqlCapabilities.MetadataTypes.Select(type => type.ValueType).ToArray()).WithFunctions(CosmicProjectionFunction.Utf16Length,CosmicProjectionFunction.TextCoalesce,CosmicProjectionFunction.BooleanTextCase,CosmicProjectionFunction.Int32Coalesce,CosmicProjectionFunction.UtcYear,CosmicProjectionFunction.UtcMonth,CosmicProjectionFunction.UtcDay,CosmicProjectionFunction.UtcDayOfYear,CosmicProjectionFunction.UtcHour,CosmicProjectionFunction.UtcMinute,CosmicProjectionFunction.UtcSecond);
     public CosmicProjectionCapabilities ProjectionCapabilities => CqlProjectionCapabilities;
     public bool SupportsEntityProjection=>true;
+    public bool SupportsSetProjection=>true;
+
+    public Task<OASISResult<IReadOnlyList<CosmicProjectionRow>>> ExecuteCosmicSetProjectionAsync<T,TResult>(
+        CosmicSetProjectionPlan<T,TResult> plan,int maximumResults=100,
+        int maximumPayloadBytes=CosmicProjectionResults.MaximumPayloadLimit,CancellationToken cancellationToken=default) where T:IHolon
+        =>plan==null?Task.FromResult(ProjectionCqlFailure("CQL_PLAN_INVALID","An immutable late set projection is required."))
+            :ExecuteProjectionReadAsync(plan.Selection,maximumResults,maximumPayloadBytes,cancellationToken,setProjection:plan);
+
 
     public Task<OASISResult<IReadOnlyList<CosmicProjectionRow>>> ExecuteCosmicEntityProjectionAsync<T,TResult>(
         CosmicEntityProjectionPlan<T,TResult> plan,int maximumResults=100,
@@ -35,7 +43,9 @@ public partial class Neo4jOASIS : ICosmicQueryEntityProjectionStorageProvider
 
     private async Task<OASISResult<IReadOnlyList<CosmicProjectionRow>>> ExecuteProjectionReadAsync<T,TResult>(
         CosmicProjectionPlan<T,TResult> plan,int maximumResults,int maximumPayloadBytes,CancellationToken cancellationToken,
-        CosmicEntityProjectionPlan<T,TResult> entityProjection=null) where T:IHolon
+        CosmicEntityProjectionPlan<T,TResult> entityProjection=null,
+        CosmicSetProjectionPlan<T,TResult> setProjection=null,
+        Func<IAsyncTransaction,NeoCqlReadBudget,IReadOnlyList<CosmicProjectionRow>,IReadOnlyList<object>,Task> selectedContinuation=null) where T:IHolon
     {
         NeoCqlReadBudget readBudget = null;
         try
@@ -52,8 +62,19 @@ public partial class Neo4jOASIS : ICosmicQueryEntityProjectionStorageProvider
                 var stageAdmission=EntityCompositionCapabilities.Admit(entityProjection.Source.Query);
                 if(stageAdmission.IsError)return ProjectionCqlFailure(stageAdmission.ErrorCode,stageAdmission.Message,stageAdmission.Exception);
             }
+            if(entityProjection!=null && setProjection!=null)
+                return ProjectionCqlFailure("CQL_PLAN_INVALID","Select one native projection source kind.");
+            if(setProjection!=null)
+            {
+                var actual=CosmicSetProjectionPlanner.Plan(setProjection.Query,Core.Enums.ProviderType.Neo4jOASIS,
+                    new CosmicProjectionTarget(Core.Enums.ProviderType.Neo4jOASIS,CqlCapabilities,CqlProjectionCapabilities),
+                    SetQueryCapabilities,setProjection.Source.Options);
+                if(actual.IsError)return ProjectionCqlFailure(actual.ErrorCode,actual.Message,actual.Exception);
+                setProjection=actual.Result;
+                maximumResults=Math.Min(maximumResults,setProjection.Source.Options.MaximumResultRows);
+            }
             var source = plan.Query.Source;
-            var compiled = CompileCqlSource(source);
+            var compiled = CompileCqlSource(setProjection?.Query.Source.Left??source);
             var translator = compiled.Translator;
             var columns = translator.TranslateProjection(plan.Query.Columns);
             var keys = translator.TranslateOrdering(source.Orderings);
@@ -74,7 +95,7 @@ public partial class Neo4jOASIS : ICosmicQueryEntityProjectionStorageProvider
             translator.Parameters.Add("projectionLimit", fetch); translator.Parameters.Add("projectionOffset", source.Offset);
             translator.Parameters.Add("projectionBytes", maximumPayloadBytes);
             cancellationToken.ThrowIfCancellationRequested();
-            if (entityProjection==null && fetch == 0 && !translator.HasRelationship) return new OASISResult<IReadOnlyList<CosmicProjectionRow>>(Array.Empty<CosmicProjectionRow>()) { IsLoaded = true };
+            if (entityProjection==null && setProjection==null && fetch == 0 && !translator.HasRelationship) return new OASISResult<IReadOnlyList<CosmicProjectionRow>>(Array.Empty<CosmicProjectionRow>()) { IsLoaded = true };
             if (!IsQuerySourceActivated || _driver == null) return ProjectionCqlFailure("CQL_PROVIDER_INACTIVE", "Neo4j provider is not activated.");
 
             // Invalid ownership/traversal branches remain outside the page and
@@ -97,6 +118,9 @@ public partial class Neo4jOASIS : ICosmicQueryEntityProjectionStorageProvider
             if(entityProjection!=null)
                 query=CompileCqlEntityComposition(compiled,entityProjection.Source,maximumResults,
                     projection:plan.Query.Columns,maximumProjectionBytes:maximumPayloadBytes);
+            if(setProjection!=null)
+                query=CompileCqlSet(compiled,setProjection.Source,maximumResults,
+                    projection:plan.Query.Columns,maximumProjectionBytes:maximumPayloadBytes);
             using var budget = readBudget = new NeoCqlReadBudget(maximumPayloadBytes, cancellationToken);
             budget.Check();
             await using var readOwner = await LeaseCqlReadAsync(budget.Token).ConfigureAwait(false);
@@ -105,7 +129,13 @@ public partial class Neo4jOASIS : ICosmicQueryEntityProjectionStorageProvider
             budget.Check();
             var cursor = await transaction.RunAsync(query, translator.Parameters).ConfigureAwait(false);
             var rows = new List<CosmicProjectionRow>();
-            var inputProof=entityProjection==null ? null : new NeoCqlEntityInputProof(entityProjection.Source.Options);
+            var nativeRows=selectedContinuation==null?null:new List<object>();
+            var entityOptions=entityProjection?.Source.Options??(setProjection==null?null:
+                new CosmicEntityCompositionOptions(Math.Max(setProjection.Source.Options.MaximumLeftInputRows,
+                    setProjection.Source.Options.MaximumRightInputRows),setProjection.Source.Options.MaximumInputPayloadBytes));
+            var inputProof=entityOptions==null?null:new NeoCqlEntityInputProof(entityOptions,
+                setProjection==null?null:checked(setProjection.Source.Options.MaximumLeftInputRows+
+                    setProjection.Source.Options.MaximumRightInputRows));
             while (true)
             {
                 budget.Check();
@@ -122,8 +152,15 @@ public partial class Neo4jOASIS : ICosmicQueryEntityProjectionStorageProvider
                 var row = ReadNativeProjectionRow(native, plan.Query.Columns);
                 budget.ReserveProjection(row.Values);
                 rows.Add(row);
+                nativeRows?.Add(new Dictionary<string,object>{{"values",native}});
             }
             budget.Check();
+            if(selectedContinuation!=null)
+            {
+                if(setProjection==null)throw new InvalidDataException("Selected set continuation requires its admitted native set read owner.");
+                await selectedContinuation(transaction,budget,rows.AsReadOnly(),nativeRows.AsReadOnly()).ConfigureAwait(false);
+                budget.Check();
+            }
             await transaction.CommitAsync().ConfigureAwait(false);
             budget.Check();
             return new OASISResult<IReadOnlyList<CosmicProjectionRow>>(rows.AsReadOnly()) { IsLoaded = true };

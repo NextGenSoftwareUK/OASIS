@@ -1,0 +1,28 @@
+{
+  "phase": "published-source-controls-accepted-preview-pending",
+  "base": "c4e4804be1f5c6710eb64706f38d51c4ecde4656",
+  "cause": "Columnar renderer omitted the shipping cql-set-projection-v1 envelope version.",
+  "newControls": 2,
+  "verified": true,
+  "publicPromotion": false,
+  "controlsPassed": 5,
+  "selectedControls": [
+    "late-selected set replies render aliased native cells in the result grid",
+    "combined count replies display the reviewed SQL alias through the set route",
+    "selected columns render in request order as plain text",
+    "the SQL scalar alias labels only the matching prepared request",
+    "a false ANY result is displayed as a Boolean outcome"
+  ],
+  "verifiedUtc": "2026-11-23T16:44:36.825932+00:00",
+  "realDataCalls": 0,
+  "localOutputFilesCreated": false,
+  "source": "94fca0f137eefa26863ab75c7ef97c3c70ae94bd",
+  "published": true,
+  "preview": {
+    "source": "94fca0f137eefa26863ab75c7ef97c3c70ae94bd",
+    "deployment": "dpl_3RPH7mpAuVpHdiCF2FKd9fq6de75",
+    "url": "https://web4-site-ag5d2gp0q-oasis-team.vercel.app/web4-sandbox.html",
+    "readyState": "READY",
+    "publicPromotion": false
+  }
+}

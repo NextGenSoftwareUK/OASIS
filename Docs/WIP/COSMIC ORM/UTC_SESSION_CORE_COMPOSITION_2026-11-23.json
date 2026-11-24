@@ -1,0 +1,31 @@
+{
+  "incomingCore": "6df988c8f802bc4fdfaebdc03f3dba8f9160c5f9",
+  "basicQueryCore": "dc88abf6a615fc5b5c06b6cd4871683d23e43081",
+  "virtualQueryCore": "db77dc29e6a3fbc872115ab5c69f8ec0d7ad72bb",
+  "qualifiedCombinedCore": "2fd96cc38209f9a388b977469399a966bde2173d",
+  "featureCombinedCore": "4c9ab36aaf6a41bf4ee0606950b291aa091ffbda",
+  "incomingPaths": [
+    "Helpers/AvatarLoginReadBudget.cs",
+    "Helpers/AvatarSessionIdentity.cs",
+    "Helpers/SessionCredentialAuthority.cs",
+    "Managers/AvatarManager/AvatarLoginBreaker.cs",
+    "Managers/AvatarManager/AvatarManager-AccessSession.cs",
+    "Managers/AvatarManager/AvatarManager-Auth.cs",
+    "Managers/AvatarManager/AvatarManager-DeleteForProvider.cs",
+    "Managers/AvatarManager/AvatarManager-RefreshAuthority.cs",
+    "Managers/AvatarManager/AvatarManager-Save.cs",
+    "Managers/AvatarManager/AvatarManager-SaveUtils.cs",
+    "Managers/AvatarManager/AvatarManager-Session.cs",
+    "Managers/AvatarManager/AvatarManager-SessionAuthorityPolicy.cs",
+    "Managers/AvatarManager/AvatarManager-SessionRevocation.cs",
+    "Managers/AvatarManager/AvatarManager.cs",
+    "Managers/OASIS HyperDrive/OASISHyperDrive.cs",
+    "Objects/Avatar/AvatarSessionManagement.cs",
+    "Objects/RefreshToken.cs"
+  ],
+  "incomingPathsBytePreserved": true,
+  "queryAndNativeModelSourceUnchanged": true,
+  "qualifiedCombinedCompiled": false,
+  "featureCombinedCompiled": false,
+  "deployed": false
+}

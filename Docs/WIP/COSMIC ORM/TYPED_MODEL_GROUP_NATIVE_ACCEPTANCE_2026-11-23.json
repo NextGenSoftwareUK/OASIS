@@ -1,0 +1,85 @@
+{
+  "source": "2b369e2c273dfe35ea715820484e289353ae97dc",
+  "core": "048b02d54870e793de8f18439ff8f00950ad3547",
+  "run": 45086766670,
+  "job": 137407062706,
+  "artifact": 14780330404,
+  "archiveBytes": 3276,
+  "archiveSha256": "240188e050a6a9c4d867e1528e5f2aaeba90b53d90d8f2c4e847f1306b6dd4d6",
+  "passed": 3,
+  "failed": 0,
+  "reports": {
+    "MongoDBOASIS": {
+      "checks": 5,
+      "ownedIds": 1,
+      "writes": 2,
+      "evidence": {
+        "aliasStoredWithoutClrKey": true,
+        "freshTypedReadVerified": true,
+        "nativePredicateProjectionVerified": true,
+        "selectedUpdateVerified": true,
+        "typedIdentityGroupsVerified": true,
+        "collisionAndReservedRefusedBeforeGetters": true
+      },
+      "singleJourneyElapsedMilliseconds": {
+        "create-mapped": 590,
+        "load-mapped": 96,
+        "project-mapped": 64,
+        "update-mapped": 55,
+        "reload-mapped": 5,
+        "typed-mapped-groups": 61
+      }
+    },
+    "SQLLiteDBOASIS": {
+      "checks": 5,
+      "ownedIds": 1,
+      "writes": 2,
+      "evidence": {
+        "aliasStoredWithoutClrKey": true,
+        "freshTypedReadVerified": true,
+        "nativePredicateProjectionVerified": true,
+        "selectedUpdateVerified": true,
+        "typedIdentityGroupsVerified": true,
+        "collisionAndReservedRefusedBeforeGetters": true
+      },
+      "singleJourneyElapsedMilliseconds": {
+        "create-mapped": 597,
+        "load-mapped": 48,
+        "project-mapped": 12,
+        "update-mapped": 32,
+        "reload-mapped": 5,
+        "typed-mapped-groups": 24
+      }
+    },
+    "Neo4jOASIS": {
+      "checks": 5,
+      "ownedIds": 1,
+      "writes": 2,
+      "evidence": {
+        "aliasStoredWithoutClrKey": true,
+        "freshTypedReadVerified": true,
+        "nativePredicateProjectionVerified": true,
+        "selectedUpdateVerified": true,
+        "typedIdentityGroupsVerified": true,
+        "collisionAndReservedRefusedBeforeGetters": true
+      },
+      "singleJourneyElapsedMilliseconds": {
+        "create-mapped": 1485,
+        "load-mapped": 567,
+        "project-mapped": 490,
+        "update-mapped": 51,
+        "reload-mapped": 9,
+        "typed-mapped-groups": 568
+      }
+    }
+  },
+  "compiled": true,
+  "nativeAccepted": true,
+  "ownedFixturesAbsent": true,
+  "ownedMongoStopped": true,
+  "sharedDatabaseCalls": 0,
+  "artifactSavedToDisk": false,
+  "deployed": false,
+  "fullModelMappingParity": false,
+  "fullFluentModelBuilderImplemented": false
+}

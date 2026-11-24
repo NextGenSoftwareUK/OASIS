@@ -1,0 +1,32 @@
+{
+  "MongoDBOASIS": {
+    "sdkRepresentativeQueryMaximumMs": 219,
+    "sdkTimedOperations": 15,
+    "httpMs": {
+      "owner-http": 624,
+      "foreign-http": 124,
+      "anonymous-http": 9
+    },
+    "scope": "isolated CI fixture; not production latency or a benchmark"
+  },
+  "SQLLiteDBOASIS": {
+    "sdkRepresentativeQueryMaximumMs": 96,
+    "sdkTimedOperations": 15,
+    "httpMs": {
+      "owner-http": 79,
+      "foreign-http": 45,
+      "anonymous-http": 1
+    },
+    "scope": "isolated CI fixture; not production latency or a benchmark"
+  },
+  "Neo4jOASIS": {
+    "sdkRepresentativeQueryMaximumMs": 3164,
+    "sdkTimedOperations": 15,
+    "httpMs": {
+      "owner-http": 1346,
+      "foreign-http": 759,
+      "anonymous-http": 1
+    },
+    "scope": "isolated CI fixture; not production latency or a benchmark"
+  }
+}

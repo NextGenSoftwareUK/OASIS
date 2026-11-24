@@ -1484,3 +1484,6 @@ OASIS Omniverse/OGames/OQuake/build/ogengine.h
 
 # Persistent local COSMIC fixtures; cleanup may remove TestResults, not this state.
 /LocalState/
+
+# Runtime SQLite store; created on provider activation, never shipped.
+ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/OASISSQLLiteDB.db

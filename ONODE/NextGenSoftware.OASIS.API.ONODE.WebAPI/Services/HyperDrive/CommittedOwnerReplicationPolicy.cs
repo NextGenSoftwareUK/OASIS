@@ -9,7 +9,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
 {
     /// <summary>Default admission for trusted local owned-write outboxes. This
     /// validates the committed actor/selected ownership, not tenant, residency or
-    /// encryption grants. Hosts with those constraints supply a stricter policy.</summary>
+    /// encryption grants. Hosts with those constraints supply a stricter policy.
+    /// A node is admitted when the committed actor created it, or when the actor
+    /// is its recorded last modifier: the source save already authorized that
+    /// shared edit, so its replicas must follow it.</summary>
     public sealed class CommittedOwnerReplicationPolicy : IHolonReplicationAuthorizationPolicy
     {
         public string BindingIdentity => NextGenSoftware.OASIS.API.Core.Configuration.HolonReplicationRoutes.DefaultPolicyBinding;
@@ -22,7 +25,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
             var selected = HolonGraphWritePlan.Create(mutation.Roots, mutation.SaveChildren,
                 mutation.Recursive, mutation.MaxChildDepth, 0);
             return Task.FromResult(new OASISResult<bool>(mutation.ActorId != Guid.Empty &&
-                selected.Nodes.All(node => node.Snapshot.CreatedByAvatarId == mutation.ActorId)));
+                selected.Nodes.All(node => node.Snapshot.CreatedByAvatarId == mutation.ActorId ||
+                    node.Snapshot.ModifiedByAvatarId == mutation.ActorId)));
         }
     }
 }

@@ -17,6 +17,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Mfa
     {
         private readonly Func<OASISDNA> _dna;
         private IMongoDatabase _db;
+        private readonly SemaphoreSlim _indexGate = new SemaphoreSlim(1, 1);
+        private bool _indexesReady;
         private readonly object _gate = new object();
         public MongoMfaStore(Func<OASISDNA> dna) { _dna = dna; }
 
@@ -30,15 +32,27 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Mfa
                 if (mongo == null || string.IsNullOrWhiteSpace(mongo.ConnectionString) || string.IsNullOrWhiteSpace(mongo.DBName))
                     throw new InvalidOperationException("MFA needs StorageProviders.MongoDBOASIS (ConnectionString and DBName) in OASIS_DNA.json.");
                 var db = new MongoClient(mongo.ConnectionString).GetDatabase(mongo.DBName);
-                db.GetCollection<BsonDocument>("AvatarMfaChallenges").Indexes.CreateOne(new CreateIndexModel<BsonDocument>(
-                    Builders<BsonDocument>.IndexKeys.Ascending("expires"), new CreateIndexOptions { Name = "ix_ttl", ExpireAfter = TimeSpan.Zero }));
-                var days = dna.OASIS.Security?.Mfa?.EventRetentionDays ?? 730;
-                var events = db.GetCollection<BsonDocument>("AvatarMfaEvents");
-                events.Indexes.CreateOne(new CreateIndexModel<BsonDocument>(Builders<BsonDocument>.IndexKeys.Ascending("avatar").Descending("t"), new CreateIndexOptions { Name = "ix_avatar_time" }));
-                events.Indexes.CreateOne(new CreateIndexModel<BsonDocument>(Builders<BsonDocument>.IndexKeys.Ascending("t"),
-                    new CreateIndexOptions { Name = "ix_ttl", ExpireAfter = days > 0 ? TimeSpan.FromDays(days) : (TimeSpan?)null }));
                 return _db = db;
             }
+        }
+
+        private async Task EnsureIndexesAsync(CancellationToken c)
+        {
+            await _indexGate.WaitAsync(c).ConfigureAwait(false);
+            try
+            {
+                if (_indexesReady) return;
+                var db = Db();
+                await db.GetCollection<BsonDocument>("AvatarMfaChallenges").Indexes.CreateOneAsync(new CreateIndexModel<BsonDocument>(
+                    Builders<BsonDocument>.IndexKeys.Ascending("expires"), new CreateIndexOptions { Name = "ix_ttl", ExpireAfter = TimeSpan.Zero }), cancellationToken: c).ConfigureAwait(false);
+                var days = _dna().OASIS.Security?.Mfa?.EventRetentionDays ?? 730;
+                var events = db.GetCollection<BsonDocument>("AvatarMfaEvents");
+                await events.Indexes.CreateOneAsync(new CreateIndexModel<BsonDocument>(Builders<BsonDocument>.IndexKeys.Ascending("avatar").Descending("t"), new CreateIndexOptions { Name = "ix_avatar_time" }), cancellationToken: c).ConfigureAwait(false);
+                await events.Indexes.CreateOneAsync(new CreateIndexModel<BsonDocument>(Builders<BsonDocument>.IndexKeys.Ascending("t"),
+                    new CreateIndexOptions { Name = "ix_ttl", ExpireAfter = days > 0 ? TimeSpan.FromDays(days) : (TimeSpan?)null }), cancellationToken: c).ConfigureAwait(false);
+                _indexesReady = true;
+            }
+            finally { _indexGate.Release(); }
         }
 
         private static BsonValue G(Guid id) => new BsonBinaryData(id, GuidRepresentation.Standard);
@@ -64,8 +78,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Mfa
             };
         }
 
-        public Task SaveAsync(MfaRecord r, CancellationToken c)
-            => Records.ReplaceOneAsync(new BsonDocument("_id", G(r.AvatarId)), new BsonDocument
+        public async Task SaveAsync(MfaRecord r, CancellationToken c)
+        {
+            await EnsureIndexesAsync(c).ConfigureAwait(false);
+            await Records.ReplaceOneAsync(new BsonDocument("_id", G(r.AvatarId)), new BsonDocument
             {
                 { "_id", G(r.AvatarId) }, { "enabled", r.Enabled },
                 { "secret", r.SecretCipher == null ? BsonNull.Value : (BsonValue)r.SecretCipher },
@@ -74,12 +90,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Mfa
                 { "lastStep", r.LastStep }, { "failed", r.FailedCount },
                 { "lockedUntil", r.LockedUntil.HasValue ? (BsonValue)r.LockedUntil.Value : BsonNull.Value },
                 { "updated", r.UpdatedAt }
-            }, new ReplaceOptions { IsUpsert = true }, c);
+            }, new ReplaceOptions { IsUpsert = true }, c).ConfigureAwait(false);
+        }
 
         public Task DeleteAsync(Guid avatarId, CancellationToken c) => Records.DeleteOneAsync(new BsonDocument("_id", G(avatarId)), c);
 
-        public Task SaveChallengeAsync(MfaChallenge ch, CancellationToken c)
-            => Challenges.InsertOneAsync(new BsonDocument { { "_id", ch.Id }, { "avatar", G(ch.AvatarId) }, { "expires", ch.ExpiresAt }, { "attempts", 0 }, { "ip", ch.IpAddress == null ? BsonNull.Value : (BsonValue)ch.IpAddress } }, cancellationToken: c);
+        public async Task SaveChallengeAsync(MfaChallenge ch, CancellationToken c)
+        {
+            await EnsureIndexesAsync(c).ConfigureAwait(false);
+            await Challenges.InsertOneAsync(new BsonDocument { { "_id", ch.Id }, { "avatar", G(ch.AvatarId) }, { "expires", ch.ExpiresAt }, { "attempts", 0 }, { "ip", ch.IpAddress == null ? BsonNull.Value : (BsonValue)ch.IpAddress } }, cancellationToken: c).ConfigureAwait(false);
+        }
 
         public async Task<MfaChallenge> GetChallengeAsync(string id, CancellationToken c)
         {
@@ -97,8 +117,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Mfa
         public async Task<bool> ConsumeChallengeAsync(string id, CancellationToken c)
             => (await Challenges.DeleteOneAsync(new BsonDocument("_id", id), c).ConfigureAwait(false)).DeletedCount == 1;
 
-        public Task AddEventAsync(MfaEvent e, CancellationToken c)
-            => Events.InsertOneAsync(new BsonDocument { { "_id", G(e.Id) }, { "t", e.Timestamp }, { "avatar", G(e.AvatarId) }, { "actor", G(e.ActorId) }, { "kind", e.Kind }, { "detail", e.Detail == null ? BsonNull.Value : (BsonValue)e.Detail } }, cancellationToken: c);
+        public async Task AddEventAsync(MfaEvent e, CancellationToken c)
+        {
+            await EnsureIndexesAsync(c).ConfigureAwait(false);
+            await Events.InsertOneAsync(new BsonDocument { { "_id", G(e.Id) }, { "t", e.Timestamp }, { "avatar", G(e.AvatarId) }, { "actor", G(e.ActorId) }, { "kind", e.Kind }, { "detail", e.Detail == null ? BsonNull.Value : (BsonValue)e.Detail } }, cancellationToken: c).ConfigureAwait(false);
+        }
 
         public async Task<IReadOnlyList<MfaEvent>> GetEventsAsync(Guid avatarId, int limit, CancellationToken c)
         {

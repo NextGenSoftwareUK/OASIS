@@ -1,0 +1,30 @@
+{
+  "source": "31f581ef6548d29374a0a007d7c261da5013da13",
+  "core": "e6ff129e186f166c422aca697ff91e644d75642b",
+  "web6": "78a27a295e74721358eb2b02399f79eff5b21633",
+  "onode": "8745c95ef2f6150fafb1417122a20c020784b338",
+  "run": 45152186051,
+  "job": 137616092958,
+  "controlSource": "187f89120afc32d54332910790b619d5b36a444e",
+  "explicitSourceInputAttested": true,
+  "digest": "sha256:44ef8cbee8f878d3a0b0a65fd509f65f6fb5be7e0a743c556b0dd32921496ee8",
+  "teachingSidecars": false,
+  "exactPrivatePinsVerified": true,
+  "incomingDevelopmentPreserved": "a9184e7b108dc10f126ec0d1e01cee1d93de740a",
+  "nativeRuns": [
+    45147280169,
+    45148486674,
+    45152902027
+  ],
+  "namedFilterSourceUnchangedFromAcceptedNative": true,
+  "shadowEntrySourceUnchangedFromAcceptedNative": true,
+  "completeCoreMatchesTrackingModeNative": true,
+  "trackingQualificationSource": "0518d580865ebba1378f9129675603f7092f9a19",
+  "qualificationDeltaOnlyFixtureAndDocs": true,
+  "retainedNativeCohortsReplayed": false,
+  "imageAccepted": true,
+  "combinedCoreCompiled": true,
+  "imageDownloadedLocally": false,
+  "deployed": false,
+  "observedUtc": "2026-11-23T10:14:37.594934+00:00"
+}

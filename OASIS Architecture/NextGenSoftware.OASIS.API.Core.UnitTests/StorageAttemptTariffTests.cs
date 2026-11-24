@@ -48,7 +48,11 @@ public sealed class StorageAttemptTariffTests
         var rows = StorageAttemptTariff.SupportedOperations.Select(operation =>
             new StorageAttemptTariff(ProviderType.SQLLiteDBOASIS, operation, 0.003m, "storage-v1")).ToArray();
         if (profile == "missing-read") rows = rows.Where(row => row.Operation != "LoadHolon").ToArray();
-        if (profile == "catalogue") rows[0] = rows[0] with { CatalogueVersion = "other-v1" };
+        if (profile == "catalogue")
+        {
+            var read = Array.FindIndex(rows, row => row.Operation == "LoadHolon");
+            rows[read] = rows[read] with { CatalogueVersion = "other-v1" };
+        }
         var deployment = new StorageAdmissionDeployment
         {
             OrdinaryProviders = new[] { ProviderType.SQLLiteDBOASIS },

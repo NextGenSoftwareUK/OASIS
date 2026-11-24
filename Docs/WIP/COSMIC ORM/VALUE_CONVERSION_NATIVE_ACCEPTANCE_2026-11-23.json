@@ -1,0 +1,121 @@
+{
+  "acceptedAt": "2026-11-23T17:38:06.065097+00:00",
+  "source": "04dc4244bebb0280e06a556496202befc3e2dd4d",
+  "core": "a76c6593152730fb336b68253698abc34a245c85",
+  "run": 45228231194,
+  "job": 137880443944,
+  "runUrl": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/45228231194",
+  "conclusion": "success",
+  "artifact": {
+    "id": 14846991575,
+    "sizeBytes": 3396,
+    "sha256": "38304c6681f9aadd4140dde0e0b181e1bba4f4310c12e8b869747b58814314fb",
+    "inspectedInMemory": true,
+    "expectedFiles": [
+      "MongoDBOASIS-value-conversion-native.json",
+      "Neo4jOASIS-value-conversion-native.json",
+      "SQLLiteDBOASIS-value-conversion-native.json",
+      "mapping-native.trx",
+      "source.json"
+    ]
+  },
+  "nativePassed": 3,
+  "actualWeb4Compiled": true,
+  "ownedFixturesAbsent": true,
+  "ownedMongoContainerAbsent": true,
+  "ciServiceContainersStopped": true,
+  "sharedDatabaseCalls": 0,
+  "reports": [
+    {
+      "provider": "MongoDBOASIS",
+      "checks": 8,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create-converted": 474,
+        "read-converted": 99,
+        "project-converted": 158,
+        "set-converted": 40,
+        "membership-converted": 4,
+        "foreign-converted": 1,
+        "update-converted": 43,
+        "read-updated-converted": 6
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "convertedStorageRepresentation": true,
+        "typedConversionRoundtrip": true,
+        "nativeConvertedFilterAndOrder": true,
+        "nativeConvertedProjectionAndMembership": true,
+        "convertedSetModelPreserved": true,
+        "convertedCallerIsolation": true,
+        "convertedMutableUpdateAcknowledged": true,
+        "immutableConverterModelAndFilterBypass": true
+      },
+      "exactCleanupVerified": true
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 8,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create-converted": 460,
+        "read-converted": 46,
+        "project-converted": 31,
+        "set-converted": 60,
+        "membership-converted": 12,
+        "foreign-converted": 6,
+        "update-converted": 25,
+        "read-updated-converted": 7
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "convertedStorageRepresentation": true,
+        "typedConversionRoundtrip": true,
+        "nativeConvertedFilterAndOrder": true,
+        "nativeConvertedProjectionAndMembership": true,
+        "convertedSetModelPreserved": true,
+        "convertedCallerIsolation": true,
+        "convertedMutableUpdateAcknowledged": true,
+        "immutableConverterModelAndFilterBypass": true
+      },
+      "exactCleanupVerified": true
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "checks": 8,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create-converted": 981,
+        "read-converted": 449,
+        "project-converted": 1290,
+        "set-converted": 1150,
+        "membership-converted": 430,
+        "foreign-converted": 279,
+        "update-converted": 67,
+        "read-updated-converted": 250
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "convertedStorageRepresentation": true,
+        "typedConversionRoundtrip": true,
+        "nativeConvertedFilterAndOrder": true,
+        "nativeConvertedProjectionAndMembership": true,
+        "convertedSetModelPreserved": true,
+        "convertedCallerIsolation": true,
+        "convertedMutableUpdateAcknowledged": true,
+        "immutableConverterModelAndFilterBypass": true
+      },
+      "exactCleanupVerified": true
+    }
+  ],
+  "scope": "Representative native SDK/query/model conversion functionality. Not full M12/M13/EF parity, HTTP conversion-model configuration, live deployment or hardened certification.",
+  "supersededRun": {
+    "run": 45227510221,
+    "conclusion": "cancelled",
+    "reason": "Source-reviewed entity-stage model binding correction",
+    "ownedCleanupVerified": true
+  }
+}

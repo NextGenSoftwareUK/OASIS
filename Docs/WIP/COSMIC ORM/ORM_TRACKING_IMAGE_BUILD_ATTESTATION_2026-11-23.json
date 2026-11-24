@@ -1,0 +1,16 @@
+{
+  "source": "31f581ef6548d29374a0a007d7c261da5013da13",
+  "core": "e6ff129e186f166c422aca697ff91e644d75642b",
+  "run": 45152186051,
+  "job": 137616092958,
+  "controlSource": "187f89120afc32d54332910790b619d5b36a444e",
+  "digest": "sha256:44ef8cbee8f878d3a0b0a65fd509f65f6fb5be7e0a743c556b0dd32921496ee8",
+  "exactPrivatePinsVerified": true,
+  "explicitSourceInputAttested": true,
+  "teachingSidecars": false,
+  "imageBuilt": true,
+  "nativeAcceptancePending": true,
+  "combinedReleaseAccepted": false,
+  "imageDownloadedLocally": false,
+  "observedUtc": "2026-11-23T10:10:12.569956+00:00"
+}

@@ -25,6 +25,7 @@ Targets `netstandard2.1` and `net8.0`. NuGet resolves Contracts, HyperDrive Sync
 - Optional secure offline-session grants with avatar/device binding, scope checks and a host signing-key validator.
 - Optional durable local replication targets, configured before the store opens so offline mutations retain projection work.
 - Suspend/resume lifecycle and asynchronous disposal.
+- Offline nearby sync over Bluetooth LE, Wi-Fi Direct/LAN and multi-hop mesh via the separate `NextGenSoftware.OASIS.Edge.NearbySync` package (`NearbyPeerSyncTransport` is a drop-in `IHyperDriveSyncTransport`). See `Docs/Devs/EDGE_OFFLINE_MESSAGING.md`.
 
 ## Host integration
 

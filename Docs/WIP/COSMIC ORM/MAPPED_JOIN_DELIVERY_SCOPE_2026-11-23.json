@@ -1,0 +1,49 @@
+{
+  "source": "eb201d869a9e2cf523dfa912541b279444d67e68",
+  "producerSource": "f4deb324605367a691272d0084b4654f936b0478",
+  "developmentBase": "721f33130849794856c546218dceb06ee1396c87",
+  "rootChangedPaths": [
+    ".github/workflows/qualify-cql-model-metadata-alias-native.yml",
+    "Docker/oasis-dependency-versions.env",
+    "Docs/Devs/COSMIC_MODEL_MAPPING.md",
+    "Docs/WIP/COSMIC ORM/CQL_PARITY_CHECKLIST.md",
+    "Docs/WIP/COSMIC ORM/CURRENT_STATUS.md",
+    "Docs/WIP/COSMIC ORM/FULL_STATUS_REPORT_2026-11-22.md",
+    "Docs/WIP/COSMIC ORM/MAPPED_JOIN_MATERIALIZATION_PLAN_2026-11-23.md",
+    "Docs/WIP/COSMIC ORM/MAPPED_JOIN_NATIVE_ACCEPTANCE_2026-11-23.json",
+    "Docs/WIP/COSMIC ORM/MAPPED_JOIN_SOURCE_PREPARATION_2026-11-23.json",
+    "Docs/WIP/COSMIC ORM/RECOVERY_LAPTOP_CLEANUP_LEDGER.md",
+    "Docs/WIP/COSMIC ORM/TYPED_MODEL_GROUP_DELIVERY_SCOPE_2026-11-23.json",
+    "Docs/WIP/COSMIC ORM/TYPED_MODEL_GROUP_DEVELOPMENT_CANDIDATE_2026-11-23.json",
+    "Docs/WIP/COSMIC ORM/TYPED_MODEL_GROUP_IMAGE_ACCEPTANCE_2026-11-23.json",
+    "Docs/WIP/COSMIC ORM/TYPED_MODEL_GROUP_PACKAGE_ACCEPTANCE_2026-11-23.json",
+    "Docs/WIP/COSMIC ORM/TYPED_MODEL_GROUP_RELEASE_CANDIDATE_2026-11-23.json",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicJoinResultsTests.cs",
+    "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.ModelMetadataAliases.cs"
+  ],
+  "runtimeRootPaths": [
+    "Docker/oasis-dependency-versions.env",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core"
+  ],
+  "coreBase": "048b02d54870e793de8f18439ff8f00950ad3547",
+  "coreSource": "e7402f4f2f14e9a7f628026efde79180c376f815",
+  "changedCoreFiles": [
+    "Managers/HolonManager/HolonManager-Cql.V2.cs",
+    "Queries/CosmicJoinExecutor.cs",
+    "Queries/CosmicJoinResults.cs",
+    "Queries/CosmicJoinSelection.cs",
+    "Queries/CosmicLinq.GroupJoin.cs",
+    "Queries/CosmicLinq.SelectMany.cs"
+  ],
+  "nativeSource": "ed9a5f064d05be25336fed3ad6ddae914ed2e056",
+  "nativeRun": 45089665626,
+  "allOtherGitlinksPreserved": true,
+  "manifestGatePassed": true,
+  "newerUtcDatePartsCoreExcluded": "dc88abf6a615fc5b5c06b6cd4871683d23e43081",
+  "deployed": false,
+  "onlyQualifiedProducerDelta": [
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicJoinResultsTests.cs"
+  ],
+  "testCallerDeltaOnlyThreeRenames": true
+}

@@ -1,0 +1,107 @@
+{
+  "actualWeb4Compiled": true,
+  "wirePassed": 1,
+  "source": "f9034c48148d96192fec80acf233d46816f3adde",
+  "ownedFixturesAbsent": true,
+  "utcVirtualDatePartsVerified": true,
+  "nativePassed": 3,
+  "sharedDatabaseCalls": 0,
+  "core": "4c9ab36aaf6a41bf4ee0606950b291aa091ffbda",
+  "deployed": false,
+  "run": 45098868422,
+  "job": 137444798988,
+  "artifact": 14784673334,
+  "archiveBytes": 4700,
+  "archiveSha256": "e81295e4dff6657f8648539dd9a1c22eb0a8f87cc9ff822cd9cda0cc2fd115f0",
+  "reports": {
+    "MongoDBOASIS": {
+      "provider": "MongoDBOASIS",
+      "checks": 5,
+      "ownedCleanupIds": 2,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "virtual-components": 70,
+        "snapshot-read": 10,
+        "save-full": 544,
+        "full-components": 116,
+        "snapshot-identities": 11,
+        "mixed-components": 11,
+        "invalid-native": 17,
+        "denied-native": 0
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "nativeDatePartsVerified": true,
+        "mixedFullAndVirtualVerified": true,
+        "staleSnapshotReconciled": true,
+        "missingPreserved": true,
+        "invalidDomainRefused": true,
+        "foreignActorRefused": true,
+        "rawSourcesPreserved": true,
+        "virtualOnlyNotImported": true
+      },
+      "exactCleanupVerified": true
+    },
+    "SQLLiteDBOASIS": {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 5,
+      "ownedCleanupIds": 2,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "virtual-components": 24,
+        "snapshot-read": 3,
+        "save-full": 368,
+        "full-components": 24,
+        "snapshot-identities": 2,
+        "mixed-components": 0,
+        "invalid-native": 2,
+        "denied-native": 0
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "nativeDatePartsVerified": true,
+        "mixedFullAndVirtualVerified": true,
+        "staleSnapshotReconciled": true,
+        "missingPreserved": true,
+        "invalidDomainRefused": true,
+        "foreignActorRefused": true,
+        "rawSourcesPreserved": true,
+        "virtualOnlyNotImported": true
+      },
+      "exactCleanupVerified": true
+    },
+    "Neo4jOASIS": {
+      "provider": "Neo4jOASIS",
+      "checks": 5,
+      "ownedCleanupIds": 2,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "virtual-components": 3119,
+        "snapshot-read": 70,
+        "save-full": 1037,
+        "full-components": 6263,
+        "snapshot-identities": 413,
+        "mixed-components": 0,
+        "invalid-native": 1264,
+        "denied-native": 0
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "nativeDatePartsVerified": true,
+        "mixedFullAndVirtualVerified": true,
+        "staleSnapshotReconciled": true,
+        "missingPreserved": true,
+        "invalidDomainRefused": true,
+        "foreignActorRefused": true,
+        "rawSourcesPreserved": true,
+        "virtualOnlyNotImported": true
+      },
+      "exactCleanupVerified": true
+    }
+  },
+  "nativeAccepted": true,
+  "wireAccepted": true,
+  "ownedMongoStopped": true,
+  "archiveSavedToDisk": false,
+  "liveAccepted": false
+}

@@ -15,6 +15,14 @@ public partial class HolonRepository
         {
             if (column == null) throw new ArgumentNullException(nameof(column));
             if (column.Function == CosmicProjectionFunction.None) return ProjectionOperand(column.Path, prefix, comparable);
+            if(column.IsUtcDatePart)
+            {
+                if(column.Path.ValueType!=typeof(DateTime) || (Nullable.GetUnderlyingType(column.ValueType)??column.ValueType)!=typeof(int))
+                    throw new NotSupportedException("UTC date parts require DateTime input and Int32 output.");
+                var utcSource=ProjectionOperand(column.Path,prefix+"utc");
+                return (utcSource.State,"CASE WHEN ("+utcSource.State+")=2 THEN "+
+                    SqliteCqlUtcDateParts.Value(column.Function,utcSource.Value)+" ELSE NULL END");
+            }
             if (column.Function == CosmicProjectionFunction.BooleanTextCase)
             {
                 if(column.Path.ValueType != typeof(bool) || column.ValueType != typeof(string)

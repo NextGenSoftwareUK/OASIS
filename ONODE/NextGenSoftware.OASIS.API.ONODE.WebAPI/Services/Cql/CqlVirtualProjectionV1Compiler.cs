@@ -25,7 +25,8 @@ public static partial class CqlV1Compiler
             throw new ArgumentException("Mixed projection requires supported native predicates, selected ordering and a bounded result.");
 
         if(request.ResultOperation!=CqlProjectionV1ResultOperation.Rows && request.Columns.Any(column=>
-            column?.Function is CqlV1Function.TextCoalesce or CqlV1Function.BooleanTextCase or CqlV1Function.Int32Coalesce))
+            column?.Function is CqlV1Function.TextCoalesce or CqlV1Function.BooleanTextCase or CqlV1Function.Int32Coalesce
+                or CqlV1Function.UtcYear or CqlV1Function.UtcMonth or CqlV1Function.UtcDay or CqlV1Function.UtcDayOfYear or CqlV1Function.UtcHour or CqlV1Function.UtcMinute or CqlV1Function.UtcSecond))
             throw new ArgumentException("Mapped literal computed scalars currently support selected rows, not aggregates.");
 
         if ((request.ResultOperation == CqlProjectionV1ResultOperation.Group) != (request.Grouping != null))
@@ -72,6 +73,13 @@ public static partial class CqlV1Compiler
                 CqlV1Function.TextCoalesce when type == typeof(string) => NativeRecordFunction.TextCoalesce,
                 CqlV1Function.BooleanTextCase when type == typeof(bool) => NativeRecordFunction.BooleanTextCase,
                 CqlV1Function.Int32Coalesce when type == typeof(int) => NativeRecordFunction.Int32Coalesce,
+                CqlV1Function.UtcYear when type == typeof(DateTime) => NativeRecordFunction.UtcYear,
+                CqlV1Function.UtcMonth when type == typeof(DateTime) => NativeRecordFunction.UtcMonth,
+                CqlV1Function.UtcDay when type == typeof(DateTime) => NativeRecordFunction.UtcDay,
+                CqlV1Function.UtcDayOfYear when type == typeof(DateTime) => NativeRecordFunction.UtcDayOfYear,
+                CqlV1Function.UtcHour when type == typeof(DateTime) => NativeRecordFunction.UtcHour,
+                CqlV1Function.UtcMinute when type == typeof(DateTime) => NativeRecordFunction.UtcMinute,
+                CqlV1Function.UtcSecond when type == typeof(DateTime) => NativeRecordFunction.UtcSecond,
                 _ => throw new ArgumentException("The mapped projection function requires its exact declared input domain.")
             };
             if(function==NativeRecordFunction.BooleanTextCase && column.Nullable==true

@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.1;net8.0</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <PackageId>NextGenSoftware.OASIS.Edge.Messaging</PackageId>
+    <Description>Offline-first OASIS messaging for the Edge Runtime: local store, durable outbox via HyperDrive, online cursor sync and nearby (Bluetooth/LAN/mesh) delivery.</Description>
+    <Version>1.0.0</Version>
+    <Authors>David Ellams (NextGen Software Ltd)</Authors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="/" />
+    <ProjectReference Include="../NextGenSoftware.OASIS.Edge.Runtime/NextGenSoftware.OASIS.Edge.Runtime.csproj" />
+    <ProjectReference Include="../NextGenSoftware.OASIS.Edge.NearbySync/NextGenSoftware.OASIS.Edge.NearbySync.csproj" />
+    <ProjectReference Include="../NextGenSoftware.OASIS.HyperDrive.Synchronization/NextGenSoftware.OASIS.HyperDrive.Synchronization.csproj" />
+    <ProjectReference Include="../NextGenSoftware.OASIS.Contracts/NextGenSoftware.OASIS.Contracts.csproj" />
+  </ItemGroup>
+</Project>

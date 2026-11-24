@@ -12,15 +12,30 @@ public static partial class CqlV1Compiler
     public static CosmicSetQuery<Holon> CompileSet(CqlSetV1Request request, Guid actor,
         ProviderType? provider, CosmicQueryReadAccess access = null)
     {
-        var kind=ValidateSetRequest(request);
+        if(request?.OutputColumns!=null || request?.SelectedStages!=null)
+            throw new ArgumentException("Late output columns and selected stages require the entity-set projection compiler.");
+        return CompileEntitySetSource(request,actor,provider,access);
+    }
+    private static CosmicSetQuery<Holon> CompileEntitySetSource(CqlSetV1Request request,Guid actor,
+        ProviderType? provider,CosmicQueryReadAccess access,bool reduction=false)
+    {
+        var kind=ValidateSetRequest(request,reduction);
         if(request.Left.Columns!=null || request.Right.Columns!=null || request.Left.Stages!=null || request.Right.Stages!=null)
             throw new ArgumentException("Explicit selected columns require the selected-value set compiler.");
         var query=RequiredSet(CosmicSetQuery<Holon>.Create(SetSource(request.Left,actor,provider,access),SetSource(request.Right,actor,provider,access),kind));
-        if(request.Ordering!=null)
+        query=ApplyEntitySetOrdering(query,request.Ordering);
+        if(request.Reverse)query=RequiredSet(query.Reverse());
+        if(request.Skip!=0)query=RequiredSet(query.Skip(request.Skip));
+        if(request.Take.HasValue)query=RequiredSet(query.Take(request.Take.Value));
+        return ApplyEntitySetStages(query,request.EntityStages);
+    }
+    private static CosmicSetQuery<Holon> ApplyEntitySetOrdering(CosmicSetQuery<Holon> query,CqlV1Ordering[] ordering)
+    {
+        if(ordering!=null)
         {
-            if(request.Ordering.Length is <1 or >4)throw new ArgumentException("Set ordering requires one to four terms.");
+            if(ordering.Length is <1 or >4)throw new ArgumentException("Set ordering requires one to four terms.");
             var fields=new HashSet<string>(StringComparer.Ordinal);
-            foreach(var term in request.Ordering)
+            foreach(var term in ordering)
             {
                 if(term?.Field is not ("Name" or "Description" or "Version" or "Id") || !fields.Add(term.Field))
                     throw new ArgumentException("Set ordering requires unique declared entity fields.");
@@ -29,13 +44,54 @@ public static partial class CqlV1Compiler
             }
             if(!fields.Contains("Id"))query=RequiredSet(query.ThenBy(row=>row.Id));
         }
-        if(request.Reverse)query=RequiredSet(query.Reverse());
-        if(request.Skip!=0)query=RequiredSet(query.Skip(request.Skip));
-        if(request.Take.HasValue)query=RequiredSet(query.Take(request.Take.Value));
         return query;
     }
-    private static CosmicSetQueryKind ValidateSetRequest(CqlSetV1Request request)
+    private static CosmicSetQuery<Holon> ApplyEntitySetStages(CosmicSetQuery<Holon> query,CqlSetV1EntityStage[] stages)
     {
+        if(stages==null)return query;
+        if(stages.Length is <1 or >16)throw new ArgumentException("Use one to16 ordered entity stages.");
+        int filters=0,relationships=0;
+        foreach(var stage in stages)
+        {
+            if(stage==null)throw new ArgumentException("An entity stage cannot be null.");
+            switch(stage.Operation)
+            {
+                case "Where":
+                    if(stage.Where==null || stage.Ordering!=null || stage.Count!=null)
+                        throw new ArgumentException("Entity Where requires only a bounded predicate.");
+                    ValidateWhere(stage.Where,ref filters,ref relationships);
+                    var row=Expression.Parameter(typeof(Holon),"row");
+                    query=RequiredSet(query.Where(Expression.Lambda<Func<Holon,bool>>(WhereExpression(stage.Where,row),row)));
+                    break;
+                case "OrderBy":
+                    if(stage.Where!=null || stage.Count!=null || stage.Ordering==null)
+                        throw new ArgumentException("Entity OrderBy requires only declared ordering terms.");
+                    query=ApplyEntitySetOrdering(query,stage.Ordering);
+                    break;
+                case "Skip":
+                case "Take":
+                    if(stage.Where!=null || stage.Ordering!=null || !stage.Count.HasValue ||
+                        stage.Count<0 || stage.Count>(stage.Operation=="Take"?100:10000))
+                        throw new ArgumentException("Entity Skip/Take requires only a bounded nonnegative Count.");
+                    query=RequiredSet(stage.Operation=="Take"?query.Take(stage.Count.Value):query.Skip(stage.Count.Value));
+                    break;
+                case "Reverse":
+                    if(stage.Where!=null || stage.Ordering!=null || stage.Count!=null)
+                        throw new ArgumentException("Entity Reverse has no additional fields.");
+                    query=RequiredSet(query.Reverse());break;
+                default:throw new ArgumentException("Unknown entity set stage.");
+            }
+        }
+        return query;
+    }
+    private static CosmicSetQueryKind ValidateSetRequest(CqlSetV1Request request,bool reduction=false)
+    {
+        if(reduction!=(request?.Reduction!=null) || !reduction && request?.ReductionWhere!=null)
+            throw new ArgumentException("Scalar set reductions require their independent compiler.");
+        if(reduction && (request.Reduction is not ("Count" or "LongCount" or "Any" or "All")
+            || request.Reduction=="All" && request.ReductionWhere==null
+            || request.IncludeMetadata || request.OutputColumns!=null || request.SelectedStages!=null))
+            throw new ArgumentException("A native entity set reduction and unambiguous scalar output are required.");
         if(request?.Left==null || request.Right==null || request.Left.Graph!=null || request.Right.Graph!=null ||
             request.MaximumLeftRows is <1 or >1000 || request.MaximumRightRows is <1 or >1000 ||
             request.MaximumResults is <1 or >100 || request.Skip is <0 or >10000 ||

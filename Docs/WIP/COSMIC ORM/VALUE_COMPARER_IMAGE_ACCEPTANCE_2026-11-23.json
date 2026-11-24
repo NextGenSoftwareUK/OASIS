@@ -1,0 +1,14 @@
+{
+  "source": "3654a0409a203129e83fb7786df16ce7c27f2270",
+  "core": "7546da7774be6948b040a6f37fea474c03976a95",
+  "run": 45241873904,
+  "job": 137928391728,
+  "digest": "sha256:aa6ed83ba4efbb6b298dd98dca55f36665682843c965abe9f2d27f14c6f05cb2",
+  "nativeRun": 45239964649,
+  "nativePassed": 3,
+  "exactSourceAndDependencyPins": true,
+  "teachingSidecars": false,
+  "localImageDownload": false,
+  "acceptedAt": "2026-11-23T18:55:36.079577+00:00",
+  "scope": "Exact-source image and native SDK3/WEB4 build; package and live acceptance remain separate."
+}

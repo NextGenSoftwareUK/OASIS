@@ -1,0 +1,90 @@
+{
+  "run": 45122833220,
+  "job": 137520324547,
+  "artifact": 14794578104,
+  "archiveBytes": 3184,
+  "archiveSha256": "6c3f430d0b8bc689b4a0bd8e7ad11e94d3f366d5eb4ce712120c89801311d640",
+  "archiveSavedLocally": false,
+  "source": {
+    "ownedFixturesAbsent": true,
+    "core": "1d216bdee5db68dadeb72632598729ff827791b7",
+    "ownedValueModelVerified": true,
+    "actualWeb4Compiled": true,
+    "sharedDatabaseCalls": 0,
+    "source": "d31dec527cd401f59522a13226fe23f02ae95df1",
+    "deployed": false,
+    "nativePassed": 3
+  },
+  "reports": {
+    "MongoDBOASIS": {
+      "provider": "MongoDBOASIS",
+      "checks": 5,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create-owned": 410,
+        "read-owned": 105,
+        "project-owned-leaves": 51,
+        "update-owned": 41,
+        "read-updated-owned": 6
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "ownedMetadataAliasStored": true,
+        "typedComponentRoundtrip": true,
+        "nativeLeafFilterOrderProjection": true,
+        "nestedUpdateAcknowledged": true,
+        "immutableOwnedSnapshot": true
+      },
+      "exactCleanupVerified": true
+    },
+    "SQLLiteDBOASIS": {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 5,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create-owned": 388,
+        "read-owned": 36,
+        "project-owned-leaves": 8,
+        "update-owned": 23,
+        "read-updated-owned": 8
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "ownedMetadataAliasStored": true,
+        "typedComponentRoundtrip": true,
+        "nativeLeafFilterOrderProjection": true,
+        "nestedUpdateAcknowledged": true,
+        "immutableOwnedSnapshot": true
+      },
+      "exactCleanupVerified": true
+    },
+    "Neo4jOASIS": {
+      "provider": "Neo4jOASIS",
+      "checks": 5,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create-owned": 1197,
+        "read-owned": 1008,
+        "project-owned-leaves": 587,
+        "update-owned": 49,
+        "read-updated-owned": 319
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "ownedMetadataAliasStored": true,
+        "typedComponentRoundtrip": true,
+        "nativeLeafFilterOrderProjection": true,
+        "nestedUpdateAcknowledged": true,
+        "immutableOwnedSnapshot": true
+      },
+      "exactCleanupVerified": true
+    }
+  },
+  "nativeAccepted": true,
+  "fullParityClaimed": false,
+  "deployed": false,
+  "observedUtc": "2026-11-23T06:27:14.163676+00:00"
+}

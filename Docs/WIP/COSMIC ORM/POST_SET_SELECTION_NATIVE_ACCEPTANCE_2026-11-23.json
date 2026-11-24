@@ -1,0 +1,123 @@
+{
+  "run": 45160691758,
+  "job": 137645033361,
+  "artifact": 14809928616,
+  "archiveBytes": 3887,
+  "archiveSha256": "85708ddfe3dadbc116629d7274269464895eb187fd54dcb5b24388369c7ebb37",
+  "archiveSavedLocally": false,
+  "source": {
+    "core": "f339a3c24542c5232823f1d119393e71f195ccfd",
+    "deployed": false,
+    "ownedFixturesAbsent": true,
+    "sharedDatabaseCalls": 0,
+    "source": "c168a52e15e7424484c25582c190807a8e2d2806",
+    "actualWeb4Compiled": true,
+    "postSetSelectionVerified": true,
+    "nativePassed": 3
+  },
+  "reports": {
+    "MongoDBOASIS": {
+      "provider": "MongoDBOASIS",
+      "checks": 9,
+      "ownedCleanupIds": 4,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "create-post-set-selection": 348,
+        "entity-union-then-scalar": 79,
+        "entity-concat-then-dto": 20,
+        "entity-intersect-then-record": 15,
+        "entity-except-then-scalar": 22,
+        "entity-window-before-projection": 45,
+        "late-selection-reselection": 25,
+        "discarded-invalid-cell-not-selected": 32,
+        "retained-invalid-cell-refused": 26,
+        "input-bound-before-empty-selection": 6,
+        "late-set-preserves-caller": 10,
+        "late-selection-preserves-source": 17
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "allFourSetsRetainEntityIdentity": true,
+        "concatOccurrenceOrderAndDetachedShapes": true,
+        "entityWindowPrecedesSelection": true,
+        "reselectionRetainsNativeColumns": true,
+        "discardedInvalidDomainNotDecoded": true,
+        "retainedInvalidDomainRefusedAtomically": true,
+        "inputBudgetPrecedesEmptyOutput": true,
+        "callerAndSourceVersionsPreserved": true,
+        "noSelectorExecutionAndMappingMismatchRefused": true
+      },
+      "exactCleanupVerified": true
+    },
+    "SQLLiteDBOASIS": {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 9,
+      "ownedCleanupIds": 4,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "create-post-set-selection": 377,
+        "entity-union-then-scalar": 48,
+        "entity-concat-then-dto": 5,
+        "entity-intersect-then-record": 4,
+        "entity-except-then-scalar": 3,
+        "entity-window-before-projection": 21,
+        "late-selection-reselection": 3,
+        "discarded-invalid-cell-not-selected": 15,
+        "retained-invalid-cell-refused": 4,
+        "input-bound-before-empty-selection": 5,
+        "late-set-preserves-caller": 11,
+        "late-selection-preserves-source": 1
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "allFourSetsRetainEntityIdentity": true,
+        "concatOccurrenceOrderAndDetachedShapes": true,
+        "entityWindowPrecedesSelection": true,
+        "reselectionRetainsNativeColumns": true,
+        "discardedInvalidDomainNotDecoded": true,
+        "retainedInvalidDomainRefusedAtomically": true,
+        "inputBudgetPrecedesEmptyOutput": true,
+        "callerAndSourceVersionsPreserved": true,
+        "noSelectorExecutionAndMappingMismatchRefused": true
+      },
+      "exactCleanupVerified": true
+    },
+    "Neo4jOASIS": {
+      "provider": "Neo4jOASIS",
+      "checks": 9,
+      "ownedCleanupIds": 4,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "create-post-set-selection": 853,
+        "entity-union-then-scalar": 793,
+        "entity-concat-then-dto": 480,
+        "entity-intersect-then-record": 504,
+        "entity-except-then-scalar": 661,
+        "entity-window-before-projection": 858,
+        "late-selection-reselection": 53,
+        "discarded-invalid-cell-not-selected": 548,
+        "retained-invalid-cell-refused": 371,
+        "input-bound-before-empty-selection": 378,
+        "late-set-preserves-caller": 331,
+        "late-selection-preserves-source": 205
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "allFourSetsRetainEntityIdentity": true,
+        "concatOccurrenceOrderAndDetachedShapes": true,
+        "entityWindowPrecedesSelection": true,
+        "reselectionRetainsNativeColumns": true,
+        "discardedInvalidDomainNotDecoded": true,
+        "retainedInvalidDomainRefusedAtomically": true,
+        "inputBudgetPrecedesEmptyOutput": true,
+        "callerAndSourceVersionsPreserved": true,
+        "noSelectorExecutionAndMappingMismatchRefused": true
+      },
+      "exactCleanupVerified": true
+    }
+  },
+  "nativeAccepted": true,
+  "fullParityClaimed": false,
+  "deployed": false,
+  "observedUtc": "2026-11-23T11:02:55.153846+00:00"
+}

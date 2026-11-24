@@ -1,0 +1,23 @@
+{
+  "source": "0227b2829b104debc729eca99f95db8d38ab7a2e",
+  "core": "f0c0fab4c656f9277ae20e9f2cb07cfe5cc4981b",
+  "run": 45105765740,
+  "job": 137466561783,
+  "artifact": 14786654878,
+  "archiveBytes": 1366,
+  "archiveSha256": "86eb384d3859d767abe1ce22e0c73ce552ea91f77bd882202503a85504667edc",
+  "passed": 1,
+  "failed": 0,
+  "actualWeb4Compiled": true,
+  "accessAliasesRefusedForFluentAndAnnotationInputs": true,
+  "applicationGettersNotExecuted": true,
+  "ordinaryAliasAdmitted": true,
+  "sharedDatabaseCalls": 0,
+  "nativeDatabaseSetup": false,
+  "retainedNativeRun": 45104280443,
+  "retainedNativeTests": 3,
+  "guardSourceBytePreservedInCombinedCore": "854b2b3129701b3a5162d49d55e7e8a86be4f6ef",
+  "archiveSaved": false,
+  "aliasGuardAccepted": true,
+  "deployed": false
+}

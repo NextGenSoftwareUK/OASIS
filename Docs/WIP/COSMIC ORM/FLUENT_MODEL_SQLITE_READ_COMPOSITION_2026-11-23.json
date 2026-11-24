@@ -1,0 +1,21 @@
+{
+  "source": "7f53046fd283f48588f033794963890688d1b7f9",
+  "incomingDevelopment": "15798b127af2274aa811252ad6335cbfc8661a49",
+  "incomingPaths": [
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/HyperDrive/HolonReadControllerTests.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/DataController.Load.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.VisibilitySchema.cs",
+    "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.UnitTests/AvatarIdentityRepairTests.cs",
+    "Scripts/Sandbox/Verify-HostedCqlDemo.py"
+  ],
+  "incomingPathsBytePreserved": true,
+  "coreAndManifestUnchanged": true,
+  "core": "854b2b3129701b3a5162d49d55e7e8a86be4f6ef",
+  "incomingOnetOnodeCiRun": 45106503982,
+  "sqliteRepairUnitEvidence": "incoming commit61b1d01d records covered/idempotent repair with AvatarIdentityRepairTests",
+  "nativeModelRunRetained": 45104280443,
+  "aliasGuardRunRetained": 45105765740,
+  "imageAccepted": false,
+  "packageAccepted": false,
+  "deployed": false
+}

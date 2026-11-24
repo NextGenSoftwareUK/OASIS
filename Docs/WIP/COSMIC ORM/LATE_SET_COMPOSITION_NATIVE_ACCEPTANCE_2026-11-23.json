@@ -1,0 +1,193 @@
+{
+  "run": 45197249669,
+  "job": 137770908473,
+  "artifact": 14831330892,
+  "archiveBytes": 7363,
+  "archiveSha256": "1d8077335ff1725da47714dd12a7a82a82b40501b009fa1cd2f53b28beeafd72",
+  "archiveSavedLocally": false,
+  "source": {
+    "core": "ef05dbecb1428a91da53abdcfab39bf2d55aa51b",
+    "nativePassed": 6,
+    "boundaryControlsPassed": 1,
+    "ownedFixturesAbsent": true,
+    "lateSetCompositionVerified": true,
+    "sharedDatabaseCalls": 0,
+    "source": "f9541a5c73c23ba9f0a86f3b5c432d4704227b30",
+    "deployed": false,
+    "lateSetCompositionWireVerified": true,
+    "compilerControlsPassed": 3,
+    "actualWeb4Compiled": true
+  },
+  "reports": {
+    "MongoDBOASIS": {
+      "late-set-composition": {
+        "provider": "MongoDBOASIS",
+        "checks": 8,
+        "ownedCleanupIds": 4,
+        "successfulHolonWrites": 1,
+        "queryElapsedMilliseconds": {
+          "create": 654,
+          "kind-Union": 219,
+          "kind-Concat": 39,
+          "kind-Intersect": 31,
+          "kind-Except": 31,
+          "selected-order-page": 88,
+          "selected-distinct": 47,
+          "selected-reverse": 78,
+          "post-window-filter": 48,
+          "entity-window-reselection": 71,
+          "invalid-cell-before-empty-output": 49,
+          "input-bound-before-empty-output": 7,
+          "foreign-scope": 20,
+          "cancelled": 0,
+          "source-versions": 18
+        },
+        "nativeProviderVerified": true,
+        "evidence": {
+          "allFourEntitySetKinds": true,
+          "selectedFilterOrderingPaging": true,
+          "selectedDistinctAndReverse": true,
+          "entityAndSelectedWindowOrderAndReselection": true,
+          "invalidCellCannotHideBehindSelectedFilter": true,
+          "inputBudgetBeforeEmptyOutput": true,
+          "callerAndVersionsPreserved": true,
+          "noManagedSelectorAndCancellation": true
+        },
+        "exactCleanupVerified": true
+      },
+      "late-set-composition-wire": {
+        "provider": "MongoDBOASIS",
+        "checks": 3,
+        "ownedCleanupIds": 1,
+        "successfulHolonWrites": 1,
+        "queryElapsedMilliseconds": {
+          "owner-http": 624,
+          "foreign-http": 124,
+          "anonymous-http": 9
+        },
+        "nativeProviderVerified": true,
+        "evidence": {
+          "selectedStagesAfterEntityMembership": true,
+          "ownerForeignAndAnonymousPolicyPreserved": true,
+          "oneSettledPhysicalAttemptPerAuthenticatedRequest": true
+        },
+        "exactCleanupVerified": true
+      }
+    },
+    "SQLLiteDBOASIS": {
+      "late-set-composition": {
+        "provider": "SQLLiteDBOASIS",
+        "checks": 8,
+        "ownedCleanupIds": 4,
+        "successfulHolonWrites": 1,
+        "queryElapsedMilliseconds": {
+          "create": 881,
+          "kind-Union": 96,
+          "kind-Concat": 9,
+          "kind-Intersect": 11,
+          "kind-Except": 10,
+          "selected-order-page": 19,
+          "selected-distinct": 14,
+          "selected-reverse": 26,
+          "post-window-filter": 10,
+          "entity-window-reselection": 25,
+          "invalid-cell-before-empty-output": 32,
+          "input-bound-before-empty-output": 12,
+          "foreign-scope": 26,
+          "cancelled": 0,
+          "source-versions": 3
+        },
+        "nativeProviderVerified": true,
+        "evidence": {
+          "allFourEntitySetKinds": true,
+          "selectedFilterOrderingPaging": true,
+          "selectedDistinctAndReverse": true,
+          "entityAndSelectedWindowOrderAndReselection": true,
+          "invalidCellCannotHideBehindSelectedFilter": true,
+          "inputBudgetBeforeEmptyOutput": true,
+          "callerAndVersionsPreserved": true,
+          "noManagedSelectorAndCancellation": true
+        },
+        "exactCleanupVerified": true
+      },
+      "late-set-composition-wire": {
+        "provider": "SQLLiteDBOASIS",
+        "checks": 3,
+        "ownedCleanupIds": 1,
+        "successfulHolonWrites": 1,
+        "queryElapsedMilliseconds": {
+          "owner-http": 79,
+          "foreign-http": 45,
+          "anonymous-http": 1
+        },
+        "nativeProviderVerified": true,
+        "evidence": {
+          "selectedStagesAfterEntityMembership": true,
+          "ownerForeignAndAnonymousPolicyPreserved": true,
+          "oneSettledPhysicalAttemptPerAuthenticatedRequest": true
+        },
+        "exactCleanupVerified": true
+      }
+    },
+    "Neo4jOASIS": {
+      "late-set-composition": {
+        "provider": "Neo4jOASIS",
+        "checks": 8,
+        "ownedCleanupIds": 4,
+        "successfulHolonWrites": 1,
+        "queryElapsedMilliseconds": {
+          "create": 1449,
+          "kind-Union": 3164,
+          "kind-Concat": 1122,
+          "kind-Intersect": 1046,
+          "kind-Except": 781,
+          "selected-order-page": 1277,
+          "selected-distinct": 319,
+          "selected-reverse": 857,
+          "post-window-filter": 266,
+          "entity-window-reselection": 1288,
+          "invalid-cell-before-empty-output": 858,
+          "input-bound-before-empty-output": 802,
+          "foreign-scope": 728,
+          "cancelled": 0,
+          "source-versions": 326
+        },
+        "nativeProviderVerified": true,
+        "evidence": {
+          "allFourEntitySetKinds": true,
+          "selectedFilterOrderingPaging": true,
+          "selectedDistinctAndReverse": true,
+          "entityAndSelectedWindowOrderAndReselection": true,
+          "invalidCellCannotHideBehindSelectedFilter": true,
+          "inputBudgetBeforeEmptyOutput": true,
+          "callerAndVersionsPreserved": true,
+          "noManagedSelectorAndCancellation": true
+        },
+        "exactCleanupVerified": true
+      },
+      "late-set-composition-wire": {
+        "provider": "Neo4jOASIS",
+        "checks": 3,
+        "ownedCleanupIds": 1,
+        "successfulHolonWrites": 1,
+        "queryElapsedMilliseconds": {
+          "owner-http": 1346,
+          "foreign-http": 759,
+          "anonymous-http": 1
+        },
+        "nativeProviderVerified": true,
+        "evidence": {
+          "selectedStagesAfterEntityMembership": true,
+          "ownerForeignAndAnonymousPolicyPreserved": true,
+          "oneSettledPhysicalAttemptPerAuthenticatedRequest": true
+        },
+        "exactCleanupVerified": true
+      }
+    }
+  },
+  "nativeAccepted": true,
+  "nativeWireAccepted": true,
+  "fullParityClaimed": false,
+  "deployed": false,
+  "observedUtc": "2026-11-23T14:55:30.374681+00:00"
+}

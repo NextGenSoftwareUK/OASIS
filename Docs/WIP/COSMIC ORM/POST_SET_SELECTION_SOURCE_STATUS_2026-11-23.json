@@ -1,0 +1,109 @@
+{
+  "baseCore": "e6ff129e186f166c422aca697ff91e644d75642b",
+  "baseRoot": "df5b838278bec4f58690bf5e600f5009552886c2",
+  "phase": "native-accepted-image-running",
+  "nativeProvidersImplemented": true,
+  "linqTransportImplemented": true,
+  "qualified": false,
+  "published": true,
+  "next": "Finish exact image/package/source/pin gates and add HTTP/SQL/Ask transport; do not infer deployment or full parity.",
+  "mongoNativeDrafted": true,
+  "sqliteNativeDrafted": true,
+  "neoNativeDrafted": true,
+  "nativeProvidersDrafted": 3,
+  "core": "f339a3c24542c5232823f1d119393e71f195ccfd",
+  "coreSourcePaths": [
+    "Managers/HolonManager/HolonManager-Cql.V2.cs",
+    "Queries/CosmicEntityComposition.cs",
+    "Queries/CosmicLinq.SetProjection.cs",
+    "Queries/CosmicLinq.Sets.cs",
+    "Queries/CosmicProjectionExecutor.cs",
+    "Queries/CosmicSetProjection.cs"
+  ],
+  "providerSourcePaths": [
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoCqlTranslator.SetProjection.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoDBOASIS.Cql.Projection.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.Projection.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.Set.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Persistence/Repositories/HolonRepository.Cql.Projection.cs",
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/SQLLiteDBOASIS.Cql.Projection.cs"
+  ],
+  "designInvariants": [
+    "entity set equality uses authoritative identity, not selected tuple equality",
+    "only retained entity-set rows enter selected-cell domain validation",
+    "discarded rows with malformed or missing typed metadata must not poison selection",
+    "single provider-owned read snapshot binds input membership, entity stages and projected cells",
+    "caller read access, independent input budgets, occurrence ordering and complete acknowledgements stay enforced",
+    "no CLR selector execution or client-evaluation fallback"
+  ],
+  "rejectedProjectionPushdown": {
+    "method": "project both operands into visible cells before the entity set",
+    "reasons": [
+      "tuple equality changes when distinct entities share selected values",
+      "current CosmicProjectedSetResults validates every operand selected cell before membership; discarded invalid cells would incorrectly fail late projection"
+    ]
+  },
+  "httpSqlAskTransportImplemented": false,
+  "laterSelectedStagesImplemented": false,
+  "source": "c168a52e15e7424484c25582c190807a8e2d2806",
+  "nativeJobs": {
+    "post-set-selection": {
+      "run": 45160691758,
+      "job": 137645033361,
+      "status": "in_progress"
+    },
+    "post-set-tracking-regression": {
+      "run": 45160691551,
+      "job": 137645033085,
+      "status": "in_progress"
+    },
+    "required-neo-selected-sets": {
+      "run": 45160691801,
+      "job": 137645033533,
+      "status": "in_progress"
+    },
+    "required-sqlite-sets": {
+      "run": 45160691947,
+      "job": 137645034428,
+      "status": "in_progress"
+    }
+  },
+  "dependencyRun": 45160691714,
+  "nativeAccepted": true,
+  "nativeRuns": [
+    45160691758,
+    45160691551
+  ],
+  "requiredCi": [
+    {
+      "run": 45160691801,
+      "source": "c168a52e15e7424484c25582c190807a8e2d2806",
+      "workflow": "Qualify native Neo4j selected-value sets",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 137645033533,
+          "name": "read-activation",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "run": 45160691947,
+      "source": "c168a52e15e7424484c25582c190807a8e2d2806",
+      "workflow": "Qualify native SQLite native set operations",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 137645034428,
+          "name": "read-activation",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "requiredRegressionsAccepted": true,
+  "imageRun": 45162193600,
+  "imagePhase": "in_progress",
+  "deployed": false
+}

@@ -147,7 +147,19 @@ def main():
     parser.add_argument('--deployment', required=True, type=lambda value: str(uuid.UUID(value)))
     parser.add_argument('--commit', required=True)
     parser.add_argument('--resume', action='store_true', help='Read/query the original acknowledged cohort; never resave it.')
+    parser.add_argument('--environment', default='dev', help='Railway environment of the WEB4 deployment (dev or production).')
+    parser.add_argument('--railway-dir', default=None, help='Directory linked (railway link) to project 712f50f6-3b7b-46d4-b229-44b49922f16b; defaults to the current directory.')
+    parser.add_argument('--base', default=None, help='WEB4 API base URL; defaults to the dev API, or the production API for --environment production.')
     options = parser.parse_args()
+    global BASE, STATE, RESULTS
+    if options.base:
+        BASE = options.base.rstrip('/') + '/'
+    elif options.environment == 'production':
+        BASE = 'https://api.web4.oasisomniverse.one/api/'
+    if options.environment != 'dev':
+        # Keep each environment's fixture journal and protected sessions apart.
+        STATE = STATE.with_name(STATE.name + '-' + options.environment)
+        RESULTS = RESULTS.with_name(RESULTS.name + '-' + options.environment)
     if not re.fullmatch('[0-9a-f]{40}', options.commit):
         parser.error('--commit must be the exact full published SHA')
     deployment_id, commit = options.deployment, options.commit
@@ -158,8 +170,9 @@ def main():
         require_new_fixture(journal_path)  # Stop before even querying hosted state if an intent exists.
     cli = shutil.which('railway.exe') or shutil.which('railway.cmd') or shutil.which('railway')
     assert cli, 'Reuse the installed Railway CLI; do not install another environment.'
-    deployments = json.loads(subprocess.check_output([cli, 'deployment', 'list', '-p',
-        '712f50f6-3b7b-46d4-b229-44b49922f16b', '-s', 'WEB4 OASIS API', '-e', 'dev', '--limit', '10', '--json'], text=True))
+    # Railway CLI 4.x has no --project flag; it uses the project linked to its working directory.
+    deployments = json.loads(subprocess.check_output([cli, 'deployment', 'list', '-s', 'WEB4 OASIS API',
+        '-e', options.environment, '--limit', '10', '--json'], text=True, cwd=options.railway_dir))
     deployment = next(item for item in deployments if item['id'] == deployment_id)
     assert deployment['status'] == 'SUCCESS' and deployment['meta']['commitHash'] == commit, 'Wait for the exact verified deployment; do not create a replacement.'
     STATE.mkdir(parents=True, exist_ok=True)

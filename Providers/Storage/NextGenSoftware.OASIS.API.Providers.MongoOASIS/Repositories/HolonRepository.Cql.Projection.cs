@@ -13,9 +13,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories;
 public partial class HolonRepository
 {
     internal Task<IReadOnlyList<CosmicProjectionRow>> ExecuteNativeCqlProjectionAsync(MongoCqlProjectionCommand command,
-        IReadOnlyList<CosmicProjectionColumn> columns, int maximumResults, int maximumPayloadBytes, CancellationToken cancellationToken)
+        IReadOnlyList<CosmicProjectionColumn> columns, int maximumResults, int maximumPayloadBytes, CancellationToken cancellationToken,
+        Func<IClientSessionHandle,Func<AggregateOptions>,IReadOnlyList<CosmicProjectionRow>,CancellationToken,Task> selectedContinuation=null)
         => ExecuteNativeCqlSelectedRowsAsync(command, maximumResults, maximumPayloadBytes,
-            document => ReadNativeCqlProjectionRow(document, columns), cancellationToken);
+            document => ReadNativeCqlProjectionRow(document, columns), cancellationToken,selectedContinuation);
 
     internal Task<IReadOnlyList<CosmicGroupedRow>> ExecuteNativeCqlGroupedAsync<T, TKey, TResult>(MongoCqlProjectionCommand command,
         CosmicGroupedSelection<T, TKey, TResult> query, int maximumGroups, int maximumPayloadBytes,
@@ -24,7 +25,8 @@ public partial class HolonRepository
             document => ReadNativeCqlGrouped(document, query), cancellationToken);
 
     private async Task<IReadOnlyList<TRow>> ExecuteNativeCqlSelectedRowsAsync<TRow>(MongoCqlProjectionCommand command,
-        int maximumResults, int maximumPayloadBytes, Func<BsonDocument, TRow> decode, CancellationToken cancellationToken)
+        int maximumResults, int maximumPayloadBytes, Func<BsonDocument, TRow> decode, CancellationToken cancellationToken,
+        Func<IClientSessionHandle,Func<AggregateOptions>,IReadOnlyList<TRow>,CancellationToken,Task> selectedContinuation=null)
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (command.IsEmpty && !command.RequiresMembership && !command.HasTraversalEnvelope && command.EntityComposition==null) return Array.Empty<TRow>();
@@ -76,6 +78,13 @@ public partial class HolonRepository
                     rows.Add(decode(data));
                 }
             deadline.Token.ThrowIfCancellationRequested();
+            if(selectedContinuation!=null)
+            {
+                if(session==null || !command.RequiresSnapshot)
+                    throw new InvalidDataException("Selected set continuation requires its admitted native snapshot owner.");
+                await selectedContinuation(session,Options,rows.AsReadOnly(),deadline.Token).ConfigureAwait(false);
+                deadline.Token.ThrowIfCancellationRequested();
+            }
             return rows.AsReadOnly();
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && deadline.IsCancellationRequested)

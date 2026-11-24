@@ -1,0 +1,105 @@
+{
+  "source": "aa257b03a0baae0175e7b47cd367a93fd139f55c",
+  "producerSource": "7f53046fd283f48588f033794963890688d1b7f9",
+  "featureTip": "8a339e56a119ce396117bd5c66d53fd77565e43c",
+  "baseDevelopment": "15798b127af2274aa811252ad6335cbfc8661a49",
+  "core": "854b2b3129701b3a5162d49d55e7e8a86be4f6ef",
+  "web6": "78a27a295e74721358eb2b02399f79eff5b21633",
+  "nativeRun": 45104280443,
+  "aliasGuardRun": 45105765740,
+  "nativeAccepted": true,
+  "aliasGuardAccepted": true,
+  "contractAccepted": true,
+  "compositionAccepted": true,
+  "runtimeTreeEqualsQualifiedProducer": true,
+  "onlyProducerDelta": [
+    "Docs/WIP/COSMIC ORM/CURRENT_STATUS.md",
+    "Docs/WIP/COSMIC ORM/FLUENT_CONSTRAINTS_SOURCE_PREPARATION_2026-11-23.json",
+    "Docs/WIP/COSMIC ORM/FLUENT_MODEL_HISTORICAL_IMAGE_ACCEPTANCE_2026-11-23.json",
+    "Docs/WIP/COSMIC ORM/FLUENT_MODEL_HISTORICAL_PACKAGE_ACCEPTANCE_2026-11-23.json",
+    "Docs/WIP/COSMIC ORM/FLUENT_MODEL_IMAGE_ACCEPTANCE_2026-11-23.json",
+    "Docs/WIP/COSMIC ORM/FLUENT_MODEL_PACKAGE_ACCEPTANCE_2026-11-23.json",
+    "Docs/WIP/COSMIC ORM/FLUENT_MODEL_RELEASE_CANDIDATE_2026-11-23.json",
+    "Docs/WIP/COSMIC ORM/FLUENT_MODEL_SQLITE_READ_COMPOSITION_2026-11-23.json",
+    "Docs/WIP/COSMIC ORM/FULL_STATUS_REPORT_2026-11-22.md",
+    "Docs/WIP/COSMIC ORM/RECOVERY_LAPTOP_CLEANUP_LEDGER.md"
+  ],
+  "runtimeChangedPaths": [
+    "Docker/oasis-dependency-versions.env",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CqlFluentModelAccessAliasTests.cs",
+    "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.FluentModels.cs"
+  ],
+  "imageAccepted": true,
+  "imageRun": 45108330893,
+  "digest": "sha256:914caba5bc19cc4ee862e9ef99beedf924d6e7974694b88955527acb7ffb360f",
+  "packageAccepted": true,
+  "packageRun": 45109469099,
+  "developmentPushed": true,
+  "deployed": false,
+  "unqualifiedConstraintCoreExcluded": "b0d716c0f6c3389979ba60fef118fed582b71f39",
+  "supersededPreparedSource": "7af51d5444990cdfab3e7bedb8b14a1a68067d13",
+  "developmentPhase": "pushed",
+  "developmentPushRequestedAt": "2026-11-23T04:03:30.084747+00:00",
+  "priorOwnDevelopmentPush": "2026-11-23T02:51:07.634729+00:00",
+  "allSevenPriorDeploymentsSuccessful": true,
+  "developmentPushedAt": "2026-11-23T04:03:39.503549+00:00",
+  "web6Deployment": "d58cb909-a2bf-4260-9284-7b2d156867da",
+  "web6DeploymentStatus": "BUILDING",
+  "web7Deployment": "e5de72a9-99f6-4a2a-bcd5-8a71b89c26f7",
+  "web7DeploymentStatus": "BUILDING",
+  "web9Deployment": "3f2b0d84-9caa-4d31-970d-b8b341bf06fe",
+  "web9DeploymentStatus": "QUEUED",
+  "web4Deployment": "b465e59d-c761-4fd8-bcbe-a4c5b9714e3a",
+  "web4DeploymentStatus": "QUEUED",
+  "web10Deployment": "080c89a0-6040-47ea-8b5b-933647d6c733",
+  "web10DeploymentStatus": "QUEUED",
+  "web8Deployment": "f6732a2b-0a69-49fd-a2f7-cc998b9d9300",
+  "web8DeploymentStatus": "QUEUED",
+  "web5Deployment": "0671ab3d-cf6e-4704-a794-29697192fdc9",
+  "web5DeploymentStatus": "BUILDING",
+  "latestRolloutObservation": {
+    "web6": {
+      "deployment": "d58cb909-a2bf-4260-9284-7b2d156867da",
+      "status": "BUILDING",
+      "source": "aa257b03a0baae0175e7b47cd367a93fd139f55c",
+      "imageDigest": null
+    },
+    "web7": {
+      "deployment": "e5de72a9-99f6-4a2a-bcd5-8a71b89c26f7",
+      "status": "BUILDING",
+      "source": "aa257b03a0baae0175e7b47cd367a93fd139f55c",
+      "imageDigest": null
+    },
+    "web9": {
+      "deployment": "3f2b0d84-9caa-4d31-970d-b8b341bf06fe",
+      "status": "QUEUED",
+      "source": "aa257b03a0baae0175e7b47cd367a93fd139f55c",
+      "imageDigest": null
+    },
+    "web4": {
+      "deployment": "b465e59d-c761-4fd8-bcbe-a4c5b9714e3a",
+      "status": "QUEUED",
+      "source": "aa257b03a0baae0175e7b47cd367a93fd139f55c",
+      "imageDigest": null
+    },
+    "web10": {
+      "deployment": "080c89a0-6040-47ea-8b5b-933647d6c733",
+      "status": "QUEUED",
+      "source": "aa257b03a0baae0175e7b47cd367a93fd139f55c",
+      "imageDigest": null
+    },
+    "web8": {
+      "deployment": "f6732a2b-0a69-49fd-a2f7-cc998b9d9300",
+      "status": "QUEUED",
+      "source": "aa257b03a0baae0175e7b47cd367a93fd139f55c",
+      "imageDigest": null
+    },
+    "web5": {
+      "deployment": "0671ab3d-cf6e-4704-a794-29697192fdc9",
+      "status": "BUILDING",
+      "source": "aa257b03a0baae0175e7b47cd367a93fd139f55c",
+      "imageDigest": null
+    }
+  }
+}

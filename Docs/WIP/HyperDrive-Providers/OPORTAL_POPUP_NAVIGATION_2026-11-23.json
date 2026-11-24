@@ -1,0 +1,109 @@
+{
+  "date": "2026-11-23",
+  "status": "three-real-popup-journeys-accepted-backend-publication-ready",
+  "portal": "387812546a860120943259c72918ad4d5e142b73",
+  "findings": [
+    "Delayed addAuthPopup callback closed whichever modal was active after900ms, rather than the completed login view.",
+    "Sign-in history remained below a popup opened immediately after authentication; closing it reopened login.",
+    "Beta banner used z-index2000 while modal overlay uses15, allowing the banner to cover popup controls."
+  ],
+  "changes": [
+    "Authentication closes its own completed login view synchronously; delayed generic cleanup removed.",
+    "Router owns oasis-login navigation: replace completed sign-in URL with home, resume protected deep link or its existing pending-mount state, preserve pending route from close observer.",
+    "Banner uses overlay-minus-one layer, above page chrome and below modals; cache stamping helper supports stylesheet hrefs via the same content-derived path."
+  ],
+  "sourceChecks": "scripts/router syntax, endpoint drift and whitespace passed; content-derived script/style cache keys updated.",
+  "failures": [
+    {
+      "run": 45159789471,
+      "artifact": 14809568885,
+      "archiveBytes": 3416,
+      "finding": "Unreported browser exit; no acceptance",
+      "cleanupVerified": true
+    },
+    {
+      "run": 45160485782,
+      "artifact": 14809799983,
+      "archiveBytes": 3860,
+      "finding": "Clan create blocked; no API create observed",
+      "cleanupVerified": true
+    },
+    {
+      "run": 45161346113,
+      "artifact": 14812650109,
+      "archiveBytes": 3417,
+      "finding": "Combined browser unreported exit; no acceptance",
+      "cleanupVerified": true
+    },
+    {
+      "run": 45162099780,
+      "artifact": 14812965855,
+      "archiveBytes": 3958,
+      "finding": "Valid/bound Clan form but action timed out; subsequent popups blocked",
+      "cleanupVerified": true
+    },
+    {
+      "run": 45163076390,
+      "artifact": 14812756915,
+      "archiveBytes": 3863,
+      "finding": "Form valid/bound, hit beta-banner; delayed authentication closed newly opened view",
+      "cleanupVerified": true
+    },
+    {
+      "run": 45163548150,
+      "artifact": 14814576083,
+      "archiveBytes": 3963,
+      "finding": "After scoped login timer fix, real Clan create/edit/add succeed; native helper used wrong HTTP envelope",
+      "cleanupVerified": true
+    },
+    {
+      "run": 45164695272,
+      "artifact": 14814227125,
+      "archiveBytes": 3956,
+      "finding": "Clan create/edit/member native readback/delete completes; close/back reopens sign-in, preventing subsequent screens",
+      "cleanupVerified": true
+    }
+  ],
+  "harnessCorrections": [
+    "Join Clan response and click promises so timeout cannot escape as orphaned rejection.",
+    "Use the declared OASISHttpResponseMessage envelope for independent native Clan GET.",
+    "Keep controlled network admission failure reporting; selected failure UI state contains only static IDs/classes, validity and bounded sanitized status."
+  ],
+  "scope": "Source fixes plus partial actual Clan create/edit/member readback/delete observations; no full Clan/Chat/Directory/popup-navigation acceptance yet.",
+  "next": "Publish qualified Coref7 and scoped rootf4ac on current Development after fresh branch/pin/current rollout/cadence gates; retain all accepted cohorts. No unchanged full test pass.",
+  "cleanup": "Every listed compact artifact inspected in RAM; package container absent and all five startup cleanup booleans true. Terminal runtime/cache/TLS absence verified. No local downloads/env/build/database/results.",
+  "acceptance": {
+    "run": 45165837353,
+    "job": 137662439100,
+    "control": "c16ff5a1088169a2004871eae8947a5b5b69e6cc",
+    "portal": "387812546a860120943259c72918ad4d5e142b73",
+    "source": "f4ac6302cbeadf6b1af77cbd9c6cdf27cfec402b",
+    "core": "f7fbd77b9cd4d8f50a3fd1ee17487d4d33159f82",
+    "image": "sha256:078cd7c8acbd7a14de653178e8f7aba5d030a191da519f6f8c37c3756eeea704",
+    "artifact": 14814813455,
+    "archiveBytes": 4379,
+    "outcomes": [
+      {
+        "name": "Clan",
+        "passed": true,
+        "stage": "Clan delete",
+        "closePassed": true
+      },
+      {
+        "name": "Chat",
+        "passed": true,
+        "stage": "Chat end",
+        "closePassed": true
+      },
+      {
+        "name": "DirectoryMessage",
+        "passed": true,
+        "stage": "Directory return",
+        "closePassed": true
+      }
+    ],
+    "scope": "Actual page and shipping Startup/native owned Mongo. Clan create/edit/add member, independent participant GET persisted fields/membership, delete/list empty/close; Chat start/send/participant history/resume/end/participant active-list absence/close; directory search/composer prefill/no automatic send/one explicit send/recipient native inbox/return to search/home.",
+    "cleanup": "RAM-inspected package container absent and all five startup cleanup conditions true; terminal runtime/cache/TLS absence verified. No local env/download/build/database/results.",
+    "limits": "Representative journeys only. No every Clan role/leave/remove/treasury, every chat case, paid Stripe, all providers, hosted latency or whole-portal completion."
+  }
+}

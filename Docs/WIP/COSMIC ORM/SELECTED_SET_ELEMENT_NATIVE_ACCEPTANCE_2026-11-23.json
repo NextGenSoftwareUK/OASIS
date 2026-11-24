@@ -1,0 +1,124 @@
+{
+  "run": 45207104433,
+  "job": 137805656391,
+  "artifact": 14835107509,
+  "archiveBytes": 3667,
+  "archiveSha256": "183c0660c08c4d7eb8b0be4f0061e2807e132ac4e1e86ed8241565fde52b7ebf",
+  "archiveSavedLocally": false,
+  "source": {
+    "source": "f33ada4783898c5069c63acb9ab13e4db60a07fe",
+    "core": "ebe044989f7fc04989e9cda8d2ac0b693cf5280c",
+    "nativePassed": 3,
+    "sharedDatabaseCalls": 0,
+    "setElementVerified": true,
+    "boundaryControlsPassed": 0,
+    "actualWeb4Compiled": true,
+    "deployed": false,
+    "ownedFixturesAbsent": true
+  },
+  "reports": {
+    "MongoDBOASIS": {
+      "provider": "MongoDBOASIS",
+      "checks": 8,
+      "ownedCleanupIds": 2,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "create": 492,
+        "tuple-union-single": 155,
+        "entity-union-multiple": 68,
+        "tuple-concat-multiple": 24,
+        "tuple-intersect": 30,
+        "tuple-except-default": 21,
+        "tuple-first": 56,
+        "tuple-last": 41,
+        "tuple-from-end": 41,
+        "tuple-post-window": 47,
+        "tuple-present-null": 20,
+        "tuple-sync": 35,
+        "tuple-cancelled": 0
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "tupleEqualityIndependentOfEntityIdentity": true,
+        "allFourSelectedSets": true,
+        "duplicateOccurrencesAndFromEnd": true,
+        "predicateAfterWindow": true,
+        "ambiguityNeverUsesCallerDefault": true,
+        "presentNullSeparateFromAbsence": true,
+        "syncAndAsyncSameNativeOwner": true,
+        "cancellationPreserved": true
+      },
+      "exactCleanupVerified": true
+    },
+    "SQLLiteDBOASIS": {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 8,
+      "ownedCleanupIds": 2,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "create": 500,
+        "tuple-union-single": 39,
+        "entity-union-multiple": 78,
+        "tuple-concat-multiple": 5,
+        "tuple-intersect": 4,
+        "tuple-except-default": 4,
+        "tuple-first": 19,
+        "tuple-last": 5,
+        "tuple-from-end": 6,
+        "tuple-post-window": 9,
+        "tuple-present-null": 4,
+        "tuple-sync": 5,
+        "tuple-cancelled": 0
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "tupleEqualityIndependentOfEntityIdentity": true,
+        "allFourSelectedSets": true,
+        "duplicateOccurrencesAndFromEnd": true,
+        "predicateAfterWindow": true,
+        "ambiguityNeverUsesCallerDefault": true,
+        "presentNullSeparateFromAbsence": true,
+        "syncAndAsyncSameNativeOwner": true,
+        "cancellationPreserved": true
+      },
+      "exactCleanupVerified": true
+    },
+    "Neo4jOASIS": {
+      "provider": "Neo4jOASIS",
+      "checks": 8,
+      "ownedCleanupIds": 2,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "create": 1045,
+        "tuple-union-single": 1904,
+        "entity-union-multiple": 693,
+        "tuple-concat-multiple": 1154,
+        "tuple-intersect": 1283,
+        "tuple-except-default": 334,
+        "tuple-first": 1264,
+        "tuple-last": 915,
+        "tuple-from-end": 887,
+        "tuple-post-window": 945,
+        "tuple-present-null": 808,
+        "tuple-sync": 799,
+        "tuple-cancelled": 0
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "tupleEqualityIndependentOfEntityIdentity": true,
+        "allFourSelectedSets": true,
+        "duplicateOccurrencesAndFromEnd": true,
+        "predicateAfterWindow": true,
+        "ambiguityNeverUsesCallerDefault": true,
+        "presentNullSeparateFromAbsence": true,
+        "syncAndAsyncSameNativeOwner": true,
+        "cancellationPreserved": true
+      },
+      "exactCleanupVerified": true
+    }
+  },
+  "nativeAccepted": true,
+  "fullParityClaimed": false,
+  "deployed": false,
+  "observedUtc": "2026-11-23T15:44:11.702002+00:00"
+}

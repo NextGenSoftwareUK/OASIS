@@ -1,0 +1,22 @@
+{
+  "run": 45194425515,
+  "source": "db681a71dda08eaf18958fe5ea2f810807ec6e13",
+  "core": "f9be1a1fa11f5cc09c84e915fad05014dfe51526",
+  "buildError": "CS0229",
+  "file": "CqlV1Web4NativeTests.LateSetComposition.cs",
+  "line": 89,
+  "cause": "Combined native interface inherits two ProjectionCapabilities declarations without unifying the public member.",
+  "coreAndWireControlsPassed": 4,
+  "nativeCasesExecuted": 0,
+  "artifact": 14828731377,
+  "archiveBytes": 1880,
+  "archiveSha256": "6e209f045b51a90de6fe09832b1ef6241ceb629e04350ed38ae7dc06de04eac2",
+  "archiveSavedLocally": false,
+  "cleanup": {
+    "Stop owned Mongo": "success",
+    "Verify owned Mongo stopped": "success",
+    "Stop containers": "success"
+  },
+  "nativeAccepted": false,
+  "deployed": false
+}

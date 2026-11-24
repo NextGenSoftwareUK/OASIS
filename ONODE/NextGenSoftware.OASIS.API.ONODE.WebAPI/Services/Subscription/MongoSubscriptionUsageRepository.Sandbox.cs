@@ -53,7 +53,8 @@ public sealed partial class MongoSubscriptionUsageRepository : ISandboxSubscript
             new("$match", new BsonDocument {
                 { "SandboxExpiresAtUtc", new BsonDocument { { "$type", "date" }, { "$lte", now } } },
                 { "PlanId", "free" }, { "Status", new BsonDocument("$in", new BsonArray { "free", "active" }) },
-                { "PayAsYouGoEnabled", false }, { "StripeCustomerId", BsonNull.Value }, { "StripeSubscriptionId", BsonNull.Value }
+                { "PayAsYouGoEnabled", false }, { "StripeCustomerId", BsonNull.Value }, { "StripeSubscriptionId", BsonNull.Value },
+                { "AccountClosureOperationId", BsonNull.Value }, { "AccountClosureStartedAtUtc", BsonNull.Value }
             }),
             new("$sort", new BsonDocument { { "SandboxExpiresAtUtc", 1 }, { "_id", 1 } }),
             new("$lookup", new BsonDocument {
@@ -78,7 +79,7 @@ public sealed partial class MongoSubscriptionUsageRepository : ISandboxSubscript
             var retired = await TransactAsync(async (session, ct) => {
                 await EnsureOpeningBalanceAsync(session, ct);
                 var record = await Subscriptions.Find(session, value => value.UserId == candidate.UserId).FirstOrDefaultAsync(ct);
-                if (!SandboxSubscriptionRules.IsIssuedFreeSubscription(record) || record.SandboxExpiresAtUtc > _time.GetUtcNow().UtcDateTime) return false;
+                if (!SandboxSubscriptionRules.IsIssuedFreeSubscription(record) || !record.IsBillingAdmissionOpen || record.SandboxExpiresAtUtc > _time.GetUtcNow().UtcDateTime) return false;
                 // Authorize also writes this subscription document. Snapshot transactions serialize
                 // retirement against a concurrent reservation; unresolved work is never orphaned.
                 if (await _events.Find(session, entry => entry.UserId == record.UserId &&

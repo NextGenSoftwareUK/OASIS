@@ -1,0 +1,15 @@
+{
+  "run": 45168149695,
+  "job": 137670374937,
+  "source": "29c771d31f21127eb1521a05b9620298f5bf01c1",
+  "core": "a5df02754350a10a5d258e245854a03cefb71e23",
+  "nativePassed": 0,
+  "nativeFailed": 3,
+  "failure": "Expected mapped native read count1, actual0 at PrivateSetterModel line70; captured private property lost by snapshot materialization",
+  "ownedMongoStopped": true,
+  "ownedMongoAbsenceVerified": true,
+  "serviceContainersStopped": true,
+  "perProviderSuccessReceiptClaimed": false,
+  "deployed": false,
+  "observedUtc": "2026-11-23T11:55:22.168042+00:00"
+}
