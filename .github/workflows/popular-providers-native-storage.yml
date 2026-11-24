@@ -11,6 +11,8 @@ on:
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS/**'
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS/**'
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.InfluxDBOASIS/**'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.ChromaOASIS/**'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.PgVectorOASIS/**'
       - 'Providers/Storage/TestProjects/*/*NativeStorageConformanceTests.cs'
   workflow_dispatch:
 
@@ -24,7 +26,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        provider: [CouchDB, Couchbase, ArangoDB, SurrealDB, ClickHouse, InfluxDB]
+        provider: [CouchDB, Couchbase, ArangoDB, SurrealDB, ClickHouse, InfluxDB, Chroma, PgVector]
     defaults:
       run:
         working-directory: OASIS
@@ -92,6 +94,14 @@ jobs:
               org_id="$(curl -fsS -H "Authorization: Token $password" 'http://127.0.0.1:18086/api/v2/orgs?org=oasis' | jq -r '.orgs[0].id')"
               curl -fsS -X POST -H "Authorization: Token $password" -H 'Content-Type: application/json' \
                 -d "{\"orgID\":\"$org_id\",\"name\":\"oasis_sync\",\"retentionRules\":[]}" http://127.0.0.1:18086/api/v2/buckets >/dev/null ;;
+            Chroma)
+              container="$(docker run -d -p 127.0.0.1:18001:8000 chromadb/chroma:1.0.15)"
+              wait_for "curl -fsS http://127.0.0.1:18001/api/v2/heartbeat" ;;
+            PgVector)
+              container="$(docker run -d -p 127.0.0.1:15433:5432 -e POSTGRES_PASSWORD="$password" -e POSTGRES_DB=oasis pgvector/pgvector:pg17)"
+              wait_for "docker exec $container pg_isready -U postgres -d oasis"
+              sleep 3
+              docker exec "$container" psql -U postgres -d oasis -c 'CREATE EXTENSION IF NOT EXISTS vector;' ;;
             Couchbase)
               container="$(docker run -d -p 127.0.0.1:8091-8097:8091-8097 -p 127.0.0.1:11210:11210 -p 127.0.0.1:11280:11280 couchbase/server:community-7.6.2)"
               wait_for "curl -fsS http://127.0.0.1:8091/ui/index.html"
