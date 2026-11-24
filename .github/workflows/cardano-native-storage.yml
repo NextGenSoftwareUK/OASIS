@@ -75,7 +75,16 @@ jobs:
             OASIS_CARDANO_TOPUP_URL="http://127.0.0.1:10000/local-cluster/api/addresses/topup"
           dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CardanoOASIS.IntegrationTests" \
             -p:NativeStorageConformance=true --filter "FullyQualifiedName~CardanoNativeStorageConformanceTests" \
-            -m:2 -nr:false -p:UseSharedCompilation=false --logger "console;verbosity=normal"
+            -m:2 -nr:false -p:UseSharedCompilation=false --logger "console;verbosity=normal" || {
+            api=http://127.0.0.1:8080/api/v1
+            echo "== blocks/latest"; curl -sS "$api/blocks/latest" | head -c 1500; echo
+            echo "== epochs/latest/parameters"; curl -sS "$api/epochs/latest/parameters" | head -c 1500; echo
+            while read -r address; do
+              echo "== utxos $address"; curl -sS "$api/addresses/$address/utxos" | head -c 1500; echo
+              echo "== transactions $address"; curl -sS "$api/addresses/$address/transactions?order=asc&count=100&page=1" | head -c 1500; echo
+            done < "$fixture/addresses"
+            exit 1
+          }
           for mode in async sync; do
             jq -e '.Succeeded and .FixtureCleanupComplete and (.Passed | length == 26)' "$fixture/$mode.json" >/dev/null
           done
