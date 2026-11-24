@@ -54,6 +54,7 @@
   </PropertyGroup>
 
 	<ItemGroup>
+    <InternalsVisibleTo Include="NextGenSoftware.OASIS.OASISBootLoader.UnitTests" />
 	    <None Include="..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\"/>
 	</ItemGroup>
 

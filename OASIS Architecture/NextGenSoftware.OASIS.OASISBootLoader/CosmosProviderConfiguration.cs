@@ -10,7 +10,8 @@ internal static class CosmosProviderConfiguration
     internal static CosmosBlockChainOASIS Create(CosmosBlockChainOASISProviderSettings settings)
     {
         ArgumentNullException.ThrowIfNull(settings);
-        var limits=settings.MaximumFeeUnitsByDenomination==null?null:new CosmosNativeFeeLimits(settings.MaximumFeeUnitsByDenomination);
+        // The DNA templates ship {} for "no fee ceilings configured"; treat it like null.
+        var limits=settings.MaximumFeeUnitsByDenomination is not {Count:>0}?null:new CosmosNativeFeeLimits(settings.MaximumFeeUnitsByDenomination);
         var variable=settings.StorageEncryptionKeyEnvironmentVariable;var escrow=CosmosEscrowConfiguration.Create(settings);
         return limits==null
             ?new CosmosBlockChainOASIS(settings.RpcEndpoint??"https://cosmos-rpc.polkachu.com",settings.ChainId??"cosmoshub-4",settings.PrivateKey??"",settings.ContractAddress??"",
