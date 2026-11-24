@@ -1,75 +1,62 @@
-23 November 2026 — VERIFIED COMPARER BATCH PUBLISHED TO DEVELOPMENT; ROLLOUT PENDING. Producer3654a040/Core7546da77 passed representative native MongoDB/SQLite/Neo4j comparer/state/selected-write/no-op journeys and actual WEB4 build45239964649, exact image45241873904 and package45243975852. Each store verified8 feature groups including unchanged fields, callback recomputation, explicit flags and forbidden no-op authorization. All8 shared dependency tips freshly reconciled; all7 prior Development7cfc deployments successful. More than1hour since the prior own Development push. New running source/startup acceptance remains open; full M13/EF and hosted typed-model journeys remain open. No DNA, staging/production, public website or customer/shared Atlas changes. Backing-field source preparation is unqualified and excluded from this batch.
+# COSMIC / CQL status (plain English)
 
-23 November 2026 — CUSTOM VALUE COMPARERS FUNCTIONALLY ACCEPTED ON THREE REAL STORES. Exact3654a040/Core7546da77 passed native MongoDB/SQLite/Neo4j and actual WEB4 build45239964649/job137921641756. Each store verified8 feature groups,6 acknowledged Holon writes,3 exact cleanup identities and12 timed operations: model/snapshot/hash capture, equality no-op, selected fields preserving equivalent stored and caller values, callback recomputation, mixed no-op revisions, explicit flag override, and COSMIC_WRITE_FORBIDDEN blocking a mixed batch containing a forbidden no-op. Artifact inspected in RAM (3642bytes); fixture/container cleanup passed. Initial45237477923 failed safely at the unchanged identity/condition guard; corrected save-plan scoping passed without weakening permissions or the guard. Image45241873904 builds exact3654/Core7546 after all8 dependency tips reconciled. Development remains7cfc1fbc/Corea76; no new Development push or live comparer acceptance. Complete M13/EF parity remains open.
+Updated 24 November 2026. Checked against the LIVE dev sandbox API `https://dev.api.web4.oasisomniverse.one` (`/api/data/query-cql`), signed in as a sandbox visitor, running every preset in the provider catalogue.
 
-# COSMIC / CQL current handoff
+## Headline
 
-Updated 23 November 2026. This is the current checkpoint; earlier chronological notes remain in Git history.
+- **102 providers return real records** for their full and filtered presets in the live sandbox (plus MongoDB, SQLite and Neo4j, which take your own data rather than presets).
+- **14 of 15 priority providers are live.** Only TRON is blocked (needs a TronGrid key from David).
+- All of this runs through the real provider classes (`*OASIS.Cql.cs`), not ONODE adapters.
 
-## Current source and live Development
+## Priority providers
 
-| Item | Evidence / status |
+| Provider | Live sandbox demo |
 |---|---|
-| Existing feature branch | work/cosmic-cql-ton-public; no additional branch or worktree |
-| Qualified converter producer |04dc4244bebb0280e06a556496202befc3e2dd4d |
-| Deployed Core / comparer candidate |a76c6593152730fb336b68253698abc34a245c85 /7546da7774be6948b040a6f37fea474c03976a95 (native3/WEB4 accepted, image building) |
-| Running Development |7cfc1fbc4e646ba689bb723d69a11f8c5753f4c6, Corea76c6593152730fb336b68253698abc34a245c85; source/startup/packaged presence accepted, hosted typed-model journey open |
-| Development rollout observation | All seven original WEB4-WEB10 deployments SUCCESS on7cfc1fbc; this is deployment/source evidence, not a fresh all-provider health audit |
-| Latest website preview |94fca0f137eefa26863ab75c7ef97c3c70ae94bd, READY; not publicly promoted |
-| Strict framework certification |61/168 rows each for MongoDB/SQLite/Neo4j, plus4/13 separate extensions; full parity remains open |
+| Holo | Yes: full preset 3 records, filtered preset 2 records |
+| Solana | Yes: full preset 3 records, filtered preset 2 records |
+| Ethereum | Yes: full preset 3 records, filtered preset 2 records |
+| Polygon | Yes: full preset 3 records, filtered preset 2 records |
+| Arbitrum | Yes: full preset 3 records, filtered preset 2 records |
+| NEAR | Yes: full preset 3 records, filtered preset 2 records |
+| EOSIO | Yes: full preset 3 records, filtered preset 2 records |
+| SOLID | Yes: full preset 3 records, filtered preset 2 records |
+| IPFS | Yes: full preset 3 records, filtered preset 2 records |
+| ActivityPub | Yes: full preset 3 records, filtered preset 2 records |
+| CosmosBlockChain | Yes: full preset 3 records, filtered preset 2 records (fixed 24 Nov: empty DNA fee/escrow placeholders no longer break startup) |
+| Polkadot | Yes: full preset 3 records, filtered preset 2 records |
+| TON | Yes: full preset 3 records, filtered preset 2 records |
+| TRON | BLOCKED: not enrolled on Railway (CQL_TRON_PUBLIC_HEADER_QUERY_SOURCE_JSON and COSMIC_TRON_PUBLIC_READER_KEY unset). Anonymous TronGrid returned HTTP429 in the native test, so it needs a dedicated TronGrid API key from David. |
+| Hashgraph | Yes: full preset 3 records, filtered preset 2 records (fixed 24 Nov: empty DNA query-policy placeholder no longer breaks startup) |
 
-Development52f9a287 contains the peer's verified profile/OAPP batch. It has been merged into the same COSMIC feature branch. The Core merge retained all nine query-family and six peer source files unchanged; only the parent Core reference/manifest conflicted. Official pins and gitlinks validate. Never replace this newer Development with the older accepted element image.
+## Every provider with a working live demo
 
-## Delivered breadth and evidence
+AWSS3, Abstract, ActivityPub, Akash, Algorand, Aptos, Arbitrum, Arweave, Avalanche, Axelar, AzureStorage, BNBChain, Base, Berachain, Bitcoin, Bittensor, BlockStack, Blockscout, BlueSky, Cardano, Celestia, ChainLink, Chainflip, Civic, ClickHouse, Cloudinary, Connext, Dapr, Decentraland, Discord, DuckDB, EAS, ENS, EOSIO, Eclipse, EigenLayer, Elrond, EspressoSystems, Ethereum, Fantom, Fhenix, Filecoin, Flow, GUN, GoogleCloud, Holo, Holonym, Hyperlane, IPFS, ImmutableZkEVM, IntelOpenVINO, LayerZero, LayerZeroV2, Linea, Livepeer, LocalFile, MapLibre, Matrix, Miden, Monad, NATSJetStream, NEAR, Nostr, Optimism, OracleObjectStorage, OrbitDB, Pinata, Polkadot, Polygon, PolygonID, PouchDB, ProofOfHumanity, PushProtocol, Radix, ReclaimProtocol, Ritual, Ronin, SEEDS, SOLID, Scroll, Sei, SelfProtocol, SignProtocol, Solana, Stargate, Starknet, Stellar, Subquery, Sui, Synapse, TON, Telos, TheGraph, TheSandbox, ThreeFold, Waku, WorldID, Wormhole, XRPL, Zcash, ZkSync, deBridge
 
-| Feature family | Representative verification | Live boundary |
-|---|---|---|
-| Root/selected/entity-stage async elements, cardinality and numeric reductions | Three real-provider cohorts45178767147/45181628686/45183982238 and actual WEB4 builds | Source deployed previously; hosted async application journeys are not inferred |
-| Selected stages after identity sets | Native SDK3 +real JWT HTTP3, four controls and WEB4 build45197249669; website SQL/Ask/browser evidence retained | Prior Development4b8 transport accepted on all three stores; populated native evidence is separate from empty hosted point reads |
-| Entity and late-selected set elements | First/Single/Last/index/from-end/default/predicate family,45206244989:3 native stores +WEB4 | Source deployed75a; hosted async SDK journeys not inferred |
-| Selected-tuple set elements |45207104433:3 native stores +WEB4; tuple equality stays distinct from entity identity | Source deployed75a; hosted async SDK journeys not inferred |
-| Identity-set Count/LongCount/Any/All |45210297591:3 native stores +WEB4; all four sets, windows, counterexamples, empty All, no typed constructors, caller exclusion, input bounds | Deployed75a; paced point-count transport accepted on all3 |
-| Native count WEB4 transport | Corrected sourceaa619bc7/Core75c:45213751045 passed3 compiler/capture controls +3 real JWT HTTP cases +actual WEB4; owner/foreign/anonymous and one settled attempt | Peer-integrated75a/Corebc deployed; three live point-count transports accepted, populated/browser scope separate |
-| SQL/Ask combined-record counts |44 SQL controls;73 mocked Ask controls +one displayed example. COUNT(*)/COUNT(1), ANY(*), prior windows and identity membership preserved | Preview source only; no genuine inference/public promotion or hosted count acceptance |
+## ORM features delivered 24 November (MongoDB, SQLite and Neo4j)
 
-The initial count HTTP run45211741407 failed before tests because explicit test-project links omitted new production files. Both test hosts now link the real compiler and endpoint. Its replacement45213751045 passed. The legacy HTTP run45211741386 failed for the same omitted endpoint link; the corrected combined-source regression below is the required gate. No shipping query workaround was introduced.
+Each one was checked on all three real stores, in throwaway CI containers (never the shared Atlas cluster), and the WEB4 WebAPI built in the same run.
 
-## Completed release gates
+- **One SaveChanges for creates, updates and deletes (S02/S03).** All the changes commit in one native transaction, or none of them do. If one update is stale, the deletes in the same SaveChanges are rolled back too. Run 45424892347.
+- **Update or delete everything a query matches, without loading it into a session (S16/S17).** `ExecuteUpdateAsync` and `ExecuteDeleteAsync` on the stateless session. A size limit stops oversized sets, and a row that changed after it was selected fails the whole statement. Run 45424908039.
+- **Cascade delete (A06/A07, delete only).** `RemoveCascadeAsync` deletes a record and all of its descendants in one atomic batch. Run 45424767497.
+- **Load a record's children on demand (A10).** `LoadChildrenAsync`. Run 45424767497.
+- **Integer sequences and HiLo ID blocks (M08).** Native and atomic on each store, and checked with 20 callers at once. CI is running.
 
-These handles qualified74596888/Corebc; the code-equivalent deployment75a passed source/settings and point-count transport checks. Retain accepted receipts and replay guards.
+Also: WEB4 did not compile, because the avatar-password JSON filter from cee7dc1d was never committed (its file name matched the repo's `*secret*` ignore rule). Development fixed this in b66e3d4e, and this branch now uses that fix.
 
-- Native HTTP/compiler/WEB4:45214881916, job137833237529: SUCCESS.
-- Required legacy HTTP:45214889666: SUCCESS.
-- Exact image:45214897823: SUCCESS.
-- Dependency qualification45214469773: SUCCESS.
-- Exact package45217561222: SUCCESS; eight dependency tips and prior seven deployments reconciled before publication.
-- Live75a: six paced calls, three random-GUID point counts, source matched before/after, temporary session revoked/credentials removed; zero application Holon writes or PIPER reads.
-- In-process V2 load balancing/failover/replication true; worker-pause configuration is not worker-liveness proof.
+## Calling the API yourself
 
-Older element image45207896394 and package45212851421 passed forf33ada47/Coreebe. They remain valid historical evidence; they cannot qualify the newer peer-integrated source.
+1. `POST /api/sandbox/session` with `{}` returns a visitor `jwtToken`.
+2. `GET /api/data/query-cql/providers` lists providers and their preset requests.
+3. `POST /api/data/query-cql` with a preset's `request` body, plus `Authorization: Bearer <token>` and a fresh `Idempotency-Key` header.
 
-## Next work and full scope
+## Still open (not done, not claimed)
 
-Custom value conversion now has representative native3/actual WEB4 acceptance (45228231194) through the existing storage, hydration, native binding and tracking owners. Converter source/startup/packaged presence is accepted on Development7cfc1fbc. Complete converter arithmetic/functions/serializer contracts remain open. M13 equality/hash/snapshot and selected/no-op writes passed native3/WEB4 on3654/Core7546 in45239964649. Image45241873904 is active; package/live gates and broader recursive graph/serializer/key-cache contracts remain open. Current order is functional EF/NHibernate breadth on shared Core and MongoDB/SQLite/Neo4j, SQL/Ask end-to-end, full/virtual/hybrid workflows, then broader edge coverage/optimisation. Preserve the entire real-SDK/provider/interface/HyperDrive roadmap and provider priorities, including Supabase. LocalFile is not a current priority.
+- HoloOASIS: cold-start reliability, private-data copies and live HyperDrive writes. The public read works.
+- Providers whose own public APIs are down at startup (e.g. Chainflip HTTP 525, Blockscout timing out above 15s per address on 24 Nov) show as unavailable until the next restart or an operator recovery call.
+- TRON: needs a TronGrid API key from David (see ACTIONS-FOR-DAVID.md).
+- Remaining EF/NHibernate rows: see CQL_PARITY_CHECKLIST.md. General (non-preset) queries and writes on chain providers: see the archive.
 
-Selected-tuple/late-selected set reductions, unrestricted query composition, remaining ORM transaction/cache/mapping families, universal virtual/import/hybrid workflows and full provider parity remain open. Source presence, a smoke test or a bounded CQL reader never certifies full provider/EF coverage.
+## History
 
-[Full report](FULL_STATUS_REPORT_2026-11-22.md) | [Parity checklist](CQL_PARITY_CHECKLIST.md) | [Provider scope inventory](PROVIDER_CQL_AND_SANDBOX_STATUS.md) | [ORM roadmap](COSMIC_ORM_IMPLEMENTATION_ROADMAP.md) | [CQL roadmap](CQL_COMPLETION_ROADMAP.md) | [Demo roadmap](SANDBOX_PROVIDER_DEMO_ROADMAP.md)
-
-## Inference, coordination and resources
-
-Real Free Ask Your Data inference remains unaccepted. Last selected configuration-presence check on Development4b8 found no dedicated Gemini Free key, OpenRouter credential or Ollama endpoint/model. The existing deferred action in ACTIONS-FOR-DAVID remains unchanged; do not ask for another login, Bronze grant or paid fallback.
-
-Keep one feature branch. Review Development and the HyperDrive provider branch every30minutes; publish only scoped verified batches, normally at most once/hour, preserving current shared changes. Never deploy staging/production or promote the public website without the required approval.
-
-No new local builds/environments/databases/images/browser profiles/archives. CI test data is owned/isolated and cleaned; accepted ZIPs are inspected in RAM and compact receipts retained. Last observed C free28,024,283,136bytes. No shared Atlas loops or PIPER/customer data changes.
-
-[Cleanup ledger](RECOVERY_LAPTOP_CLEANUP_LEDGER.md) | [Owner actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md)
-
-[Earlier chronological handoff, preserved in Git](https://github.com/NextGenSoftwareUK/OASIS/blob/74596888b42aa8cb4099a29353d88cc0488d1b1b/Docs/WIP/COSMIC%20ORM/CURRENT_STATUS.md).
-
-## Latest client correction
-
-Website94fca0f fixes a real blank-grid issue: cql-set-projection-v1 is now handled by the existing columnar renderer. Five focused run/render controls passed (two new, three affected), including visible aliases/plain-text cells and a set-route count displaying its SQL alias. [READY preview](https://web4-site-ag5d2gp0q-oasis-team.vercel.app/web4-sandbox.html). No public promotion or full hosted browser inference claim.
-
-[Deployment acceptance](COORDINATED_QUERY_FAMILY_DEVELOPMENT_ACCEPTANCE_2026-11-23.json) | [Client correction](SET_COLUMNAR_RENDER_SOURCE_ACCEPTANCE_2026-11-23.json)
+The previous detailed log (GPT agent, to 23 November) is in [Archive/CURRENT_STATUS_LOG_to_2026-11-23.md](Archive/CURRENT_STATUS_LOG_to_2026-11-23.md). The summary report is [FULL_STATUS_REPORT_2026-11-22.md](FULL_STATUS_REPORT_2026-11-22.md).
