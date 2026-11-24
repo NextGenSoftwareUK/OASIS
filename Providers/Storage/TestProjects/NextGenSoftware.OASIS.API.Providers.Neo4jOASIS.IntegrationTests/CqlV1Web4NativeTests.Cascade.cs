@@ -62,6 +62,13 @@ public sealed partial class CqlV1Web4NativeTests
         var lateSaved=await deleter.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));
         Assert.IsFalse(lateSaved.IsError,lateSaved.Message);
         CollectionAssert.AreEquivalent(new[]{child.Id,late.Id},loaded.Children.Select(row=>row.Id).ToArray());checks++;
+        // A12: extra-lazy count, membership and element access without loading the collection.
+        var count=await deleter.CountChildrenAsync(loaded);Assert.IsFalse(count.IsError,count.Message);Assert.AreEqual(2,count.Result);
+        Assert.IsTrue((await deleter.ContainsChildAsync(loaded,child.Id)).Result);
+        Assert.IsFalse((await deleter.ContainsChildAsync(loaded,other.Id)).Result);checks++;
+        var firstChild=await deleter.ChildAtAsync(loaded,0);Assert.IsFalse(firstChild.IsError,firstChild.Message);
+        Assert.AreEqual(child.Id,firstChild.Result.Id);
+        Assert.IsNull((await deleter.ChildAtAsync(loaded,5)).Result);checks++;
         var bounded=await deleter.RemoveCascadeAsync(loaded,softDelete:false,maximumDescendants:1);
         Assert.IsTrue(bounded.IsError);Assert.AreEqual("COSMIC_CASCADE_LIMIT_EXCEEDED",bounded.ErrorCode);checks++;
         var queued=await deleter.RemoveCascadeAsync(loaded,softDelete:false);
@@ -72,6 +79,6 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.IsFalse(deleted.IsError,deleted.ErrorCode+": "+deleted.Message);checks++;
         CollectionAssert.AreEquivalent(new[]{other.Id},(await Stored(root.Id,child.Id,grandchild.Id,late.Id,other.Id)).Select(row=>row.Id).ToArray());checks++;
         return new NativeFixtureJourneyProof(checks,4,new Dictionary<string,bool>{
-            ["cascadeDeleteVerified"]=true,["cascadeBoundRefusedVerified"]=true,["siblingPreservedVerified"]=true,["explicitChildLoadingVerified"]=true,["loadedCollectionFixUpVerified"]=true});
+            ["cascadeDeleteVerified"]=true,["cascadeBoundRefusedVerified"]=true,["siblingPreservedVerified"]=true,["explicitChildLoadingVerified"]=true,["loadedCollectionFixUpVerified"]=true,["extraLazyCollectionVerified"]=true});
     }
 }
