@@ -326,6 +326,7 @@ scripts/deployed-addresses.json
 *.pem
 *private*
 *secret*
+!ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/AvatarSecretJsonContracts.cs
 !OASIS Architecture/NextGenSoftware.OASIS.Edge.Runtime/LinuxSecretServiceSecureSessionStore.cs
 STAR ODK/NextGenSoftware.OASIS.STAR.CLI/publishwin-x64/vcruntime140_1.dll
 STAR ODK/NextGenSoftware.OASIS.STAR.CLI/publishwin-x64/vcruntime140.dll
