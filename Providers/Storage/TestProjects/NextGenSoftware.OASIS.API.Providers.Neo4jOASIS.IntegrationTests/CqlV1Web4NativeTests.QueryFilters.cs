@@ -62,11 +62,15 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.IsFalse(flushedQuery.IsError,flushedQuery.ErrorCode+": "+flushedQuery.Message);
         Assert.AreEqual(3,flushedQuery.Result.Count,"The auto-flushed insert is visible and still filtered.");
         Assert.AreEqual(CosmicEntityState.Unchanged,reader.State(pending).Result);checks++;
+        // O13: session statistics count native queries, flushes and tracked entities.
+        var stats=reader.Statistics;
+        Assert.AreEqual(4L,stats.QueryCount);Assert.AreEqual(1L,stats.FlushCount);Assert.AreEqual(0L,stats.FailedFlushCount);
+        Assert.AreEqual(1,stats.EntityCount);Assert.AreEqual(0,stats.AddedCount);checks++;
         var foreign=CosmicSession.Create(manager,adapter,CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result).Result;
         var hidden=await foreign.Linq<Holon>(CosmicQueryTrackingMode.NoTracking,100,ignoreQueryFilters:true).Result.Where(row=>ids.Contains(row.Id)).ToCosmicListAsync();
         Assert.IsFalse(hidden.IsError,hidden.Message);Assert.AreEqual(0,hidden.Result.Count,"Bypass never widens read access.");checks++;
         foreign.Dispose();
         return new NativeFixtureJourneyProof(checks,1,new Dictionary<string,bool>{
-            ["globalFilterVerified"]=true,["explicitBypassVerified"]=true,["accessNotWidenedVerified"]=true,["autoFlushVerified"]=true});
+            ["globalFilterVerified"]=true,["explicitBypassVerified"]=true,["accessNotWidenedVerified"]=true,["autoFlushVerified"]=true,["sessionStatisticsVerified"]=true});
     }
 }
