@@ -165,6 +165,12 @@ internal sealed partial class NeoCqlTranslator
                 }
                 else fieldTest = Total(left.Value + Symbol(fields.Operator) + right.Value);
                 return Total(leftValid + " AND " + rightValid + " AND (" + fieldTest + ")");
+            case CosmicQueryStringTransform transform:
+                var source = Operand(transform.Path);
+                var changed = transform.Kind == CosmicQueryStringTransformKind.Replace
+                    ? "replace(" + source.Value + "," + Bind(transform.First) + "," + Bind(transform.Second) + ")"
+                    : "btrim(" + source.Value + "," + Bind(transform.First) + ")";
+                return Total(source.Guard + " AND " + changed + (transform.Equal ? " = " : " <> ") + Bind(transform.Value));
             case CosmicQueryMetadataContains contains:
                 var arrayKey = NeoCqlProjection.PathKey(contains.Segments);
                 return "(coalesce(" + _projection + "[" + Bind(arrayKey + "_kind") + "]='array' AND " + Bind(contains.Element)

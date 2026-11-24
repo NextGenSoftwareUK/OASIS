@@ -164,6 +164,24 @@ public sealed partial class CqlV1Web4NativeTests
             CollectionAssert.AreEqual(new[]{withRed.Id},red.Result.Select(row=>row.Id).ToArray());
         }
         checks++;
+        // Q09 string transforms: ordinal Replace and Trim(char) compared with a literal, natively.
+        using(var strings=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            var dashed=New("code-dashed");dashed.MetaData=new Dictionary<string,object>{{"code","ab-12-cd"}};
+            var starred=New("code-starred");starred.MetaData=new Dictionary<string,object>{{"code","**x**"}};
+            foreach(var row in new[]{dashed,starred})Assert.IsFalse(strings.Add(row).IsError);
+            Assert.IsFalse((await strings.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()))).IsError);
+            var both=new[]{dashed.Id,starred.Id};
+            async Task<Guid[]> Ids(System.Linq.Expressions.Expression<Func<Holon,bool>> filter)
+            {
+                var rows=await strings.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>both.Contains(row.Id)).Where(filter).ToCosmicListAsync();
+                Assert.IsFalse(rows.IsError,rows.ErrorCode+": "+rows.Message);return rows.Result.Select(row=>row.Id).ToArray();
+            }
+            CollectionAssert.AreEqual(new[]{dashed.Id},await Ids(row=>CosmicQueryMetadata.Value<string>(row,"code").Replace("-","")=="ab12cd"));
+            CollectionAssert.AreEqual(new[]{starred.Id},await Ids(row=>CosmicQueryMetadata.Value<string>(row,"code").Trim('*')=="x"));
+            CollectionAssert.AreEqual(new[]{starred.Id},await Ids(row=>CosmicQueryMetadata.Value<string>(row,"code").Replace("-","")!="ab12cd"));
+        }
+        checks++;
         // M29 seed data: idempotent insert of fixed-identity rows in one unit of work.
         Holon[] Seed()=>new[]{
             new Holon{Id=seedIds[0],Name="seed-one",CreatedByAvatarId=actor,IsActive=true,IsPublic=false},
@@ -180,6 +198,6 @@ public sealed partial class CqlV1Web4NativeTests
         }
         Assert.AreEqual(2,(await Stored(seedIds)).Count);checks++;
         return new NativeFixtureJourneyProof(checks,4,new Dictionary<string,bool>{
-            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true,["notificationTrackingVerified"]=true,["collectionMembershipVerified"]=true});
+            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true,["notificationTrackingVerified"]=true,["collectionMembershipVerified"]=true,["stringTransformsVerified"]=true});
     }
 }
