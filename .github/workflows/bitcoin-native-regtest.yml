@@ -3,11 +3,12 @@ name: Bitcoin native regtest
 on:
   workflow_dispatch:
   push:
-    branches: [work/hyperdrive-provider-completion, work/hyperdrive-bitcoin-avatar-qualification]
+    branches: [work/hyperdrive-provider-completion, work/hyperdrive-bitcoin-avatar-qualification, work/hyperdrive-triad]
     paths:
       - '.github/workflows/bitcoin-native-regtest.yml'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS/**'
       - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests/BitcoinOASISIntegrationTests.cs'
+      - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests/BitcoinNativeStorageConformanceTests.cs'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS/BitcoinOASIS.DeleteSearch.cs'
 
 permissions:
@@ -16,7 +17,7 @@ permissions:
 jobs:
   esplora-regtest:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 45
     defaults:
       run:
         working-directory: OASIS
@@ -111,3 +112,11 @@ jobs:
           export OASIS_BITCOIN_REGTEST_API="$api"
           export OASIS_BITCOIN_REGTEST_CONTAINER="$fixture"
           pwsh -NoProfile -File Scripts/TestHosts/Invoke-BitcoinRegtestTransfer.ps1
+          # Shared core storage suite (both modes) in the same disposable regtest/Esplora/Kubo fixture.
+          storage_fixture="$(mktemp -d "$RUNNER_TEMP/oasis-native.XXXXXXXX")"
+          export OASIS_NATIVE_STORAGE_FIXTURE="$storage_fixture"
+          dotnet test 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests' -p:NativeStorageConformance=true             --filter 'FullyQualifiedName~BitcoinNativeStorageConformanceTests' -m:2 -nr:false -p:UseSharedCompilation=false --logger 'console;verbosity=normal'
+          for mode in async sync; do
+            jq -e '.Succeeded and .FixtureCleanupComplete and (.Passed | length == 26)' "$storage_fixture/$mode.json" >/dev/null
+          done
+          rm -rf -- "${storage_fixture:?}"
