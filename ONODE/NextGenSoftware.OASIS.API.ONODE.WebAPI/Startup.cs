@@ -140,7 +140,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                     x.JsonSerializerOptions.Converters.Add(new ISTARNETDNAJsonConverter());
                     x.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter(allowIntegerValues: true));
                     Helpers.HolonJsonContracts.Configure(x.JsonSerializerOptions);
-                    Helpers.AvatarCredentialJsonContracts.Configure(x.JsonSerializerOptions);
+                    Helpers.AvatarSecretJsonContracts.Configure(x.JsonSerializerOptions);
                 });
             services.AddAutoMapper(_ => { }, AppDomain.CurrentDomain.GetAssemblies());
             services.AddSwaggerGen(c =>
