@@ -69,7 +69,12 @@ internal static class NeoCqlProjection
                         pending.Push((child.Value, nested));
                     }
                     break;
-                case JsonValueKind.Array: result[key + "_kind"] = "array"; break;
+                case JsonValueKind.Array:
+                    result[key + "_kind"] = "array";
+                    // String elements as a native list property for collection membership (M15).
+                    result[key + "_strings"] = value.EnumerateArray().Where(element => element.ValueKind == JsonValueKind.String)
+                        .Select(element => element.GetString()).ToArray();
+                    break;
                 default: throw new System.IO.InvalidDataException("Unsupported Neo4j CQL metadata value.");
             }
         }

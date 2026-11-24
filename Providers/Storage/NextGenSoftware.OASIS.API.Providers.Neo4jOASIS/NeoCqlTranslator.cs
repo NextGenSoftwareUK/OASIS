@@ -165,6 +165,10 @@ internal sealed partial class NeoCqlTranslator
                 }
                 else fieldTest = Total(left.Value + Symbol(fields.Operator) + right.Value);
                 return Total(leftValid + " AND " + rightValid + " AND (" + fieldTest + ")");
+            case CosmicQueryMetadataContains contains:
+                var arrayKey = NeoCqlProjection.PathKey(contains.Segments);
+                return "(coalesce(" + _projection + "[" + Bind(arrayKey + "_kind") + "]='array' AND " + Bind(contains.Element)
+                    + " IN " + _projection + "[" + Bind(arrayKey + "_strings") + "],false))";
             case CosmicQueryMetadataTest test:
                 var kind = _projection+"[" + Bind(NeoCqlProjection.PathKey(test.Segments) + "_kind") + "]";
                 return test.Kind == CosmicQueryMetadataTestKind.Exists ? "(" + kind + " IS NOT NULL)" : Total(kind + "='null'");

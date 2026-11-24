@@ -536,6 +536,12 @@ public partial class HolonRepository
                 return StringMatch(CanonicalColumn(stringField.Name), match);
             }
             if (predicate is CosmicQueryMetadataTest test) return MetadataTest(test);
+            if (predicate is CosmicQueryMetadataContains contains)
+            {
+                var element = Bind(contains.Element);
+                return MetadataPredicate(contains.Segments, alias => alias + ".type = 'array' AND EXISTS (SELECT 1 FROM json_each(" + alias
+                    + ".value) AS cqlElement WHERE cqlElement.type = 'text' AND cqlElement.value COLLATE BINARY = " + element + ")");
+            }
             if (predicate is CosmicQueryBoolean boolean) return boolean.Value ? "1" : "0";
             if (predicate is CosmicQueryLogical logical)
                 return "(" + Translate(logical.Left) + (logical.IsAnd ? " AND " : " OR ") + Translate(logical.Right) + ")";

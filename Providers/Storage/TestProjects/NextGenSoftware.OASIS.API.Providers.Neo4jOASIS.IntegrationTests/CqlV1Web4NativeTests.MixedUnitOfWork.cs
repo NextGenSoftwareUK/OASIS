@@ -138,6 +138,22 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.AreEqual("silent edit",(await Stored(watched.Id)).Single().Description);
         }
         checks++;
+        // M15 collection membership: a metadata array contains a string element; scalars never match.
+        using(var tagged=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            var listKey="tags"+Guid.NewGuid().ToString("N");
+            var withRed=New("tags-red");withRed.MetaData=new Dictionary<string,object>{{listKey,new List<string>{"red","blue"}}};
+            var withoutRed=New("tags-green");withoutRed.MetaData=new Dictionary<string,object>{{listKey,new List<string>{"green"}}};
+            var scalarRed=New("tags-scalar");scalarRed.MetaData=new Dictionary<string,object>{{listKey,"red"}};
+            foreach(var row in new[]{withRed,withoutRed,scalarRed})Assert.IsFalse(tagged.Add(row).IsError);
+            var taggedSave=await tagged.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));Assert.IsFalse(taggedSave.IsError,taggedSave.Message);
+            var three=new[]{withRed.Id,withoutRed.Id,scalarRed.Id};
+            var red=await tagged.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>three.Contains(row.Id))
+                .Where(row=>CosmicQueryMetadata.Contains(row,"red",listKey)).ToCosmicListAsync();
+            Assert.IsFalse(red.IsError,red.ErrorCode+": "+red.Message);
+            CollectionAssert.AreEqual(new[]{withRed.Id},red.Result.Select(row=>row.Id).ToArray());
+        }
+        checks++;
         // M29 seed data: idempotent insert of fixed-identity rows in one unit of work.
         Holon[] Seed()=>new[]{
             new Holon{Id=seedIds[0],Name="seed-one",CreatedByAvatarId=actor,IsActive=true,IsPublic=false},
@@ -154,6 +170,6 @@ public sealed partial class CqlV1Web4NativeTests
         }
         Assert.AreEqual(2,(await Stored(seedIds)).Count);checks++;
         return new NativeFixtureJourneyProof(checks,4,new Dictionary<string,bool>{
-            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true,["notificationTrackingVerified"]=true});
+            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true,["notificationTrackingVerified"]=true,["collectionMembershipVerified"]=true});
     }
 }

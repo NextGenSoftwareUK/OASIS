@@ -315,6 +315,9 @@ internal sealed partial class MongoCqlTranslator
             case CosmicQueryBoolean boolean:return Literal(boolean.Value);
             case CosmicQueryLogical logical:return TranslateLogical(logical, depth);
             case CosmicQueryNot not:return Op("$not",Translate(not.Operand,depth+1));
+            // $cond guards $in, which errors on a non-array operand; a non-array value never matches.
+            case CosmicQueryMetadataContains contains:return Metadata(contains.Segments,value=>
+                Op("$cond",Op("$isArray",value),Op("$in",Literal(contains.Element),value),Literal(false)));
             case CosmicQueryMetadataTest test:return Metadata(test.Segments,value=>test.Kind==CosmicQueryMetadataTestKind.IsNull
                 ?Op("$eq",Type(value),Literal("null")):Op("$ne",Type(value),Literal("missing")));
             case CosmicQueryComparison comparison:return At(comparison.Path,value=>{
