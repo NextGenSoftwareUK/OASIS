@@ -46,6 +46,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PgVectorOASIS
         public PgVectorOASIS(string connectionString)
         {
             _connectionString = connectionString;
+            ProviderName = "PgVectorOASIS";
+            ProviderDescription = "PostgreSQL + pgvector document storage (JSONB records with vector-ready tables).";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.PgVectorOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
         }
@@ -562,6 +564,9 @@ namespace NextGenSoftware.OASIS.API.Providers.PgVectorOASIS
 
         public OASISResult<bool> DeleteHolonSoft(Guid id, bool softDelete = true)
             => DeleteHolonSoftAsync(id, softDelete).GetAwaiter().GetResult();
+
+        public string GetProviderVersion() => "1.0.0";
+        public Task<string> GetProviderVersionAsync() => Task.FromResult("1.0.0");
 
         // ─── Search ─────────────────────────────────────────────────────────────
 

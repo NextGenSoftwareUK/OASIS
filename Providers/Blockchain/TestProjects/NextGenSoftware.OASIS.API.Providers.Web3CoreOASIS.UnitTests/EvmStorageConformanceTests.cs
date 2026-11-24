@@ -16,6 +16,11 @@ public class EvmStorageConformanceTests
     [DataRow("EthereumOASIS",false)] [DataRow("EthereumOASIS",true)]
     [DataRow("ArbitrumOASIS",false)] [DataRow("ArbitrumOASIS",true)]
     [DataRow("PolygonOASIS",false)] [DataRow("PolygonOASIS",true)]
+    [DataRow("OptimismOASIS",false)] [DataRow("OptimismOASIS",true)]
+    [DataRow("BaseOASIS",false)] [DataRow("BaseOASIS",true)]
+    [DataRow("LineaOASIS",false)] [DataRow("LineaOASIS",true)]
+    [DataRow("ScrollOASIS",false)] [DataRow("ScrollOASIS",true)]
+    [DataRow("zkSyncOASIS",false)] [DataRow("zkSyncOASIS",true)]
     public async Task SharedStorageInterfaceAgainstConfiguredLocalEvm(string name,bool sync)
     {
         var root=new DirectoryInfo(AppContext.BaseDirectory);
@@ -43,11 +48,20 @@ public class EvmStorageConformanceTests
             if(chain!=31337&&chain!=1337)throw new InvalidOperationException("Retained local test chain identity required.");
             var key=Read("OASIS_EVM_CONFORMANCE_PRIVATE_KEY");var contract=Environment.GetEnvironmentVariable($"OASIS_EVM_CONFORMANCE_CONTRACT_{name}_{(sync ? "SYNC" : "ASYNC")}") ?? Read("OASIS_EVM_CONFORMANCE_CONTRACT");
             _=Read("OASIS_WEB3CORE_STORAGE_ENCRYPTION_KEY");
-            provider=name=="EthereumOASIS"
+            provider=name switch
+            {
+                // Web3Core L2 providers: same canonical storage contract, bound to the retained local chain identity.
+                "OptimismOASIS"=>new NextGenSoftware.OASIS.API.Providers.OptimismOASIS.OptimismOASIS(endpoint.AbsoluteUri,key,contract,chain),
+                "BaseOASIS"=>new NextGenSoftware.OASIS.API.Providers.BaseOASIS.BaseOASIS(endpoint.AbsoluteUri,key,chain,contract),
+                "LineaOASIS"=>new NextGenSoftware.OASIS.API.Providers.LineaOASIS.LineaOASIS(endpoint.AbsoluteUri,key,contract,chain),
+                "ScrollOASIS"=>new NextGenSoftware.OASIS.API.Providers.ScrollOASIS.ScrollOASIS(endpoint.AbsoluteUri,key,contract,chain),
+                "zkSyncOASIS"=>new NextGenSoftware.OASIS.API.Providers.zkSyncOASIS.zkSyncOASIS(endpoint.AbsoluteUri,key,contract,chain),
+                _=>(IOASISStorageProvider?)null
+            } ?? (name=="EthereumOASIS"
                 ? EthereumProviderFactory.CreateForMode(new EthereumOASISProviderSettings{ConnectionString=endpoint.AbsoluteUri,ChainPrivateKey=key,ContractAddress=contract,ChainId=checked((long)chain)},HyperDriveModes.V2,null!)
                 : name=="ArbitrumOASIS"
                 ? EvmProviderFactory.CreateArbitrum(new ArbitrumOASISProviderSettings{ConnectionString=endpoint.AbsoluteUri,ChainPrivateKey=key,ContractAddress=contract,ChainId=checked((long)chain)},HyperDriveModes.V2,null!)
-                : EvmProviderFactory.CreatePolygon(new PolygonOASISProviderSettings{ConnectionString=endpoint.AbsoluteUri,ChainPrivateKey=key,ContractAddress=contract,ChainId=checked((long)chain)},null!);
+                : EvmProviderFactory.CreatePolygon(new PolygonOASISProviderSettings{ConnectionString=endpoint.AbsoluteUri,ChainPrivateKey=key,ContractAddress=contract,ChainId=checked((long)chain)},null!));
         }
         catch(Exception failure)
         {
