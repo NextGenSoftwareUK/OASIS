@@ -28,6 +28,26 @@ public sealed class ClickHouseNativeStorageConformanceTests
             {
                 await File.WriteAllTextAsync(reportPath + ".next", JsonSerializer.Serialize(checkpoint));
                 File.Move(reportPath + ".next", reportPath, overwrite: true);
+            },
+            (id, sync) => sync ? Task.FromResult(provider.DeleteHolonSoft(id, false)) : provider.DeleteHolonSoftAsync(id, false),
+            expectedDefaultDeletion: "soft",
+            observeNativeTombstone: async (id, owner, name) =>
+            {
+                using var http = new HttpClient();
+                http.DefaultRequestHeaders.Add("X-ClickHouse-User", "default");
+                http.DefaultRequestHeaders.Add("X-ClickHouse-Key", Env("OASIS_NATIVE_PASSWORD"));
+                var sql = $"SELECT is_deleted, data_json FROM oasis.holons FINAL WHERE id = '{id:D}' FORMAT JSONEachRow";
+                using var response = await http.PostAsync("http://127.0.0.1:18123/", new StringContent(sql));
+                response.EnsureSuccessStatusCode();
+                var lines = (await response.Content.ReadAsStringAsync()).Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                if (lines.Length == 0) return false;
+                Assert.AreEqual(1, lines.Length);
+                using var row = JsonDocument.Parse(lines[0]);
+                Assert.AreEqual(1, row.RootElement.GetProperty("is_deleted").GetInt32());
+                var data = row.RootElement.GetProperty("data_json").GetString()!;
+                StringAssert.Contains(data, name);
+                StringAssert.Contains(data, owner.ToString("D"));
+                return true;
             });
 
         if (!report.Succeeded)
