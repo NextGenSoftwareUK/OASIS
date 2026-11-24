@@ -6,8 +6,15 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
-public partial class SQLLiteDBOASIS : IConditionalHolonPropertyStorageProvider, IBoundAtomicHolonReplicationStorageProvider
+public partial class SQLLiteDBOASIS : IConditionalHolonPropertyStorageProvider, IBoundAtomicHolonReplicationStorageProvider, IConditionalHolonUnitOfWorkStorageProvider
 {
+    public Task<OASISResult<IEnumerable<IHolon>>> ExecuteConditionalHolonUnitOfWorkAsync(ConditionalHolonUnitOfWorkRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return Task.FromResult(_holonRepository.ExecuteConditionalHolonUnitOfWork(request, cancellationToken));
+    }
+
     public OASISResult<IEnumerable<IHolon>> ExecuteReplicatingHolonWrite(ConditionalHolonWriteRequest request,
         HolonReplicationEnrollment enrollment)
         => _holonRepository.ExecuteReplicatingHolonWrite(request, enrollment, CancellationToken.None);

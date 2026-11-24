@@ -32,6 +32,18 @@ Updated 24 November 2026. Checked against the LIVE dev sandbox API `https://dev.
 
 AWSS3, Abstract, ActivityPub, Akash, Algorand, Aptos, Arbitrum, Arweave, Avalanche, Axelar, AzureStorage, BNBChain, Base, Berachain, Bitcoin, Bittensor, BlockStack, Blockscout, BlueSky, Cardano, Celestia, ChainLink, Chainflip, Civic, ClickHouse, Cloudinary, Connext, Dapr, Decentraland, Discord, DuckDB, EAS, ENS, EOSIO, Eclipse, EigenLayer, Elrond, EspressoSystems, Ethereum, Fantom, Fhenix, Filecoin, Flow, GUN, GoogleCloud, Holo, Holonym, Hyperlane, IPFS, ImmutableZkEVM, IntelOpenVINO, LayerZero, LayerZeroV2, Linea, Livepeer, LocalFile, MapLibre, Matrix, Miden, Monad, NATSJetStream, NEAR, Nostr, Optimism, OracleObjectStorage, OrbitDB, Pinata, Polkadot, Polygon, PolygonID, PouchDB, ProofOfHumanity, PushProtocol, Radix, ReclaimProtocol, Ritual, Ronin, SEEDS, SOLID, Scroll, Sei, SelfProtocol, SignProtocol, Solana, Stargate, Starknet, Stellar, Subquery, Sui, Synapse, TON, Telos, TheGraph, TheSandbox, ThreeFold, Waku, WorldID, Wormhole, XRPL, Zcash, ZkSync, deBridge
 
+## ORM features delivered 24 November (MongoDB, SQLite and Neo4j)
+
+Each one was checked on all three real stores, in throwaway CI containers (never the shared Atlas cluster), and the WEB4 WebAPI built in the same run.
+
+- **One SaveChanges for creates, updates and deletes (S02/S03).** All the changes commit in one native transaction, or none of them do. If one update is stale, the deletes in the same SaveChanges are rolled back too. Run 45424892347.
+- **Update or delete everything a query matches, without loading it into a session (S16/S17).** `ExecuteUpdateAsync` and `ExecuteDeleteAsync` on the stateless session. A size limit stops oversized sets, and a row that changed after it was selected fails the whole statement. Run 45424908039.
+- **Cascade delete (A06/A07, delete only).** `RemoveCascadeAsync` deletes a record and all of its descendants in one atomic batch. Run 45424767497.
+- **Load a record's children on demand (A10).** `LoadChildrenAsync`. Run 45424767497.
+- **Integer sequences and HiLo ID blocks (M08).** Native and atomic on each store, and checked with 20 callers at once. CI is running.
+
+Also: WEB4 did not compile, because the avatar-password JSON filter from cee7dc1d was never committed (its file name matched the repo's `*secret*` ignore rule). Development fixed this in b66e3d4e, and this branch now uses that fix.
+
 ## Calling the API yourself
 
 1. `POST /api/sandbox/session` with `{}` returns a visitor `jwtToken`.
@@ -43,7 +55,7 @@ AWSS3, Abstract, ActivityPub, Akash, Algorand, Aptos, Arbitrum, Arweave, Avalanc
 - HoloOASIS: cold-start reliability, private-data copies and live HyperDrive writes. The public read works.
 - Providers whose own public APIs are down at startup (e.g. Chainflip HTTP 525, Blockscout timing out above 15s per address on 24 Nov) show as unavailable until the next restart or an operator recovery call.
 - TRON: needs a TronGrid API key from David (see ACTIONS-FOR-DAVID.md).
-- Full EF/NHibernate parity, general (non-preset) queries and writes on chain providers: see the archive.
+- Remaining EF/NHibernate rows: see CQL_PARITY_CHECKLIST.md. General (non-preset) queries and writes on chain providers: see the archive.
 
 ## History
 

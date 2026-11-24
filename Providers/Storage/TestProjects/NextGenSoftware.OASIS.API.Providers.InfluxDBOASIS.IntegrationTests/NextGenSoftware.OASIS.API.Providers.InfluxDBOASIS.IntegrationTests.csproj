@@ -29,5 +29,8 @@
   </ItemGroup>
   <ItemGroup Condition="'$(NativeStorageConformance)' != 'true'">
     <Compile Remove="InfluxDBNativeStorageConformanceTests.cs" />
+    <!-- Calls AddInfluxDbReadSource, which is not implemented anywhere yet (the hosted CQL registration for InfluxDB).
+         Re-enable once ONODE.WebAPI provides CqlInfluxDbReadSourceRegistration and this project links it. -->
+    <Compile Remove="InfluxDbHostedCqlNativeTests.cs" />
   </ItemGroup>
 </Project>
