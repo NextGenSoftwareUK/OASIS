@@ -28,6 +28,23 @@ public sealed class ArangoDBNativeStorageConformanceTests
             {
                 await File.WriteAllTextAsync(reportPath + ".next", JsonSerializer.Serialize(checkpoint));
                 File.Move(reportPath + ".next", reportPath, overwrite: true);
+            },
+            (id, sync) => sync ? Task.FromResult(provider.DeleteHolonSoft(id, false)) : provider.DeleteHolonSoftAsync(id, false),
+            expectedDefaultDeletion: "soft",
+            observeNativeTombstone: async (id, owner, name) =>
+            {
+                using var http = new HttpClient();
+                http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic",
+                    Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("root:" + Env("OASIS_NATIVE_PASSWORD"))));
+                using var response = await http.GetAsync($"http://127.0.0.1:18529/_db/oasis/_api/document/holons/{id:D}");
+                if (response.StatusCode == System.Net.HttpStatusCode.NotFound) return false;
+                response.EnsureSuccessStatusCode();
+                using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                var root = doc.RootElement;
+                Assert.AreEqual(owner, root.GetProperty("createdByAvatarId").GetGuid());
+                Assert.AreEqual(name, root.GetProperty("name").GetString());
+                Assert.AreNotEqual(DateTime.MinValue, root.GetProperty("deletedDate").GetDateTime());
+                return true;
             });
 
         if (!report.Succeeded)

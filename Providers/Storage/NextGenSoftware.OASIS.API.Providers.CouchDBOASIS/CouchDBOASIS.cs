@@ -13,6 +13,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 
@@ -594,7 +595,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
                 return null;
             resp.EnsureSuccessStatusCode();
             var json = await resp.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<T>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            return StoredRecordJson.DeserializeStored<T>(json);
         }
 
         private async Task<string> UpsertDocAsync<T>(string db, string id, T obj)
@@ -614,8 +615,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
             }
 
             // Serialize obj and inject _id and _rev
-            var dict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(
-                JsonSerializer.Serialize(obj, obj.GetType()));
+            var dict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(StoredRecordJson.Serialize(obj));
             if (obj is IHolon source)
             {
                 // Detached wire staging also preserves provider identity on reload.
@@ -681,8 +681,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
             var list = new List<T>();
             foreach (var el in docs.EnumerateArray())
             {
-                var item = JsonSerializer.Deserialize<T>(el.GetRawText(),
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                var item = StoredRecordJson.DeserializeStored<T>(el.GetRawText());
                 if (item != null) list.Add(item);
             }
             return list;
@@ -700,8 +699,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
             {
                 if (!row.TryGetProperty("doc", out var docEl)) continue;
                 if (docEl.TryGetProperty("_id", out var idEl) && idEl.GetString()?.StartsWith("_design") == true) continue;
-                var item = JsonSerializer.Deserialize<T>(docEl.GetRawText(),
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                var item = StoredRecordJson.DeserializeStored<T>(docEl.GetRawText());
                 if (item != null) list.Add(item);
             }
             return list;
