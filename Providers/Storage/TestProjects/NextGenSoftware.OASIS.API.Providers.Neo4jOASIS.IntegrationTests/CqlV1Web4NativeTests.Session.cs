@@ -183,12 +183,15 @@ public sealed partial class CqlV1Web4NativeTests
 
         secondTracked.Name="must remain a local edit";
         Assert.IsFalse(session.Remove(persisted).IsError);
+        Assert.IsFalse(session.Remove(secondTracked,softDelete:false).IsError);
+        // Saves and deletes now share one unit of work; two deletion modes in one flush remain refused.
         var unsupportedMix=await session.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));
         Assert.IsTrue(unsupportedMix.IsError);
         Assert.IsFalse(unsupportedMix.IsSaved);
         Assert.AreEqual("COSMIC_ATOMIC_OPERATION_UNSUPPORTED",unsupportedMix.ErrorCode);
         Assert.AreEqual(CosmicEntityState.Deleted,session.State(persisted).Result);
         Assert.IsFalse(session.CancelRemoval(persisted).IsError);
+        Assert.IsFalse(session.CancelRemoval(secondTracked).IsError);
         var unchangedStored=await session.ReloadAsync(secondTracked);
         Assert.IsFalse(unchangedStored.IsError,unchangedStored.Message);
         Assert.AreEqual("session second",secondTracked.Name,"An unsupported mixed flush must not publish a partial update.");

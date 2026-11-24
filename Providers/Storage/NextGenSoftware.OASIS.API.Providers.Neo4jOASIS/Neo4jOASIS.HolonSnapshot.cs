@@ -173,10 +173,15 @@ public partial class Neo4jOASIS
             Exception transactionFailure=null;
             try
             {
+                // An ambient transaction belongs to a unit-of-work owner that commits or rolls it back.
+                var ambient=conditional?.Ambient;
+                if(ambient!=null)transaction=ambient;
+                else{
                 session=_driver.AsyncSession();
                 transaction = conditional == null ? await session.BeginTransactionAsync().ConfigureAwait(false)
                     : await session.BeginTransactionAsync(config=>config.WithMetadata(new Dictionary<string,object>{
                         ["COSMIC.OperationId"]=conditional.Plan.OperationId.ToString("D")})).ConfigureAwait(false);
+                }
                 try
                 {
                     if (conditional != null)
@@ -190,12 +195,13 @@ public partial class Neo4jOASIS
                         if (replay != null)
                         {
                             result=SetConditionalAcknowledgement(replay,conditional);
-                            conditional.KnownCommitted=true;
-                            await transaction.RollbackAsync().ConfigureAwait(false);
+                            if(ambient==null){conditional.KnownCommitted=true;
+                            await transaction.RollbackAsync().ConfigureAwait(false);}
+                            else conditional.AmbientReplayed=true;
                         }
                         else staged = await PrepareConditionalHolonsAsync(transaction,staged,conditional,archiveVersions).ConfigureAwait(false);
                     }
-                    if(!state.KnownCommitted)
+                    if(!state.KnownCommitted && conditional?.AmbientReplayed!=true)
                     {
                         // Lock existing membership observations before preparing snapshots/receipts.
                         var membershipRows=await(await transaction.RunAsync("UNWIND $ids AS id WITH id ORDER BY id MATCH (h:Holon {Id:id}) "
@@ -284,9 +290,12 @@ public partial class Neo4jOASIS
                             await WriteConditionalReceiptAsync(transaction,conditional,acknowledgedRoots).ConfigureAwait(false);
                             conditional.Cancellation.ThrowIfCancellationRequested();
                         }
+                        if(ambient!=null)result=SetConditionalAcknowledgement(acknowledgedRoots,conditional);
+                        else{
                         state.CommitDispatched=true;
-                        await transaction.CommitAsync().ConfigureAwait(false);
-                        if(conditional!=null)
+                        await transaction.CommitAsync().ConfigureAwait(false);}
+                        if(ambient!=null){}
+                        else if(conditional!=null)
                         {
                             result=SetConditionalAcknowledgement(acknowledgedRoots,conditional);
                             conditional.KnownCommitted=true;
@@ -320,7 +329,7 @@ public partial class Neo4jOASIS
                 }
                 catch(Exception cause)
                 {
-                    if(!state.CommitDispatched && !state.KnownCommitted)
+                    if(ambient==null && !state.CommitDispatched && !state.KnownCommitted)
                     {
                         try {await transaction.RollbackAsync().ConfigureAwait(false);}
                         catch(Exception rollback) {state.RollbackFailed=true;throw new AggregateException(cause,rollback);}
@@ -331,7 +340,7 @@ public partial class Neo4jOASIS
             catch(Exception cause){transactionFailure=cause;}
             finally
             {
-                foreach(var resource in new IDisposable[]{transaction,session})
+                foreach(var resource in conditional?.Ambient!=null ? Array.Empty<IDisposable>():new IDisposable[]{transaction,session})
                 {
                     try{resource?.Dispose();}
                     catch(Exception cleanup){transactionFailure=transactionFailure==null ? cleanup:new AggregateException(transactionFailure,cleanup);}

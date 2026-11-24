@@ -40,6 +40,9 @@ public partial class Neo4jOASIS : IConditionalHolonPropertyStorageProvider,IBoun
         internal Guid Actor { get; } = actor;
         internal string Claim { get; } = Guid.NewGuid().ToString("D");
         internal CancellationToken Cancellation { get; } = cancellation;
+        /// <summary>Set by a unit-of-work owner; this write then neither commits nor rolls back.</summary>
+        internal IAsyncTransaction Ambient { get; set; }
+        internal bool AmbientReplayed { get; set; }
     }
     private sealed class NeoConditionalIntentException() : InvalidOperationException("Operation ID is bound to different write intent or actor.");
     private sealed class NeoConditionalReceiptException(Exception cause) : IOException("Stored conditional acknowledgement is invalid.",cause);

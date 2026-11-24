@@ -19,8 +19,10 @@ public partial class HolonRepository
     internal async Task<OASISResult<bool>> ImportAtomicAsync(IEnumerable<Holon> holons,Action<Holon,Holon> preserveAudit,Action<IReadOnlyList<Holon>> prepareResponse=null,
         Action<IReadOnlyDictionary<Guid,BsonDocument>,IReadOnlyDictionary<Guid,BsonDocument>> prepareBodies=null,
         MongoAtomicHolonWrite conditional=null,Action<Holon,Holon> prepareMembership=null,
-        Action<IReadOnlyDictionary<Guid,BsonDocument>> finalizeResponse=null)
+        Action<IReadOnlyDictionary<Guid,BsonDocument>> finalizeResponse=null,IClientSessionHandle ambient=null)
     {
+        // An ambient session belongs to a unit-of-work owner that starts, commits or aborts it.
+        var owned=ambient==null;
         var result=new OASISResult<bool>();
         if(conditional!=null) result.MetaData = new Dictionary<string,string>
             { ["COSMIC.OperationId"] = conditional.Plan.OperationId.ToString("D") };
@@ -39,8 +41,9 @@ public partial class HolonRepository
             var database = _dbContext.MongoDB;
             var typed=database.GetCollection<Holon>(MongoDbContext.HolonCollectionName);
             var raw=database.GetCollection<BsonDocument>(MongoDbContext.HolonCollectionName,typed.Settings);
-            using var session=await database.Client.StartSessionAsync(cancellationToken:cancellation).ConfigureAwait(false);
-            session.StartTransaction(new TransactionOptions(readConcern:ReadConcern.Snapshot,writeConcern:WriteConcern.WMajority.With(journal:true)));
+            using var ownedSession=owned ? await database.Client.StartSessionAsync(cancellationToken:cancellation).ConfigureAwait(false):null;
+            var session=ambient ?? ownedSession;
+            if(owned)session.StartTransaction(new TransactionOptions(readConcern:ReadConcern.Snapshot,writeConcern:WriteConcern.WMajority.With(journal:true)));
             var commitAttempted=false;var mutationsStarted=false;
             string sessionId=null;long transactionNumber=0;
             try
@@ -63,7 +66,7 @@ public partial class HolonRepository
                         // admission transaction cannot revoke it, or trigger a second abort attempt.
                         // Record-gate touches are aborted, never committed by receipt replay.
                         result.Result=true; result.IsSaved=true; result.SavedCount=entries.Count;
-                        try { await session.AbortTransactionAsync(CancellationToken.None).ConfigureAwait(false); }
+                        try { if(owned)await session.AbortTransactionAsync(CancellationToken.None).ConfigureAwait(false); }
                         catch(Exception cleanup)
                         {
                             result.IsWarning=true; result.WarningCount++; result.Exception=cleanup;
@@ -212,6 +215,7 @@ public partial class HolonRepository
                     await receipts.InsertOneAsync(session,new BsonDocument { {"_id",conditional.Plan.OperationId.ToString("D")},
                         {"Fingerprint",conditional.Plan.Fingerprint},{"ResultJson",receiptJson},{"CommittedAtUtc",now},
                         {"HolonIds",new BsonArray(entries.Select(row=>row.HolonId.ToString("D")))} },cancellationToken:cancellation).ConfigureAwait(false);
+                if(!owned){result.Result=true;result.IsSaved=true;result.SavedCount=entries.Count;return result;}
                 // Capture identity before dispatch; cleanup must not erase the original commit evidence.
                 sessionId=session.ServerSession.Id.ToJson();
                 transactionNumber=session.WrappedCoreSession.CurrentTransaction.TransactionNumber;
@@ -243,7 +247,7 @@ public partial class HolonRepository
                     result.ErrorCode=commitAttempted ? "COSMIC_WRITE_RECONCILIATION_REQUIRED"
                         : cause is OperationCanceledException ? replica==null ? "COSMIC_CONDITIONAL_WRITE_CANCELLED" : "COSMIC_REPLICA_WRITE_CANCELLED"
                         : replica==null ? "COSMIC_CONDITIONAL_WRITE_FAILED" : "COSMIC_REPLICA_WRITE_FAILED";
-                try {if(!commitAttempted && session.IsInTransaction) await session.AbortTransactionAsync(CancellationToken.None).ConfigureAwait(false);}
+                try {if(owned && !commitAttempted && session.IsInTransaction) await session.AbortTransactionAsync(CancellationToken.None).ConfigureAwait(false);}
                 catch(Exception abort) {result.Exception=new AggregateException(result.Exception,abort);}
             }
         }

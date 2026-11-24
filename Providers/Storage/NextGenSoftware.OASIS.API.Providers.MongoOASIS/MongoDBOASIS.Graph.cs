@@ -19,7 +19,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         private async Task<OASISResult<IEnumerable<IHolon>>> SaveGraphsAtomicAsync(IEnumerable<IHolon> source,
             bool saveChildren, bool recursive, int maxChildDepth, int initialDepth,
             IAtomicHolonWritePlan conditionalPlan = null, Guid actorId = default, CancellationToken cancellationToken = default,
-            (List<IHolon> Roots, List<PlannedHolonWrite> Nodes)? capturedGraph = null, CosmicStorageIdentity expectedStorage = null)
+            (List<IHolon> Roots, List<PlannedHolonWrite> Nodes)? capturedGraph = null, CosmicStorageIdentity expectedStorage = null,
+            MongoDB.Driver.IClientSessionHandle ambient = null)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             var prepared = false;
@@ -112,7 +113,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                         }
                     }
                     responses.AddRange(roots.Select(root=>actual[snapshots[root].Id]));
-                }).ConfigureAwait(false);
+                },ambient).ConfigureAwait(false);
                 if (saved.IsError)
                 {
                     result = Core.Helpers.OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool, IEnumerable<IHolon>>(saved);

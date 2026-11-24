@@ -41,8 +41,10 @@ public partial class HolonRepository
         =>ExecuteAtomicHolonWrite(request,null,CancellationToken.None);
 
     private OASISResult<IEnumerable<IHolon>> ExecuteAtomicHolonWrite(ConditionalHolonWriteRequest request,
-        CommittedHolonReplicaRequest replicaRequest,CancellationToken token,HolonReplicationEnrollment enrollment=null,bool initialReplicaBaseline=false, CosmicStorageIdentity expectedStorage=null,ConditionalHolonPropertyWriteRequest propertyWrite=null)
+        CommittedHolonReplicaRequest replicaRequest,CancellationToken token,HolonReplicationEnrollment enrollment=null,bool initialReplicaBaseline=false, CosmicStorageIdentity expectedStorage=null,ConditionalHolonPropertyWriteRequest propertyWrite=null,SqliteTransaction ambient=null)
     {
+        // An ambient transaction belongs to a unit-of-work owner: it opens, enlists, commits or rolls back.
+        var owned=ambient==null;
         var embedded=request?.Write.ReplicationEnrollment;
         if(enrollment!=null && embedded!=null && (enrollment.SourceId!=embedded.SourceId || !enrollment.TargetIds.SequenceEqual(embedded.TargetIds)
             || enrollment.SourceStorageIdentity?.BindingFingerprint!=embedded.SourceStorageIdentity?.BindingFingerprint
@@ -61,11 +63,11 @@ public partial class HolonRepository
         void RecordFailure(Exception cause){failure=failure==null ? result?.IsError==true && result.Exception!=null
             ? new AggregateException(result.Exception,cause):cause:new AggregateException(failure,cause);}
         try{result=ApplyInTransaction();}catch(Exception cause){failure=cause;}
-        if(native!=null && !commitEntered)
+        if(owned && native!=null && !commitEntered)
         {
             try{native.Rollback();}catch(Exception cause){rollbackFailed=true;RecordFailure(cause);}
         }
-        foreach(var resource in new IDisposable[]{enlisted,native})
+        foreach(var resource in owned ? new IDisposable[]{enlisted,native}:Array.Empty<IDisposable>())
         {try{resource?.Dispose();}catch(Exception cause){RecordFailure(cause);}}
         if(opened){try{_dbContext.Database.CloseConnection();}catch(Exception cause){RecordFailure(cause);}}
         if(failure!=null)
@@ -125,11 +127,11 @@ public partial class HolonRepository
             foreach (var entry in _dbContext.ChangeTracker.Entries<HolonModel>().ToArray())
                 if (ids.Contains(entry.Entity.Id)) entry.State = EntityState.Detached;
             admissionComplete=true;
-            _dbContext.Database.OpenConnection();
-            opened = true;
+            if(owned){_dbContext.Database.OpenConnection();
+            opened = true;}
             var connection = (SqliteConnection)_dbContext.Database.GetDbConnection();
             // IMMEDIATE acquires the native writer reservation BEFORE reading revisions.
-            native = connection.BeginTransaction(deferred: false);
+            native = owned ? connection.BeginTransaction(deferred: false) : ambient;
             // Binding admission precedes even exact-receipt replay. The same
             // IMMEDIATE transaction pins the native store until commit/rollback.
             if (expectedStorage != null)
@@ -159,7 +161,7 @@ public partial class HolonRepository
                     return ConditionalError(bindingCodePrefix+"_MISMATCH",
                         "The native receiver does not match the enrolled storage identity.");
             }
-            enlisted = _dbContext.Database.UseTransaction(native);
+            if(owned)enlisted = _dbContext.Database.UseTransaction(native);
             SqliteHolonMigrationFence.AssertUnfenced(connection, native, ids.Select(Guid.Parse));
             token.ThrowIfCancellationRequested();
             using (var receipt = connection.CreateCommand())
@@ -290,6 +292,7 @@ public partial class HolonRepository
                 receipt.ExecuteNonQuery();
             }
             token.ThrowIfCancellationRequested();
+            if(!owned){result=acknowledgement;return result;}
             commitEntered = true;
             enlisted.Commit();
             result=acknowledgement;knownAcknowledgement=true;return result;
