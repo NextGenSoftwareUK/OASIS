@@ -8,6 +8,19 @@ Scope of this workstream: HyperDrive failover, replication and load balancing, p
 OPORTAL, the ONODE popup and billing UI are now owned by a different session. CQL/WEB4 sandbox work happens on
 `work/cosmic-cql-ton-public` in `C:\Source\OASIS2`.
 
+## Progress (updated 2026-11-24 23:10 UTC)
+
+- Done: 93 storage providers pass the native core-storage-v2 suite on their real backend (Cardano, Starknet, Marqo and
+  Druid added today); 10 read-only chain adapters reclassified as non-storage.
+- Since last update: Druid passes 26/26 both modes on a single-machine Druid 39; Connext no longer acknowledges writes it
+  never stored; dev IPFS replication-source fault traced to the boot-regenerated DNA and fixed (durable catalogue root
+  pointer, `IPFSOASIS.CatalogueRootPointerPath`).
+- In progress: Pinot CI (table-creation fix pushed); IPFS catalogue unit workflow; then the Development batch merge with
+  the Railway `OASIS_DNA_JSON` pointer setting for dev.
+- Next 3: ChainLinkOASIS (EVM) into the local EVM suite; Fhenix/Basechain/Ceramic storage review; Algorand durable storage.
+- Blockers: dev Neo4j to SQLite replication hold at sequence 14 needs David's approval for the baseline repair
+  (ACTIONS-FOR-DAVID I1). Hosted-account providers remain listed there.
+
 ## Branches
 
 This work is on `work/hyperdrive-triad`, which was cut from `origin/Development` (d1936908). The old GPT task branch
@@ -47,7 +60,7 @@ Not yet covered:
 
 There are 234 shipping provider projects: 178 storage or specialised storage, 56 non-storage.
 
-Done (91 pass the native core-storage-v2 suite 52/52 against their real backend; ActivityPub passes capability-v1 5/5):
+Done (93 pass the native core-storage-v2 suite 52/52 against their real backend; ActivityPub passes capability-v1 5/5):
 
 - Every priority provider is done: HoloOASIS, Solana, MongoDB, SQLite, Neo4j, Supabase, SQL Server, Oracle (OracleDB),
   AWS, IPFS, NEAR, Cosmos, Azure (CosmosDB + Storage), Google Cloud, Polkadot, ActivityPub, SOLID, Polygon, Arbitrum,
@@ -122,8 +135,8 @@ Next, breadth first, in order of popularity (shared suite not yet run):
 1. Pinecone, LanceDB (Cloud), Zilliz: hosted vector stores, need accounts
 2. Appwrite, Fauna, Xata, Nile, CloudflareD1, VercelKV, NetlifyBlobs, Tigris (hosted; need accounts, see ACTIONS-FOR-DAVID)
 3. BigQuery, Snowflake, Redshift, Databricks, MotherDuck (hosted analytics; need accounts)
-   Marqo moved onto KeyValueStorageProviderBase (one no-model index, lexical prefix listing); CI run in progress.
-   Druid and Pinot are next (both ingest one segment or task per row today).
+   Marqo (one no-model index, lexical prefix listing) and Druid (append-only rows, newest per key wins, each write
+   waits for its task and for the broker to serve it) now pass 26/26 in both modes; Pinot is in CI.
 4. The remaining non-EVM chains with no storage run (Algorand storage, Elrond, Aztec, Miden and the bridge/oracle
    adapters) need real implementations; bridge/oracle adapters (Axelar, LayerZero, Chainlink, Hyperlane, deBridge,
    Connext, Chainflip, Gelato) are being classified as non-storage first.
