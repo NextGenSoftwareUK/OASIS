@@ -91,8 +91,8 @@ jobs:
           assert c.get('passed')=='3' and c.get('total')=='3', 'All three native journeys must pass'
           for store in ('MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS'):
               e=json.load(open(f'TestResults/Neo4jCurrent/{store}-cascade-delete-native.json'))
-              assert e['provider']==store and e['checks']==13, store
-              for name in ('cascadeDeleteVerified','cascadeBoundRefusedVerified','siblingPreservedVerified','explicitChildLoadingVerified','loadedCollectionFixUpVerified','extraLazyCollectionVerified','navigationCascadeInsertVerified','deleteOrphanVerified','batchFetchVerified'):
+              assert e['provider']==store and e['checks']==14, store
+              for name in ('cascadeDeleteVerified','cascadeBoundRefusedVerified','siblingPreservedVerified','explicitChildLoadingVerified','loadedCollectionFixUpVerified','extraLazyCollectionVerified','navigationCascadeInsertVerified','deleteOrphanVerified','batchFetchVerified','lazyLoadingVerified'):
                   assert e['evidence'][name] is True, (store,name)
           PY
           dotnet build ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI -m:2 -nr:false -p:UseSharedCompilation=false

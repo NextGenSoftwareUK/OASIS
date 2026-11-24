@@ -95,6 +95,18 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.AreEqual(queriesBefore+1,batch.Statistics.QueryCount,"Exactly one native query fetched both collections.");
         }
         checks++;
+        // A11 lazy loading: Children loads on first access, not on materialization or dirty checks.
+        using(var lazy=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            Assert.IsFalse(lazy.SetLazyLoading(true).IsError);
+            var lazyRoot=(await lazy.FindAsync<Holon>(root.Id)).Result;
+            Assert.IsInstanceOfType(lazyRoot.Children,typeof(CosmicLazyChildren));
+            Assert.AreEqual(CosmicEntityState.Unchanged,lazy.State(lazyRoot).Result);
+            Assert.IsFalse(((CosmicLazyChildren)lazyRoot.Children).IsLoaded,"Materialization and dirty checks do not load children.");
+            CollectionAssert.AreEquivalent(new[]{child.Id,navChild.Id},lazyRoot.Children.Select(row=>row.Id).ToArray());
+            Assert.AreSame(lazyRoot.Children[0],(await lazy.FindAsync<Holon>(lazyRoot.Children[0].Id)).Result,"Lazily loaded children are tracked.");
+        }
+        checks++;
         var bounded=await deleter.RemoveCascadeAsync(loaded,softDelete:false,maximumDescendants:1);
         Assert.IsTrue(bounded.IsError);Assert.AreEqual("COSMIC_CASCADE_LIMIT_EXCEEDED",bounded.ErrorCode);checks++;
         var queued=await deleter.RemoveCascadeAsync(loaded,softDelete:false);
@@ -105,6 +117,6 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.IsFalse(deleted.IsError,deleted.ErrorCode+": "+deleted.Message);checks++;
         CollectionAssert.AreEquivalent(new[]{other.Id},(await Stored(root.Id,child.Id,grandchild.Id,late.Id,navChild.Id,other.Id)).Select(row=>row.Id).ToArray());checks++;
         return new NativeFixtureJourneyProof(checks,4,new Dictionary<string,bool>{
-            ["cascadeDeleteVerified"]=true,["cascadeBoundRefusedVerified"]=true,["siblingPreservedVerified"]=true,["explicitChildLoadingVerified"]=true,["loadedCollectionFixUpVerified"]=true,["extraLazyCollectionVerified"]=true,["navigationCascadeInsertVerified"]=true,["deleteOrphanVerified"]=true,["batchFetchVerified"]=true});
+            ["cascadeDeleteVerified"]=true,["cascadeBoundRefusedVerified"]=true,["siblingPreservedVerified"]=true,["explicitChildLoadingVerified"]=true,["loadedCollectionFixUpVerified"]=true,["extraLazyCollectionVerified"]=true,["navigationCascadeInsertVerified"]=true,["deleteOrphanVerified"]=true,["batchFetchVerified"]=true,["lazyLoadingVerified"]=true});
     }
 }
