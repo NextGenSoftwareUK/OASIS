@@ -10,7 +10,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="OASIS_DNA.Development.json">
+      <Content Include="../../../../OASIS Architecture/NextGenSoftware.OASIS.API.DNA/OASIS_DNA.Development.json" Link="OASIS_DNA.Development.json">
         <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>

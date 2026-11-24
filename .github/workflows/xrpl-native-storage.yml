@@ -1,0 +1,100 @@
+name: XRPL native storage
+
+on:
+  push:
+    branches: [work/hyperdrive-triad]
+    paths:
+      - '.github/workflows/xrpl-native-storage.yml'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.XRPLOASIS/**'
+      - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.XRPLOASIS.IntegrationTests/XRPLNativeStorageConformanceTests.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  storage:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: OASIS
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Run the shared core storage suite against a disposable rippled (standalone) and Kubo
+        run: |
+          fixture="$(mktemp -d "$RUNNER_TEMP/oasis-native.XXXXXXXX")"
+          config="$(mktemp -d "$RUNNER_TEMP/xrpl-config.XXXXXXXX")"
+          rippled="" kubo=""
+          cleanup() {
+            status=$?
+            if [[ -n "$rippled" ]]; then (( status != 0 )) && docker logs --tail 40 "$rippled"; docker rm -fv "$rippled" >/dev/null || status=1; fi
+            if [[ -n "$kubo" ]]; then docker rm -fv "$kubo" >/dev/null || status=1; fi
+            [[ "$fixture" == "$RUNNER_TEMP"/oasis-native.* ]] && rm -rf -- "$fixture"
+            [[ "$config" == "$RUNNER_TEMP"/xrpl-config.* ]] && rm -rf -- "$config"
+            exit "$status"
+          }
+          trap cleanup EXIT
+          cat > "$config/rippled.cfg" <<'CFG'
+          [server]
+          port_rpc_admin
+
+          [port_rpc_admin]
+          port = 5005
+          ip = 0.0.0.0
+          admin = 0.0.0.0
+          protocol = http
+
+          [node_size]
+          tiny
+
+          [node_db]
+          type=NuDB
+          path=/var/lib/rippled/db/nudb
+
+          [database_path]
+          /var/lib/rippled/db
+
+          [debug_logfile]
+          /var/log/rippled/debug.log
+
+          [ssl_verify]
+          0
+          CFG
+          sed -i 's/^          //' "$config/rippled.cfg"
+          printf '[validators]
+' > "$config/validators.txt"
+          rippled="$(docker run -d -p 127.0.0.1:15005:5005 -v "$config:/etc/opt/ripple:ro" --entrypoint rippled             xrpllabsofficial/xrpld:3.3.0 --conf /etc/opt/ripple/rippled.cfg -a --start)"
+          kubo="$(docker run -d -p 127.0.0.1:15001:5001 ipfs/kubo@sha256:97ece99cfccea95613ab3634f761d0200e9e8b1f49294b5428e19b5b9056759d daemon --offline)"
+          for attempt in $(seq 1 90); do
+            if curl -fsS -X POST -H 'Content-Type: application/json' -d '{"method":"server_info","params":[{}]}' http://127.0.0.1:15005/ | jq -e '.result.info' >/dev/null 2>&1               && curl -fsS -X POST http://127.0.0.1:15001/api/v0/version >/dev/null 2>&1; then break; fi
+            [[ "$attempt" != 90 ]]; sleep 2
+          done
+          export OASIS_NATIVE_STORAGE_FIXTURE="$fixture" OASIS_XRPL_RPC="http://127.0.0.1:15005/" OASIS_XRPL_KUBO="http://127.0.0.1:15001"
+          dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.XRPLOASIS.IntegrationTests"             -p:NativeStorageConformance=true --filter "FullyQualifiedName~XRPLNativeStorageConformanceTests"             -m:2 -nr:false -p:UseSharedCompilation=false --logger "console;verbosity=normal"
+          for mode in async sync; do
+            jq -e '.Succeeded and .FixtureCleanupComplete and (.Passed | length == 26)' "$fixture/$mode.json" >/dev/null
+          done
+          echo "XRPL passed both storage modes against a standalone ledger."
