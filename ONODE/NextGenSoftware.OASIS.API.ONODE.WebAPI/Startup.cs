@@ -771,6 +771,8 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             Services.Cql.CqlSupabaseReadSourceRegistration.AddSupabaseReadSource(services, Configuration);
             Services.Cql.CqlPlanetScaleReadSourceRegistration.AddPlanetScaleReadSource(services, Configuration);
             Services.Cql.CqlCouchDbReadSourceRegistration.AddCouchDbReadSource(services, Configuration);
+            Services.Cql.CqlInfluxDbReadSourceRegistration.AddInfluxDbReadSource(services, Configuration);
+            Services.Cql.CqlWeaviateReadSourceRegistration.AddWeaviateReadSource(services, Configuration);
             Services.Cql.CqlUrbitReadSourceRegistration.AddUrbitReadSource(services, Configuration);
             Services.Cql.CqlCloudinaryReadSourceRegistration.AddCloudinaryReadSource(services, Configuration);
             Services.Cql.CqlLoopbackTeachingSourceRegistration.AddLoopbackTeachingSources(services, Configuration);

@@ -1471,3 +1471,16 @@ Links: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44675640513
 - HERE: in the HERE platform portal, create an API key for an app with Routing v8 and Geocoding & Search v1, and store it privately as `OASIS_HERE_ROUTING_API_KEY` in the same places. [Routing v8](https://docs.here.com/routing/docs/routing-v8-get-started) · [Discover](https://docs.here.com/geocoding-and-search/docs/code-discover-place)
 - MapLibre needs no key. It defaults to the public OSRM demo and Nominatim servers, which are limited to one request per second and not for production. For production volume, decide whether to self-host OSRM and Nominatim and pass their URLs.
 - Never put the keys in Git or chat. Engineering runs the opt-in live tests once the keys exist.
+
+## Hosted InfluxDB and Weaviate read-only CQL sources
+
+- Open 2026-11-24. WEB4 now registers both sources (`CqlInfluxDbReadSourceRegistration`, `CqlWeaviateReadSourceRegistration`). With the settings below unset they stay off. Their hosted tests (`InfluxDbHostedCqlNativeTests`, `WeaviateHostedCqlNativeTests`) compile but cannot run until a hosted teaching source exists. None of these names exist yet on Railway dev or in GitHub secrets.
+- InfluxDB (for example InfluxDB Cloud): create an organization and a bucket, a token with read-only access to that bucket, and seed it with the three public teaching records plus one deleted record. Set, on the Railway WEB4 service (dev first) and as GitHub Actions secrets for the hosted test:
+  - `CQL_INFLUXDB_QUERY_ORIGIN` (the HTTPS origin only, for example `https://eu-central-1-1.aws.cloud2.influxdata.com/`)
+  - `CQL_INFLUXDB_QUERY_ORGANIZATION`
+  - `CQL_INFLUXDB_QUERY_BUCKET`
+  - `CQL_INFLUXDB_QUERY_READER_TOKEN` (read-only token)
+  - `CQL_INFLUXDB_QUERY_PROBE_ID` (the ID of the first live teaching record)
+- Weaviate (for example Weaviate Cloud): create a cluster with an `OasisHolon` collection and a read-only API key, seeded the same way. Set `CQL_WEAVIATE_QUERY_ORIGIN`, `CQL_WEAVIATE_QUERY_READER_API_KEY` and `CQL_WEAVIATE_QUERY_PROBE_ID` in the same places.
+- The hosted tests also read a small JSON manifest of the seeded IDs, from `COSMIC_INFLUXDB_HOSTED_CQL_SOURCE` and `COSMIC_WEAVIATE_HOSTED_CQL_SOURCE`. Engineering writes that manifest once the sources exist.
+- Never put the tokens in Git or chat.
