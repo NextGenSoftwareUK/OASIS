@@ -1,8 +1,8 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Core.Holons;
+// See https://aka.ms/new-console-template for more information
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS;
-using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Entites;
-using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Entities;
 
 Console.WriteLine("NextGen Software Ltd AzureCosmosDBOASIS Provider Test Harness");
 
@@ -21,7 +21,7 @@ OASISResult<IAvatar> result = obj.LoadAvatarByEmail("davidellams@hotmail.com");
 if (result != null && !result.IsError && result.Result != null)
     Console.WriteLine($"Avatar Loaded By Email Using Email {result.Result.Email}. Result: Id: {result.Result.Id}, Name: {result.Result.Name}");
 else
-    Console.WriteLine($"Error Loading Avatar By Email! Reason: {result.Result.Message}");
+    Console.WriteLine($"Error Loading Avatar By Email! Reason: {result?.Message}");
 
 Avatar av = new Avatar()
 { 
@@ -64,23 +64,24 @@ else
 }
 
 AvatarDetail avatar = new AvatarDetail();
-avatar.Name = "Hiren 456";
+avatar.FirstName = "Hiren";
+avatar.LastName = "456";
 avatar.Username = "Hiren@xyz.com";
 avatar.Address = "ahmedabad";
 avatar.Country = "India";
 
 avatar.Id = Guid.NewGuid();
-var result = await obj.SaveAvatarDetailAsync(avatar);
-if (result.IsSaved)
+var detailResult = await obj.SaveAvatarDetailAsync(avatar);
+if (detailResult.IsSaved)
 {
     Console.WriteLine("Avatar detail Saved Successfully");
 }
 else
 {
-    Console.WriteLine(result.Message);
+    Console.WriteLine(detailResult.Message);
 }
 
-var loadAv = await obj.LoadAvatarDetailAsync(result.Result.Id);
+var loadAv = await obj.LoadAvatarDetailAsync(detailResult.Result.Id);
 
 if (loadAv.IsLoaded)
 {
@@ -95,7 +96,7 @@ Holon holon = new Holon
 {
    Name="Hiren Holon 345",
    Description="Hiren Description 345",
-   HolonId=Guid.NewGuid(),
+   Id=Guid.NewGuid(),
 };
 
 var holonResult = await obj.SaveHolonAsync(holon);

@@ -36,7 +36,7 @@ namespace NextGenSoftware.OASIS.API.Providers.XataOASIS.TestHarness
         {
             Console.WriteLine("\n--- Testing Provider Information ---");
             Console.WriteLine($"Provider Name: {_provider.ProviderName}");
-            Console.WriteLine($"Provider Version: {_provider.GetProviderVersion()}");
+            Console.WriteLine($"Provider Version: {_provider.GetType().Assembly.GetName().Version}");
         }
 
         private static async Task TestAvatarOperations()
@@ -59,7 +59,7 @@ namespace NextGenSoftware.OASIS.API.Providers.XataOASIS.TestHarness
             Console.WriteLine(saveResult.IsError ? $"FAIL Save: {saveResult.Message}" : $"PASS Save");
             var loadResult = await _provider.LoadHolonAsync(holon.Id);
             Console.WriteLine(loadResult.IsError ? $"FAIL Load: {loadResult.Message}" : $"PASS Load");
-            var deleteResult = await _provider.DeleteHolonAsync(holon.Id, softDelete: true);
+            var deleteResult = await _provider.DeleteHolonAsync(holon.Id);
             Console.WriteLine(deleteResult.IsError ? $"FAIL Delete: {deleteResult.Message}" : $"PASS Delete");
         }
 
