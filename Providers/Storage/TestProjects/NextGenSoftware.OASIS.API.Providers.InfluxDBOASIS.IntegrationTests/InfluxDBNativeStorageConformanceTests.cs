@@ -28,6 +28,23 @@ public sealed class InfluxDBNativeStorageConformanceTests
             {
                 await File.WriteAllTextAsync(reportPath + ".next", JsonSerializer.Serialize(checkpoint));
                 File.Move(reportPath + ".next", reportPath, overwrite: true);
+            },
+            (id, sync) => sync ? Task.FromResult(provider.DeleteHolonSoft(id, false)) : provider.DeleteHolonSoftAsync(id, false),
+            expectedDefaultDeletion: "soft",
+            observeNativeTombstone: async (id, owner, name) =>
+            {
+                using var http = new HttpClient();
+                http.DefaultRequestHeaders.Add("Authorization", "Token " + Env("OASIS_NATIVE_PASSWORD"));
+                var bucket = synchronous ? "oasis_sync" : "oasis_async";
+                var flux = $"from(bucket: \"{bucket}\") |> range(start: 0) |> filter(fn: (r) => r._measurement == \"oasis_holons\" and r.id == \"{id:D}\" and r._field == \"data_json\") |> last()";
+                using var response = await http.PostAsync("http://127.0.0.1:18086/api/v2/query?org=oasis",
+                    new StringContent(flux, System.Text.Encoding.UTF8, "application/vnd.flux"));
+                response.EnsureSuccessStatusCode();
+                var csv = await response.Content.ReadAsStringAsync();
+                if (!csv.Contains(id.ToString("D"))) return false;
+                StringAssert.Contains(csv, name);
+                StringAssert.Contains(csv, owner.ToString("D"));
+                return true;
             });
 
         if (!report.Succeeded)
