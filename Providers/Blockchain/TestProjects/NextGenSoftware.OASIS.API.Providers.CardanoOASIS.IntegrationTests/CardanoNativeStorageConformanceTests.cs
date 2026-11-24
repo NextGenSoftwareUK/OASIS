@@ -30,8 +30,7 @@ public sealed class CardanoNativeStorageConformanceTests
 
         var signingKey = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
         var address = CardanoOASIS.AddressForSigningKey(signingKey, "devnet");
-        await File.AppendAllTextAsync(Path.Combine(directory, "addresses"), address + "
-");
+        await File.AppendAllTextAsync(Path.Combine(directory, "addresses"), address + Environment.NewLine);
         using (var http = new HttpClient { Timeout = TimeSpan.FromSeconds(60) })
         {
             using var topup = await http.PostAsJsonAsync(Env("OASIS_CARDANO_TOPUP_URL"), new { address, adaAmount = 10000 });
@@ -58,6 +57,7 @@ public sealed class CardanoNativeStorageConformanceTests
         {
             var probes = new (string, Func<Task<string>>)[]
             {
+                ("activate", async () => { var r = await provider.ActivateProviderAsync(); return r.Message + " | " + r.Exception; }),
                 ("avatar", async () => (await provider.LoadAvatarAsync(report.OwnerId)).Message),
                 ("holon", async () => (await provider.LoadHolonAsync(report.RootId, loadChildren: false)).Message),
                 ("all", async () => (await provider.LoadAllHolonsAsync(loadChildren: false)).Message),
