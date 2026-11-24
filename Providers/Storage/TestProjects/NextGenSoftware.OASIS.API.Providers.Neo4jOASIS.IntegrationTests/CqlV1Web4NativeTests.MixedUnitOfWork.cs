@@ -138,14 +138,14 @@ public sealed partial class CqlV1Web4NativeTests
             var watched=new Holon{Id=Guid.NewGuid(),Name="notify-row",CreatedByAvatarId=actor,IsActive=true,IsPublic=false,IsNewHolon=true};
             owned.Add(watched.Id);Assert.IsFalse(notifying.Add(watched).IsError);
             Assert.IsFalse((await notifying.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()))).IsError);
-            watched.Description="silent edit";
+            watched.MetaData??=new Dictionary<string,object>();watched.MetaData["silent"]="edit";
             Assert.AreEqual(CosmicEntityState.Unchanged,notifying.State(watched).Result,"No notification, no change.");
-            watched.NotifyPropertyChanged(nameof(Holon.Description));
+            watched.NotifyPropertyChanged(nameof(Holon.MetaData));
             Assert.AreEqual(CosmicEntityState.Modified,notifying.State(watched).Result);
             var notifiedSave=await notifying.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));
             Assert.IsFalse(notifiedSave.IsError,notifiedSave.ErrorCode+": "+notifiedSave.Message);
             Assert.AreEqual(CosmicEntityState.Unchanged,notifying.State(watched).Result);
-            Assert.AreEqual("silent edit",(await Stored(watched.Id)).Single().Description);
+            Assert.AreEqual("edit",(await Stored(watched.Id)).Single().MetaData["silent"]?.ToString());
         }
         checks++;
         // M15 collection membership: a metadata array contains a string element; scalars never match.
