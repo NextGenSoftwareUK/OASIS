@@ -47,7 +47,7 @@ Not yet covered:
 
 There are 234 shipping provider projects: 178 storage or specialised storage, 56 non-storage.
 
-Done (88 pass the native core-storage-v2 suite 52/52 against their real backend; ActivityPub passes capability-v1 5/5):
+Done (89 pass the native core-storage-v2 suite 52/52 against their real backend; ActivityPub passes capability-v1 5/5):
 
 - Every priority provider is done: HoloOASIS, Solana, MongoDB, SQLite, Neo4j, Supabase, SQL Server, Oracle (OracleDB),
   AWS, IPFS, NEAR, Cosmos, Azure (CosmosDB + Storage), Google Cloud, Polkadot, ActivityPub, SOLID, Polygon, Arbitrum,
@@ -94,6 +94,10 @@ Done (88 pass the native core-storage-v2 suite 52/52 against their real backend;
   (`.github/workflows/stellar-native-storage.yml`). Each key is an account data entry (name = base64url SHA-256 of the
   key, value = envelope CID + 30 bytes of its SHA-256) written by an Ed25519-signed ManageData transaction (XDR in
   `StellarTransactionCodec.cs`); deletes remove the entry. It was previously a read-only Horizon wrapper.
+- Nostr now has real storage and passes 26/26 in both modes against a nostr-rs-relay in CI: NIP-78 application-data
+  events (kind 30078, one replaceable event per key) with compressed, encrypted content, relay OK required for every
+  write, BIP-340 signature verification on every read, and empty-content tombstones plus NIP-09 deletions. Signing moved
+  from a BigInteger reference implementation to the constant-time NBitcoin.Secp256k1 port.
 
 Partly done, with open items:
 - Turso: managed Turso and hosted WEB4 activation are still open.
@@ -109,8 +113,6 @@ Next, breadth first, in order of popularity (shared suite not yet run):
 4. The remaining non-EVM chains need real storage implementations, not fixes:
    - Cardano: transactions are built as JSON objects, but Cardano only accepts CBOR-encoded signed transactions.
    - Starknet: holon save falls back to HolonManager and calls a Cairo `create_holon` entry point that is not in the repo.
-   - Nostr: a read-mostly social provider; avatar save is an explicit refusal. Storage needs a NIP-78 (kind 30078) event
-     design with NIP-09 deletion.
 
 Blocked: nothing new is blocked. Hosted-account blockers are already tracked in `Docs/WIP/Release and Status/ACTIONS-FOR-DAVID.md`.
 
