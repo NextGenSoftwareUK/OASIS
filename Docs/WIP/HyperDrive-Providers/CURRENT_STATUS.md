@@ -47,7 +47,7 @@ Not yet covered:
 
 There are 234 shipping provider projects: 178 storage or specialised storage, 56 non-storage.
 
-Done (74 pass the native core-storage-v2 suite 52/52 against their real backend; ActivityPub passes capability-v1 5/5):
+Done (76 pass the native core-storage-v2 suite 52/52 against their real backend; ActivityPub passes capability-v1 5/5):
 
 - Every priority provider is done: HoloOASIS, Solana, MongoDB, SQLite, Neo4j, Supabase, SQL Server, Oracle (OracleDB),
   AWS, IPFS, NEAR, Cosmos, Azure (CosmosDB + Storage), Google Cloud, Polkadot, ActivityPub, SOLID, Polygon, Arbitrum,
@@ -70,6 +70,12 @@ Done (74 pass the native core-storage-v2 suite 52/52 against their real backend;
   ran SQL++ lookups without request-plus consistency; Chroma turned native HTTP failures into "not found"; PgVector
   serialised through the interface type (lost members) and had no ProviderName/Description. The CouchDB, ArangoDB and
   SurrealDB CQL workflows were re-run after the serializer change and pass.
+- Also on 2026-11-24: Bitcoin (regtest + Esplora + Kubo, `.github/workflows/bitcoin-native-regtest.yml`) and Aptos (local
+  testnet with the repo's Move module, `.github/workflows/aptos-native-storage.yml`), both 26/26 in both modes. Bitcoin
+  now stamps every publication as the next record version, saves child holons, and supports avatar hard delete by
+  crypto-shredding: a tombstone lists the erased publications, their encrypted Kubo envelopes are unpinned and
+  garbage-collected, and readers accept a missing envelope only when a tombstone records that erasure. Aptos now stores
+  canonical record JSON (nested children previously failed to read) and reports exact acknowledgements.
 
 Partly done, with open items:
 - Turso: managed Turso and hosted WEB4 activation are still open.
@@ -81,8 +87,11 @@ Next, breadth first, in order of popularity (shared suite not yet run):
 1. Pinecone, LanceDB (Cloud), Zilliz: hosted vector stores, need accounts
 2. Appwrite, Fauna, Xata, Nile, CloudflareD1, VercelKV, NetlifyBlobs, Tigris (hosted; need accounts, see ACTIONS-FOR-DAVID)
 3. BigQuery, Snowflake, Redshift, Databricks, MotherDuck (hosted analytics; need accounts)
-4. The remaining non-EVM chains (Bitcoin, Cardano, Stellar, XRPL, Aptos, Starknet ...). Each needs a local node and an
-   on-chain storage program; Stellar's holon save is still an explicit not-implemented error.
+4. The remaining non-EVM chains need real storage implementations, not fixes:
+   - XRPL: avatar, detail and most holon storage methods return NotSupported.
+   - Stellar: a read-only Horizon wrapper; holon save is an explicit not-implemented error and there is no signing.
+   - Cardano: transactions are built as JSON objects, but Cardano only accepts CBOR-encoded signed transactions.
+   - Starknet: holon save falls back to HolonManager and calls a Cairo `create_holon` entry point that is not in the repo.
 
 Blocked: nothing new is blocked. Hosted-account blockers are already tracked in `Docs/WIP/Release and Status/ACTIONS-FOR-DAVID.md`.
 
