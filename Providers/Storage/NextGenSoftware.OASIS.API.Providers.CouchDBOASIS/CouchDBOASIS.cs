@@ -103,11 +103,11 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
             {
                 var doc = await GetDocAsync<Avatar>(DbAvatars, id.ToString());
                 if (doc == null)
-                    OASISErrorHandling.HandleError(ref result, $"CouchDBOASIS: Avatar {id} not found.");
+                    { OASISErrorHandling.HandleError(ref result, $"CouchDBOASIS: Avatar {id} not found."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else if (doc.IsDeleted)
-                    OASISErrorHandling.HandleError(ref result, $"CouchDBOASIS: Avatar {id} has been deleted.");
+                    { OASISErrorHandling.HandleError(ref result, $"CouchDBOASIS: Avatar {id} has been deleted."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else
-                    result.Result = doc;
+                { result.Result = doc; result.IsLoaded = true; result.LoadedCount = 1; }
             }
             catch (Exception ex)
             {
@@ -126,9 +126,9 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
             {
                 var doc = await FindOneAsync<Avatar>(DbAvatars, "Username", username);
                 if (doc == null || doc.IsDeleted)
-                    OASISErrorHandling.HandleError(ref result, $"CouchDBOASIS: Avatar with username '{username}' not found.");
+                    { OASISErrorHandling.HandleError(ref result, $"CouchDBOASIS: Avatar with username '{username}' not found."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else
-                    result.Result = doc;
+                { result.Result = doc; result.IsLoaded = true; result.LoadedCount = 1; }
             }
             catch (Exception ex)
             {
@@ -147,9 +147,9 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
             {
                 var doc = await FindOneAsync<Avatar>(DbAvatars, "Email", email);
                 if (doc == null || doc.IsDeleted)
-                    OASISErrorHandling.HandleError(ref result, $"CouchDBOASIS: Avatar with email '{email}' not found.");
+                    { OASISErrorHandling.HandleError(ref result, $"CouchDBOASIS: Avatar with email '{email}' not found."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else
-                    result.Result = doc;
+                { result.Result = doc; result.IsLoaded = true; result.LoadedCount = 1; }
             }
             catch (Exception ex)
             {
@@ -167,7 +167,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
             try
             {
                 var docs = await GetAllDocsAsync<Avatar>(DbAvatars);
-                result.Result = docs.FindAll(d => !d.IsDeleted);
+                var live = docs.FindAll(d => !d.IsDeleted); result.Result = live; result.IsLoaded = true; result.LoadedCount = live.Count;
             }
             catch (Exception ex)
             {
@@ -187,7 +187,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
                 if (avatar.Id == Guid.Empty)
                     avatar.Id = Guid.NewGuid();
                 await UpsertDocAsync(DbAvatars, avatar.Id.ToString(), avatar);
-                result.Result = avatar;
+                result.Result = avatar; result.IsSaved = true; result.SavedCount = 1;
             }
             catch (Exception ex)
             {
@@ -204,20 +204,27 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
             var result = new OASISResult<bool>();
             try
             {
+                var avatar = await GetDocAsync<Avatar>(DbAvatars, id.ToString());
+                if (avatar == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"CouchDBOASIS: Avatar {id} not found.");
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    return result;
+                }
                 if (softDelete)
                 {
-                    var avatar = await GetDocAsync<Avatar>(DbAvatars, id.ToString());
-                    if (avatar != null)
-                    {
-                        avatar.DeletedDate = DateTime.UtcNow;
-                        await UpsertDocAsync(DbAvatars, id.ToString(), avatar);
-                    }
+                    avatar.DeletedDate = DateTime.UtcNow;
+                    await UpsertDocAsync(DbAvatars, id.ToString(), avatar);
                 }
                 else
                 {
                     await HardDeleteDocAsync(DbAvatars, id.ToString());
+                    if (await GetDocAsync<AvatarDetail>(DbAvatarDetails, id.ToString()) != null)
+                        await HardDeleteDocAsync(DbAvatarDetails, id.ToString());
                 }
                 result.Result = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
             }
             catch (Exception ex)
             {
@@ -236,7 +243,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
             {
                 var avatar = await FindOneAsync<Avatar>(DbAvatars, "Username", username);
                 if (avatar == null)
-                    OASISErrorHandling.HandleError(ref result, $"CouchDBOASIS: Avatar '{username}' not found.");
+                    { OASISErrorHandling.HandleError(ref result, $"CouchDBOASIS: Avatar '{username}' not found."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else
                     return await DeleteAvatarAsync(avatar.Id, softDelete);
             }
@@ -257,7 +264,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
             {
                 var avatar = await FindOneAsync<Avatar>(DbAvatars, "Email", email);
                 if (avatar == null)
-                    OASISErrorHandling.HandleError(ref result, $"CouchDBOASIS: Avatar with email '{email}' not found.");
+                    { OASISErrorHandling.HandleError(ref result, $"CouchDBOASIS: Avatar with email '{email}' not found."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else
                     return await DeleteAvatarAsync(avatar.Id, softDelete);
             }
@@ -280,9 +287,9 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
             {
                 var doc = await GetDocAsync<AvatarDetail>(DbAvatarDetails, id.ToString());
                 if (doc == null)
-                    OASISErrorHandling.HandleError(ref result, $"CouchDBOASIS: AvatarDetail {id} not found.");
+                    { OASISErrorHandling.HandleError(ref result, $"CouchDBOASIS: AvatarDetail {id} not found."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else
-                    result.Result = doc;
+                { result.Result = doc; result.IsLoaded = true; result.LoadedCount = 1; }
             }
             catch (Exception ex)
             {
@@ -301,9 +308,9 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
             {
                 var doc = await FindOneAsync<AvatarDetail>(DbAvatarDetails, "Username", username);
                 if (doc == null)
-                    OASISErrorHandling.HandleError(ref result, $"CouchDBOASIS: AvatarDetail '{username}' not found.");
+                    { OASISErrorHandling.HandleError(ref result, $"CouchDBOASIS: AvatarDetail '{username}' not found."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else
-                    result.Result = doc;
+                { result.Result = doc; result.IsLoaded = true; result.LoadedCount = 1; }
             }
             catch (Exception ex)
             {
@@ -322,9 +329,9 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
             {
                 var doc = await FindOneAsync<AvatarDetail>(DbAvatarDetails, "Email", email);
                 if (doc == null)
-                    OASISErrorHandling.HandleError(ref result, $"CouchDBOASIS: AvatarDetail '{email}' not found.");
+                    { OASISErrorHandling.HandleError(ref result, $"CouchDBOASIS: AvatarDetail '{email}' not found."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else
-                    result.Result = doc;
+                { result.Result = doc; result.IsLoaded = true; result.LoadedCount = 1; }
             }
             catch (Exception ex)
             {
@@ -342,7 +349,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
             try
             {
                 var docs = await GetAllDocsAsync<AvatarDetail>(DbAvatarDetails);
-                result.Result = docs;
+                result.Result = docs; result.IsLoaded = true; result.LoadedCount = docs.Count;
             }
             catch (Exception ex)
             {
@@ -362,7 +369,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
                 if (detail.Id == Guid.Empty)
                     detail.Id = Guid.NewGuid();
                 await UpsertDocAsync(DbAvatarDetails, detail.Id.ToString(), detail);
-                result.Result = detail;
+                result.Result = detail; result.IsSaved = true; result.SavedCount = 1;
             }
             catch (Exception ex)
             {
@@ -383,11 +390,11 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
             {
                 var doc = await GetDocAsync<Holon>(DbHolons, id.ToString());
                 if (doc == null)
-                    OASISErrorHandling.HandleError(ref result, $"CouchDBOASIS: Holon {id} not found.");
+                    { OASISErrorHandling.HandleError(ref result, $"CouchDBOASIS: Holon {id} not found."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else if (doc.IsDeleted)
-                    OASISErrorHandling.HandleError(ref result, $"CouchDBOASIS: Holon {id} has been deleted.");
+                    { OASISErrorHandling.HandleError(ref result, $"CouchDBOASIS: Holon {id} has been deleted."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; }
                 else
-                    result.Result = doc;
+                { result.Result = doc; result.IsLoaded = true; result.LoadedCount = 1; }
             }
             catch (Exception ex)
             {
@@ -405,7 +412,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
             try
             {
                 var all = await FindAllAsync<Holon>(DbHolons, "ParentHolonId", id.ToString());
-                result.Result = all.FindAll(h => !h.IsDeleted);
+                var live = all.FindAll(h => !h.IsDeleted); result.Result = live; result.IsLoaded = true; result.LoadedCount = live.Count;
             }
             catch (Exception ex)
             {
@@ -423,7 +430,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
             try
             {
                 var docs = await GetAllDocsAsync<Holon>(DbHolons);
-                result.Result = docs.FindAll(h => !h.IsDeleted);
+                var live = docs.FindAll(h => !h.IsDeleted); result.Result = live; result.IsLoaded = true; result.LoadedCount = live.Count;
             }
             catch (Exception ex)
             {
@@ -447,9 +454,22 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
                 holon.Id = id;
                 holon.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
                 holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.CouchDBOASIS] = id.ToString("D");
+                var savedCount = 1;
+                if (saveChildren && holon.Children != null)
+                {
+                    foreach (var child in holon.Children)
+                    {
+                        if (child == null) continue;
+                        child.ParentHolonId = id;
+                        var childResult = await SaveHolonAsync(child, recursive, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                        if (childResult.IsError || !childResult.IsSaved)
+                            throw new System.IO.InvalidDataException($"Child holon {child.Id} was not saved: {childResult.Message}");
+                        savedCount += childResult.SavedCount;
+                    }
+                }
                 result.Result = holon;
                 result.IsSaved = true;
-                result.SavedCount = 1;
+                result.SavedCount = savedCount;
                 result.MetaData["CouchDB.Revision"] = revision;
             }
             catch (Exception ex)
@@ -466,6 +486,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             var saved = new List<IHolon>();
+            var savedTotal = 0;
             try
             {
                 foreach (var h in holons)
@@ -478,12 +499,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
                         result.Message += r.Message + Environment.NewLine;
                         if (!continueOnError) break;
                     }
-                    else if (r.IsSaved) saved.Add(r.Result);
+                    else if (r.IsSaved) { saved.Add(r.Result); savedTotal += r.SavedCount; }
                     else throw new System.IO.InvalidDataException("CouchDB save returned no acknowledgement.");
                 }
                 result.Result = saved;
                 result.IsSaved = saved.Count > 0;
-                result.SavedCount = saved.Count;
+                result.SavedCount = savedTotal;
             }
             catch (Exception ex)
             {
@@ -500,20 +521,25 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
             var result = new OASISResult<bool>();
             try
             {
+                var holon = await GetDocAsync<Holon>(DbHolons, id.ToString());
+                if (holon == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"CouchDBOASIS: Holon {id} not found.");
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    return result;
+                }
                 if (softDelete)
                 {
-                    var holon = await GetDocAsync<Holon>(DbHolons, id.ToString());
-                    if (holon != null)
-                    {
-                        holon.DeletedDate = DateTime.UtcNow;
-                        await UpsertDocAsync(DbHolons, id.ToString(), holon);
-                    }
+                    holon.DeletedDate = DateTime.UtcNow;
+                    await UpsertDocAsync(DbHolons, id.ToString(), holon);
                 }
                 else
                 {
                     await HardDeleteDocAsync(DbHolons, id.ToString());
                 }
                 result.Result = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
             }
             catch (Exception ex)
             {
@@ -784,10 +810,11 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
             var result = new OASISResult<IHolon>();
-            var loaded = await LoadHolonAsync(id);
+            var loaded = await LoadHolonAsync(id, loadChildren: false);
             if (loaded.IsError || loaded.Result == null)
             {
                 OASISErrorHandling.HandleError(ref result, loaded.Message);
+                result.ErrorCode = loaded.ErrorCode;
                 return result;
             }
 
@@ -795,7 +822,11 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
             if (deleted.IsError)
                 OASISErrorHandling.HandleError(ref result, deleted.Message);
             else
+            {
                 result.Result = loaded.Result;
+                result.IsDeleted = true;
+                result.DeletedCount = deleted.DeletedCount;
+            }
 
             return result;
         }
@@ -837,7 +868,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
                     matches.Add(holon);
             }
 
-            result.Result = matches;
+            result.Result = matches; result.IsLoaded = true; result.LoadedCount = matches.Count;
             return result;
         }
 
@@ -856,7 +887,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
 
             if (metaKeyValuePairs == null || metaKeyValuePairs.Count == 0)
             {
-                result.Result = new List<IHolon>(all.Result);
+                result.Result = new List<IHolon>(all.Result); result.IsLoaded = true; result.LoadedCount = ((List<IHolon>)result.Result).Count;
                 return result;
             }
 
@@ -879,7 +910,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
                 if (isMatch) matches.Add(holon);
             }
 
-            result.Result = matches;
+            result.Result = matches; result.IsLoaded = true; result.LoadedCount = matches.Count;
             return result;
         }
 
@@ -889,11 +920,15 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
             var result = new OASISResult<bool>();
-            var saved = await SaveHolonsAsync(holons);
-            if (saved.IsError)
+            var saved = await SaveHolonsAsync(holons, saveChildren: false, continueOnError: false);
+            if (saved.IsError || !saved.IsSaved)
                 OASISErrorHandling.HandleError(ref result, saved.Message);
             else
+            {
                 result.Result = true;
+                result.IsSaved = true;
+                result.SavedCount = saved.SavedCount;
+            }
             return result;
         }
 
@@ -923,7 +958,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
                     owned.Add(holon);
             }
 
-            result.Result = owned;
+            result.Result = owned; result.IsLoaded = true; result.LoadedCount = owned.Count;
             return result;
         }
 
