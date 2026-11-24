@@ -1974,6 +1974,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.Edge.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.Edge.NearbySync.UnitTests", "OASIS Architecture\NextGenSoftware.OASIS.Edge.NearbySync.UnitTests\NextGenSoftware.OASIS.Edge.NearbySync.UnitTests.csproj", "{B5EB779A-580E-4ED9-95A2-CCADC0626406}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS.IntegrationTests", "Providers\Network\TestProjects\NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS.IntegrationTests\NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS.IntegrationTests.csproj", "{C63FF30B-D350-4EF1-91F8-2216B1AD072A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -11331,6 +11333,24 @@ Global
 		{B5EB779A-580E-4ED9-95A2-CCADC0626406}.Release|x64.Build.0 = Release|Any CPU
 		{B5EB779A-580E-4ED9-95A2-CCADC0626406}.Release|x86.ActiveCfg = Release|Any CPU
 		{B5EB779A-580E-4ED9-95A2-CCADC0626406}.Release|x86.Build.0 = Release|Any CPU
+		{C63FF30B-D350-4EF1-91F8-2216B1AD072A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C63FF30B-D350-4EF1-91F8-2216B1AD072A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C63FF30B-D350-4EF1-91F8-2216B1AD072A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C63FF30B-D350-4EF1-91F8-2216B1AD072A}.Debug|x64.Build.0 = Debug|Any CPU
+		{C63FF30B-D350-4EF1-91F8-2216B1AD072A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C63FF30B-D350-4EF1-91F8-2216B1AD072A}.Debug|x86.Build.0 = Debug|Any CPU
+		{C63FF30B-D350-4EF1-91F8-2216B1AD072A}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{C63FF30B-D350-4EF1-91F8-2216B1AD072A}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{C63FF30B-D350-4EF1-91F8-2216B1AD072A}.Linux|x64.ActiveCfg = Debug|Any CPU
+		{C63FF30B-D350-4EF1-91F8-2216B1AD072A}.Linux|x64.Build.0 = Debug|Any CPU
+		{C63FF30B-D350-4EF1-91F8-2216B1AD072A}.Linux|x86.ActiveCfg = Debug|Any CPU
+		{C63FF30B-D350-4EF1-91F8-2216B1AD072A}.Linux|x86.Build.0 = Debug|Any CPU
+		{C63FF30B-D350-4EF1-91F8-2216B1AD072A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C63FF30B-D350-4EF1-91F8-2216B1AD072A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C63FF30B-D350-4EF1-91F8-2216B1AD072A}.Release|x64.ActiveCfg = Release|Any CPU
+		{C63FF30B-D350-4EF1-91F8-2216B1AD072A}.Release|x64.Build.0 = Release|Any CPU
+		{C63FF30B-D350-4EF1-91F8-2216B1AD072A}.Release|x86.ActiveCfg = Release|Any CPU
+		{C63FF30B-D350-4EF1-91F8-2216B1AD072A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -12217,6 +12237,7 @@ Global
 		{6B8D25AC-BDFD-443D-B5D5-4783A3DFFD7E} = {28253D06-0CBD-4C5B-B4E0-7D7F04256521}
 		{F0128582-D2E1-48DD-BCC6-F8627739C1DB} = {28253D06-0CBD-4C5B-B4E0-7D7F04256521}
 		{B5EB779A-580E-4ED9-95A2-CCADC0626406} = {28253D06-0CBD-4C5B-B4E0-7D7F04256521}
+		{C63FF30B-D350-4EF1-91F8-2216B1AD072A} = {6F07E62C-9B97-3161-6A07-6467818A59C9}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5D3FB15A-71BF-4A92-B497-C6A29E6A486C}
