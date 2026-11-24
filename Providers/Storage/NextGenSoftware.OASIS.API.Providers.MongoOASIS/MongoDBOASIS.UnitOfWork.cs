@@ -23,15 +23,15 @@ public partial class MongoDBOASIS : IConditionalHolonUnitOfWorkStorageProvider
             if (request.Write.Authority != Core.Enums.ProviderType.MongoDBOASIS)
                 return Error("COSMIC_AUTHORITY_MISMATCH", "The unit of work belongs to another provider authority.");
             var (save, delete) = request.CreatePartRequests();
-            if (save == null || delete == null)
-                return Error("COSMIC_UNIT_OF_WORK_INVALID", "A unit of work needs at least one save and one deletion.");
+            if (save == null && delete == null)
+                return Error("COSMIC_UNIT_OF_WORK_INVALID", "A unit of work needs at least one entry.");
             IAtomicHolonWritePlan Plan(ConditionalHolonWriteRequest part) => part.Write.ReplicationEnrollment == null
                 ? ConditionalHolonPlan.Create(part, Core.Enums.ProviderType.MongoDBOASIS)
                 : ConditionalHolonPlan.CreateReplicating(part, Core.Enums.ProviderType.MongoDBOASIS, part.Write.ReplicationEnrollment);
             OASISResult<IEnumerable<IHolon>> saved = null, deleted = null, failed = null;
             var outcome = await _holonRepository.ExecuteUnitOfWorkAsync(request, async (session, receipt) =>
             {
-                foreach (var part in new[] { save, delete })
+                foreach (var part in new[] { save, delete }.Where(part => part != null))
                 {
                     var written = await SaveGraphsAtomicAsync(part.Roots, false, false, 0, 0, Plan(part), part.Write.ActorId, cancellationToken,
                         expectedStorage: part.Write.ReplicationEnrollment?.SourceStorageIdentity, ambient: session).ConfigureAwait(false);
@@ -40,10 +40,14 @@ public partial class MongoDBOASIS : IConditionalHolonUnitOfWorkStorageProvider
                 }
                 return true;
             }, cancellationToken).ConfigureAwait(false);
+            saved ??= new OASISResult<IEnumerable<IHolon>>(Array.Empty<IHolon>());
+            deleted ??= new OASISResult<IEnumerable<IHolon>>(Array.Empty<IHolon>());
+            if (!outcome.Committed && outcome.ErrorCode == "COSMIC_UNIQUE_KEY_CONFLICT")
+                return Error(outcome.ErrorCode, "A unique key in this unit of work is already held by another record.");
             if (!outcome.Committed)
                 return failed ?? Error(outcome.ErrorCode ?? "COSMIC_CONDITIONAL_WRITE_FAILED", "The MongoDB unit of work did not commit.", outcome.Cause);
             var combined = new OASISResult<IEnumerable<IHolon>>(saved.Result.Concat(deleted.Result).ToList()) {
-                IsSaved = true, IsDeleted = true, HasAnyHolonsChanged = true, SavedCount = saved.SavedCount, DeletedCount = deleted.DeletedCount,
+                IsSaved = true, IsDeleted = deleted.Result.Any(), HasAnyHolonsChanged = true, SavedCount = saved.SavedCount, DeletedCount = deleted.DeletedCount,
                 MetaData = new Dictionary<string, string> { ["COSMIC.OperationId"] = request.Write.OperationId.ToString("D"),
                     ["COSMIC.SaveOperationId"] = request.SaveOperationId.ToString("D"), ["COSMIC.DeleteOperationId"] = request.DeleteOperationId.ToString("D") } };
             foreach (var (part, name) in new[] { (saved, "Save"), (deleted, "Delete") })

@@ -24,13 +24,16 @@ public partial class Neo4jOASIS : IConditionalHolonUnitOfWorkStorageProvider
             return Error("COSMIC_AUTHORITY_MISMATCH", "The unit of work belongs to another provider authority.");
         if (!IsProviderActivated || _driver == null) return Error("COSMIC_AUTHORITY_UNAVAILABLE", "Neo4j provider is not activated.");
         var (save, delete) = request.CreatePartRequests();
-        if (save == null || delete == null) return Error("COSMIC_UNIT_OF_WORK_INVALID", "A unit of work needs at least one save and one deletion.");
+        if (save == null && delete == null) return Error("COSMIC_UNIT_OF_WORK_INVALID", "A unit of work needs at least one entry.");
         var expected = request.Write.ReplicationEnrollment?.SourceStorageIdentity;
         if (expected != null) await _lifecycleGate.WaitAsync(cancellationToken).ConfigureAwait(false);
         var commitDispatched = false;
         try
         {
             await using var session = _driver.AsyncSession();
+            if (request.UniqueKeys.Count > 0)
+                await (await session.RunAsync("CREATE CONSTRAINT cosmic_unique_key IF NOT EXISTS FOR (k:CosmicUniqueKey) REQUIRE k.KeyId IS UNIQUE")
+                    .ConfigureAwait(false)).ConsumeAsync().ConfigureAwait(false);
             var transaction = await session.BeginTransactionAsync(config => config.WithMetadata(new Dictionary<string, object> {
                 ["COSMIC.OperationId"] = request.Write.OperationId.ToString("D") })).ConfigureAwait(false);
             try
@@ -47,7 +50,7 @@ public partial class Neo4jOASIS : IConditionalHolonUnitOfWorkStorageProvider
                     { await transaction.RollbackAsync().ConfigureAwait(false); return Error("COSMIC_OPERATION_ID_REUSED", "This operation ID is bound to different write intent or actor."); }
                 }
                 var results = new List<OASISResult<IEnumerable<IHolon>>>();
-                foreach (var part in new[] { save, delete })
+                foreach (var part in new[] { save, delete }.Where(part => part != null))
                 {
                     var plan = part.Write.ReplicationEnrollment == null ? ConditionalHolonPlan.Create(part, Core.Enums.ProviderType.Neo4jOASIS)
                         : ConditionalHolonPlan.CreateReplicating(part, Core.Enums.ProviderType.Neo4jOASIS, part.Write.ReplicationEnrollment);
@@ -63,6 +66,8 @@ public partial class Neo4jOASIS : IConditionalHolonUnitOfWorkStorageProvider
                 if (replay) await transaction.RollbackAsync().ConfigureAwait(false);
                 else
                 {
+                    if (!await ApplyUniqueKeyClaimsAsync(transaction, request).ConfigureAwait(false))
+                    { await transaction.RollbackAsync().ConfigureAwait(false); return Error("COSMIC_UNIQUE_KEY_CONFLICT", "A unique key in this unit of work is already held by another record."); }
                     await (await transaction.RunAsync("CREATE (r:CosmicWriteReceipt {OperationId:$operation,Fingerprint:$fingerprint,ResultJson:$json,CommittedAtUtc:$now})",
                         new { operation = parentId, fingerprint = request.ParentFingerprint, now = DateTime.UtcNow.ToString("O"),
                             json = "{\"kind\":\"" + ConditionalHolonUnitOfWorkRequest.ReceiptKind + "\",\"save\":\"" + request.SaveOperationId.ToString("D")
@@ -71,12 +76,14 @@ public partial class Neo4jOASIS : IConditionalHolonUnitOfWorkStorageProvider
                     commitDispatched = true;
                     await transaction.CommitAsync().ConfigureAwait(false);
                 }
+                var savedPart = save == null ? null : results[0];
+                var deletedPart = delete == null ? null : results[results.Count - 1];
                 var combined = new OASISResult<IEnumerable<IHolon>>(results.SelectMany(row => row.Result).ToList()) {
-                    IsSaved = true, IsDeleted = true, HasAnyHolonsChanged = true, SavedCount = results[0].SavedCount, DeletedCount = results[1].DeletedCount,
+                    IsSaved = true, IsDeleted = deletedPart != null, HasAnyHolonsChanged = true, SavedCount = savedPart?.SavedCount ?? 0, DeletedCount = deletedPart?.DeletedCount ?? 0,
                     MetaData = new Dictionary<string, string> { ["COSMIC.OperationId"] = parentId,
                         ["COSMIC.SaveOperationId"] = request.SaveOperationId.ToString("D"), ["COSMIC.DeleteOperationId"] = request.DeleteOperationId.ToString("D") } };
-                foreach (var (part, name) in new[] { (results[0], "Save"), (results[1], "Delete") })
-                    if (part.MetaData != null)
+                foreach (var (part, name) in new[] { (savedPart, "Save"), (deletedPart, "Delete") })
+                    if (part?.MetaData != null)
                         foreach (var pair in part.MetaData.Where(pair => pair.Key != "COSMIC.OperationId")) combined.MetaData[pair.Key + "." + name] = pair.Value;
                 return combined;
             }
@@ -95,5 +102,24 @@ public partial class Neo4jOASIS : IConditionalHolonUnitOfWorkStorageProvider
                 commitDispatched ? "Reconcile the original unit-of-work receipt before another mutation." : "The Neo4j unit of work did not commit.", cause);
         }
         finally { if (expected != null) _lifecycleGate.Release(); }
+    }
+
+    /// <summary>M10 claims in the unit-of-work transaction; the KeyId constraint rejects racing claims.</summary>
+    private static async Task<bool> ApplyUniqueKeyClaimsAsync(IAsyncTransaction transaction, ConditionalHolonUnitOfWorkRequest request)
+    {
+        if (request.Deletes.Count > 0)
+            await (await transaction.RunAsync("MATCH (k:CosmicUniqueKey) WHERE k.HolonId IN $ids DELETE k",
+                new { ids = request.Deletes.Select(row => row.Id.ToString("D")).ToArray() }).ConfigureAwait(false)).ConsumeAsync().ConfigureAwait(false);
+        foreach (var claim in request.UniqueKeys)
+        {
+            var holon = claim.HolonId.ToString("D");
+            await (await transaction.RunAsync("MATCH (k:CosmicUniqueKey {HolonId:$holon,Scope:$scope}) WHERE $key IS NULL OR k.KeyId <> $key DELETE k",
+                new { holon, scope = claim.Scope, key = claim.Value == null ? null : claim.NativeKey }).ConfigureAwait(false)).ConsumeAsync().ConfigureAwait(false);
+            if (claim.Value == null) continue;
+            var row = await (await transaction.RunAsync("MERGE (k:CosmicUniqueKey {KeyId:$key}) ON CREATE SET k.Scope=$scope, k.HolonId=$holon RETURN k.HolonId AS holder",
+                new { key = claim.NativeKey, scope = claim.Scope, holon }).ConfigureAwait(false)).SingleAsync().ConfigureAwait(false);
+            if (row["holder"].As<string>() != holon) return false;
+        }
+        return true;
     }
 }

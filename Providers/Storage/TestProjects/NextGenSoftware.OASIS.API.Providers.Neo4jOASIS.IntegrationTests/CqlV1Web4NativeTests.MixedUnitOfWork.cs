@@ -45,6 +45,21 @@ public sealed partial class CqlV1Web4NativeTests
         var created=await session.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));
         Assert.IsFalse(created.IsError,created.Message);checks++;
 
+        // S13: a cancelled token refuses the flush before dispatch and the query before reading.
+        using(var cancelled=new CancellationTokenSource())
+        {
+            cancelled.Cancel();
+            var early=New("uow-cancelled");Assert.IsFalse(session.Add(early).IsError);
+            var refused=await session.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()),cancelled.Token);
+            Assert.IsTrue(refused.IsError);Assert.AreEqual("COSMIC_SESSION_CANCELLED",refused.ErrorCode);
+            Assert.IsFalse(session.Remove(early).IsError,"Removing an unsaved add detaches it.");
+            Assert.AreEqual(0,(await Stored(early.Id)).Count,"A cancelled flush writes nothing.");
+            var query=await session.Linq<Holon>().Result.Where(row=>row.Id==keep.Id).ToCosmicListAsync(cancelled.Token);
+            Assert.IsTrue(query.IsError);StringAssert.Contains(query.ErrorCode??"","CANCEL",query.Message);
+            var cascade=await session.RemoveCascadeAsync(keep,cancellationToken:cancelled.Token);
+            Assert.IsTrue(cascade.IsError);Assert.AreEqual(CosmicEntityState.Unchanged,session.State(keep).Result,"A cancelled cascade queues nothing.");
+        }
+        checks++;
         // One unit of work: update keep, delete drop, create added.
         var added=New("uow-added");
         keep.Name="uow-keep-updated";
@@ -70,12 +85,17 @@ public sealed partial class CqlV1Web4NativeTests
         }
         keep.Name="uow-stale";Assert.IsFalse(session.Update(keep).IsError);
         Assert.IsFalse(session.Remove(added,softDelete:false).IsError);
+        var failedCalls=0;
+        Assert.IsFalse(session.SetLifecycle(new CosmicSessionLifecycle(saveFailed:(context,failed)=>{
+            failedCalls++;Assert.AreEqual(CosmicConcurrencyException.Code,failed.ErrorCode);Assert.IsFalse(context.IsCommitted);
+            return Task.CompletedTask;})).IsError);
         var stale=await session.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));
         Assert.IsTrue(stale.IsError);Assert.AreEqual(CosmicConcurrencyException.Code,stale.ErrorCode,stale.Message);checks++;
+        Assert.AreEqual(1,failedCalls,"S21: the failed-save callback observes the native refusal once.");checks++;
         var unchanged=await Stored(keep.Id,added.Id);
         Assert.AreEqual(2,unchanged.Count,"The deletion must roll back with the stale update.");
         Assert.AreEqual("uow-rival",unchanged.Single(row=>row.Id==keep.Id).Name);checks++;
         return new NativeFixtureJourneyProof(checks,4,new Dictionary<string,bool>{
-            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true});
+            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true});
     }
 }
