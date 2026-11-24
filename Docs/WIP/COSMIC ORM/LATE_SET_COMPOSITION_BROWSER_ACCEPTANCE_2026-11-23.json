@@ -1,0 +1,271 @@
+{
+  "source": "108d1d48717e100c351ab58e2b5903d98cd098b1",
+  "websiteSource": "7cbc6d9845c61243be5e387bbfc5cba4bca23e1e",
+  "declaredApiSource": "f9541a5c73c23ba9f0a86f3b5c432d4704227b30",
+  "run": 45198153247,
+  "job": 137774073360,
+  "artifact": 14829680990,
+  "archiveBytes": 114249,
+  "archiveSha256": "bb861a74fd7df209132b088d83bba5df8349a997f712adf12fbde8d427d2619f",
+  "report": {
+    "websiteSource": "7cbc6d9845c61243be5e387bbfc5cba4bca23e1e",
+    "declaredApiSource": "f9541a5c73c23ba9f0a86f3b5c432d4704227b30",
+    "apiSourceVerifiedInsideRunner": false,
+    "approvedOrigin": "https://web4.oasisomniverse.one",
+    "provider": "HoloOASIS",
+    "liveRequested": false,
+    "publicWebsitePublicationVerified": false,
+    "modelCalls": 0,
+    "applicationHolonWrites": 0,
+    "apiRequests": {},
+    "blockedApi": [],
+    "scriptExceptions": [],
+    "assetHashes": {
+      "/web4-sandbox.html": "f262362b18e7cc68e2a40737b6e0b8023538f4533bf4b88b13c8ff4073cec411",
+      "/web4-session.js": "a80650c080f0a5d97248cc6ff0866a5a2a4b15882d469ca6cc2f54dffb6b792f",
+      "/web4-tabs.js": "aec0dd8db831166964e1886ee30bee375e30a9f7ea18cfa2e5d4819b924da955",
+      "/cql-demo-preparation.js": "c1006abf6074616428f93e83e13774ba8a6198f35d8ed097d84323466a8b309a",
+      "/cql-text.js": "2eddeb9ff2935ba24216a5d8d357bb5768e69ecfbd7d91a0afa62825e740bd96",
+      "/lossless-metadata.js": "86dc43b8175a77db42fabbbf3363696a6d8593f50e3c26547ac60cf312789e7b",
+      "/cql-playground.js": "9bc84fee5e643cee3dddef0cc07fe8d93b5371ddf0ac901e2a0a8218d3d49a74",
+      "/cql-ask.js": "70279bd73cdab549aef9efccf5742cb9b4a9f6f6590764f4c2f8c4c2defb011f"
+    },
+    "populatedReadVerified": false,
+    "fullBrowserDataFlowVerified": false,
+    "browserVersion": "Chrome/157.0.8103.78",
+    "reviewFamily": "late-set-composition",
+    "lateSetSelectedCompilerCaptures": [
+      {
+        "provider": "MongoDBOASIS",
+        "kind": "Union",
+        "take": 25,
+        "entityStages": [
+          {
+            "operation": "Take",
+            "count": 20
+          }
+        ],
+        "outputColumns": [
+          {
+            "field": "Id",
+            "alias": "Id"
+          },
+          {
+            "field": "Name",
+            "alias": "Label"
+          }
+        ],
+        "selectedStages": [
+          {
+            "operation": "Where",
+            "filters": [
+              {
+                "alias": "Label",
+                "operator": "StartsWith",
+                "value": "a"
+              }
+            ]
+          },
+          {
+            "operation": "OrderBy",
+            "order": [
+              {
+                "alias": "Label",
+                "descending": true
+              }
+            ]
+          },
+          {
+            "operation": "Take",
+            "count": 10
+          },
+          {
+            "operation": "Select",
+            "columns": [
+              {
+                "alias": "Label",
+                "sourceAlias": "Label"
+              }
+            ]
+          },
+          {
+            "operation": "Distinct"
+          },
+          {
+            "operation": "OrderBy",
+            "order": [
+              {
+                "alias": "Label",
+                "descending": false
+              }
+            ]
+          },
+          {
+            "operation": "Take",
+            "count": 5
+          }
+        ]
+      },
+      {
+        "provider": "SQLLiteDBOASIS",
+        "kind": "Union",
+        "take": 25,
+        "entityStages": [
+          {
+            "operation": "Take",
+            "count": 20
+          }
+        ],
+        "outputColumns": [
+          {
+            "field": "Id",
+            "alias": "Id"
+          },
+          {
+            "field": "Name",
+            "alias": "Label"
+          }
+        ],
+        "selectedStages": [
+          {
+            "operation": "Where",
+            "filters": [
+              {
+                "alias": "Label",
+                "operator": "StartsWith",
+                "value": "a"
+              }
+            ]
+          },
+          {
+            "operation": "OrderBy",
+            "order": [
+              {
+                "alias": "Label",
+                "descending": true
+              }
+            ]
+          },
+          {
+            "operation": "Take",
+            "count": 10
+          },
+          {
+            "operation": "Select",
+            "columns": [
+              {
+                "alias": "Label",
+                "sourceAlias": "Label"
+              }
+            ]
+          },
+          {
+            "operation": "Distinct"
+          },
+          {
+            "operation": "OrderBy",
+            "order": [
+              {
+                "alias": "Label",
+                "descending": false
+              }
+            ]
+          },
+          {
+            "operation": "Take",
+            "count": 5
+          }
+        ]
+      },
+      {
+        "provider": "Neo4jOASIS",
+        "kind": "Union",
+        "take": 25,
+        "entityStages": [
+          {
+            "operation": "Take",
+            "count": 20
+          }
+        ],
+        "outputColumns": [
+          {
+            "field": "Id",
+            "alias": "Id"
+          },
+          {
+            "field": "Name",
+            "alias": "Label"
+          }
+        ],
+        "selectedStages": [
+          {
+            "operation": "Where",
+            "filters": [
+              {
+                "alias": "Label",
+                "operator": "StartsWith",
+                "value": "a"
+              }
+            ]
+          },
+          {
+            "operation": "OrderBy",
+            "order": [
+              {
+                "alias": "Label",
+                "descending": true
+              }
+            ]
+          },
+          {
+            "operation": "Take",
+            "count": 10
+          },
+          {
+            "operation": "Select",
+            "columns": [
+              {
+                "alias": "Label",
+                "sourceAlias": "Label"
+              }
+            ]
+          },
+          {
+            "operation": "Distinct"
+          },
+          {
+            "operation": "OrderBy",
+            "order": [
+              {
+                "alias": "Label",
+                "descending": false
+              }
+            ]
+          },
+          {
+            "operation": "Take",
+            "count": 5
+          }
+        ]
+      }
+    ],
+    "visibleSqlEditorVerified": true,
+    "visibleAskQuestionVerified": true,
+    "staticLateSetCompositionVerified": true,
+    "web6DraftRequested": false,
+    "advancedExamplesReplayed": false,
+    "screenshotSha256": "a600fa6f0e00af9c096f2f84525b8bb1c400155d63e52ad53129d6b74ab52851",
+    "ownedBrowserStopped": true,
+    "profileAbsent": true,
+    "apiResponses": []
+  },
+  "screenshotDimensions": [
+    1280,
+    900
+  ],
+  "browserSourceAccepted": true,
+  "realModelInferenceAccepted": false,
+  "liveApiFlowAccepted": false,
+  "archiveSavedLocally": false,
+  "observedUtc": "2026-11-23T14:48:17.829289+00:00"
+}

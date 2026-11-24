@@ -1,0 +1,26 @@
+{
+  "run": 45128659431,
+  "job": 137538799017,
+  "source": "c480835d103582d9d07067636da4599374a089c2",
+  "core": "89509787d50aa3c7ca21a44e3656161010133c34",
+  "artifact": 14797326225,
+  "archiveBytes": 2232,
+  "archiveSha256": "ef3078dc1084503a3d8c4d429970115f9a0a1418826edd68953b2b9716fa2c70",
+  "archiveSavedLocally": false,
+  "nativePassed": 0,
+  "nativeFailed": 3,
+  "nativeAccepted": false,
+  "failure": "All three first-read assertions at OwnedCollection.cs:69: list element count differs",
+  "reproduction": {
+    "originalCount": 2,
+    "defaultRoundtripCount": 3,
+    "replaceRoundtripCount": 2,
+    "constructorDefaultInserted": true
+  },
+  "ownedCiCleanupSteps": {
+    "Stop owned Mongo": "success",
+    "Verify owned Mongo stopped": "success",
+    "Stop containers": "success"
+  },
+  "exactPerDatabaseCleanupReceiptAvailable": false
+}

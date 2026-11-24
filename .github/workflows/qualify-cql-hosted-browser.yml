@@ -7,9 +7,15 @@ on:
         required: true
         type: string
       api_source:
-        description: API source bound by the operator's pre/post Railway observations
+        description: Exact API contract revision; live mode also requires operator pre/post Railway observations
         required: true
         type: string
+      review_family:
+        description: Changed feature family; skips unrelated accepted examples
+        required: false
+        type: choice
+        default: advanced
+        options: [advanced, utc-date-parts, late-entity-selection, late-set-composition]
       live_read:
         description: One paced public HoloOASIS SQL read with a temporary demo session
         required: true
@@ -62,6 +68,7 @@ jobs:
           CQL_BROWSER_SITE_ROOT: ${{ github.workspace }}/Web4Site
           CQL_BROWSER_WEBSITE_SOURCE: ${{ inputs.website_source || '7c002846b2e95654b5c2261f6c13a703acc6c9d2' }}
           CQL_BROWSER_API_SOURCE: ${{ inputs.api_source || 'f29262d8b6df380e0d267228d92508e4da393561' }}
+          CQL_BROWSER_REVIEW_FAMILY: ${{ inputs.review_family || 'advanced' }}
           CQL_BROWSER_LIVE_FLOW: ${{ inputs.live_read && '1' || '0' }}
           CQL_BROWSER_REPORT_DIRECTORY: ${{ github.workspace }}/OASIS/TestResults/CqlHostedBrowser
         run: node Scripts/Sandbox/Verify-CqlProtectedPreviewBrowser.cjs

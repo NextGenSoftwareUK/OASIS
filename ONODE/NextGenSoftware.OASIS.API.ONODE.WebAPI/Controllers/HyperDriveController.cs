@@ -47,6 +47,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public bool IsEnabled { get; set; }
         public bool AutoFailoverEnabled { get; set; }
         public bool AutoReplicationEnabled { get; set; }
+        public bool BackgroundWorkersPauseConfigured { get; set; }
         public bool AutoLoadBalancingEnabled { get; set; }
         public LoadBalancingStrategy DefaultStrategy { get; set; }
         public List<ProviderType> EnabledProviders { get; set; }
@@ -67,14 +68,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     public partial class HyperDriveController : OASISControllerBase
     {
         private readonly OASISHyperDriveConfigManager _configManager;
+        private readonly IConfiguration _configuration;
         private readonly ProviderManager _providerManager;
         private readonly PerformanceMonitor _performanceMonitor;
         private readonly AIOptimizationEngine _aiEngine;
         private readonly AdvancedAnalyticsEngine _analyticsEngine;
         private readonly PredictiveFailoverEngine _failoverEngine;
 
-        public HyperDriveController()
+        public HyperDriveController(IConfiguration configuration)
         {
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _configManager = OASISHyperDriveConfigManager.Instance;
             _providerManager = ProviderManager.Instance;
             _performanceMonitor = _providerManager.PerformanceMonitor;

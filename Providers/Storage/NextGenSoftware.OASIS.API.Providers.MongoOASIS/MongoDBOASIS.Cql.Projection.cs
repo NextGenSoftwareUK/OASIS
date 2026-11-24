@@ -12,13 +12,21 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 
-public partial class MongoDBOASIS : ICosmicQueryEntityProjectionStorageProvider
+public partial class MongoDBOASIS : ICosmicQueryEntityProjectionStorageProvider,ICosmicQuerySetProjectionStorageProvider
 {
     public static CosmicProjectionCapabilities CqlProjectionCapabilities { get; } = new CosmicProjectionCapabilities(
         CqlCapabilities.CanonicalFields.Select(field => new CosmicProjectionFieldCapability(field.Name, field.ValueType)).ToArray(),
-        CqlCapabilities.MetadataTypes.Select(type => type.ValueType).ToArray()).WithFunctions(CosmicProjectionFunction.Utf16Length,CosmicProjectionFunction.TextCoalesce,CosmicProjectionFunction.BooleanTextCase,CosmicProjectionFunction.Int32Coalesce);
+        CqlCapabilities.MetadataTypes.Select(type => type.ValueType).ToArray()).WithFunctions(CosmicProjectionFunction.Utf16Length,CosmicProjectionFunction.TextCoalesce,CosmicProjectionFunction.BooleanTextCase,CosmicProjectionFunction.Int32Coalesce,CosmicProjectionFunction.UtcYear,CosmicProjectionFunction.UtcMonth,CosmicProjectionFunction.UtcDay,CosmicProjectionFunction.UtcDayOfYear,CosmicProjectionFunction.UtcHour,CosmicProjectionFunction.UtcMinute,CosmicProjectionFunction.UtcSecond);
     public CosmicProjectionCapabilities ProjectionCapabilities => CqlProjectionCapabilities;
     public bool SupportsEntityProjection => true;
+    public bool SupportsSetProjection => true;
+
+    public Task<OASISResult<IReadOnlyList<CosmicProjectionRow>>> ExecuteCosmicSetProjectionAsync<T,TResult>(
+        CosmicSetProjectionPlan<T,TResult> plan,int maximumResults=100,
+        int maximumPayloadBytes=CosmicProjectionResults.MaximumPayloadLimit,CancellationToken cancellationToken=default) where T:IHolon
+        =>plan==null?Task.FromResult(ProjectionCqlFailure("CQL_PLAN_INVALID","An immutable late set projection is required."))
+            :ExecuteProjectionReadAsync(plan.Selection,maximumResults,maximumPayloadBytes,cancellationToken,setProjection:plan);
+
 
     public Task<OASISResult<IReadOnlyList<CosmicProjectionRow>>> ExecuteCosmicEntityProjectionAsync<T,TResult>(
         CosmicEntityProjectionPlan<T,TResult> plan,int maximumResults=100,
@@ -34,10 +42,14 @@ public partial class MongoDBOASIS : ICosmicQueryEntityProjectionStorageProvider
 
     private async Task<OASISResult<IReadOnlyList<CosmicProjectionRow>>> ExecuteProjectionReadAsync<T,TResult>(
         CosmicProjectionPlan<T,TResult> plan,int maximumResults,int maximumPayloadBytes,CancellationToken cancellationToken,
-        CosmicEntityProjectionPlan<T,TResult> entityProjection=null) where T:IHolon
+        CosmicEntityProjectionPlan<T,TResult> entityProjection=null,
+        CosmicSetProjectionPlan<T,TResult> setProjection=null,
+        Func<IClientSessionHandle,Func<AggregateOptions>,IReadOnlyList<CosmicProjectionRow>,CancellationToken,Task> selectedContinuation=null) where T:IHolon
     {
         try
         {
+            if(entityProjection!=null && setProjection!=null)
+                return ProjectionCqlFailure("CQL_PLAN_INVALID","Select one native projection source kind.");
             var composition=entityProjection?.Source;
             cancellationToken.ThrowIfCancellationRequested();
             var admission = CosmicProjectionPlanner.Admit(plan, Core.Enums.ProviderType.MongoDBOASIS, CqlCapabilities, CqlProjectionCapabilities);
@@ -52,11 +64,22 @@ public partial class MongoDBOASIS : ICosmicQueryEntityProjectionStorageProvider
                 var stages=EntityCompositionCapabilities.Admit(composition.Query);
                 if(stages.IsError) return ProjectionCqlFailure(stages.ErrorCode,stages.Message,stages.Exception);
             }
-            var command = composition==null ? new MongoCqlTranslator().CompileProjection(plan.Query, maximumResults)
-                : new MongoCqlTranslator().CompileEntityProjection(entityProjection,maximumResults);
+            if(setProjection!=null)
+            {
+                var actual=CosmicSetProjectionPlanner.Plan(setProjection.Query,Core.Enums.ProviderType.MongoDBOASIS,
+                    new CosmicProjectionTarget(Core.Enums.ProviderType.MongoDBOASIS,CqlCapabilities,CqlProjectionCapabilities),
+                    SetQueryCapabilities,setProjection.Source.Options);
+                if(actual.IsError)return ProjectionCqlFailure(actual.ErrorCode,actual.Message,actual.Exception);
+                setProjection=actual.Result;
+                maximumResults=Math.Min(maximumResults,setProjection.Source.Options.MaximumResultRows);
+            }
+            var translator=new MongoCqlTranslator();
+            var command=setProjection!=null?translator.CompileSetProjection(setProjection,maximumResults)
+                :composition!=null?translator.CompileEntityProjection(entityProjection,maximumResults)
+                :translator.CompileProjection(plan.Query,maximumResults);
             if (!IsProviderActivated || _holonRepository is not HolonRepository repository)
                 return ProjectionCqlFailure("CQL_PROVIDER_NOT_READY", "Activate MongoDB before native projection execution.");
-            var rows = await repository.ExecuteNativeCqlProjectionAsync(command, plan.Query.Columns, maximumResults, maximumPayloadBytes, cancellationToken).ConfigureAwait(false);
+            var rows = await repository.ExecuteNativeCqlProjectionAsync(command, plan.Query.Columns, maximumResults, maximumPayloadBytes, cancellationToken,selectedContinuation).ConfigureAwait(false);
             return new OASISResult<IReadOnlyList<CosmicProjectionRow>>(rows) { IsLoaded = true };
         }
         catch (System.IO.InvalidDataException cause) { return ProjectionCqlFailure("CQL_DATA_INVALID", cause.Message, cause); }

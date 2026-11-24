@@ -1,0 +1,33 @@
+{
+  "run": 45197255646,
+  "source": "f9541a5c73c23ba9f0a86f3b5c432d4704227b30",
+  "core": "ef05dbecb1428a91da53abdcfab39bf2d55aa51b",
+  "job": 137770930542,
+  "artifact": 14827723043,
+  "archiveBytes": 1677,
+  "archiveSha256": "e2ec0bf43cadd278599390347366de3912c293a0120b6c7339d412383552d2f5",
+  "report": {
+    "provider": "MongoDBOASIS",
+    "checks": 3,
+    "ownedCleanupIds": 1,
+    "successfulHolonWrites": 1,
+    "queryElapsedMilliseconds": {
+      "owner-http": 400,
+      "foreign-http": 36,
+      "anonymous-http": 4
+    },
+    "nativeProviderVerified": true,
+    "realHttpVerified": true,
+    "selectedVisibleColumnsVerified": false,
+    "concatMultiplicityVerified": true,
+    "foreignRowsHiddenVerified": true,
+    "anonymousRefusedVerified": true,
+    "usageSettledVerified": true,
+    "oneNativeAttemptPerReadVerified": true,
+    "exactCleanupVerified": true
+  },
+  "requiredRegressionAccepted": true,
+  "ownedMongoStopSucceeded": true,
+  "archiveSavedLocally": false,
+  "deployed": false
+}

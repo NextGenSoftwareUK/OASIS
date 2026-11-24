@@ -1,0 +1,29 @@
+{
+  "source": "f33ada4783898c5069c63acb9ab13e4db60a07fe",
+  "core": "ebe044989f7fc04989e9cda8d2ac0b693cf5280c",
+  "web6": "78a27a295e74721358eb2b02399f79eff5b21633",
+  "onode": "8745c95ef2f6150fafb1417122a20c020784b338",
+  "run": 45207896394,
+  "job": 137815221853,
+  "controlSource": "5ab307643387f8c8b400e33623d108e561cf8409",
+  "digest": "sha256:aed5659748e33ce276f1fda5218b6f77ea82dc6cc09107fc545e06d5bfac2c36",
+  "teachingSidecars": false,
+  "exactPrivatePinsVerified": true,
+  "nativeRuns": [
+    45206244989,
+    45207104433
+  ],
+  "retainedFirstCohortCoreBlobs": {
+    "Queries/CosmicLinq.Sets.cs": "2a6b78b14a175395f19392d5bb5460fb03d4361f",
+    "Queries/CosmicLinq.SetProjection.cs": "346629b56911cb913b4fe482634c68b20e1b5147",
+    "Queries/CosmicLinq.SetElements.cs": "2d1483a12443f367a3402a0d115b3f51224fd9fa",
+    "Queries/CosmicLinq.AsyncElements.cs": "34aa76080d406a96e045ba70b4362e5b635b5062",
+    "Queries/CosmicLinq.Projections.cs": "1805a3b0c5c60039b0a7ceaba6a8d6f9f9457eb5"
+  },
+  "dependencyRun": 45207104275,
+  "imageAccepted": true,
+  "combinedCoreCompiled": true,
+  "imageDownloadedLocally": false,
+  "deployed": false,
+  "observedUtc": "2026-11-23T16:03:35.122167+00:00"
+}

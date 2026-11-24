@@ -1,0 +1,111 @@
+{
+  "run": 45147280169,
+  "job": 137599584392,
+  "artifact": 14804732990,
+  "archiveBytes": 3587,
+  "archiveSha256": "b594d93e0a5e3e946291d841b80bb3a5d0fea9e26eda365b14f798f9d4d018d4",
+  "archiveSavedLocally": false,
+  "source": {
+    "deployed": false,
+    "source": "3e42a57d65e69d29c41411c570a4bb0a0b80bb7a",
+    "actualWeb4Compiled": true,
+    "nativePassed": 3,
+    "ownedFixturesAbsent": true,
+    "sharedDatabaseCalls": 0,
+    "core": "ff7fa8214d31ee261c7e19d716424a8d886044b4",
+    "namedQueryFilterVerified": true
+  },
+  "reports": {
+    "MongoDBOASIS": {
+      "provider": "MongoDBOASIS",
+      "checks": 8,
+      "ownedCleanupIds": 4,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "create-named-filter-fixture": 378,
+        "all-named-filters": 98,
+        "minimum-only-bypass": 6,
+        "maximum-only-bypass": 4,
+        "both-bypass-keeps-unnamed": 9,
+        "named-filter-before-page": 3,
+        "new-build-captures-changed-value": 2,
+        "selective-bypass-preserves-access": 1,
+        "selective-bypass-preserves-readonly": 1
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "distinctNamedFiltersComposeWithUnnamed": true,
+        "selectiveBypassKeepsOtherFilters": true,
+        "filterBeforePaging": true,
+        "closedValuesFrozenPerModel": true,
+        "selectiveBypassRetainsShadowMapping": true,
+        "invalidNamesRefused": true,
+        "bypassPreservesReadOnlyPolicy": true,
+        "bypassPreservesCallerPermissions": true
+      },
+      "exactCleanupVerified": true
+    },
+    "SQLLiteDBOASIS": {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 8,
+      "ownedCleanupIds": 4,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "create-named-filter-fixture": 359,
+        "all-named-filters": 32,
+        "minimum-only-bypass": 7,
+        "maximum-only-bypass": 7,
+        "both-bypass-keeps-unnamed": 8,
+        "named-filter-before-page": 2,
+        "new-build-captures-changed-value": 1,
+        "selective-bypass-preserves-access": 5,
+        "selective-bypass-preserves-readonly": 1
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "distinctNamedFiltersComposeWithUnnamed": true,
+        "selectiveBypassKeepsOtherFilters": true,
+        "filterBeforePaging": true,
+        "closedValuesFrozenPerModel": true,
+        "selectiveBypassRetainsShadowMapping": true,
+        "invalidNamesRefused": true,
+        "bypassPreservesReadOnlyPolicy": true,
+        "bypassPreservesCallerPermissions": true
+      },
+      "exactCleanupVerified": true
+    },
+    "Neo4jOASIS": {
+      "provider": "Neo4jOASIS",
+      "checks": 8,
+      "ownedCleanupIds": 4,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "create-named-filter-fixture": 1541,
+        "all-named-filters": 653,
+        "minimum-only-bypass": 241,
+        "maximum-only-bypass": 245,
+        "both-bypass-keeps-unnamed": 303,
+        "named-filter-before-page": 17,
+        "new-build-captures-changed-value": 17,
+        "selective-bypass-preserves-access": 261,
+        "selective-bypass-preserves-readonly": 5
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "distinctNamedFiltersComposeWithUnnamed": true,
+        "selectiveBypassKeepsOtherFilters": true,
+        "filterBeforePaging": true,
+        "closedValuesFrozenPerModel": true,
+        "selectiveBypassRetainsShadowMapping": true,
+        "invalidNamesRefused": true,
+        "bypassPreservesReadOnlyPolicy": true,
+        "bypassPreservesCallerPermissions": true
+      },
+      "exactCleanupVerified": true
+    }
+  },
+  "nativeAccepted": true,
+  "fullParityClaimed": false,
+  "deployed": false,
+  "observedUtc": "2026-11-23T09:33:38.374396+00:00"
+}

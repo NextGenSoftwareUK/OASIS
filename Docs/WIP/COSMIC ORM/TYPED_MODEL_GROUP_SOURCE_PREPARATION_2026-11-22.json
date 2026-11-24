@@ -1,0 +1,16 @@
+{
+  "core": "048b02d54870e793de8f18439ff8f00950ad3547",
+  "base": "45892646b637f574d53188b315a92e0ef7fa87a3",
+  "sourceImplemented": true,
+  "compiled": false,
+  "nativeAccepted": false,
+  "deployed": false,
+  "frozenAliasImageCoreExcluded": "45892646b637f574d53188b315a92e0ef7fa87a3",
+  "source": "2b369e2c273dfe35ea715820484e289353ae97dc",
+  "qualificationPhase": "InProgress",
+  "expectedNativeTests": 3,
+  "qualificationRun": 45086766670,
+  "qualificationJob": 137407062706,
+  "exactPinRun": 45086766714,
+  "exactPinsAccepted": true
+}

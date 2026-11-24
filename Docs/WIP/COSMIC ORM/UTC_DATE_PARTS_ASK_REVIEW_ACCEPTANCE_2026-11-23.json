@@ -1,0 +1,18 @@
+{
+  "siteSource": "83c18d03fbde871f39a3bcba984aef24a4bdd7a6",
+  "base": "85bfbba31882c1fd40c84a218d9b73689b39ffaf",
+  "counts": {
+    "tests": 1,
+    "pass": 1,
+    "fail": 0,
+    "skipped": 0
+  },
+  "promptImplemented": true,
+  "reviewOnlyFlowVerified": true,
+  "backendResponseMocked": true,
+  "realWeb6ModelCallVerified": false,
+  "web4DataQueryExecuted": false,
+  "sourceLoadedFromGitAndMemory": true,
+  "localFilesOrEnvironmentsCreated": false,
+  "publicWebsitePromoted": false
+}

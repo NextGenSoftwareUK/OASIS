@@ -61,7 +61,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     var bytes=column.ValueType == typeof(string)
                         ? $"CASE WHEN {input} IS NULL THEN 8 WHEN {domain} THEN length(CAST({input} AS BLOB)) ELSE 0 END"
                         : column.ValueType == typeof(Guid) ? $"CASE WHEN {input} IS NULL THEN 8 ELSE 36 END" : "8";
-                    var value = column.Function == NativeRecordFunction.Utf16Length
+                    var value = column.UtcDatePart.HasValue
+                        ? SqliteCqlUtcDateParts.Value(column.UtcDatePart.Value,SqliteCqlDate.ColumnValue(input))
+                        : column.Function == NativeRecordFunction.Utf16Length
                         ? $"{SqliteCqlReadBudget.TextStringLengthFunction}({input})"
                         : column.InputType == typeof(DateTime) ? SqliteCqlDate.ColumnValue(input) : input;
                     var output=$"CASE WHEN {domain} THEN {value} ELSE NULL END";

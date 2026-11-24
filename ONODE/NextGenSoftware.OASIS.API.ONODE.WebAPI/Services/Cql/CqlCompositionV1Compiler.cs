@@ -77,6 +77,12 @@ public static partial class CqlV1Compiler
                     throw new ArgumentException("Distinct accepts no fields and compares exactly the currently visible record.");
                 query = RequiredComposition(query.Distinct());
             }
+            else if(stage.Operation=="Reverse")
+            {
+                if(stage.Filters!=null || stage.AnyOf!=null || stage.Order!=null || stage.Count!=null || stage.Columns!=null)
+                    throw new ArgumentException("Reverse accepts no additional fields.");
+                query=RequiredComposition(query.Reverse());
+            }
             else if (stage.Operation is "Skip" or "Take")
             {
                 if (stage.Filters != null || stage.AnyOf != null || stage.Order != null || stage.Columns != null || !stage.Count.HasValue

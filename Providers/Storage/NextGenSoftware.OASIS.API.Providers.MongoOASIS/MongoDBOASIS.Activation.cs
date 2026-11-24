@@ -19,7 +19,8 @@ public partial class MongoDBOASIS
             SerializerRegister.GetInstance().RegisterGuidBsonSerializer();
             SerializerRegister.GetInstance().RegisterMetaDataDictionarySerializer();
             SerializerRegister.GetInstance().RegisterSTARNETDNADiscriminator();
-            var avatars=new AvatarRepository(database,()=>IsVersionControlEnabled);
+            var avatars=new AvatarRepository(database,()=>IsVersionControlEnabled,
+                ()=>TimeSpan.FromSeconds(Math.Max(1,OASISDNA?.OASIS?.StorageProviders?.ProviderMethodCallTimeOutSeconds ?? 10)));
             var holons=new HolonRepository(database);
             var search=new SearchRepository(database);
             if(synchronous)

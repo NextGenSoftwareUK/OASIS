@@ -1,0 +1,104 @@
+{
+  "run": 45132975102,
+  "job": 137552501441,
+  "artifact": 14799236778,
+  "archiveBytes": 3513,
+  "archiveSha256": "9861cc878e1c2b5bb9d18b035f7a03d73c5cd3d3fd8e513a7a1ce4a24ef54a52",
+  "archiveSavedLocally": false,
+  "source": {
+    "nhibernateXmlVerified": true,
+    "xmlAdmissionControlsPassed": 1,
+    "nativePassed": 3,
+    "core": "9a22d0e25b4097deafcbdbcef5a4e85c0534ce81",
+    "ownedFixturesAbsent": true,
+    "deployed": false,
+    "source": "dfc5fcbb7acf4855b0bd05d86766761a67ec9ac6",
+    "sharedDatabaseCalls": 0,
+    "actualWeb4Compiled": true
+  },
+  "reports": {
+    "MongoDBOASIS": {
+      "provider": "MongoDBOASIS",
+      "checks": 6,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create-xml-model": 637,
+        "read-xml-model": 114,
+        "refuse-xml-required": 19,
+        "update-xml-model": 37,
+        "read-updated-xml-model": 10,
+        "project-xml-model": 69,
+        "read-xml-readonly": 7,
+        "refuse-xml-readonly": 3
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "xmlMetadataAliasesRoundtrip": true,
+        "xmlNativeFilterAndProjection": true,
+        "xmlAssignedIdentityAndRevision": true,
+        "xmlRequiredRefusedBeforeWrite": true,
+        "xmlReadOnlyPolicyEnforced": true,
+        "xmlModelSnapshotIndependent": true
+      },
+      "exactCleanupVerified": true
+    },
+    "SQLLiteDBOASIS": {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 6,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create-xml-model": 589,
+        "read-xml-model": 50,
+        "refuse-xml-required": 5,
+        "update-xml-model": 31,
+        "read-updated-xml-model": 16,
+        "project-xml-model": 14,
+        "read-xml-readonly": 28,
+        "refuse-xml-readonly": 3
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "xmlMetadataAliasesRoundtrip": true,
+        "xmlNativeFilterAndProjection": true,
+        "xmlAssignedIdentityAndRevision": true,
+        "xmlRequiredRefusedBeforeWrite": true,
+        "xmlReadOnlyPolicyEnforced": true,
+        "xmlModelSnapshotIndependent": true
+      },
+      "exactCleanupVerified": true
+    },
+    "Neo4jOASIS": {
+      "provider": "Neo4jOASIS",
+      "checks": 6,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create-xml-model": 1597,
+        "read-xml-model": 556,
+        "refuse-xml-required": 6,
+        "update-xml-model": 50,
+        "read-updated-xml-model": 1253,
+        "project-xml-model": 1651,
+        "read-xml-readonly": 281,
+        "refuse-xml-readonly": 4
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "xmlMetadataAliasesRoundtrip": true,
+        "xmlNativeFilterAndProjection": true,
+        "xmlAssignedIdentityAndRevision": true,
+        "xmlRequiredRefusedBeforeWrite": true,
+        "xmlReadOnlyPolicyEnforced": true,
+        "xmlModelSnapshotIndependent": true
+      },
+      "exactCleanupVerified": true
+    }
+  },
+  "nativeAccepted": true,
+  "admissionControlAccepted": true,
+  "fullNHibernateCompatibilityClaimed": false,
+  "deployed": false,
+  "observedUtc": "2026-11-23T07:51:32.494540+00:00"
+}

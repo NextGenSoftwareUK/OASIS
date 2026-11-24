@@ -1,0 +1,100 @@
+{
+  "run": 45111894147,
+  "job": 137485902365,
+  "artifact": 14789489871,
+  "archiveBytes": 3275,
+  "archiveSha256": "f29ad57a1566d40a000f7d910d58923a720b4e62e3146ed2cb2f77f63a83189c",
+  "archiveSavedLocally": false,
+  "source": {
+    "sharedDatabaseCalls": 0,
+    "nativePassed": 3,
+    "deployed": false,
+    "ownedFixturesAbsent": true,
+    "fluentConstraintsVerified": true,
+    "source": "6eff6800779619505dfe136fcbb911feebd4311d",
+    "actualWeb4Compiled": true,
+    "core": "23cb662e15d4687290095903e604bfa0fe56b4ce"
+  },
+  "reports": {
+    "MongoDBOASIS": {
+      "provider": "MongoDBOASIS",
+      "checks": 6,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create-valid": 454,
+        "required-after-callback": 16,
+        "length-after-lifecycle": 2,
+        "precision-refused": 1,
+        "scale-refused": 1,
+        "update-valid": 27,
+        "read-valid": 95
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "requiredAfterCallbackVerified": true,
+        "lengthAfterLifecycleVerified": true,
+        "precisionAndScaleRefused": true,
+        "rejectedWritesPreserveRevision": true,
+        "immutableRulesVerified": true,
+        "mappedTypedRoundtripVerified": true
+      },
+      "exactCleanupVerified": true
+    },
+    "SQLLiteDBOASIS": {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 6,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create-valid": 465,
+        "required-after-callback": 6,
+        "length-after-lifecycle": 2,
+        "precision-refused": 2,
+        "scale-refused": 2,
+        "update-valid": 21,
+        "read-valid": 40
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "requiredAfterCallbackVerified": true,
+        "lengthAfterLifecycleVerified": true,
+        "precisionAndScaleRefused": true,
+        "rejectedWritesPreserveRevision": true,
+        "immutableRulesVerified": true,
+        "mappedTypedRoundtripVerified": true
+      },
+      "exactCleanupVerified": true
+    },
+    "Neo4jOASIS": {
+      "provider": "Neo4jOASIS",
+      "checks": 6,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 2,
+      "queryElapsedMilliseconds": {
+        "create-valid": 1324,
+        "required-after-callback": 12,
+        "length-after-lifecycle": 6,
+        "precision-refused": 6,
+        "scale-refused": 6,
+        "update-valid": 62,
+        "read-valid": 1459
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "requiredAfterCallbackVerified": true,
+        "lengthAfterLifecycleVerified": true,
+        "precisionAndScaleRefused": true,
+        "rejectedWritesPreserveRevision": true,
+        "immutableRulesVerified": true,
+        "mappedTypedRoundtripVerified": true
+      },
+      "exactCleanupVerified": true
+    }
+  },
+  "nativeAccepted": true,
+  "fullParityClaimed": false,
+  "schemaConstraintsClaimed": false,
+  "deployed": false,
+  "observedUtc": "2026-11-23T04:34:25.790454+00:00"
+}

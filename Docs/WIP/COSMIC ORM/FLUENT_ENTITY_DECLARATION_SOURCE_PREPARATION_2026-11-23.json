@@ -1,0 +1,10 @@
+{
+  "core": "a4720f81db1b8c09674bfe1ac1c5780d1a72ca7d",
+  "base": "c19f1153eddea491e0887bfd40f898983d6b3597",
+  "compiled": false,
+  "nativeAccepted": false,
+  "parentPinned": false,
+  "deployed": false,
+  "excludedFromCurrentReleaseCore": "c19f1153eddea491e0887bfd40f898983d6b3597",
+  "scope": "Entity<T>() declaration is sufficient for canonical or annotation-only contracts; shared bounded declaration admission and immutable snapshots retained"
+}

@@ -120,7 +120,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 var mapped = MapHolonRead(result);
                 if (mapped.IsError)
                 {
-                    var failed = HttpResponseHelper.FormatResponse(mapped, System.Net.HttpStatusCode.BadRequest, request.ShowDetailedSettings);
+                    var failedStatus = mapped.ErrorCode == OASISResultErrorCodes.RecordNotFound
+                        ? System.Net.HttpStatusCode.NotFound : System.Net.HttpStatusCode.BadRequest;
+                    var failed = HttpResponseHelper.FormatResponse(mapped, failedStatus, request.ShowDetailedSettings);
                     return requestContext == null ? failed : failed.BindRoutingPolicy(requestContext.Policy);
                 }
                 var holon = mapped.Result;
@@ -152,8 +154,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         private static OASISResult<Holon> MapHolonRead(OASISResult<IHolon> result)
         {
-            if (result == null || (!result.IsError && result.Result == null))
+            if (result == null)
                 return new OASISResult<Holon> { IsError = true, Message = "The provider returned no holon read result." };
+            // A successful read with no holon is an authoritative absence (for example a replica that
+            // has not arrived yet), so report it as not found rather than as a provider failure.
+            if (!result.IsError && result.Result == null)
+                return new OASISResult<Holon> { IsError = true, ErrorCode = OASISResultErrorCodes.RecordNotFound,
+                    Message = string.IsNullOrWhiteSpace(result.Message) ? "Holon not found." : result.Message };
             var response = new OASISResult<Holon>();
             OASISResultHelper<IHolon, Holon>.CopyResult(result, response);
             if (!result.IsError) response.Result = (Holon)result.Result;

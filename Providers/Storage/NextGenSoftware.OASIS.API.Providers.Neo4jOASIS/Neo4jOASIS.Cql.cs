@@ -119,7 +119,7 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider
                 + "false AS traversalCycle,false AS traversalLimit"+returnKeys+" } RETURN id,revision,valid,snapshot,traversalCycle,traversalLimit ORDER BY "+finalOrder;
             if (plan.PostWindowPredicate != null) query = CompileCqlPostWindowElement(compiled, plan);
             if (composition != null) query = CompileCqlEntityComposition(compiled, composition, maximumResults,countOnly);
-            if(set!=null)query=CompileCqlSet(compiled,set,maximumResults);
+            if(set!=null)query=CompileCqlSet(compiled,set,maximumResults,countOnly:countOnly);
             using var budget=readBudget=new NeoCqlReadBudget(plan.Query.GraphOptions?.MaximumPayloadBytes??32*1024*1024,cancellationToken);
             budget.Check();
             await using var readOwner = await LeaseCqlReadAsync(budget.Token).ConfigureAwait(false);

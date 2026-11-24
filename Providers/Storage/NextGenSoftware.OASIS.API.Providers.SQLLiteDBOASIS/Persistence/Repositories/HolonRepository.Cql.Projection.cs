@@ -33,9 +33,16 @@ public partial class HolonRepository
         CosmicEntityProjectionPlan<T,TResult> plan,int maximumResults,int maximumPayloadBytes,CancellationToken cancellationToken) where T:IHolon
         => ExecuteProjectionReadAsync(plan?.Selection,maximumResults,maximumPayloadBytes,cancellationToken,plan?.Source);
 
+    public Task<OASISResult<IReadOnlyList<CosmicProjectionRow>>> ExecuteCosmicSetProjectionAsync<T,TResult>(
+        CosmicSetProjectionPlan<T,TResult> plan,int maximumResults,int maximumPayloadBytes,CancellationToken cancellationToken) where T:IHolon
+        =>plan==null?Task.FromResult(ProjectionCqlError("CQL_PLAN_INVALID","An immutable late set projection is required."))
+            :ExecuteProjectionReadAsync(plan.Selection,maximumResults,maximumPayloadBytes,cancellationToken,setProjection:plan);
+
     private async Task<OASISResult<IReadOnlyList<CosmicProjectionRow>>> ExecuteProjectionReadAsync<T,TResult>(
         CosmicProjectionPlan<T,TResult> plan,int maximumResults,int maximumPayloadBytes,CancellationToken cancellationToken,
-        CosmicEntityCompositionPlan<T> composition=null) where T:IHolon
+        CosmicEntityCompositionPlan<T> composition=null,
+        CosmicSetProjectionPlan<T,TResult> setProjection=null,
+        Func<SqliteConnection,SqliteCqlReadBudget,SqliteCqlTraversalGuard,IReadOnlyList<CosmicProjectionRow>,Task> selectedContinuation=null) where T:IHolon
     {
         try
         {
@@ -51,17 +58,29 @@ public partial class HolonRepository
                 var stages=SQLLiteDBOASIS.CqlEntityCompositionCapabilities.Admit(composition.Query);
                 if (stages.IsError) return ProjectionCqlError(stages.ErrorCode,stages.Message,stages.Exception);
             }
+            if(composition!=null && setProjection!=null)
+                return ProjectionCqlError("CQL_PLAN_INVALID","Select one native projection source kind.");
+            if(setProjection!=null)
+            {
+                var actual=CosmicSetProjectionPlanner.Plan(setProjection.Query,ProviderType.SQLLiteDBOASIS,
+                    new CosmicProjectionTarget(ProviderType.SQLLiteDBOASIS,SqliteCqlContract.Capabilities,
+                        SQLLiteDBOASIS.CqlProjectionCapabilities),SQLLiteDBOASIS.CqlSetCapabilities,setProjection.Source.Options);
+                if(actual.IsError)return ProjectionCqlError(actual.ErrorCode,actual.Message,actual.Exception);
+                setProjection=actual.Result;
+                maximumResults=Math.Min(maximumResults,setProjection.Source.Options.MaximumResultRows);
+            }
             var source = plan.Query.Source;
-            var entitySql=composition == null ? null : CompileEntityCompositionSql(composition);
+            var setSql=setProjection==null?null:CompileSetSql(setProjection.Source);
+            var entitySql=setSql?.Result ?? (composition == null ? null : CompileEntityCompositionSql(composition));
             var translator = entitySql?.SourceTranslator ?? new CqlSqlTranslator(source.ReadAccess);
             var predicate = entitySql?.SourcePredicate ?? translator.TranslateSource(source.Predicates);
             var ordering = entitySql == null ? translator.TranslateOrdering(source.Orderings) : "Holon." + entitySql.Position;
             var columns = translator.TranslateProjection(plan.Query.Columns);
-            var fetch = composition != null ? maximumResults+1 : source.Limit.HasValue ? Math.Min(source.Limit.Value, maximumResults + 1) : maximumResults + 1;
+            var fetch = entitySql != null ? maximumResults+1 : source.Limit.HasValue ? Math.Min(source.Limit.Value, maximumResults + 1) : maximumResults + 1;
             translator.Parameters.Add(new SqliteParameter("$projectionLimit", fetch));
             translator.Parameters.Add(new SqliteParameter("$projectionOffset", source.Offset));
             cancellationToken.ThrowIfCancellationRequested();
-            if (composition == null && fetch == 0 && !translator.HasRelationship) return new OASISResult<IReadOnlyList<CosmicProjectionRow>>(Array.Empty<CosmicProjectionRow>()) { IsLoaded = true };
+            if (entitySql == null && fetch == 0 && !translator.HasRelationship) return new OASISResult<IReadOnlyList<CosmicProjectionRow>>(Array.Empty<CosmicProjectionRow>()) { IsLoaded = true };
 
             using var exclusive = _dbContext.GetService<IConcurrencyDetector>().EnterCriticalSection();
             var connection = (SqliteConnection)_dbContext.Database.GetDbConnection();
@@ -71,7 +90,7 @@ public partial class HolonRepository
             {
                 using var budget = new SqliteCqlReadBudget(connection, cancellationToken);
                 using var traversal = translator.HasRelationship || entitySql?.HasRelationship == true ? new SqliteCqlTraversalGuard(connection, budget.Check) : null;
-                var needsSnapshot = composition != null || source.GraphOptions != null || translator.HasRelationship;
+                var needsSnapshot = entitySql != null || source.GraphOptions != null || translator.HasRelationship;
                 if (needsSnapshot && _dbContext.Database.CurrentTransaction != null
                     && _dbContext.Database.CurrentTransaction.GetDbTransaction().IsolationLevel != IsolationLevel.Serializable)
                     return ProjectionCqlError("CQL_CONSISTENCY_UNSUPPORTED", "SQLite projection scope requires a serializable read owner.");
@@ -84,8 +103,17 @@ public partial class HolonRepository
                     // Mandatory scope validation must finish before the source
                     // window can hide another root's malformed traversal.
                     await ValidateCqlRelationshipScopeAsync(translator, predicate, budget, traversal, cancellationToken).ConfigureAwait(false);
+                    if(setSql!=null)
+                        await ValidateCqlRelationshipScopeAsync(setSql.RightTranslator,setSql.RightPredicate,
+                            budget,traversal,cancellationToken).ConfigureAwait(false);
                     if (entitySql != null)
-                        await ValidateEntityCompositionAsync(entitySql,composition.Options,budget,traversal,cancellationToken).ConfigureAwait(false);
+                    {
+                        var options=composition?.Options??new CosmicEntityCompositionOptions(
+                            Math.Max(setProjection.Source.Options.MaximumLeftInputRows,setProjection.Source.Options.MaximumRightInputRows),
+                            setProjection.Source.Options.MaximumInputPayloadBytes);
+                        await ValidateEntityCompositionAsync(entitySql,options,budget,traversal,cancellationToken,
+                            setSql?.Sources).ConfigureAwait(false);
+                    }
                     using var command = connection.CreateCommand();
                     command.Transaction = _dbContext.Database.CurrentTransaction?.GetDbTransaction() as SqliteTransaction;
                     command.CommandText = "/* COSMIC projection */ SELECT " + columns + " FROM Holon WHERE " + predicate
@@ -122,7 +150,14 @@ public partial class HolonRepository
                             rows.Add(new CosmicProjectionRow(cells));
                         }
                     }
-                    budget.Check(); traversal?.Check(); transaction?.Commit(); budget.Check();
+                    budget.Check(); traversal?.Check();
+                    if(selectedContinuation!=null)
+                    {
+                        if(setSql==null)throw new InvalidDataException("Selected set continuation requires its admitted native set read owner.");
+                        await selectedContinuation(connection,budget,traversal,rows.AsReadOnly()).ConfigureAwait(false);
+                        budget.Check();traversal?.Check();
+                    }
+                    transaction?.Commit(); budget.Check();
                     return new OASISResult<IReadOnlyList<CosmicProjectionRow>>(rows.AsReadOnly()) { IsLoaded = true };
                 }
                 catch (SqliteException cause) when (cause.SqliteErrorCode == 9) { budget.Check(); throw; }

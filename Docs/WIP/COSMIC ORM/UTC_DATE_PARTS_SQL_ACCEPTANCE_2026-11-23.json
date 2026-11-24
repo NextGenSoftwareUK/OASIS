@@ -1,0 +1,22 @@
+{
+  "siteSource": "1cea90e4a8a1b5b30429c5205464873bdde7ac93",
+  "base": "7c002846b2e95654b5c2261f6c13a703acc6c9d2",
+  "parserImplemented": true,
+  "parserAccepted": true,
+  "counts": {
+    "tests": 3,
+    "pass": 3,
+    "fail": 0,
+    "skipped": 0
+  },
+  "sourceExecutedFromGitAndMemory": true,
+  "testFilesWrittenLocally": false,
+  "previewAccepted": false,
+  "publicWebsitePromoted": false,
+  "verificationScope": "three new UTC parser controls only; broad harness failures are not accepted or ignored",
+  "broaderHarnessFailuresObserved": 25,
+  "broaderHarnessNeedsReconciliation": false,
+  "reconciledBySource": "85bfbba31882c1fd40c84a218d9b73689b39ffaf",
+  "sourceBoundParserTests": 163,
+  "sourceBoundParserFailures": 0
+}

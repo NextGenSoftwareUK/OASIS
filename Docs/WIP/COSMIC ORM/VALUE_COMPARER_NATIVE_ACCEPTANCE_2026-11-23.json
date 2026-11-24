@@ -1,0 +1,127 @@
+{
+  "acceptedAt": "2026-11-23T18:42:42.057923+00:00",
+  "source": "3654a0409a203129e83fb7786df16ce7c27f2270",
+  "core": "7546da7774be6948b040a6f37fea474c03976a95",
+  "run": 45239964649,
+  "job": 137921641756,
+  "runUrl": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/45239964649",
+  "conclusion": "success",
+  "artifact": {
+    "id": 14852431141,
+    "sizeBytes": 3642,
+    "sha256": "fc4606177136a53423b7433860051b6c08a5ecd1138623a15357f8f86334d3b6",
+    "inspectedInMemory": true,
+    "expectedFiles": [
+      "MongoDBOASIS-value-comparer-native.json",
+      "Neo4jOASIS-value-comparer-native.json",
+      "SQLLiteDBOASIS-value-comparer-native.json",
+      "mapping-native.trx",
+      "source.json"
+    ]
+  },
+  "nativePassed": 3,
+  "actualWeb4Compiled": true,
+  "ownedFixturesAbsent": true,
+  "ownedMongoContainerAbsent": true,
+  "ciServiceContainersStopped": true,
+  "sharedDatabaseCalls": 0,
+  "reports": [
+    {
+      "provider": "MongoDBOASIS",
+      "checks": 8,
+      "ownedCleanupIds": 3,
+      "successfulHolonWrites": 6,
+      "queryElapsedMilliseconds": {
+        "create-own": 525,
+        "create-foreign": 19,
+        "noop-equal": 0,
+        "selected-name": 85,
+        "read-selected-name": 74,
+        "mixed-callback": 25,
+        "read-unchanged-mixed": 3,
+        "read-written-mixed": 2,
+        "explicit-equal": 19,
+        "read-explicit": 3,
+        "foreign-noop-denied": 10,
+        "read-after-denied": 3
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "typedComparerAndImmutableModel": true,
+        "equivalentChangeIsNoop": true,
+        "selectedWritePreservesEquivalentStorageAndCaller": true,
+        "callbacksRecomputePrivateChanges": true,
+        "mixedNoopDoesNotBumpRevision": true,
+        "explicitModificationOverridesEquality": true,
+        "noopsRemainAuthorized": true,
+        "detachedSnapshotsAndHashContractUsed": true
+      },
+      "exactCleanupVerified": true
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 8,
+      "ownedCleanupIds": 3,
+      "successfulHolonWrites": 6,
+      "queryElapsedMilliseconds": {
+        "create-own": 501,
+        "create-foreign": 27,
+        "noop-equal": 0,
+        "selected-name": 137,
+        "read-selected-name": 35,
+        "mixed-callback": 22,
+        "read-unchanged-mixed": 4,
+        "read-written-mixed": 3,
+        "explicit-equal": 19,
+        "read-explicit": 2,
+        "foreign-noop-denied": 10,
+        "read-after-denied": 2
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "typedComparerAndImmutableModel": true,
+        "equivalentChangeIsNoop": true,
+        "selectedWritePreservesEquivalentStorageAndCaller": true,
+        "callbacksRecomputePrivateChanges": true,
+        "mixedNoopDoesNotBumpRevision": true,
+        "explicitModificationOverridesEquality": true,
+        "noopsRemainAuthorized": true,
+        "detachedSnapshotsAndHashContractUsed": true
+      },
+      "exactCleanupVerified": true
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "checks": 8,
+      "ownedCleanupIds": 3,
+      "successfulHolonWrites": 6,
+      "queryElapsedMilliseconds": {
+        "create-own": 1289,
+        "create-foreign": 334,
+        "noop-equal": 0,
+        "selected-name": 61,
+        "read-selected-name": 426,
+        "mixed-callback": 40,
+        "read-unchanged-mixed": 11,
+        "read-written-mixed": 11,
+        "explicit-equal": 40,
+        "read-explicit": 9,
+        "foreign-noop-denied": 9,
+        "read-after-denied": 10
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "typedComparerAndImmutableModel": true,
+        "equivalentChangeIsNoop": true,
+        "selectedWritePreservesEquivalentStorageAndCaller": true,
+        "callbacksRecomputePrivateChanges": true,
+        "mixedNoopDoesNotBumpRevision": true,
+        "explicitModificationOverridesEquality": true,
+        "noopsRemainAuthorized": true,
+        "detachedSnapshotsAndHashContractUsed": true
+      },
+      "exactCleanupVerified": true
+    }
+  ],
+  "scope": "Representative model comparer state/selected writes/authorized no-op functionality. Not full M13/EF parity, recursive graph comparer persistence, arbitrary serializers or live acceptance."
+}

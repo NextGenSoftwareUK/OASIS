@@ -1,0 +1,98 @@
+{
+  "source": "df5b838278bec4f58690bf5e600f5009552886c2",
+  "core": "e6ff129e186f166c422aca697ff91e644d75642b",
+  "producerSource": "31f581ef6548d29374a0a007d7c261da5013da13",
+  "featureTip": "316ed53ce565f01c20658f93c0d35a5c4c50b9b6",
+  "baseDevelopment": "a9184e7b108dc10f126ec0d1e01cee1d93de740a",
+  "onlyProducerDelta": [
+    "Docs/Devs/COSMIC_MODEL_MAPPING.md",
+    "Docs/WIP/COSMIC ORM/CQL_PARITY_CHECKLIST.md",
+    "Docs/WIP/COSMIC ORM/CURRENT_STATUS.md",
+    "Docs/WIP/COSMIC ORM/FULL_STATUS_REPORT_2026-11-22.md",
+    "Docs/WIP/COSMIC ORM/NAMED_SHADOW_ENTRY_IMAGE_ACCEPTANCE_2026-11-23.json",
+    "Docs/WIP/COSMIC ORM/NAMED_SHADOW_ENTRY_PACKAGE_ACCEPTANCE_2026-11-23.json",
+    "Docs/WIP/COSMIC ORM/NAMED_SHADOW_ENTRY_RELEASE_INTENT_2026-11-23.json",
+    "Docs/WIP/COSMIC ORM/ORM_TRACKING_IMAGE_ACCEPTANCE_2026-11-23.json",
+    "Docs/WIP/COSMIC ORM/ORM_TRACKING_IMAGE_BUILD_ATTESTATION_2026-11-23.json",
+    "Docs/WIP/COSMIC ORM/ORM_TRACKING_PACKAGE_ACCEPTANCE_2026-11-23.json",
+    "Docs/WIP/COSMIC ORM/ORM_TRACKING_RELEASE_INTENT_2026-11-23.json",
+    "Docs/WIP/COSMIC ORM/RECOVERY_LAPTOP_CLEANUP_LEDGER.md",
+    "Docs/WIP/COSMIC ORM/TRACKING_MODE_INITIAL_FAILURE_2026-11-23.json",
+    "Docs/WIP/COSMIC ORM/TRACKING_MODE_NATIVE_ACCEPTANCE_2026-11-23.json",
+    "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.TrackingMode.cs"
+  ],
+  "digest": "sha256:44ef8cbee8f878d3a0b0a65fd509f65f6fb5be7e0a743c556b0dd32921496ee8",
+  "imageRun": 45152186051,
+  "packageRun": 45154044671,
+  "nativeRuns": [
+    45147280169,
+    45148486674,
+    45152902027
+  ],
+  "developmentPhase": "pushed",
+  "developmentPushRequestedAt": "2026-11-23T10:18:52.690746+00:00",
+  "priorOwnDevelopmentPush": "2026-11-23T09:17:34.526572+00:00",
+  "allSevenPriorDeploymentsSuccessful": true,
+  "deployed": false,
+  "runningAcceptance": false,
+  "developmentPushed": true,
+  "developmentPushedAt": "2026-11-23T10:19:04.410737+00:00",
+  "web6Deployment": "ad97c679-6d5b-4967-807e-3cadfe730240",
+  "web6DeploymentStatus": "BUILDING",
+  "web7Deployment": "0acd7c8e-f365-4962-b3d2-4bb8327df520",
+  "web7DeploymentStatus": "QUEUED",
+  "web9Deployment": "a8f56c9d-8526-42d8-94ef-010813ba4d17",
+  "web9DeploymentStatus": "BUILDING",
+  "web4Deployment": "c8dac3ea-8d70-44aa-a0a8-61623277c39a",
+  "web4DeploymentStatus": "QUEUED",
+  "web10Deployment": "c9be4113-3005-4b84-902d-7f699660af4a",
+  "web10DeploymentStatus": "QUEUED",
+  "web8Deployment": "818f1dfc-fdc5-47b2-9380-93c8dfb96258",
+  "web8DeploymentStatus": "QUEUED",
+  "web5Deployment": "f6d3682a-46b0-4b39-abfb-c5be658d6404",
+  "web5DeploymentStatus": "BUILDING",
+  "latestRolloutObservation": {
+    "web6": {
+      "deployment": "ad97c679-6d5b-4967-807e-3cadfe730240",
+      "status": "BUILDING",
+      "source": "df5b838278bec4f58690bf5e600f5009552886c2",
+      "imageDigest": null
+    },
+    "web7": {
+      "deployment": "0acd7c8e-f365-4962-b3d2-4bb8327df520",
+      "status": "QUEUED",
+      "source": "df5b838278bec4f58690bf5e600f5009552886c2",
+      "imageDigest": null
+    },
+    "web9": {
+      "deployment": "a8f56c9d-8526-42d8-94ef-010813ba4d17",
+      "status": "BUILDING",
+      "source": "df5b838278bec4f58690bf5e600f5009552886c2",
+      "imageDigest": null
+    },
+    "web4": {
+      "deployment": "c8dac3ea-8d70-44aa-a0a8-61623277c39a",
+      "status": "QUEUED",
+      "source": "df5b838278bec4f58690bf5e600f5009552886c2",
+      "imageDigest": null
+    },
+    "web10": {
+      "deployment": "c9be4113-3005-4b84-902d-7f699660af4a",
+      "status": "QUEUED",
+      "source": "df5b838278bec4f58690bf5e600f5009552886c2",
+      "imageDigest": null
+    },
+    "web8": {
+      "deployment": "818f1dfc-fdc5-47b2-9380-93c8dfb96258",
+      "status": "QUEUED",
+      "source": "df5b838278bec4f58690bf5e600f5009552886c2",
+      "imageDigest": null
+    },
+    "web5": {
+      "deployment": "f6d3682a-46b0-4b39-abfb-c5be658d6404",
+      "status": "BUILDING",
+      "source": "df5b838278bec4f58690bf5e600f5009552886c2",
+      "imageDigest": null
+    }
+  }
+}

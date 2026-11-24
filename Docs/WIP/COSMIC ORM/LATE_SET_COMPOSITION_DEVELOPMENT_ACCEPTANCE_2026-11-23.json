@@ -1,0 +1,166 @@
+{
+  "source": "4b8d3923c7b5c2f51e434dbd8d2104ffa41dc68e",
+  "core": "ef05dbecb1428a91da53abdcfab39bf2d55aa51b",
+  "producerSource": "f9541a5c73c23ba9f0a86f3b5c432d4704227b30",
+  "producerImageDigest": "sha256:5d74339ab169019aee34bc0f0e47789db958c36b986175d4e984e416471c1a12",
+  "web4ActualImageDigest": "sha256:72fed4d2a53115eee6c6cca3259f9973375c5e3b32335f095e9a102d0bda89af",
+  "rollouts": {
+    "web6": {
+      "deployment": "4d179ac2-f612-4282-96ed-011794981d3e",
+      "status": "SUCCESS",
+      "source": "4b8d3923c7b5c2f51e434dbd8d2104ffa41dc68e",
+      "imageDigest": "sha256:a1663fd97cb3aefa9df67c60a32e5a18035b930361aad74d7b7a89a483c2aa44"
+    },
+    "web7": {
+      "deployment": "098ad463-8dd4-424d-a924-833d8e2af2bb",
+      "status": "SUCCESS",
+      "source": "4b8d3923c7b5c2f51e434dbd8d2104ffa41dc68e",
+      "imageDigest": "sha256:3fcc4d4c1b6d111de8ed4552107075fca0401768b2d6f704660338c14d84eab1"
+    },
+    "web9": {
+      "deployment": "5ac9d723-1f20-40e5-9e9d-a4dedc477968",
+      "status": "SUCCESS",
+      "source": "4b8d3923c7b5c2f51e434dbd8d2104ffa41dc68e",
+      "imageDigest": "sha256:bd48a79690f0ed0246b5c89b9d02d2689108233ff575582705bd649a61bf0a57"
+    },
+    "web4": {
+      "deployment": "c57a871f-0ef1-4f93-89c8-82768869c655",
+      "status": "SUCCESS",
+      "source": "4b8d3923c7b5c2f51e434dbd8d2104ffa41dc68e",
+      "imageDigest": "sha256:72fed4d2a53115eee6c6cca3259f9973375c5e3b32335f095e9a102d0bda89af"
+    },
+    "web10": {
+      "deployment": "204a6001-4a6c-4e5d-8952-bbdcf9241ca7",
+      "status": "SUCCESS",
+      "source": "4b8d3923c7b5c2f51e434dbd8d2104ffa41dc68e",
+      "imageDigest": "sha256:8d1472ec365f04e0a128aad85f3ab0c9d3f5b2d68bb909472e7d4986d055a427"
+    },
+    "web8": {
+      "deployment": "27c8bccc-1c8a-4c8d-a00b-4375e987fcf2",
+      "status": "SUCCESS",
+      "source": "4b8d3923c7b5c2f51e434dbd8d2104ffa41dc68e",
+      "imageDigest": "sha256:2280a3360e3ba2ea8adaeb84356262feb4526f3a52b39dcf4edf565488939436"
+    },
+    "web5": {
+      "deployment": "493afbd3-19d9-4852-8308-0c66037b92e9",
+      "status": "SUCCESS",
+      "source": "4b8d3923c7b5c2f51e434dbd8d2104ffa41dc68e",
+      "imageDigest": "sha256:70f009ac815e2716f2da49737fb6ec45ae232ba57cdac086cee811f83d2b3b01"
+    }
+  },
+  "allSevenDeploymentsAccepted": true,
+  "runtimeSourceBeforeAfterMatched": true,
+  "startupBefore": {
+    "source": "4b8d3923c7b5c2f51e434dbd8d2104ffa41dc68e",
+    "startupDnaAutoLoadBalanceEnabled": true,
+    "startupDnaAutoFailOverEnabled": true,
+    "startupDnaAutoReplicationEnabled": true,
+    "legacyStorageLoadBalanceEnabled": true,
+    "scope": "selected startup DNA fields; not in-process manager attestation",
+    "observedUtc": "2026-11-23T15:21:17.075239+00:00"
+  },
+  "startupAfter": {
+    "source": "4b8d3923c7b5c2f51e434dbd8d2104ffa41dc68e",
+    "startupDnaAutoLoadBalanceEnabled": true,
+    "startupDnaAutoFailOverEnabled": true,
+    "startupDnaAutoReplicationEnabled": true,
+    "legacyStorageLoadBalanceEnabled": true,
+    "scope": "selected startup DNA fields; not in-process manager attestation",
+    "observedUtc": "2026-11-23T15:22:48.877720+00:00"
+  },
+  "runtime": {
+    "source": "4b8d3923c7b5c2f51e434dbd8d2104ffa41dc68e",
+    "startedUtc": "2026-11-23T15:22:07.320631+00:00",
+    "calls": [
+      {
+        "route": "sandbox/session",
+        "method": "POST",
+        "status": 200,
+        "isError": false
+      },
+      {
+        "route": "hyperdrive/status",
+        "method": "GET",
+        "status": 200,
+        "isError": false
+      },
+      {
+        "route": "data/query-cql/set",
+        "method": "POST",
+        "status": 200,
+        "isError": false
+      },
+      {
+        "route": "data/query-cql/set",
+        "method": "POST",
+        "status": 200,
+        "isError": false
+      },
+      {
+        "route": "data/query-cql/set",
+        "method": "POST",
+        "status": 200,
+        "isError": false
+      },
+      {
+        "route": "avatar/revoke-token",
+        "method": "POST",
+        "status": 200,
+        "isError": false
+      }
+    ],
+    "pending": null,
+    "completed": true,
+    "temporarySessionsIssued": 1,
+    "applicationHolonWrites": 0,
+    "piperRecordsQueried": false,
+    "liveNativeTransportAccepted": true,
+    "populatedResultsAccepted": false,
+    "selectedRuntimeSettings": {
+      "mode": "OASISHyperDrive2",
+      "effectiveConfigurationSource": "OASIS.OASISHyperDriveConfig",
+      "effectiveConfigurationAppliedUtc": "2026-11-23T15:22:25.7251426Z",
+      "autoLoadBalancingEnabled": true,
+      "autoFailoverEnabled": true,
+      "autoReplicationEnabled": true,
+      "backgroundWorkersPauseConfigured": true
+    },
+    "runtimeSettingsObserved": true,
+    "nativeTransport": [
+      {
+        "provider": "MongoDBOASIS",
+        "rows": 0,
+        "elapsedMs": 3156,
+        "scope": "random GUID point read; empty response does not prove populated semantics"
+      },
+      {
+        "provider": "SQLLiteDBOASIS",
+        "rows": 0,
+        "elapsedMs": 2677,
+        "scope": "random GUID point read; empty response does not prove populated semantics"
+      },
+      {
+        "provider": "Neo4jOASIS",
+        "rows": 0,
+        "elapsedMs": 3031,
+        "scope": "random GUID point read; empty response does not prove populated semantics"
+      }
+    ],
+    "sessionRevoked": true,
+    "credentialsRemoved": true,
+    "finishedUtc": "2026-11-23T15:22:25.230895+00:00",
+    "checkpointCleanup": {
+      "filesRemoved": 19,
+      "bytesRemoved": 24369,
+      "replayGuardRetained": true
+    }
+  },
+  "sourceAndRuntimeSettingsAccepted": true,
+  "hostedSelectedSetTransportAccepted": true,
+  "populatedHostedDataAccepted": false,
+  "realWeb6InferenceAccepted": false,
+  "fullParityClaimed": false,
+  "workerPauseConfigurationIsNotLivenessProof": true,
+  "deploymentAccepted": true,
+  "observedUtc": "2026-11-23T15:23:02.734260+00:00"
+}

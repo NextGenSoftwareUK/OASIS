@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <PackageId>NextGenSoftware.OASIS.Providers.Shared.Maps</PackageId>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Company>NextGen Software Ltd</Company>
+    <Product>OASIS Map Provider Base</Product>
+    <Title>OASIS Map Provider Base</Title>
+    <Description>Shared base for OASIS map providers: authoritative map session state (camera, pins, placements, routes), a renderer command queue, polyline codecs and bounded HTTP routing and place-search clients. https://oasisomniverse.one</Description>
+    <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
+    <PackageIcon>OASIS.jpg</PackageIcon>
+    <Authors>David Ellams (NextGen Software Ltd)</Authors>
+    <PackageTags>OASIS; Provider; Maps; Routing; Geocoding</PackageTags>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+    <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Version>2.0.1</Version>
+    <Nullable>disable</Nullable>
+    <RootNamespace>NextGenSoftware.OASIS.Providers.Shared.Maps</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\" />
+    <None Include="README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Contracts\NextGenSoftware.OASIS.API.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+  </ItemGroup>
+</Project>

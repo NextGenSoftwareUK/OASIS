@@ -1,0 +1,18 @@
+{
+  "source": "e097b5c809599968c5e83c71d959344d2f4683b4",
+  "core": "dc88abf6a615fc5b5c06b6cd4871683d23e43081",
+  "run": 45094274338,
+  "job": 137430486300,
+  "artifact": 14783130943,
+  "archiveBytes": 2318,
+  "archiveSha256": "13650073e04d734968ea77ae9fa6cf93e7eecdbbd847c1b47ada868325e3c469",
+  "passed": 8,
+  "failed": 0,
+  "wireControlsPassed": 2,
+  "joinProofRegressionsPassed": 6,
+  "actualWeb4Compiled": true,
+  "wireAccepted": true,
+  "archiveSavedToDisk": false,
+  "databaseStarted": false,
+  "deployed": false
+}

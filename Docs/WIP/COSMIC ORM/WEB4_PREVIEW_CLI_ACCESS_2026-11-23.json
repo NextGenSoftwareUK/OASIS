@@ -1,0 +1,16 @@
+{
+  "deployment": "dpl_JGpUqDJgSs1Wygy8P8Gky9KMoLcK",
+  "source": "f58c9f4d4760b36ba92bacfcf3d33d098f8146df",
+  "url": "web4-site-4cor6ynud-oasis-team.vercel.app",
+  "exitCode": 0,
+  "httpStatus": 200,
+  "responseBytes": 312879,
+  "responseTitle": "WEB4 Sandbox \u2014 HyperDrive, COSMIC ORM &amp; CQL",
+  "hasAskTab": true,
+  "hasUtcDateHelp": true,
+  "hasMappingControls": true,
+  "bodySha256": "0aafa18694e025f858657b727a7f855a313630f742d3c83fc01c87d25f15a19f",
+  "rawResponseSaved": false,
+  "protectionChanged": false,
+  "utf8ResponseDecodedExplicitly": true
+}

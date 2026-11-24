@@ -1,0 +1,15 @@
+{
+  "baseCore": "a0714bfa39ae0b94c11935f92c3bb189a12d89fa",
+  "incomingCore": "fc2470e77afa41e0a35850dbb2ce3c3f9e23b6dd",
+  "combinedCore": "c19f1153eddea491e0887bfd40f898983d6b3597",
+  "onlyIncomingPath": "Objects/Avatar/InventoryItem.cs",
+  "inventoryBytesMatchIncoming": true,
+  "allModelQueryGraphJoinAndAliasFilesUnchanged": true,
+  "incomingQualificationRun": 45114577286,
+  "nativeRunsRetained": [
+    45115667791,
+    45115044812
+  ],
+  "nativeAccepted": true,
+  "deployed": false
+}

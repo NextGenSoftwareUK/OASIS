@@ -1,0 +1,79 @@
+{
+  "run": 45213751045,
+  "job": 137829186452,
+  "artifact": 14837746947,
+  "archiveBytes": 4838,
+  "archiveSha256": "6811d91db3b707260db01fb0f8f55b45f83042e4e2cc45039797cef95d1d6b60",
+  "archiveSavedLocally": false,
+  "source": {
+    "nativePassed": 3,
+    "deployed": false,
+    "ownedFixturesAbsent": true,
+    "core": "75c024a8327bd5899ca26f1160803685a531c561",
+    "setCardinalityWireVerified": true,
+    "source": "aa619bc70d341b80bb56fdf13c91fb7c74bbea27",
+    "boundaryControlsPassed": 3,
+    "sharedDatabaseCalls": 0,
+    "actualWeb4Compiled": true
+  },
+  "reports": {
+    "MongoDBOASIS": {
+      "provider": "MongoDBOASIS",
+      "checks": 3,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "owner-http": 734,
+        "foreign-http": 81,
+        "anonymous-http": 13
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "nativeReductionAfterCombinedWindow": true,
+        "ownerForeignAndAnonymousPolicyPreserved": true,
+        "oneSettledPhysicalAttemptPerAuthenticatedRequest": true
+      },
+      "exactCleanupVerified": true
+    },
+    "SQLLiteDBOASIS": {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 3,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "owner-http": 107,
+        "foreign-http": 21,
+        "anonymous-http": 1
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "nativeReductionAfterCombinedWindow": true,
+        "ownerForeignAndAnonymousPolicyPreserved": true,
+        "oneSettledPhysicalAttemptPerAuthenticatedRequest": true
+      },
+      "exactCleanupVerified": true
+    },
+    "Neo4jOASIS": {
+      "provider": "Neo4jOASIS",
+      "checks": 3,
+      "ownedCleanupIds": 1,
+      "successfulHolonWrites": 1,
+      "queryElapsedMilliseconds": {
+        "owner-http": 1353,
+        "foreign-http": 42,
+        "anonymous-http": 1
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "nativeReductionAfterCombinedWindow": true,
+        "ownerForeignAndAnonymousPolicyPreserved": true,
+        "oneSettledPhysicalAttemptPerAuthenticatedRequest": true
+      },
+      "exactCleanupVerified": true
+    }
+  },
+  "nativeAccepted": true,
+  "fullParityClaimed": false,
+  "deployed": false,
+  "observedUtc": "2026-11-23T16:19:42.229748+00:00"
+}

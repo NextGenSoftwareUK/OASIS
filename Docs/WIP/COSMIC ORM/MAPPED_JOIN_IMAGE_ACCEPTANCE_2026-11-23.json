@@ -1,0 +1,27 @@
+{
+  "source": "f4deb324605367a691272d0084b4654f936b0478",
+  "core": "e7402f4f2f14e9a7f628026efde79180c376f815",
+  "web6": "c214296e8b8cfde671466a5a82e24d5fc83f9509",
+  "onodeCore": "1b28ed0436173b827e58b75a3bb5a99c1bb661ec",
+  "run": 45090771727,
+  "job": 137419572012,
+  "digest": "sha256:c1e3d76a4ef5c2c5cfc6fb1358f46672bdd32838dc60d694ae8906b3cc2924e4",
+  "teachingSidecars": false,
+  "exactPrivatePinsVerified": true,
+  "contractQualifiedSource": "ed9a5f064d05be25336fed3ad6ddae914ed2e056",
+  "contractRun": 45089665626,
+  "reviewedQualifiedSourceDelta": [
+    "Docs/Devs/COSMIC_MODEL_MAPPING.md",
+    "Docs/WIP/COSMIC ORM/CQL_PARITY_CHECKLIST.md",
+    "Docs/WIP/COSMIC ORM/CURRENT_STATUS.md",
+    "Docs/WIP/COSMIC ORM/FULL_STATUS_REPORT_2026-11-22.md",
+    "Docs/WIP/COSMIC ORM/MAPPED_JOIN_NATIVE_ACCEPTANCE_2026-11-23.json",
+    "Docs/WIP/COSMIC ORM/MAPPED_JOIN_SOURCE_PREPARATION_2026-11-23.json",
+    "Docs/WIP/COSMIC ORM/RECOVERY_LAPTOP_CLEANUP_LEDGER.md",
+    "Docs/WIP/COSMIC ORM/TYPED_MODEL_GROUP_DELIVERY_SCOPE_2026-11-23.json",
+    "Docs/WIP/COSMIC ORM/TYPED_MODEL_GROUP_DEVELOPMENT_CANDIDATE_2026-11-23.json",
+    "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv"
+  ],
+  "deployed": false,
+  "imageDownloadedLocally": false
+}

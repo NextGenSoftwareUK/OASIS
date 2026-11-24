@@ -1,0 +1,17 @@
+{
+  "run": 45211741407,
+  "job": 137822075107,
+  "source": "56747d25e7414bf4f66072dbc48381c18837f8be",
+  "conclusion": "failure",
+  "stage": "Core unit project compilation before test execution",
+  "code": "CS0117",
+  "cause": "Explicit production-source links omitted new reduction compiler; integration host also required matching compiler/endpoint links.",
+  "compilerCasesExecuted": 0,
+  "nativeHttpCasesExecuted": 0,
+  "shippingApiBehaviorChangedByFix": false,
+  "cleanup": {
+    "mongoStopped": true,
+    "mongoAbsent": true,
+    "serviceContainersStopped": true
+  }
+}

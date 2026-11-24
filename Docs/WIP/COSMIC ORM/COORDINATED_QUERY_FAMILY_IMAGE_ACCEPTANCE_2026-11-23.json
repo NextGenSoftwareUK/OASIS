@@ -1,0 +1,42 @@
+{
+  "source": "74596888b42aa8cb4099a29353d88cc0488d1b1b",
+  "core": "bc574ddec918f18924a3f77d9214af08a9e5ed8c",
+  "web6": "78a27a295e74721358eb2b02399f79eff5b21633",
+  "onode": "8745c95ef2f6150fafb1417122a20c020784b338",
+  "run": 45214897823,
+  "job": 137833291838,
+  "controlSource": "74596888b42aa8cb4099a29353d88cc0488d1b1b",
+  "digest": "sha256:1fa11ea5137bf5f6b23ce6ed4bba0b2ea573a8afabf439375a5f16b92769fcb9",
+  "teachingSidecars": false,
+  "exactPrivatePinsVerified": true,
+  "nativeHttpRun": 45214881916,
+  "nativeSdkRunsRetained": [
+    45206244989,
+    45207104433,
+    45210297591
+  ],
+  "retainedCoreSourceBlobs": {
+    "Interfaces/ICosmicSetCountQueryStorageProvider.cs": "85c6068b03cc83ace56277ddd741b7a51d4d237c",
+    "Managers/HolonManager/HolonManager-Cql.SetCount.V2.cs": "7dc443ad28d746dcb5b6fea3d063fd31ac8ac6f6",
+    "Queries/CosmicLinq.ProjectedSetElements.cs": "5cfa790fcc5c2481027d5c9fdfda35d80eec6908",
+    "Queries/CosmicLinq.ProjectedSets.cs": "5c3e8a54686f34617ccfc26bf71dafc89e1d1b51",
+    "Queries/CosmicLinq.SetCardinality.cs": "5c4acfb57c62705d3bd6160ed52417027a1af6c1",
+    "Queries/CosmicLinq.SetElements.cs": "2d1483a12443f367a3402a0d115b3f51224fd9fa",
+    "Queries/CosmicLinq.SetProjection.cs": "346629b56911cb913b4fe482634c68b20e1b5147",
+    "Queries/CosmicLinq.Sets.cs": "79f3eedd9414c0f1f1808d72f230f06175017b50",
+    "Queries/CosmicSetCountExecutor.cs": "12ff234d7757374e81b4f4c391848d504cc82fdd",
+    "Interfaces/Providers/IAvatarProfileStorageProvider.cs": "0e28c38bffa759f35aaf5ece418880ba4b34ac13",
+    "Managers/AvatarManager/AvatarManager-ApplyProfile.cs": "fabf25fae48782db1c5183f9c65326ad9ab5513d",
+    "Managers/OASIS HyperDrive/OASISHyperDrive.Profile.cs": "adca7a4c4bc87eacc06c517a67596d4e828f744e",
+    "Managers/OASIS HyperDrive/OASISHyperDrive.cs": "40cd63cb853e478bfbc8c472f4d9ad42a93b8706",
+    "Managers/OASIS HyperDrive/StorageOperationRequest.cs": "43e36e8e21c3f64aa1e69a63e47214d05e99ae7e",
+    "Services/Subscriptions/StorageAttemptTariff.cs": "049fda4405b0bee88eaf5b15b011d83ec33bc443"
+  },
+  "requiredRegressionRun": 45214889666,
+  "dependencyRun": 45214469773,
+  "imageAccepted": true,
+  "combinedCoreCompiled": true,
+  "imageDownloadedLocally": false,
+  "deployed": false,
+  "observedUtc": "2026-11-23T16:29:24.799452+00:00"
+}

@@ -1,0 +1,28 @@
+{
+  "source": "c12f1aec551326001268803475186902ebdf44f6",
+  "producerSource": "c12f1aec551326001268803475186902ebdf44f6",
+  "core": "81d37ec73752d49fae6161ae9588cec6e3c668c9",
+  "onode": "8745c95ef2f6150fafb1417122a20c020784b338",
+  "web6": "78a27a295e74721358eb2b02399f79eff5b21633",
+  "baseDevelopment": "a9184e7b108dc10f126ec0d1e01cee1d93de740a",
+  "nativeRuns": [
+    45147280169,
+    45148486674
+  ],
+  "namedNativeAccepted": true,
+  "shadowEntryNativeAccepted": true,
+  "imageRun": 45148985848,
+  "imageJob": 137605285266,
+  "imageControlSource": "a3783b1435d5a5ef6982189d2aa6c4a178badb07",
+  "imageSourceIsExplicitWorkflowInput": true,
+  "imagePhase": "accepted",
+  "imageRequestedUtc": "2026-11-23T09:36:43.216323+00:00",
+  "imageAccepted": true,
+  "digest": "sha256:7956f795912f91f7a7dc297fc5dbfcc70a69d7dd16025932a334feee3b40245d",
+  "packagePhase": "dispatch_acknowledged",
+  "packageRun": 45151833440,
+  "packageControlSource": "31f581ef6548d29374a0a007d7c261da5013da13",
+  "deployed": false,
+  "localBuild": false,
+  "scope": "Exact named-filter and shadow-entry image built concurrently with changed native tests; no deployment until native/image/package/ancestry/cadence gates pass"
+}

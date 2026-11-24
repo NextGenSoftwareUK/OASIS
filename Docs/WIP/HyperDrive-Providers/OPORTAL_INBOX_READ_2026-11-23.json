@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-23",
+  "status": "inbox-mark-read-and-dashboard-accepted",
+  "run": 45151234976,
+  "job": 137612860661,
+  "control": "a642c574657df0ff76992a81c16cbc77701ecd06",
+  "portal": "c0957873b6cf98904e3e77675ee5c16231b53c8a",
+  "imageSource": "5442d4e9de89231a5a4bebe77c44374ab0920001",
+  "image": "sha256:111cedaa725206875f2ef33d455bc4ea6f4dc241ed03c0753df5956152cf0893",
+  "artifact": 14806297696,
+  "archiveBytes": 4355,
+  "scope": "Two actual registered/free owned accounts; normal native message delivery creates recipient notification. Actual page login shows 1 unread, notification unread style; one UI Mark All Read performs one bounded message-ID write and one notification-ID write, independent native GETs prove stored flags true, UI read style/dashboard1/normal close pass.",
+  "fix": "Dashboard message summary now shares one guarded reader, invoked after acknowledged send/read mutations. Existing endpoint only; no full reload/polling/optimistic count/automatic retry.",
+  "cleanup": "RAM-only selected artifact proves package container absent and all five startup cleanup conditions true; terminal log verifies runtime/cache/TLS absence. No local downloads/env/build/database/results.",
+  "limits": "Representative mark-read flow; acknowledged-send refresh wired but not separately exercised here. No chat-session/all-message-types/all-provider/hosted-performance/paid-Stripe/whole-portal acceptance."
+}

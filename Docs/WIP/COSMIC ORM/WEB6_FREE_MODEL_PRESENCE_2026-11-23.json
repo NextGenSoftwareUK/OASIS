@@ -1,0 +1,9 @@
+{
+  "source": "4b8d3923c7b5c2f51e434dbd8d2104ffa41dc68e",
+  "dedicatedGeminiFreeConfigured": false,
+  "openRouterCredentialConfigured": false,
+  "ollamaEndpointConfigured": false,
+  "ollamaFreeModelConfigured": false,
+  "scope": "selected startup configuration presence only; no secret values or model invocation",
+  "observedUtc": "2026-11-23T15:35:58.610809+00:00"
+}

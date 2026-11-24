@@ -21,6 +21,7 @@ public class HyperDriveEntityTypesTests
     [InlineData(HyperDriveEntityTypes.GeoNft)]
     [InlineData(HyperDriveEntityTypes.GeoNftCollection)]
     [InlineData(HyperDriveEntityTypes.GeoHotSpot)]
+    [InlineData(HyperDriveEntityTypes.MessageCommand)]
     public void VersionedBuiltInTypeHasHostedDomainProjection(string entityType)
     {
         Assert.True(HyperDriveEntityTypes.IsHostedDomainType(entityType));

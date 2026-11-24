@@ -1,0 +1,29 @@
+{
+  "baseCore": "f339a3c24542c5232823f1d119393e71f195ccfd",
+  "baseRoot": "f9b2fba982c7304c46c086222c26dc472851fd30",
+  "phase": "source-implemented-qualification-pending",
+  "published": true,
+  "qualified": false,
+  "nativeHttpCases": 3,
+  "compilerControls": 3,
+  "next": "Prepare bounded Core-control and native HTTP CI workflow; publish paired Core/root source and qualify before deployment.",
+  "core": "be316431cd7c605526c305942e33101a9dd3ae07",
+  "linkedProductionProjectsUpdated": true,
+  "coreSourcePaths": [
+    "Queries/CosmicSetProjection.cs"
+  ],
+  "apiAndTestSourcePaths": [
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CqlSetProjectionV1CompilerTests.cs",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/NextGenSoftware.OASIS.API.Core.UnitTests.csproj",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlSetV1Request.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlProjectedSetV1Compiler.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlRequestCapture.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlSetProjectionV1Compiler.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlSetProjectionV1Endpoint.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlSetV1Compiler.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlSetV1Endpoint.cs",
+    "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.NativeSetHttp.cs",
+    "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.PostSetWire.cs",
+    "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests.csproj"
+  ]
+}

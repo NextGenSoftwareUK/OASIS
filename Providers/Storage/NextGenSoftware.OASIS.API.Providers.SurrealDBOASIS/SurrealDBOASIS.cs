@@ -287,7 +287,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
             {
                 if (d.Id == Guid.Empty) d.Id = Guid.NewGuid();
                 await using var client = await GetClientAsync();
-                var rec = new DetailRecord { Id = SurrealDb.Net.Models.RecordId.From("oasis_avatar_details", d.Id.ToString()), Username = d.Username, Email = d.Email, DataJson = Ser(d) };
+                var rec = new DetailRecord { Id = SurrealDb.Net.Models.RecordId.From("oasis_avatar_details", d.Id.ToString()), Username = d.Username, Email = d.Email, DataJson = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Serialize(d) };
                 await client.Upsert(rec);
                 result.Result = d; result.IsError = false; result.Message = "SurrealDBOASIS: AvatarDetail saved.";
             }

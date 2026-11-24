@@ -1,0 +1,25 @@
+{
+  "source": "85bfbba31882c1fd40c84a218d9b73689b39ffaf",
+  "base": "1cea90e4a8a1b5b30429c5205464873bdde7ac93",
+  "tests": {
+    "tests": 163,
+    "pass": 163,
+    "fail": 0,
+    "skipped": 0
+  },
+  "allRelativeModulesFrozenToSameSource": true,
+  "testFilesWrittenLocally": false,
+  "localDependenciesInstalled": false,
+  "priorSameSourceFailures": 23,
+  "rootCause": "selected derived-table dispatch intercepted top-level JOIN grammar",
+  "assertionContractCorrections": [
+    "contextual scalar alias and UTC timestamp diagnostics and explicit-offset normalization",
+    "nested negative relationship AST remains nested",
+    "snapshot input bound 200",
+    "GUID/UTC DateTime mapped domains admitted",
+    "unfiltered mapped rows and COUNT admitted"
+  ],
+  "previewAccepted": false,
+  "liveAccepted": false,
+  "publicWebsitePromoted": false
+}

@@ -1,0 +1,128 @@
+{
+  "source": "91e3ad17428c524eff8cc990f95491ff0f4ecf6c",
+  "core": "def8cf76c73ed6495155dd16077a58030af33067",
+  "producerSource": "734f43904b2c60a78225991b1493532fb281445d",
+  "producerImageDigest": "sha256:2b4d4abd96e201980624bed4f835d9301e77f3bdb2577c78d3c9916381ea6731",
+  "web4ActualImageDigest": "sha256:3ee47afd276962a3041ccba242bc9b3b8b5eeb254f5ff1e062b0003d627ba28f",
+  "rollouts": {
+    "web6": {
+      "deployment": "72175469-cda2-4331-8d6b-80f4579a94fa",
+      "status": "SUCCESS",
+      "source": "91e3ad17428c524eff8cc990f95491ff0f4ecf6c",
+      "imageDigest": "sha256:bd0b0f2d8e53faa120663bb0b88067feb3d8d7811c2fe11d013909e2c8b9bf8d"
+    },
+    "web7": {
+      "deployment": "5443cac2-845d-4639-8e67-5c18a92c9b5b",
+      "status": "SUCCESS",
+      "source": "91e3ad17428c524eff8cc990f95491ff0f4ecf6c",
+      "imageDigest": "sha256:90a06072e707f0cc80fb5538cc9b86305209ab90e5011a9f0267737298cd0fc6"
+    },
+    "web9": {
+      "deployment": "e03cdf99-73f4-4af7-98ef-a7e4eeafac36",
+      "status": "SUCCESS",
+      "source": "91e3ad17428c524eff8cc990f95491ff0f4ecf6c",
+      "imageDigest": "sha256:8892c1294a65a4ed3fd1cbef8b23043bb3298d9100e0e485f029263f8751f41a"
+    },
+    "web4": {
+      "deployment": "464f4e4e-dd9a-4ce1-a5be-668054c678b8",
+      "status": "SUCCESS",
+      "source": "91e3ad17428c524eff8cc990f95491ff0f4ecf6c",
+      "imageDigest": "sha256:3ee47afd276962a3041ccba242bc9b3b8b5eeb254f5ff1e062b0003d627ba28f"
+    },
+    "web10": {
+      "deployment": "cf447cbb-bb69-4a20-ab18-53ea502b69ca",
+      "status": "SUCCESS",
+      "source": "91e3ad17428c524eff8cc990f95491ff0f4ecf6c",
+      "imageDigest": "sha256:0cb8b7aacd2038703164571908e082b1ed9602bc5e83a17fd2dc0a018b5fb6d8"
+    },
+    "web8": {
+      "deployment": "eb5cbb34-4247-483f-8076-d3a9b5e826d9",
+      "status": "SUCCESS",
+      "source": "91e3ad17428c524eff8cc990f95491ff0f4ecf6c",
+      "imageDigest": "sha256:96d0d0e993da50d0b0ea55b1b5f3ec7d81628af3cff7d69a4c134c91ce12d6a2"
+    },
+    "web5": {
+      "deployment": "5ceb75c6-b71f-4f4f-bcd7-604481637a53",
+      "status": "SUCCESS",
+      "source": "91e3ad17428c524eff8cc990f95491ff0f4ecf6c",
+      "imageDigest": "sha256:2641fad271b2f67d832623884d2f3ed63ff25204a5a6f732948769731feb7452"
+    }
+  },
+  "allSevenDeploymentsAccepted": true,
+  "runtimeSourceBeforeAfterMatched": true,
+  "startupBefore": {
+    "source": "91e3ad17428c524eff8cc990f95491ff0f4ecf6c",
+    "startupDnaAutoLoadBalanceEnabled": true,
+    "startupDnaAutoFailOverEnabled": true,
+    "startupDnaAutoReplicationEnabled": true,
+    "legacyStorageLoadBalanceEnabled": true,
+    "scope": "selected startup DNA fields; not in-process manager attestation",
+    "observedUtc": "2026-11-23T13:57:51.838446+00:00"
+  },
+  "startupAfter": {
+    "source": "91e3ad17428c524eff8cc990f95491ff0f4ecf6c",
+    "startupDnaAutoLoadBalanceEnabled": true,
+    "startupDnaAutoFailOverEnabled": true,
+    "startupDnaAutoReplicationEnabled": true,
+    "legacyStorageLoadBalanceEnabled": true,
+    "scope": "selected startup DNA fields; not in-process manager attestation",
+    "observedUtc": "2026-11-23T13:58:58.426308+00:00"
+  },
+  "runtime": {
+    "source": "91e3ad17428c524eff8cc990f95491ff0f4ecf6c",
+    "startedUtc": "2026-11-23T13:58:25.427781+00:00",
+    "calls": [
+      {
+        "route": "sandbox/session",
+        "method": "POST",
+        "status": 200,
+        "isError": false
+      },
+      {
+        "route": "hyperdrive/status",
+        "method": "GET",
+        "status": 200,
+        "isError": false
+      },
+      {
+        "route": "avatar/revoke-token",
+        "method": "POST",
+        "status": 200,
+        "isError": false
+      }
+    ],
+    "pending": null,
+    "completed": true,
+    "temporarySessionsIssued": 1,
+    "applicationHolonWrites": 0,
+    "piperRecordsQueried": false,
+    "liveNativeTransportAccepted": false,
+    "populatedResultsAccepted": false,
+    "selectedRuntimeSettings": {
+      "mode": "OASISHyperDrive2",
+      "effectiveConfigurationSource": "OASIS.OASISHyperDriveConfig",
+      "effectiveConfigurationAppliedUtc": "2026-11-23T13:55:55.6853791Z",
+      "autoLoadBalancingEnabled": true,
+      "autoFailoverEnabled": true,
+      "autoReplicationEnabled": true,
+      "backgroundWorkersPauseConfigured": true
+    },
+    "runtimeSettingsObserved": true,
+    "sessionRevoked": true,
+    "credentialsRemoved": true,
+    "finishedUtc": "2026-11-23T13:58:36.434462+00:00",
+    "checkpointCleanup": {
+      "filesRemoved": 9,
+      "bytesRemoved": 6798,
+      "replayGuardRetained": true
+    }
+  },
+  "sourceAndRuntimeSettingsAccepted": true,
+  "hostedAsyncApplicationJourneyAccepted": false,
+  "populatedHostedDataAccepted": false,
+  "realWeb6InferenceAccepted": false,
+  "fullParityClaimed": false,
+  "workerPauseConfigurationIsNotLivenessProof": true,
+  "deploymentAccepted": true,
+  "observedUtc": "2026-11-23T13:59:30.532919+00:00"
+}

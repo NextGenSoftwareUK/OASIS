@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
@@ -157,6 +158,41 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 ResetOASISSettings(request, configResult);
             }
+        }
+
+        /// <summary>
+        /// Deletes a file. For a chunked file a hard delete also removes its chunks; a soft delete keeps them so the
+        /// file can be restored. Ownership and revision checks are those of delete-holon.
+        /// </summary>
+        [Authorize]
+        [HttpPost("delete-chunked-file")]
+        public async Task<OASISHttpResponseMessage<IHolon>> DeleteChunkedFile(DeleteHolonRequest request)
+        {
+            ChunkedFileManifest manifest = null;
+            if (!request.SoftDelete)
+            {
+                var denied = await CheckFileReadAccessAsync<IHolon>(request.Id);
+                if (denied != null) return denied;
+
+                var file = await HolonManager.LoadFileAsync(request.Id, AvatarId);
+                if (!file.IsError && file.Result != null)
+                    manifest = ChunkedFileManifest.TryParse(file.Result);
+            }
+
+            var deleted = await DeleteHolon(request);
+            if (manifest == null || deleted?.Result == null || deleted.Result.IsError)
+                return deleted;
+
+            var leftover = 0;
+            foreach (var chunkId in manifest.ChunkIds)
+            {
+                var chunk = await HolonManager.DeleteHolonAsync(chunkId, AvatarId, false);
+                if (chunk == null || chunk.IsError) leftover++;
+            }
+            if (leftover > 0)
+                deleted.Result.Message = $"{deleted.Result.Message} ({leftover} of {manifest.ChunkIds.Count} chunks could not be removed.)".Trim();
+
+            return deleted;
         }
 
         /// <summary>Returns a 404/403 response when the caller may not read the file, otherwise null. Wizards bypass.</summary>

@@ -1,0 +1,107 @@
+{
+  "sharedDatabaseCalls": 0,
+  "core": "857edcb237d1cc79f9bc337caf6ca39ad13f5d15",
+  "nativePassed": 3,
+  "fluentScalarModelsVerified": true,
+  "source": "48d769f329ab9c07eafecc90ca18953d9fea4d59",
+  "actualWeb4Compiled": true,
+  "ownedFixturesAbsent": true,
+  "deployed": false,
+  "run": 45104280443,
+  "job": 137461877899,
+  "artifact": 14786499976,
+  "archiveBytes": 3305,
+  "archiveSha256": "ba64571b00770bbde64d23fff27148b0f7a862aa666e517ed00632bce327ab88",
+  "reports": {
+    "MongoDBOASIS": {
+      "provider": "MongoDBOASIS",
+      "checks": 6,
+      "ownedCleanupIds": 2,
+      "successfulHolonWrites": 3,
+      "queryElapsedMilliseconds": {
+        "create-a": 542,
+        "create-b": 27,
+        "read-a": 101,
+        "read-b": 5,
+        "project-a": 67,
+        "update-a": 46,
+        "read-updated-a": 6,
+        "foreign-read": 1
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "immutableSnapshotsVerified": true,
+        "fluentAliasesStored": true,
+        "freshTypedReadVerified": true,
+        "nativePredicateProjectionVerified": true,
+        "acknowledgedUpdateVerified": true,
+        "modelAffinityRefused": true,
+        "foreignPrivateExcluded": true,
+        "collisionsRefusedBeforeGetters": true
+      },
+      "exactCleanupVerified": true
+    },
+    "SQLLiteDBOASIS": {
+      "provider": "SQLLiteDBOASIS",
+      "checks": 6,
+      "ownedCleanupIds": 2,
+      "successfulHolonWrites": 3,
+      "queryElapsedMilliseconds": {
+        "create-a": 933,
+        "create-b": 48,
+        "read-a": 97,
+        "read-b": 13,
+        "project-a": 33,
+        "update-a": 85,
+        "read-updated-a": 8,
+        "foreign-read": 15
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "immutableSnapshotsVerified": true,
+        "fluentAliasesStored": true,
+        "freshTypedReadVerified": true,
+        "nativePredicateProjectionVerified": true,
+        "acknowledgedUpdateVerified": true,
+        "modelAffinityRefused": true,
+        "foreignPrivateExcluded": true,
+        "collisionsRefusedBeforeGetters": true
+      },
+      "exactCleanupVerified": true
+    },
+    "Neo4jOASIS": {
+      "provider": "Neo4jOASIS",
+      "checks": 6,
+      "ownedCleanupIds": 2,
+      "successfulHolonWrites": 3,
+      "queryElapsedMilliseconds": {
+        "create-a": 1149,
+        "create-b": 59,
+        "read-a": 653,
+        "read-b": 21,
+        "project-a": 1030,
+        "update-a": 106,
+        "read-updated-a": 21,
+        "foreign-read": 547
+      },
+      "nativeProviderVerified": true,
+      "evidence": {
+        "immutableSnapshotsVerified": true,
+        "fluentAliasesStored": true,
+        "freshTypedReadVerified": true,
+        "nativePredicateProjectionVerified": true,
+        "acknowledgedUpdateVerified": true,
+        "modelAffinityRefused": true,
+        "foreignPrivateExcluded": true,
+        "collisionsRefusedBeforeGetters": true
+      },
+      "exactCleanupVerified": true
+    }
+  },
+  "nativeAccepted": true,
+  "ownedMongoStopped": true,
+  "archiveSavedToDisk": false,
+  "liveAccepted": false,
+  "fullFluentParity": false,
+  "aliasGuardCoreExcluded": "f0c0fab4c656f9277ae20e9f2cb07cfe5cc4981b"
+}

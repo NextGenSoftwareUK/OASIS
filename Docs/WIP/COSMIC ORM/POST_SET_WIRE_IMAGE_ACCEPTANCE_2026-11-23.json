@@ -1,0 +1,32 @@
+{
+  "source": "563bdf2625dcf1bfd55453e079850de44a671bc7",
+  "core": "be316431cd7c605526c305942e33101a9dd3ae07",
+  "web6": "78a27a295e74721358eb2b02399f79eff5b21633",
+  "onode": "8745c95ef2f6150fafb1417122a20c020784b338",
+  "run": 45166248349,
+  "job": 137663841854,
+  "controlSource": "563bdf2625dcf1bfd55453e079850de44a671bc7",
+  "digest": "sha256:522f34d4fa2d29a7507080def30de7f85f04abae457db536ccc7abd5ca6e01e0",
+  "teachingSidecars": false,
+  "exactPrivatePinsVerified": true,
+  "nativeWireRun": 45164719387,
+  "requiredCi": [
+    {
+      "run": 45164719091,
+      "conclusion": "success",
+      "headSha": "563bdf2625dcf1bfd55453e079850de44a671bc7",
+      "status": "completed"
+    },
+    {
+      "run": 45164719251,
+      "conclusion": "success",
+      "headSha": "563bdf2625dcf1bfd55453e079850de44a671bc7",
+      "status": "completed"
+    }
+  ],
+  "imageAccepted": true,
+  "combinedCoreCompiled": true,
+  "imageDownloadedLocally": false,
+  "deployed": false,
+  "observedUtc": "2026-11-23T11:44:22.958333+00:00"
+}

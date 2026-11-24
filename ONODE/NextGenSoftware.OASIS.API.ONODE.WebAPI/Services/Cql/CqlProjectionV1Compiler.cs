@@ -130,6 +130,21 @@ public static partial class CqlV1Compiler
         }
     }
 
+    private sealed class UtcDatePartSelectionConsumer<TResult>(
+        ISelectionConsumer<TResult> consumer,string property,bool nullable):ISelectionConsumer<TResult>
+    {
+        public TResult Bind<TValue>(string alias,Expression<Func<Holon,TValue>> selector)
+        {
+            if(typeof(TValue)!=typeof(DateTime))
+                throw new ArgumentException("UTC date parts require an exact DateTime input.");
+            var value=Expression.Property(selector.Body,property);
+            return nullable
+                ? consumer.Bind(alias,Expression.Lambda<Func<Holon,int?>>(
+                    Expression.Convert(value,typeof(int?)),selector.Parameters))
+                : consumer.Bind(alias,Expression.Lambda<Func<Holon,int>>(value,selector.Parameters));
+        }
+    }
+
     private sealed class BooleanTextCaseSelectionConsumer<TResult>(ISelectionConsumer<TResult> consumer,string whenTrue,string whenFalse)
         :ISelectionConsumer<TResult>
     {
@@ -187,6 +202,19 @@ public static partial class CqlV1Compiler
             throw new ArgumentException("Only Int32 coalescing accepts an integer replacement.");
         if(column.Function!=CqlV1Function.BooleanTextCase && (column.WhenTrue!=null || column.WhenFalse!=null))
             throw new ArgumentException("Only conditional text accepts branch literals.");
+        var dateProperty=column.Function switch {
+            CqlV1Function.UtcYear=>nameof(DateTime.Year),CqlV1Function.UtcMonth=>nameof(DateTime.Month),
+            CqlV1Function.UtcDay=>nameof(DateTime.Day),CqlV1Function.UtcDayOfYear=>nameof(DateTime.DayOfYear),
+            CqlV1Function.UtcHour=>nameof(DateTime.Hour),CqlV1Function.UtcMinute=>nameof(DateTime.Minute),
+            CqlV1Function.UtcSecond=>nameof(DateTime.Second),_=>null };
+        if(dateProperty!=null)
+        {
+            if(column.MetadataPath==null || column.Field!=null || column.ValueType!="DateTime" || column.NullReplacement!=null)
+                throw new ArgumentException("UTC date parts require exact DateTime metadata without replacement literals.");
+            var input=new CqlProjectionV1Column{
+                Alias=column.Alias,MetadataPath=column.MetadataPath,ValueType="DateTime",Nullable=false};
+            return CompileSelection(input,new UtcDatePartSelectionConsumer<TResult>(consumer,dateProperty,column.Nullable==true));
+        }
         if(column.Function==CqlV1Function.BooleanTextCase)
         {
             if(column.WhenTrue==null || column.WhenFalse==null || column.WhenTrue.Length>512 || column.WhenFalse.Length>512

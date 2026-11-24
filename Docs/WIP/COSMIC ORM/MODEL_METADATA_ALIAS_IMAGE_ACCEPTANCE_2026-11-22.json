@@ -1,0 +1,26 @@
+{
+  "source": "4b74c80b1e334d3b8fe6bfcddf163d21373f7e4e",
+  "core": "45892646b637f574d53188b315a92e0ef7fa87a3",
+  "web6": "c214296e8b8cfde671466a5a82e24d5fc83f9509",
+  "onodeCore": "1b28ed0436173b827e58b75a3bb5a99c1bb661ec",
+  "run": 45085992675,
+  "job": 137404629281,
+  "digest": "sha256:365c7530f7e25017a69fbd4a919c968ae20a08276c4e37cdd85395c962c45916",
+  "teachingSidecars": false,
+  "exactPrivatePinsVerified": true,
+  "contractQualifiedSource": "8bf2b70b4fb27121afcbd9fd8e1494e91d87dc3c",
+  "contractRun": 45083185178,
+  "reviewedQualifiedSourceDelta": [
+    "Docs/Devs/COSMIC_MODEL_MAPPING.md",
+    "Docs/WIP/COSMIC ORM/CURRENT_STATUS.md",
+    "Docs/WIP/COSMIC ORM/FULL_STATUS_REPORT_2026-11-22.md",
+    "Docs/WIP/COSMIC ORM/KEYED_ENTITY_DELIVERY_SCOPE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/KEYED_ENTITY_DEVELOPMENT_CANDIDATE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/MODEL_METADATA_ALIAS_NATIVE_ACCEPTANCE_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/MODEL_METADATA_ALIAS_SOURCE_PREPARATION_2026-11-22.json",
+    "Docs/WIP/COSMIC ORM/RECOVERY_LAPTOP_CLEANUP_LEDGER.md",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/HyperDrive/HyperDriveProviderExecutionTests.cs"
+  ],
+  "deployed": false,
+  "imageDownloadedLocally": false
+}
