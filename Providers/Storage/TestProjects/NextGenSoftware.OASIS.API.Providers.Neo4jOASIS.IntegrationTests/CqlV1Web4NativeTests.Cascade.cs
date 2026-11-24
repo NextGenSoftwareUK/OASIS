@@ -75,16 +75,23 @@ public sealed partial class CqlV1Web4NativeTests
         var firstChild=await deleter.ChildAtAsync(loaded,0);Assert.IsFalse(firstChild.IsError,firstChild.Message);
         Assert.AreEqual(child.Id,firstChild.Result.Id);
         Assert.IsNull((await deleter.ChildAtAsync(loaded,5)).Result);checks++;
+        // A07 delete-orphan: removing a child from the loaded collection deletes it on SaveChanges.
+        Assert.IsFalse(deleter.SetDeleteOrphans(true,softDelete:false).IsError);
+        loaded.Children.Remove(loaded.Children.Single(row=>row.Id==late.Id));
+        var orphaned=await deleter.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));
+        Assert.IsFalse(orphaned.IsError,orphaned.ErrorCode+": "+orphaned.Message);
+        Assert.AreEqual(0,(await Stored(late.Id)).Count,"The orphan is deleted.");
+        Assert.AreEqual(1,(await Stored(root.Id)).Count,"The parent stays.");checks++;
         var bounded=await deleter.RemoveCascadeAsync(loaded,softDelete:false,maximumDescendants:1);
         Assert.IsTrue(bounded.IsError);Assert.AreEqual("COSMIC_CASCADE_LIMIT_EXCEEDED",bounded.ErrorCode);checks++;
         var queued=await deleter.RemoveCascadeAsync(loaded,softDelete:false);
-        Assert.IsFalse(queued.IsError,queued.ErrorCode+": "+queued.Message);Assert.AreEqual(5,queued.Result);checks++;
+        Assert.IsFalse(queued.IsError,queued.ErrorCode+": "+queued.Message);Assert.AreEqual(4,queued.Result);checks++;
         var clock=System.Diagnostics.Stopwatch.StartNew();
         var deleted=await deleter.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));
         timings.Add("cascade-commit",clock.ElapsedMilliseconds);
         Assert.IsFalse(deleted.IsError,deleted.ErrorCode+": "+deleted.Message);checks++;
         CollectionAssert.AreEquivalent(new[]{other.Id},(await Stored(root.Id,child.Id,grandchild.Id,late.Id,navChild.Id,other.Id)).Select(row=>row.Id).ToArray());checks++;
         return new NativeFixtureJourneyProof(checks,4,new Dictionary<string,bool>{
-            ["cascadeDeleteVerified"]=true,["cascadeBoundRefusedVerified"]=true,["siblingPreservedVerified"]=true,["explicitChildLoadingVerified"]=true,["loadedCollectionFixUpVerified"]=true,["extraLazyCollectionVerified"]=true,["navigationCascadeInsertVerified"]=true});
+            ["cascadeDeleteVerified"]=true,["cascadeBoundRefusedVerified"]=true,["siblingPreservedVerified"]=true,["explicitChildLoadingVerified"]=true,["loadedCollectionFixUpVerified"]=true,["extraLazyCollectionVerified"]=true,["navigationCascadeInsertVerified"]=true,["deleteOrphanVerified"]=true});
     }
 }
