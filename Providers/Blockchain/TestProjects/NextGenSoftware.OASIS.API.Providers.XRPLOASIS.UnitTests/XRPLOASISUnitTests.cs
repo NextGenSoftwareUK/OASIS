@@ -42,21 +42,20 @@ namespace NextGenSoftware.OASIS.API.Providers.XRPLOASIS.UnitTests
         }
 
         [TestMethod]
-        public void ActivateProvider_ShouldSetIsProviderActivatedToTrue()
+        public void UnconfiguredProvider_RefusesActivationWithAnExplicitConfigurationError()
         {
+            // Storage needs an RPC endpoint, Ed25519 key, Kubo endpoint and encryption key; nothing is contacted without them.
             Assert.IsFalse(_provider.IsProviderActivated);
             var result = _provider.ActivateProvider();
-            Assert.IsTrue(result.IsError == false);
-            Assert.IsTrue(_provider.IsProviderActivated);
+            Assert.IsTrue(result.IsError);
+            Assert.IsFalse(_provider.IsProviderActivated);
         }
 
         [TestMethod]
-        public void DeActivateProvider_ShouldSetIsProviderActivatedToFalse()
+        public void DeActivateProvider_LeavesTheProviderInactive()
         {
-            _provider.ActivateProvider();
-            Assert.IsTrue(_provider.IsProviderActivated);
             var result = _provider.DeActivateProvider();
-            Assert.IsTrue(result.IsError == false);
+            Assert.IsFalse(result.IsError);
             Assert.IsFalse(_provider.IsProviderActivated);
         }
 

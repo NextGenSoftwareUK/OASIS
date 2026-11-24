@@ -1,0 +1,73 @@
+name: Stellar native storage
+
+on:
+  push:
+    branches: [work/hyperdrive-triad]
+    paths:
+      - '.github/workflows/stellar-native-storage.yml'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.StellarOASIS/**'
+      - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.StellarOASIS.IntegrationTests/StellarNativeStorageConformanceTests.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  storage:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: OASIS
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Run the shared core storage suite against a disposable Stellar quickstart (standalone) and Kubo
+        run: |
+          fixture="$(mktemp -d "$RUNNER_TEMP/oasis-native.XXXXXXXX")"
+          stellar="" kubo=""
+          cleanup() {
+            status=$?
+            if [[ -n "$stellar" ]]; then (( status != 0 )) && docker logs --tail 40 "$stellar"; docker rm -fv "$stellar" >/dev/null || status=1; fi
+            if [[ -n "$kubo" ]]; then docker rm -fv "$kubo" >/dev/null || status=1; fi
+            [[ "$fixture" == "$RUNNER_TEMP"/oasis-native.* ]] && rm -rf -- "$fixture"
+            exit "$status"
+          }
+          trap cleanup EXIT
+          stellar="$(docker run -d -p 127.0.0.1:18000:8000 docker.io/stellar/quickstart@sha256:d44068b0032099bb3722c95f5ded46b715393a1a977edc56512aea79b44e3f8b --local)"
+          kubo="$(docker run -d -p 127.0.0.1:15001:5001 ipfs/kubo@sha256:97ece99cfccea95613ab3634f761d0200e9e8b1f49294b5428e19b5b9056759d daemon --offline)"
+          for attempt in $(seq 1 150); do
+            if curl -fsS http://127.0.0.1:18000/ | jq -e '.history_latest_ledger > 2' >/dev/null 2>&1 \
+              && [[ "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:18000/friendbot)" == 400 ]] \
+              && curl -fsS -X POST http://127.0.0.1:15001/api/v0/version >/dev/null 2>&1; then break; fi
+            [[ "$attempt" != 150 ]]; sleep 2
+          done
+          export OASIS_NATIVE_STORAGE_FIXTURE="$fixture" OASIS_STELLAR_HORIZON="http://127.0.0.1:18000" OASIS_STELLAR_KUBO="http://127.0.0.1:15001"
+          dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.StellarOASIS.IntegrationTests" \
+            -p:NativeStorageConformance=true --filter "FullyQualifiedName~StellarNativeStorageConformanceTests" \
+            -m:2 -nr:false -p:UseSharedCompilation=false --logger "console;verbosity=normal"
+          for mode in async sync; do
+            jq -e '.Succeeded and .FixtureCleanupComplete and (.Passed | length == 26)' "$fixture/$mode.json" >/dev/null
+          done
+          echo "Stellar passed both storage modes against a standalone network."

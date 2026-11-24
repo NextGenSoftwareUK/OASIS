@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Providers.XRPLOASIS;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -68,8 +71,11 @@ namespace NextGenSoftware.OASIS.API.Providers.XRPLOASIS.IntegrationTests
         {
             var searchParams = new SearchParams
             {
-                SearchQuery = "test",
-                SearchType = SearchType.Holon
+                SearchOnlyForCurrentAvatar = false,
+                SearchGroups = new List<ISearchGroupBase>
+                {
+                    new SearchTextGroup { SearchQuery = "test", HolonType = HolonType.Holon, SearchHolons = true }
+                }
             };
             var result = await _provider.SearchAsync(searchParams);
             Assert.IsNotNull(result);

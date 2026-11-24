@@ -19,6 +19,14 @@
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.XRPLOASIS\NextGenSoftware.OASIS.API.Providers.XRPLOASIS.csproj" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(NativeStorageConformance)' == 'true'">
+    <Compile Remove="**/*.cs" />
+    <Compile Include="XRPLNativeStorageConformanceTests.cs" />
+    <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(NativeStorageConformance)' != 'true'">
+    <Compile Remove="XRPLNativeStorageConformanceTests.cs" />
+  </ItemGroup>
 </Project>
 
 

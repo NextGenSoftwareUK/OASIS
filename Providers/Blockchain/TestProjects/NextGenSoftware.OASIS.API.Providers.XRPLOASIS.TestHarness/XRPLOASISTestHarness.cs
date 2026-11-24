@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Providers.XRPLOASIS;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -60,8 +63,8 @@ namespace NextGenSoftware.OASIS.API.Providers.XRPLOASIS.TestHarness
         {
             Console.WriteLine("--- Testing Provider Information ---");
             Console.WriteLine($"Provider Version: {_provider.GetProviderVersion()}");
-            Console.WriteLine($"Provider Type: {_provider.GetProviderType()}");
-            Console.WriteLine($"Provider Category: {_provider.GetProviderCategory()}");
+            Console.WriteLine($"Provider Type: {_provider.ProviderType.Value}");
+            Console.WriteLine($"Provider Category: {_provider.ProviderCategory.Value}");
             Console.WriteLine($"Provider Description: {_provider.ProviderDescription}");
             Console.WriteLine();
         }
@@ -125,11 +128,14 @@ namespace NextGenSoftware.OASIS.API.Providers.XRPLOASIS.TestHarness
             Console.WriteLine("--- Testing Search Operations ---");
             var searchParams = new SearchParams
             {
-                SearchQuery = "test",
-                SearchType = SearchType.Holon
+                SearchOnlyForCurrentAvatar = false,
+                SearchGroups = new List<ISearchGroupBase>
+                {
+                    new SearchTextGroup { SearchQuery = "test", HolonType = HolonType.Holon, SearchHolons = true }
+                }
             };
 
-            Console.WriteLine($"Searching with query: '{searchParams.SearchQuery}'");
+            Console.WriteLine("Searching with query: 'test'");
             var searchResult = await _provider.SearchAsync(searchParams);
             Console.WriteLine($"Search Result: {(searchResult.IsError ? "Failed" : "Success")}");
             if (searchResult.IsError)
