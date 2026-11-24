@@ -67,8 +67,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS
             return conn;
         }
 
-        private static string Ser(object obj) => JsonSerializer.Serialize(obj, _jsonOpts);
-        private static T? Des<T>(string json) => JsonSerializer.Deserialize<T>(json, _jsonOpts);
+        // Canonical OASIS record JSON keeps concrete types for interface members and skips holon navigation.
+        private static string Ser(object obj) => StoredRecordJson.Serialize(obj);
+        private static T? Des<T>(string json) => StoredRecordJson.DeserializeStored<T>(json);
 
         private async Task ExecuteAsync(string sql)
         {
@@ -374,10 +375,10 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS
                     ? new Dictionary<Core.Enums.ProviderType, string>()
                     : new Dictionary<Core.Enums.ProviderType, string>(holon.ProviderUniqueStorageKey);
                 keys[Core.Enums.ProviderType.ClickHouseOASIS] = id.ToString("D");
-                var payload = JsonSerializer.SerializeToNode(holon, holon.GetType(), _jsonOpts)!.AsObject();
-                payload["Id"] = id;
-                payload["ProviderUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
-                await PersistHolonAsync(id, holon.ParentHolonId, holon.HolonType.ToString(), holon.IsDeleted, payload.ToJsonString(_jsonOpts));
+                var payload = System.Text.Json.Nodes.JsonNode.Parse(Ser(holon))!.AsObject();
+                payload["Id"] = id.ToString("D");
+                payload["ProviderUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys);
+                await PersistHolonAsync(id, holon.ParentHolonId, holon.HolonType.ToString(), holon.IsDeleted, payload.ToJsonString());
                 holon.Id = id;
                 holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
                 holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.ClickHouseOASIS] = id.ToString("D");
