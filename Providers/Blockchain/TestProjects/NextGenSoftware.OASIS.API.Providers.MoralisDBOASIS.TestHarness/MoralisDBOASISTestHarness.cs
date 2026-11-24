@@ -1,9 +1,4 @@
-using NextGenSoftware.OASIS.API.DNA;
-using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
-using NextGenSoftware.OASIS.API.Core.Objects.Search;
-using System.Collections.Generic;
-using NextGenSoftware.OASIS.API.Providers.MoralisOASIS;
+using NextGenSoftware.OASIS.API.Providers.MoralisDBOASIS;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects;
@@ -14,15 +9,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisDBOASIS.TestHarness
 {
     public class MoralisDBOASISTestHarness
     {
-        private static global::NextGenSoftware.OASIS.API.Providers.MoralisOASIS.MoralisOASIS _provider;
+        private static MoralisDBOASIS _provider;
 
         public static async Task Main(string[] args)
         {
             Console.WriteLine("=== MoralisDBOASIS Test Harness ===");
             Console.WriteLine("Testing MoralisDBOASIS integration with OASIS...\n");
 
-            OASISDNA dna = OASISDNAManager.LoadDNA("OASIS_DNA.Development.json").Result;
-            _provider = new global::NextGenSoftware.OASIS.API.Providers.MoralisOASIS.MoralisOASIS(dna.OASIS.StorageProviders.MoralisOASIS.ApiKey);
+            _provider = new MoralisDBOASIS();
 
             try
             {
@@ -67,13 +61,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisDBOASIS.TestHarness
         {
             Console.WriteLine("--- Testing Provider Information ---");
             
-            var version = _provider.GetType().Assembly.GetName().Version;
+            var version = _provider.GetProviderVersion();
             Console.WriteLine($"Provider Version: {version}");
 
-            var providerType = _provider.ProviderType.Value;
+            var providerType = _provider.GetProviderType();
             Console.WriteLine($"Provider Type: {providerType}");
 
-            var category = _provider.ProviderCategory.Value;
+            var category = _provider.GetProviderCategory();
             Console.WriteLine($"Provider Category: {category}");
 
             var description = _provider.ProviderDescription;
@@ -141,11 +135,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisDBOASIS.TestHarness
         {
             Console.WriteLine("--- Testing Search Operations ---");
             
-            var searchParamsQuery = "test";
-            var searchParams = new SearchParams { SearchOnlyForCurrentAvatar = false, SearchGroups = new List<ISearchGroupBase> { new SearchTextGroup { SearchQuery = searchParamsQuery, SearchAvatars = true, SearchHolons = false } } };
+            var searchParams = new SearchParams
+            {
+                SearchQuery = "test",
+                SearchType = SearchType.Avatar
+            };
 
-            Console.WriteLine($"Searching Avatars with query: '{searchParamsQuery}'");
-            var avatarSearchResult = await _provider.SearchAsync(searchParams);
+            Console.WriteLine($"Searching Avatars with query: '{searchParams.SearchQuery}'");
+            var avatarSearchResult = await _provider.SearchAvatarsAsync(searchParams);
             Console.WriteLine($"Avatar Search Result: {(avatarSearchResult.IsError ? "Failed" : "Success")}");
             if (avatarSearchResult.IsError)
                 Console.WriteLine($"Error: {avatarSearchResult.Message}");

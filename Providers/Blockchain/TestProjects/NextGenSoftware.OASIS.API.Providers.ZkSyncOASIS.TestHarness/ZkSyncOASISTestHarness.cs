@@ -1,8 +1,4 @@
-using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
-using NextGenSoftware.OASIS.API.Core.Objects.Search;
-using System.Collections.Generic;
-using NextGenSoftware.OASIS.API.Providers.zkSyncOASIS;
+using NextGenSoftware.OASIS.API.Providers.ZkSyncOASIS;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects;
@@ -13,14 +9,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ZkSyncOASIS.TestHarness
 {
     public class ZkSyncOASISTestHarness
     {
-        private static global::NextGenSoftware.OASIS.API.Providers.zkSyncOASIS.zkSyncOASIS _provider;
+        private static ZkSyncOASIS _provider;
 
         public static async Task Main(string[] args)
         {
             Console.WriteLine("=== ZkSyncOASIS Test Harness ===");
             Console.WriteLine("Testing ZkSyncOASIS integration with OASIS...\n");
 
-            _provider = new global::NextGenSoftware.OASIS.API.Providers.zkSyncOASIS.zkSyncOASIS();
+            _provider = new ZkSyncOASIS();
 
             try
             {
@@ -65,13 +61,13 @@ namespace NextGenSoftware.OASIS.API.Providers.ZkSyncOASIS.TestHarness
         {
             Console.WriteLine("--- Testing Provider Information ---");
             
-            var version = _provider.GetType().Assembly.GetName().Version;
+            var version = _provider.GetProviderVersion();
             Console.WriteLine($"Provider Version: {version}");
 
-            var providerType = _provider.ProviderType.Value;
+            var providerType = _provider.GetProviderType();
             Console.WriteLine($"Provider Type: {providerType}");
 
-            var category = _provider.ProviderCategory.Value;
+            var category = _provider.GetProviderCategory();
             Console.WriteLine($"Provider Category: {category}");
 
             var description = _provider.ProviderDescription;
@@ -139,11 +135,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ZkSyncOASIS.TestHarness
         {
             Console.WriteLine("--- Testing Search Operations ---");
             
-            var searchParamsQuery = "test";
-            var searchParams = new SearchParams { SearchOnlyForCurrentAvatar = false, SearchGroups = new List<ISearchGroupBase> { new SearchTextGroup { SearchQuery = searchParamsQuery, SearchAvatars = true, SearchHolons = false } } };
+            var searchParams = new SearchParams
+            {
+                SearchQuery = "test",
+                SearchType = SearchType.Avatar
+            };
 
-            Console.WriteLine($"Searching Avatars with query: '{searchParamsQuery}'");
-            var avatarSearchResult = await _provider.SearchAsync(searchParams);
+            Console.WriteLine($"Searching Avatars with query: '{searchParams.SearchQuery}'");
+            var avatarSearchResult = await _provider.SearchAvatarsAsync(searchParams);
             Console.WriteLine($"Avatar Search Result: {(avatarSearchResult.IsError ? "Failed" : "Success")}");
             if (avatarSearchResult.IsError)
                 Console.WriteLine($"Error: {avatarSearchResult.Message}");

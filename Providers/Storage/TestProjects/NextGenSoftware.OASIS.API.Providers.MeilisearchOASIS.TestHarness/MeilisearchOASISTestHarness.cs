@@ -60,7 +60,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS.TestHarness
             Console.WriteLine(saveResult.IsError ? $"FAIL Save: {saveResult.Message}" : $"PASS Save: {saveResult.Message}");
             var loadResult = await _provider.LoadHolonAsync(holon.Id);
             Console.WriteLine(loadResult.IsError ? $"FAIL Load: {loadResult.Message}" : $"PASS Load: {loadResult.Message}");
-            var deleteResult = await _provider.DeleteHolonAsync(holon.Id);
+            var deleteResult = await _provider.DeleteHolonAsync(holon.Id, softDelete: true);
             Console.WriteLine(deleteResult.IsError ? $"FAIL Delete: {deleteResult.Message}" : $"PASS Delete: {deleteResult.Message}");
         }
 

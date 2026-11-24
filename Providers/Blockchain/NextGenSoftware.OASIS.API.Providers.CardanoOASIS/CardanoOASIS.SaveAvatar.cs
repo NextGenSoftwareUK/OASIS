@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -38,120 +38,8 @@ namespace NextGenSoftware.OASIS.API.Providers.CardanoOASIS
 {
     public partial class CardanoOASIS
     {
-        public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
-{
-    return SaveAvatarAsync(avatar).Result;
-}
 
-public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
-{
-    var response = new OASISResult<bool>();
-    try
-    {
-        if (!_isActivated)
-        {
-            OASISErrorHandling.HandleError(ref response, "Cardano provider is not activated");
-            return response;
-        }
 
-        // Delete avatar from Cardano blockchain using transaction with deletion metadata
-        var deleteData = JsonSerializer.Serialize(new { avatar_id = id.ToString(), deleted = true, soft_delete = softDelete });
-
-            // Get real UTXOs for the wallet
-            var utxosResult = await GetWalletUTXOsAsync();
-            if (utxosResult.IsError || !utxosResult.Result.Any())
-            {
-                OASISErrorHandling.HandleError(ref response, "No UTXOs available for transaction");
-                return response;
-            }
-
-            var utxo = utxosResult.Result.First();
-            var walletAddress = await GetWalletAddressAsync();
-            var fee = await CalculateTransactionFeeAsync(utxo, walletAddress, 1000000);
-
-            var txRequest = new
-            {
-                tx = new
-                {
-                    body = new
-                    {
-                        inputs = new[]
-                        {
-                            new
-                            {
-                                tx_hash = utxo.TxHash,
-                                index = utxo.Index
-                            }
-                        },
-                        outputs = new[]
-                        {
-                            new
-                            {
-                                address = walletAddress,
-                                amount = new
-                                {
-                                    quantity = 1000000,
-                                    unit = "lovelace"
-                                }
-                            }
-                        },
-                        fee = fee.ToString(),
-                        ttl = await GetCurrentSlotAsync() + 3600 // TTL: current slot + 1 hour
-                    },
-                    witness_set = new
-                    {
-                        vkey_witnesses = new[]
-                        {
-                            await CreateWitnessAsync(utxo, walletAddress)
-                        }
-                    },
-                    metadata = new Dictionary<string, object>
-                    {
-                        ["721"] = new Dictionary<string, object>
-                        {
-                            ["avatar_deletion"] = deleteData
-                        }
-                    }
-                }
-            };
-
-            var jsonContent = JsonSerializer.Serialize(txRequest);
-            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-            var httpResponse = await _httpClient.PostAsync("/tx/submit", content);
-
-            if (httpResponse.IsSuccessStatusCode)
-            {
-                var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                var txResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                if (txResponse.TryGetProperty("id", out var txId))
-                {
-                    response.Result = true;
-                    response.IsError = false;
-                    response.Message = $"Avatar deleted from Cardano blockchain successfully. Transaction ID: {txId.GetString()}";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, "Failed to delete avatar from Cardano blockchain");
-                }
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref response, $"Failed to delete avatar from Cardano: {httpResponse.StatusCode}");
-            }
-        }
-        catch (Exception ex)
-        {
-            response.Exception = ex;
-            OASISErrorHandling.HandleError(ref response, $"Error deleting avatar from Cardano: {ex.Message}");
-        }
-            return response;
-        }
-
-        public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
-{
-    return DeleteAvatarAsync(id, softDelete).Result;
-}
 
 
 

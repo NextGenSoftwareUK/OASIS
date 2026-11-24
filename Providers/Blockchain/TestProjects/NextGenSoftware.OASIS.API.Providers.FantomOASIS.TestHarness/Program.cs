@@ -1,6 +1,3 @@
-using NextGenSoftware.OASIS.API.Core.Objects.Search;
-using System.Collections.Generic;
-using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Providers.FantomOASIS;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -31,7 +28,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS.TestHarness
                 Console.WriteLine($"Provider Name: {provider.ProviderName}");
                 Console.WriteLine($"Provider Description: {provider.ProviderDescription}");
                 Console.WriteLine($"Provider Category: {provider.ProviderCategory}");
-                Console.WriteLine($"Provider Version: {provider.GetType().Assembly.GetName().Version}");
+                Console.WriteLine($"Provider Version: {provider.ProviderVersion}");
                 Console.WriteLine();
 
                 // Test provider activation
@@ -107,7 +104,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS.TestHarness
 
                 // Test avatar search
                 Console.WriteLine("  Searching avatars...");
-                var searchResult = await provider.SearchAsync(new SearchParams { SearchOnlyForCurrentAvatar = false, SearchGroups = new List<ISearchGroupBase> { new SearchTextGroup { SearchQuery = "testuser_fantom", SearchAvatars = true, SearchHolons = false } } });
+                var searchResult = await provider.SearchAvatarsAsync("testuser_fantom");
                 if (searchResult.IsError)
                 {
                     Console.WriteLine($"    ❌ Avatar search failed: {searchResult.Message}");
@@ -131,7 +128,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS.TestHarness
                 {
                     Name = "Test Holon Fantom",
                     Description = "A test holon for Fantom provider",
-                    HolonType = HolonType.Holon
+                    HolonType = HolonType.Generic
                 };
 
                 var saveResult = await provider.SaveHolonAsync(holon);
@@ -154,7 +151,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS.TestHarness
 
                 // Test holon search
                 Console.WriteLine("  Searching holons...");
-                var searchResult = await provider.SearchAsync(new SearchParams { SearchOnlyForCurrentAvatar = false, SearchGroups = new List<ISearchGroupBase> { new SearchTextGroup { SearchQuery = "Test Holon Fantom", SearchAvatars = false, SearchHolons = true } } });
+                var searchResult = await provider.SearchHolonsAsync("Test Holon Fantom");
                 if (searchResult.IsError)
                 {
                     Console.WriteLine($"    ❌ Holon search failed: {searchResult.Message}");
@@ -174,7 +171,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS.TestHarness
             {
                 // Test blockchain connection
                 Console.WriteLine("  Testing blockchain connection...");
-                var connectionResult = await provider.ActivateProviderAsync();
+                var connectionResult = await provider.ConnectAsync();
                 if (connectionResult.IsError)
                 {
                     Console.WriteLine($"    ❌ Blockchain connection failed: {connectionResult.Message}");

@@ -1,7 +1,3 @@
-using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
-using NextGenSoftware.OASIS.API.Core.Objects.Search;
-using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Providers.AptosOASIS;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -65,13 +61,13 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS.TestHarness
         {
             Console.WriteLine("--- Testing Provider Information ---");
             
-            var version = _aptosProvider.GetType().Assembly.GetName().Version;
+            var version = _aptosProvider.GetProviderVersion();
             Console.WriteLine($"Provider Version: {version}");
 
-            var providerType = _aptosProvider.ProviderType.Value;
+            var providerType = _aptosProvider.GetProviderType();
             Console.WriteLine($"Provider Type: {providerType}");
 
-            var category = _aptosProvider.ProviderCategory.Value;
+            var category = _aptosProvider.GetProviderCategory();
             Console.WriteLine($"Provider Category: {category}");
 
             var description = _aptosProvider.ProviderDescription;
@@ -106,13 +102,13 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS.TestHarness
                 Console.WriteLine($"Error: {loadResult.Message}");
 
             Console.WriteLine($"Loading Avatar by Email: {testAvatar.Email}");
-            var emailResult = await _aptosProvider.LoadAvatarByEmailAsync(testAvatar.Email);
+            var emailResult = await _aptosProvider.GetAvatarByEmailAsync(testAvatar.Email);
             Console.WriteLine($"Load by Email Result: {(emailResult.IsError ? "Failed" : "Success")}");
             if (emailResult.IsError)
                 Console.WriteLine($"Error: {emailResult.Message}");
 
             Console.WriteLine($"Loading Avatar by Username: {testAvatar.Username}");
-            var usernameResult = await _aptosProvider.LoadAvatarByUsernameAsync(testAvatar.Username);
+            var usernameResult = await _aptosProvider.GetAvatarByUsernameAsync(testAvatar.Username);
             Console.WriteLine($"Load by Username Result: {(usernameResult.IsError ? "Failed" : "Success")}");
             if (usernameResult.IsError)
                 Console.WriteLine($"Error: {usernameResult.Message}");
@@ -151,20 +147,23 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS.TestHarness
         {
             Console.WriteLine("--- Testing Search Operations ---");
             
-            var searchParamsQuery = "test";
-            var searchParams = new SearchParams { SearchOnlyForCurrentAvatar = false, SearchGroups = new List<ISearchGroupBase> { new SearchTextGroup { SearchQuery = searchParamsQuery, SearchAvatars = true, SearchHolons = false } } };
+            var searchParams = new SearchParams
+            {
+                SearchQuery = "test",
+                SearchType = SearchType.Avatar
+            };
 
-            Console.WriteLine($"Searching Avatars with query: '{searchParamsQuery}'");
-            var avatarSearchResult = await _aptosProvider.SearchAsync(searchParams);
+            Console.WriteLine($"Searching Avatars with query: '{searchParams.SearchQuery}'");
+            var avatarSearchResult = await _aptosProvider.SearchAvatarsAsync(searchParams);
             Console.WriteLine($"Avatar Search Result: {(avatarSearchResult.IsError ? "Failed" : "Success")}");
             if (avatarSearchResult.IsError)
                 Console.WriteLine($"Error: {avatarSearchResult.Message}");
             else
                 Console.WriteLine($"Found {avatarSearchResult.Result?.NumberOfResults ?? 0} avatars");
 
-            searchParams = new SearchParams { SearchOnlyForCurrentAvatar = false, SearchGroups = new List<ISearchGroupBase> { new SearchTextGroup { SearchQuery = searchParamsQuery, SearchAvatars = false, SearchHolons = true } } };
-            Console.WriteLine($"Searching Holons with query: '{searchParamsQuery}'");
-            var holonSearchResult = await _aptosProvider.SearchAsync(searchParams);
+            searchParams.SearchType = SearchType.Holon;
+            Console.WriteLine($"Searching Holons with query: '{searchParams.SearchQuery}'");
+            var holonSearchResult = await _aptosProvider.SearchHolonsAsync(searchParams);
             Console.WriteLine($"Holon Search Result: {(holonSearchResult.IsError ? "Failed" : "Success")}");
             if (holonSearchResult.IsError)
                 Console.WriteLine($"Error: {holonSearchResult.Message}");

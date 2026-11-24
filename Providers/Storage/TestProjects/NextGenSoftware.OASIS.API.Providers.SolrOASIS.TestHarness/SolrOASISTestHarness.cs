@@ -59,7 +59,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS.TestHarness
             Console.WriteLine(saveResult.IsError ? $"FAIL Save: {saveResult.Message}" : $"PASS Save");
             var loadResult = await _provider.LoadHolonAsync(holon.Id);
             Console.WriteLine(loadResult.IsError ? $"FAIL Load: {loadResult.Message}" : $"PASS Load");
-            var deleteResult = await _provider.DeleteHolonAsync(holon.Id);
+            var deleteResult = await _provider.DeleteHolonAsync(holon.Id, softDelete: true);
             Console.WriteLine(deleteResult.IsError ? $"FAIL Delete: {deleteResult.Message}" : $"PASS Delete");
         }
 

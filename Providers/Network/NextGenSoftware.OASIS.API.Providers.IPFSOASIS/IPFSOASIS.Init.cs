@@ -77,7 +77,10 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         {
             var path = OASISDNAManager.ResolveEffectiveOASISDNAPath(_OASISDNAPath);
             if (!File.Exists(path))
+            {
+                IPFSCatalogueRootPointer.Apply(_OASISDNA.OASIS.StorageProviders.IPFSOASIS);
                 return _OASISDNA;
+            }
 
             using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
             using var reader = new StreamReader(stream);
@@ -86,6 +89,8 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             var current = _OASISDNA.OASIS.StorageProviders.IPFSOASIS;
             if (settings == null || !StringComparer.Ordinal.Equals(settings.ConnectionString, current.ConnectionString))
                 throw new InvalidDataException("The persisted IPFS catalogue targets a different connection.");
+            settings.CatalogueRootPointerPath = current.CatalogueRootPointerPath;
+            IPFSCatalogueRootPointer.Apply(settings);
             return persisted;
         }
 
@@ -156,6 +161,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
                     || string.IsNullOrWhiteSpace(nativeVersion))
                     throw new InvalidOperationException("The IPFS daemon returned no native version.");
 
+                IPFSCatalogueRootPointer.Apply(_OASISDNA.OASIS.StorageProviders.IPFSOASIS);
                 _ipfsClient = client;
                 result.Result = true;
                 IsProviderActivated = true;
@@ -335,14 +341,19 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             var fsn = await IPFSClient.FileSystem.AddTextAsync(encrypted, cancel: cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
             settings.LookUpIPFSAddress = fsn.Id;
+            var pointerWritten = false;
             try
             {
+                IPFSCatalogueRootPointer.Write(settings, fsn.Id);
+                pointerWritten = true;
                 var saved=OASISDNAManager.SaveDNA(_OASISDNAPath, dna);
                 EnsureIndexPublication(fsn.Id,previousRoot,saved);
             }
             catch (Exception cause)
             {
                 settings.LookUpIPFSAddress = previousRoot;
+                if (pointerWritten && !string.IsNullOrWhiteSpace(previousRoot))
+                    IPFSCatalogueRootPointer.Write(settings, previousRoot);
                 if (cause is IPFSIndexPublicationException) throw;
                 throw new IPFSIndexPublicationException(fsn.Id, previousRoot, cause);
             }

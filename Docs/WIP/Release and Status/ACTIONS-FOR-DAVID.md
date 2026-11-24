@@ -83,6 +83,7 @@ Last updated 31 October 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (mer
 | 11 | Messaging programme: review and push the `work/oasis-messaging` branches (parent, API.Core, STAR ODK, 7 npm repos), publish the npm packages, physical-device Bluetooth tests, HerzApp/Our World wiring decisions | G |
 | 10 | COSMIC/CQL: decide follow-up Default-routing fix publication; hosted Azure/Oracle remain deferred | F |
 | 11 | **WEB6 model catalogue v6: review prices, then approve the push** (OpenRouter list import, media prices, 6 new text models) | G |
+| 12 | **HyperDrive on dev: approve one baseline repair for the Neo4j to SQLite replication hold at sequence 14** (the IPFS replication-source fault needs nothing from you) | I |
 
 ---
 
@@ -1471,3 +1472,42 @@ Links: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44675640513
 - HERE: in the HERE platform portal, create an API key for an app with Routing v8 and Geocoding & Search v1, and store it privately as `OASIS_HERE_ROUTING_API_KEY` in the same places. [Routing v8](https://docs.here.com/routing/docs/routing-v8-get-started) · [Discover](https://docs.here.com/geocoding-and-search/docs/code-discover-place)
 - MapLibre needs no key. It defaults to the public OSRM demo and Nominatim servers, which are limited to one request per second and not for production. For production volume, decide whether to self-host OSRM and Nominatim and pass their URLs.
 - Never put the keys in Git or chat. Engineering runs the opt-in live tests once the keys exist.
+
+## Hosted InfluxDB and Weaviate read-only CQL sources
+
+- Open 2026-11-24. WEB4 now registers both sources (`CqlInfluxDbReadSourceRegistration`, `CqlWeaviateReadSourceRegistration`). With the settings below unset they stay off. Their hosted tests (`InfluxDbHostedCqlNativeTests`, `WeaviateHostedCqlNativeTests`) compile but cannot run until a hosted teaching source exists. None of these names exist yet on Railway dev or in GitHub secrets.
+- InfluxDB (for example InfluxDB Cloud): create an organization and a bucket, a token with read-only access to that bucket, and seed it with the three public teaching records plus one deleted record. Set, on the Railway WEB4 service (dev first) and as GitHub Actions secrets for the hosted test:
+  - `CQL_INFLUXDB_QUERY_ORIGIN` (the HTTPS origin only, for example `https://eu-central-1-1.aws.cloud2.influxdata.com/`)
+  - `CQL_INFLUXDB_QUERY_ORGANIZATION`
+  - `CQL_INFLUXDB_QUERY_BUCKET`
+  - `CQL_INFLUXDB_QUERY_READER_TOKEN` (read-only token)
+  - `CQL_INFLUXDB_QUERY_PROBE_ID` (the ID of the first live teaching record)
+- Weaviate (for example Weaviate Cloud): create a cluster with an `OasisHolon` collection and a read-only API key, seeded the same way. Set `CQL_WEAVIATE_QUERY_ORIGIN`, `CQL_WEAVIATE_QUERY_READER_API_KEY` and `CQL_WEAVIATE_QUERY_PROBE_ID` in the same places.
+- The hosted tests also read a small JSON manifest of the seeded IDs, from `COSMIC_INFLUXDB_HOSTED_CQL_SOURCE` and `COSMIC_WEAVIATE_HOSTED_CQL_SOURCE`. Engineering writes that manifest once the sources exist.
+- Never put the tokens in Git or chat.
+
+## Part I — HyperDrive replication on dev (24 November 2026)
+
+### I1. Approve a baseline repair for Neo4j to SQLite at sequence 14
+
+- Status: open, 24 November 2026. Reported by the CQL/WEB4 session from the live dev WEB4 logs
+  (`railway logs -e dev -s 5123199a-43c4-4439-9921-e10e2aec7841`).
+- What: `Replication Neo4jOASIS -> hyperdrive-target:SQLLiteDBOASIS blocked at sequence 14, operation
+  b64bce63-3aeb-40c0-b3b2-b75675a87023: COSMIC_REPLICA_LINEAGE_CONFLICT`. This is a new hold and is not the protected
+  Mongo to SQLite 535/543 holds, which stay untouched.
+- Why: this is the designed outcome when a source holon already had versions before the route was enrolled. The SQLite
+  target never received the earlier versions, so normal delivery must refuse version N without its predecessor. No data
+  is lost; the delivery is held, not dropped. The fix is the reviewed initial-baseline repair, which writes to the hosted
+  SQLite target, so it needs your approval. The Neo4j to SQLite route is supported by the deployed repair command
+  (`ReplicaBaselineRepairCommand`, Development).
+- Steps: reply "approve the Neo4j to SQLite baseline repair for sequence 14" and the agent prepares the reviewed request
+  (read-only source and target inspection first), shows you the exact holon, version and digests, and runs
+  `dotnet NextGenSoftware.OASIS.API.ONODE.WebAPI.dll --cosmic-repair-baseline /data/COSMIC/ReplicaRepair/<request>.json`
+  in the dev WEB4 service once. Procedure and safety rules: `Docs/WIP/COSMIC ORM/REPLICA_BASELINE_AND_RECOVERY.md`.
+- Unblocks: the Neo4j to SQLite route on dev (later operations on that route queue behind the hold).
+- Not needed from you: the second fault in the same report, `Replication source binding IPFSOASIS unavailable` ("The
+  IPFS catalogue has no persisted storage identity"), is an engineering bug, fixed on `work/hyperdrive-triad`. The
+  catalogue root pointer lived in the DNA file, which the Railway entrypoint rewrites from `OASIS_DNA_JSON` on every
+  boot, so each restart rolled IPFS back to the legacy v1 catalogue (`QmXZ6Sh7...`). The new
+  `IPFSOASIS.CatalogueRootPointerPath` DNA setting keeps the root on the `/data` volume; the agent sets it in Railway's
+  `OASIS_DNA_JSON` when the fix is deployed.

@@ -1,8 +1,3 @@
-using NextGenSoftware.OASIS.API.DNA;
-using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
-using NextGenSoftware.OASIS.API.Core.Objects.Search;
-using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Providers.PolygonOASIS;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -21,9 +16,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolygonOASIS.TestHarness
             Console.WriteLine("=== PolygonOASIS Test Harness ===");
             Console.WriteLine("Testing PolygonOASIS integration with OASIS...\n");
 
-            OASISDNA dna = OASISDNAManager.LoadDNA("OASIS_DNA.Development.json").Result;
-            var polygon = dna.OASIS.StorageProviders.PolygonOASIS;
-            _provider = new PolygonOASIS(polygon.ConnectionString, polygon.ChainPrivateKey, polygon.ContractAddress, polygon.ChainId);
+            _provider = new PolygonOASIS();
 
             try
             {
@@ -68,13 +61,13 @@ namespace NextGenSoftware.OASIS.API.Providers.PolygonOASIS.TestHarness
         {
             Console.WriteLine("--- Testing Provider Information ---");
             
-            var version = _provider.GetType().Assembly.GetName().Version;
+            var version = _provider.GetProviderVersion();
             Console.WriteLine($"Provider Version: {version}");
 
-            var providerType = _provider.ProviderType.Value;
+            var providerType = _provider.GetProviderType();
             Console.WriteLine($"Provider Type: {providerType}");
 
-            var category = _provider.ProviderCategory.Value;
+            var category = _provider.GetProviderCategory();
             Console.WriteLine($"Provider Category: {category}");
 
             var description = _provider.ProviderDescription;
@@ -142,11 +135,14 @@ namespace NextGenSoftware.OASIS.API.Providers.PolygonOASIS.TestHarness
         {
             Console.WriteLine("--- Testing Search Operations ---");
             
-            var searchParamsQuery = "test";
-            var searchParams = new SearchParams { SearchOnlyForCurrentAvatar = false, SearchGroups = new List<ISearchGroupBase> { new SearchTextGroup { SearchQuery = searchParamsQuery, SearchAvatars = true, SearchHolons = false } } };
+            var searchParams = new SearchParams
+            {
+                SearchQuery = "test",
+                SearchType = SearchType.Avatar
+            };
 
-            Console.WriteLine($"Searching Avatars with query: '{searchParamsQuery}'");
-            var avatarSearchResult = await _provider.SearchAsync(searchParams);
+            Console.WriteLine($"Searching Avatars with query: '{searchParams.SearchQuery}'");
+            var avatarSearchResult = await _provider.SearchAvatarsAsync(searchParams);
             Console.WriteLine($"Avatar Search Result: {(avatarSearchResult.IsError ? "Failed" : "Success")}");
             if (avatarSearchResult.IsError)
                 Console.WriteLine($"Error: {avatarSearchResult.Message}");

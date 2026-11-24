@@ -1,7 +1,3 @@
-using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
-using NextGenSoftware.OASIS.API.Core.Objects.Search;
-using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Providers.ScrollOASIS;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -63,9 +59,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ScrollOASIS.TestHarness
         private static async Task TestProviderInformation()
         {
             Console.WriteLine("--- Testing Provider Information ---");
-            Console.WriteLine($"Provider Version: {_provider.GetType().Assembly.GetName().Version}");
-            Console.WriteLine($"Provider Type: {_provider.ProviderType.Value}");
-            Console.WriteLine($"Provider Category: {_provider.ProviderCategory.Value}");
+            Console.WriteLine($"Provider Version: {_provider.GetProviderVersion()}");
+            Console.WriteLine($"Provider Type: {_provider.GetProviderType()}");
+            Console.WriteLine($"Provider Category: {_provider.GetProviderCategory()}");
             Console.WriteLine($"Provider Description: {_provider.ProviderDescription}");
             Console.WriteLine();
         }
@@ -127,11 +123,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ScrollOASIS.TestHarness
         private static async Task TestSearchOperations()
         {
             Console.WriteLine("--- Testing Search Operations ---");
-            var searchParamsQuery = "test";
-            var searchParams = new SearchParams { SearchOnlyForCurrentAvatar = false, SearchGroups = new List<ISearchGroupBase> { new SearchTextGroup { SearchQuery = searchParamsQuery, SearchAvatars = true, SearchHolons = false } } };
+            var searchParams = new SearchParams
+            {
+                SearchQuery = "test",
+                SearchType = SearchType.Avatar
+            };
 
-            Console.WriteLine($"Searching Avatars with query: '{searchParamsQuery}'");
-            var avatarSearchResult = await _provider.SearchAsync(searchParams);
+            Console.WriteLine($"Searching Avatars with query: '{searchParams.SearchQuery}'");
+            var avatarSearchResult = await _provider.SearchAvatarsAsync(searchParams);
             Console.WriteLine($"Avatar Search Result: {(avatarSearchResult.IsError ? "Failed" : "Success")}");
             if (avatarSearchResult.IsError)
                 Console.WriteLine($"Error: {avatarSearchResult.Message}");

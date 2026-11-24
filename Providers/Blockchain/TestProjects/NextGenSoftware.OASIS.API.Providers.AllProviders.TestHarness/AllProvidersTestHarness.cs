@@ -1,4 +1,3 @@
-using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -9,8 +8,43 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 
 // Blockchain providers
+using NextGenSoftware.OASIS.API.Providers.AptosOASIS;
+using NextGenSoftware.OASIS.API.Providers.SuiOASIS;
+using NextGenSoftware.OASIS.API.Providers.PolkadotOASIS;
+using NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS;
+using NextGenSoftware.OASIS.API.Providers.TRONOASIS;
+using NextGenSoftware.OASIS.API.Providers.RadixOASIS;
+using NextGenSoftware.OASIS.API.Providers.StarknetOASIS;
+using NextGenSoftware.OASIS.API.Providers.MidenOASIS;
+using NextGenSoftware.OASIS.API.Providers.AvalancheOASIS;
+using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
+using NextGenSoftware.OASIS.API.Providers.BlockStackOASIS;
+using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
+using NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS;
+using NextGenSoftware.OASIS.API.Providers.FantomOASIS;
+using NextGenSoftware.OASIS.API.Providers.BNBChainOASIS;
+using NextGenSoftware.OASIS.API.Providers.OptimismOASIS;
+using NextGenSoftware.OASIS.API.Providers.CardanoOASIS;
+using NextGenSoftware.OASIS.API.Providers.NEAROASIS;
+using NextGenSoftware.OASIS.API.Providers.HashgraphOASIS;
+using NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS;
+using NextGenSoftware.OASIS.API.Providers.BitcoinOASIS;
+using NextGenSoftware.OASIS.API.Providers.BaseOASIS;
+using NextGenSoftware.OASIS.API.Providers.TONOASIS;
+using NextGenSoftware.OASIS.API.Providers.ZkSyncOASIS;
+using NextGenSoftware.OASIS.API.Providers.LineaOASIS;
+using NextGenSoftware.OASIS.API.Providers.ScrollOASIS;
+using NextGenSoftware.OASIS.API.Providers.XRPLOASIS;
 
 // Storage / network / cloud providers
+using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
+using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
+using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
+using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS;
+using NextGenSoftware.OASIS.API.Providers.AWSOASIS;
+using NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS;
+using NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS;
+using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.AllProviders.TestHarness
 {
@@ -39,68 +73,48 @@ namespace NextGenSoftware.OASIS.API.Providers.AllProviders.TestHarness
             Console.WriteLine("\n=== All provider smoke tests completed ===");
         }
 
-        // Every provider is built by OASISBootLoader from OASIS_DNA.Development.json, exactly as ONODE registers it,
-        // so the harness exercises the shipped constructors and settings instead of hand-written arguments.
-        private static readonly ProviderType[] ProviderTypes =
-        {
-            ProviderType.AptosOASIS,
-            ProviderType.SuiOASIS,
-            ProviderType.PolkadotOASIS,
-            ProviderType.CosmosBlockChainOASIS,
-            ProviderType.TRONOASIS,
-            ProviderType.RadixOASIS,
-            ProviderType.StarknetOASIS,
-            ProviderType.MidenOASIS,
-            ProviderType.AvalancheOASIS,
-            ProviderType.TelosOASIS,
-            ProviderType.BlockStackOASIS,
-            ProviderType.EthereumOASIS,
-            ProviderType.ArbitrumOASIS,
-            ProviderType.FantomOASIS,
-            ProviderType.BNBChainOASIS,
-            ProviderType.OptimismOASIS,
-            ProviderType.CardanoOASIS,
-            ProviderType.NEAROASIS,
-            ProviderType.HashgraphOASIS,
-            ProviderType.ChainLinkOASIS,
-            ProviderType.BitcoinOASIS,
-            ProviderType.BaseOASIS,
-            ProviderType.TONOASIS,
-            ProviderType.ZkSyncOASIS,
-            ProviderType.LineaOASIS,
-            ProviderType.ScrollOASIS,
-            ProviderType.XRPLOASIS,
-            ProviderType.LocalFileOASIS,
-            ProviderType.Neo4jOASIS,
-            ProviderType.MongoDBOASIS,
-            ProviderType.AzureCosmosDBOASIS,
-            ProviderType.AWSOASIS,
-            ProviderType.ThreeFoldOASIS,
-            ProviderType.ActivityPubOASIS,
-            ProviderType.IPFSOASIS,
-        };
-
-        private static List<IOASISStorageProvider> CreateProviders()
-        {
-            var providers = new List<IOASISStorageProvider>();
-            var boot = OASISBootLoader.OASISBootLoader.BootOASIS("OASIS_DNA.Development.json", activateDefaultStorageProvider: false);
-            if (boot.IsError)
+        private static List<IOASISStorageProvider> CreateProviders() =>
+            new()
             {
-                Console.WriteLine($"[ERROR] OASIS boot failed: {boot.Message}");
-                return providers;
-            }
+                // Blockchain
+                new AptosOASIS(),
+                new SuiOASIS(),
+                new PolkadotOASIS(),
+                new CosmosBlockChainOASIS(),
+                new TRONOASIS(),
+                new RadixOASIS(),
+                new StarknetOASIS(),
+                new MidenOASIS(),
+                new AvalancheOASIS(),
+                new TelosOASIS(),
+                new BlockStackOASIS(),
+                new EthereumOASIS(),
+                new ArbitrumOASIS(),
+                new FantomOASIS(),
+                new BNBChainOASIS(),
+                new OptimismOASIS(),
+                new CardanoOASIS(),
+                new NEAROASIS(),
+                new HashgraphOASIS(),
+                new ChainLinkOASIS(),
+                new BitcoinOASIS(),
+                new BaseOASIS("https://mainnet.base.org", "", "0x0000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000"),
+                new TONOASIS("https://ton-evm.example.com", "", "0x0000000000000000000000000000000000000000"),
+                new ZkSyncOASIS("https://mainnet.era.zksync.io", "", "0x0000000000000000000000000000000000000000"),
+                new LineaOASIS("https://rpc.linea.build", "", "0x0000000000000000000000000000000000000000"),
+                new ScrollOASIS("https://rpc.scroll.io", "", "0x0000000000000000000000000000000000000000"),
+                new XRPLOASIS("https://s1.ripple.com:51234", "rXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"),
 
-            foreach (var providerType in ProviderTypes)
-            {
-                var registered = OASISBootLoader.OASISBootLoader.RegisterProvider(providerType, activateProviderIfOASISProviderBootTypeIsHot: false);
-                if (registered.IsError || registered.Result == null)
-                    Console.WriteLine($"[SKIP] {providerType}: {registered.Message}");
-                else
-                    providers.Add(registered.Result);
-            }
-
-            return providers;
-        }
+                // Storage / Network / Cloud
+                new LocalFileOASIS(),
+                new Neo4jOASIS(),
+                new MongoDBOASIS(),
+                new AzureCosmosDBOASIS(),
+                new AWSOASIS(),
+                new ThreeFoldOASIS(),
+                new ActivityPubOASIS(),
+                new IPFSOASIS()
+            };
 
         private static async Task RunProviderSmokeTestAsync(IOASISStorageProvider provider)
         {
@@ -146,8 +160,11 @@ namespace NextGenSoftware.OASIS.API.Providers.AllProviders.TestHarness
             Console.WriteLine($"[INFO] LoadHolon: error={loadHolon.IsError}, msg={loadHolon.Message}");
 
             // Search smoke test (if implemented)
-            var searchParamsQuery = "test";
-            var searchParams = new SearchParams { SearchOnlyForCurrentAvatar = false, SearchGroups = new List<ISearchGroupBase> { new SearchTextGroup { SearchQuery = searchParamsQuery, SearchAvatars = false, SearchHolons = true } } };
+            var searchParams = new SearchParams
+            {
+                SearchQuery = "test",
+                SearchType = SearchType.Holon
+            };
 
             Console.WriteLine("[INFO] Running search (if supported)...");
             try
