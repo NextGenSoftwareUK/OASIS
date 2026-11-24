@@ -77,11 +77,32 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.IsFalse(mergedSave.IsError,mergedSave.ErrorCode+": "+mergedSave.Message);
         }
         var afterMerge=(await Stored(ids[0])).Single();Assert.AreEqual("merged-name",afterMerge.Name);checks++;
+        // O14: tenant-bound sessions stamp, filter and refuse cross-tenant writes natively.
+        var tenantKey="tenant"+Guid.NewGuid().ToString("N");
+        using(var tenantA=CosmicSession.Create(manager,adapter,access).Result)
+        using(var tenantB=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            Assert.IsFalse(tenantA.SetTenant("A",tenantKey).IsError);Assert.IsFalse(tenantB.SetTenant("B",tenantKey).IsError);
+            var x=New("tenant-x");var y=New("tenant-y");
+            Assert.IsFalse(tenantA.Add(x).IsError);Assert.IsFalse(tenantB.Add(y).IsError);
+            Assert.IsFalse((await tenantA.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()))).IsError);
+            Assert.IsFalse((await tenantB.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()))).IsError);
+            var both=new[]{x.Id,y.Id};
+            var seenByA=await tenantA.Linq<Holon>(CosmicQueryTrackingMode.NoTracking,100,ignoreQueryFilters:true).Result.Where(row=>both.Contains(row.Id)).ToCosmicListAsync();
+            Assert.IsFalse(seenByA.IsError,seenByA.ErrorCode+": "+seenByA.Message);
+            CollectionAssert.AreEqual(new[]{x.Id},seenByA.Result.Select(row=>row.Id).ToArray(),"The tenant predicate is not bypassable.");
+            Assert.IsNull((await tenantA.FindAsync<Holon>(y.Id)).Result,"Find stays inside the tenant.");
+            var intruder=HolonChangeTracking.Clone(x);intruder.Name="cross-tenant";
+            Assert.IsFalse(tenantB.Attach(intruder).IsError);Assert.IsFalse(tenantB.Update(intruder).IsError);
+            var refused=await tenantB.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));
+            Assert.IsTrue(refused.IsError);Assert.AreEqual("COSMIC_TENANT_MISMATCH",refused.ErrorCode);
+        }
+        checks++;
         var foreign=CosmicSession.Create(manager,adapter,CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result).Result;
         var hidden=await foreign.Linq<Holon>(CosmicQueryTrackingMode.NoTracking,100,ignoreQueryFilters:true).Result.Where(row=>ids.Contains(row.Id)).ToCosmicListAsync();
         Assert.IsFalse(hidden.IsError,hidden.Message);Assert.AreEqual(0,hidden.Result.Count,"Bypass never widens read access.");checks++;
         foreign.Dispose();
         return new NativeFixtureJourneyProof(checks,1,new Dictionary<string,bool>{
-            ["globalFilterVerified"]=true,["explicitBypassVerified"]=true,["accessNotWidenedVerified"]=true,["autoFlushVerified"]=true,["sessionStatisticsVerified"]=true,["disconnectedMergeVerified"]=true});
+            ["globalFilterVerified"]=true,["explicitBypassVerified"]=true,["accessNotWidenedVerified"]=true,["autoFlushVerified"]=true,["sessionStatisticsVerified"]=true,["disconnectedMergeVerified"]=true,["tenantIsolationVerified"]=true});
     }
 }
