@@ -69,7 +69,8 @@ public partial class QuestDBOASIS : ICosmicQueryStorageProvider
                     using var text = reader.GetTextReader(2);
                     var (json, bytes) = await ReadBoundedJsonAsync(text, Math.Min(1024 * 1024, bytesRemaining), deadline.Token);
                     bytesRemaining -= bytes;
-                    var row = JsonSerializer.Deserialize<Holon>(json, _jsonOpts);
+                    if (json.Length == 0) continue; // erased record marker: the identity is absent
+                    var row = Des<Holon>(json);
                     if (row == null || row.Id != id || !plan.Query.ReadAccess.CanRead(row))
                         throw new InvalidDataException("QuestDB payload differs from native key/read authority.");
                     if (row.IsDeleted) continue;

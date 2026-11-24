@@ -100,8 +100,8 @@ public class QuestDbCqlNativeTests
                     var json = reader.GetString(1);
                     Assert.IsTrue(seed.Ids.Contains(id)); Assert.AreEqual(0L, reader.GetInt64(2));
                     using var payload = JsonDocument.Parse(json);
-                    Assert.AreEqual(id, payload.RootElement.GetProperty("id").GetGuid());
-                    Assert.AreEqual(1234567890.123456789012345678m, payload.RootElement.GetProperty("metaData").GetProperty("precise").GetDecimal());
+                    Assert.AreEqual(id, payload.RootElement.GetProperty("Id").GetGuid());
+                    Assert.AreEqual(1234567890.123456789012345678m, payload.RootElement.GetProperty("MetaData").GetProperty("precise").GetDecimal());
                     if (id == seed.Ids[0]) Assert.IsFalse(payload.RootElement.TryGetProperty("obsoleteField", out _));
                     proof.Add(id.ToString("D") + "|" + Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(json))));
                 }
