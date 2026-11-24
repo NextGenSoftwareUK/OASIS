@@ -95,7 +95,7 @@ public class QuestDbNativeQueryTests
         else if (mode == "paging") Assert.AreEqual(ids[1], result.Result.Single().Id);
         else if (success) Assert.AreEqual(0, result.Result.Count);
         else { Assert.IsNull(result.Result); Assert.IsFalse(result.IsLoaded); }
-        if (mode == "success") Assert.AreEqual(1234567890.123456789012345678m, ((JsonElement)result.Result[0].MetaData["precise"]).GetDecimal());
+        if (mode == "success") Assert.AreEqual(1234567890.123456789012345678m, (decimal)result.Result[0].MetaData["precise"]);
         if (mode == "cancel") Assert.AreEqual("CQL_QUERY_CANCELLED", result.ErrorCode);
         if (mode is "docsize" or "unicode" or "aggregate" or "overflow" or "budget") Assert.AreEqual("CQL_QUERY_LIMIT", result.ErrorCode);
     }
