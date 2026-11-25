@@ -93,7 +93,7 @@ Last updated 31 October 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (mer
 | 11 | Messaging programme: review and push the `work/oasis-messaging` branches (parent, API.Core, STAR ODK, 7 npm repos), publish the npm packages, physical-device Bluetooth tests, HerzApp/Our World wiring decisions | G |
 | 10 | COSMIC/CQL: decide follow-up Default-routing fix publication; hosted Azure/Oracle remain deferred | F |
 | 12 | **Post-release 2026-11-24: production SQLite replication held (BINDING_MISMATCH), WEB9 fix to release, test records left on prod/dev** | POST-RELEASE-2026-11-24 |
-| 11 | **WEB6 model catalogue v6: review the estimated prices** (pushed and live on Development; media prices and 6 text models are estimates) | G |
+| 11 | **WEB6 model catalogue: review the estimated prices; decide OpenRouter billing (G2)** (v7 live on Development; OpenRouter prices move hourly) | G |
 | 12 | HyperDrive on dev: Neo4j to SQLite hold at sequence 14 — repair ran once and was refused (no write); **decision pending**: the same holon reaches SQLite from both Mongo and Neo4j | I |
 | 13 | **Railway dev: add one DNA key so IPFS keeps its catalogue across restarts** (`IPFSOASIS.CatalogueRootPointerPath`) | I |
 
@@ -1427,9 +1427,9 @@ Links: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44675640513
 
 ## Part G — WEB6 model catalogue (22 November 2026)
 
-### G1. Review the estimated prices in catalogue v6
+### G1. Review the estimated prices in the catalogue (now v7)
 
-**Status:** open (price review only), updated 25 November 2026. Pushed on your instruction: WEB6 `Development` `0348ded`, pinned in OASIS `Development` `a712210` (gitlink and `OASIS_WEB6_COMMIT` together). The current WEB6 pin `add09f4` includes it.
+**Status:** open (price review only), updated 25 November 2026. v6 was pushed on your instruction (WEB6 `0348ded`, OASIS `a712210`). v7 (WEB6 `4c54731`, OASIS `4426ead`) re-imported OpenRouter's current list after 8 imported models were retired and 21 repriced within three days, and bills per-million prices exactly instead of rounding to 4 decimals. Your review is still only the estimated prices below; the OpenRouter prices are OpenRouter's own.
 
 **What it contains**
 - OpenRouter: 336 paid text models at OpenRouter's own published per-token prices, imported by `WEB6/Scripts/import_openrouter_models.py` (flat-priced chat models only). Re-run it to track OpenRouter's list. See `WEB6/docs/MODEL_CATALOGUE.md`.
@@ -1445,7 +1445,11 @@ If any is wrong, a corrected catalogue needs a new version string (`web6-model-c
 
 ### G2. Decide whether OpenRouter should bill from OpenRouter's reported cost
 
-**Status:** open decision, 22 November 2026. Not implemented. Today every billed model needs a fixed price and each request holds back its worst case up front, so models with tiered or variable prices (`openrouter/auto`, router models, per-request fees) stay unavailable. Billing from OpenRouter's reported per-call cost would open them up, but it needs a per-call spending cap and a change to how billing settles.
+**Status:** open decision, updated 25 November 2026. Today every billed model needs a fixed price and each request holds back its worst case up front, so tiered and router models (`openrouter/auto`, per-request fees) stay unavailable.
+
+New evidence: OpenRouter's fixed prices do not stay fixed. `qwen/qwen3.5-9b` input went 0.17 -> 0.10 -> 0.17 USD per million within hours on 25 November, as OpenRouter switched upstream providers. Between re-imports WEB6 therefore bills some OpenRouter models below or above cost. The new weekly `WEB6 OpenRouter price drift` workflow fails when a model is retired or priced below cost, but re-importing only narrows the gap.
+
+Billing from OpenRouter's reported per-call cost would close it and open up the router models. It needs a per-call spending cap (the hold) and a change to how billing settles. Please decide: keep fixed prices plus weekly re-imports, or bill OpenRouter from reported cost.
 
 ### G3. Security advisories in shared packages
 
