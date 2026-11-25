@@ -284,12 +284,11 @@ internal sealed class ZcashLedgerKeyValueBackend : IKeyValueBackend, IDisposable
 
             var script = Convert.ToHexString([0x6a, (byte)payload.Length, .. payload]).ToLowerInvariant();
             var inputs = new JsonArray(new JsonObject { ["txid"] = candidate.Txid, ["vout"] = candidate.Vout });
-            var outputs = new JsonObject
-            {
-                ["data"] = Convert.ToHexString(payload).ToLowerInvariant(),
-                [_address] = JsonValue.Create(FromZatoshis(candidate.Amount - fee))
-            };
-            var unsigned = (await RpcAsync("createrawtransaction", new JsonArray(inputs, outputs), cancellationToken)).GetString()!;
+            // zcashd's createrawtransaction only accepts address outputs, so the OP_RETURN output is appended to the
+            // unsigned transaction's transparent bundle before the wallet signs it.
+            var outputs = new JsonObject { [_address] = JsonValue.Create(FromZatoshis(candidate.Amount - fee)) };
+            var changeOnly = (await RpcAsync("createrawtransaction", new JsonArray(inputs, outputs), cancellationToken)).GetString()!;
+            var unsigned = ZcashTransparentBundle.AppendNullDataOutput(changeOnly, Convert.FromHexString(script));
             var signed = await RpcAsync("signrawtransaction", new JsonArray(unsigned), cancellationToken);
             if (!signed.GetProperty("complete").GetBoolean())
                 throw new InvalidOperationException("The zcashd wallet could not sign the Zcash storage commitment.");
