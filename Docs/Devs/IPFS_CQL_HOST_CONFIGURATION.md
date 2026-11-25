@@ -13,9 +13,19 @@ Configure the existing `OASIS.StorageProviders.IPFSOASIS` DNA section:
 {
   "ConnectionString": "http://127.0.0.1:5001",
   "LookUpIPFSAddress": "ACKNOWLEDGED_CATALOGUE_CID",
+  "CatalogueRootPointerPath": "/data/IPFS/catalogue-root",
   "EnableCqlCidKeySets": true
 }
 ```
+
+`CatalogueRootPointerPath` (string, default empty) is a file that holds the current catalogue root CID. The catalogue
+root is mutable state: every publication moves it. When the path is set, the file is authoritative, `LookUpIPFSAddress`
+only seeds a store whose pointer file does not exist yet, and each publication writes the file atomically (temp file,
+flush, rename) and rolls it back with the DNA pointer if the DNA save fails. Set it on any host whose DNA file is
+regenerated at boot. Railway's entrypoint writes `OASIS_DNA_JSON` to `/app/OASIS_DNA.json` on every start, so put the
+pointer on the persistent volume (`/data/IPFS/catalogue-root`). Without it each restart rolls the catalogue back to the
+configured seed, and replication binding fails with "The IPFS catalogue has no persisted storage identity". Leave it
+empty only where the DNA file itself is durable.
 
 Supply `OASIS_IPFS_STORAGE_ENCRYPTION_KEY` through the host's secret controls.
 It is the Base64 encoding of the existing 32-byte catalogue/record key. Never
