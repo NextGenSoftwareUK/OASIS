@@ -52,3 +52,4 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | RootstockOASIS live public CQL source (anonymous public-node.rsk.co balance reads, BNB pattern) | CQL sandbox (WEB4) | cloud: cloud-cql-C | work/cloud-cql-rootstock | 2026-11-25 01:04 | IN PROGRESS |
 | ScuttlebuttOASIS native storage (ssb-db2 feed service) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-scuttlebutt | 2026-11-25 01:25 | IN PROGRESS |
 | StoryProtocolOASIS live public CQL source (anonymous mainnet.storyrpc.io finalized balance reads, chain 1514) | CQL sandbox (WEB4) | cloud: cloud-cql-C | work/cloud-cql-storyprotocol | 2026-11-25 01:11 | IN PROGRESS |
+| LensOASIS live public CQL source (anonymous rpc.lens.xyz finalized balance reads, Lens Chain 232) | CQL sandbox (WEB4) | cloud: cloud-cql-C | work/cloud-cql-lens | 2026-11-25 01:13 | IN PROGRESS |
