@@ -280,6 +280,9 @@ Batch 2, passing as they were and wired in: MongoDB (647), SQLLiteDB (229), Edge
 
 Batch 2, tried and broken (next to fix):
 - Failing tests: GoogleCloud (2), SOLANA (14), NEAR (14), CosmosBlockChain (6), Polkadot (2), Arbitrum (22)
-- Do not compile: TON (duplicate Microsoft.AspNetCore.App FrameworkReference), Telos, Polygon, Ethereum, Upstash, MongoOASIS (namespace used as type), ONODE.WebAPI.Tests
+- Do not compile: Telos, Polygon, Ethereum (tests use the removed NFT/GeoNFT and wallet-request API), Upstash (tests expect a newer provider: Dispose, 4-argument constructor, NativeBackend)
+- TON: project file listed its references twice (fixed); now builds, 59 pass, 2 fail in SupportedEvmAuthoritiesRetainTheirActualQueryCapabilities: the Polygon/Arbitrum base provider capabilities lack AND support that the read-access query needs ("Composed predicates require AND support"). CQL capability owners to decide.
+- MongoOASIS.UnitTests: obsolete copy of MongoDBOASIS.UnitTests (which runs, 647 tests) written against a removed API (parameterless constructor, IsSuccess). Needs a decision: delete it or merge anything unique into MongoDBOASIS.UnitTests.
+- ONODE.WebAPI.Tests: was missing its FluentAssertions reference; fixed and wired in (23 tests).
 
 Coverage job: it now runs every project and fails at the end, so one failing project no longer hides the rest. Core.UnitTests had two stale tests failing on Development too (Q36 made Version + 1 a native projection; Core 8183ce3 reverted the V2 owner pass-through); both are fixed here.
