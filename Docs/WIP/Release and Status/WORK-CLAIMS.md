@@ -143,4 +143,4 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | Capability-v1 read probes for cross-chain trackers: Axelar, Hyperlane, LayerZeroV2, deBridge, Chainflip | HyperDrive providers (non-storage) | local: testharness-build-fix | work/tracker-capability-probes | 2026-11-25 | IN PROGRESS |
 | NianticLightshipOASIS map provider: replace always-true stubs with explicit unavailability (Lightship Maps SDK sunset) | Map providers | local: maps/interop session | work/gomap-shared-maps | 2026-11-25 | IN PROGRESS |
 | COSMIC Q60 NHibernate HQL language compatibility | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-q60 | 2026-11-25 23:35 | IN PROGRESS |
-| COSMIC M21 inheritance table-per-concrete-type equivalent | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-m21 | 2026-11-25 23:35 | IN PROGRESS |
+| COSMIC M21 inheritance table-per-concrete-type equivalent | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-m21 | 2026-11-25 23:35 | BLOCKED: see ACTIONS-FOR-DAVID (single Holon partition in all three providers) |
