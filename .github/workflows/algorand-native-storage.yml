@@ -79,6 +79,7 @@ jobs:
           umask 077
           # Deploys the record-box application and enrols an ephemeral, funded writer whose seed the suite signs with.
           OASIS_ALGORAND_ENROLLED_FIXTURE_ENV="$owned/record-fixture.env" OASIS_ALGORAND_RECORD_WRITE_TEST=true \
+            OASIS_ALGORAND_RECORD_APP_FUNDING=1000000000 \
             "$owned/venv/bin/python" -B Scripts/TestHosts/Test-AlgorandRecordBoxes.py
           set -a
           source "$owned/record-fixture.env"

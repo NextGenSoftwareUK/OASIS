@@ -597,6 +597,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
             int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true,
             bool loadChildrenFromProvider = false, int version = 0)
         {
+            if (_recordBoxes != null)
+                return await LoadEnrolledHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type,
+                    loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError,
+                    loadChildrenFromProvider, version).ConfigureAwait(false);
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
