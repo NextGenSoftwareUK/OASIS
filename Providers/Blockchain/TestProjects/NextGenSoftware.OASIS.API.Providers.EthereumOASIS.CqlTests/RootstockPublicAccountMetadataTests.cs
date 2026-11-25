@@ -66,9 +66,10 @@ public sealed class RootstockPublicAccountMetadataTests
         using var source = new Source(client, new Uri("https://public-node.rsk.co/"), "0x1e", Keys, Guid.NewGuid());
         Assert.IsFalse((await source.ActivateQuerySourceAsync(default)).IsError);
         rpc.Methods.Clear(); rpc.Fault = scenario;
+        var selected = Keys;
         var query = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.RootstockOASIS).Result)
             .WithReadAccess(CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result)
-            .Where(row => Keys.Contains(CosmicQueryMetadata.Value<string>(row, Source.AddressMetadata))).Result;
+            .Where(row => selected.Contains(CosmicQueryMetadata.Value<string>(row, Source.AddressMetadata))).Result;
         var plan = CosmicQueryPlanner.Plan(query, ProviderType.RootstockOASIS,
             new[] { new CosmicQueryTarget(ProviderType.RootstockOASIS, source.QueryCapabilities) });
         Assert.IsFalse(plan.IsError, plan.Message);
