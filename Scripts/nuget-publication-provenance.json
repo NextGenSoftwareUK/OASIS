@@ -138,6 +138,25 @@
       "version": "3.1.2",
       "run": 43388111161,
       "sourceCommit": "f940a3ff4e3b8b4899600bc72151015695f0a728"
+    },
+    {
+      "kind": "standalone",
+      "ownerParent": "holochain-client-csharp",
+      "packageId": "NextGenSoftware.Holochain.HoloNET.ORM",
+      "version": "4.6.2",
+      "run": 45702581536,
+      "ownerUrl": "https://github.com/NextGenSoftwareUK/HoloNET-ORM",
+      "ownerCommit": "7bc40e513d2fd895e687b6f483784610e429324d",
+      "dependencies": {
+        "holochain-client-csharp": {
+          "url": "https://github.com/holochain-open-dev/holochain-client-csharp",
+          "commit": "3798b7fb5e4fae8cbe3de5d05b8881ee8fd5b8f2"
+        },
+        "NextGenSoftware-Libraries": {
+          "url": "https://github.com/NextGenSoftwareUK/NextGenSoftware-Libraries",
+          "commit": "e91f10635c5c79e484b06322a6c0c60d392a46ce"
+        }
+      }
     }
   ],
   "metadataCorrections": [
