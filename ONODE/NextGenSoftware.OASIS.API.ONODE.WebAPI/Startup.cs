@@ -270,7 +270,7 @@ You will note that every request below has a corresponding overload that also ta
 <li><b>LensV2OASIS</b> - Lens Protocol v2 Provider.</li>
 <li><b>BlueSkyOASIS</b> - BlueSky / AT Protocol Decentralised Social Provider (XRPC REST, DIDs, AT-URIs; posts → Holons, profiles → Avatars).</li>
 <li><b>MatrixOASIS</b> - Matrix Client-Server API v3 Decentralised Messaging Provider (room events → Holons, @user:server → Avatars).</li>
-<li><b>FilecoinOASIS</b> - Filecoin Lotus JSON-RPC Provider (storage deals, CIDs → Holons, addresses → Avatars; Glif.io public node).</li>
+<li><b>FilecoinOASIS</b> - Filecoin EVM (FEVM) storage Provider (Web3Core contract records via the Lotus Ethereum JSON-RPC; Glif.io public node).</li>
 <li><b>AlgorandOASIS</b> - Algorand Provider (Algod v2 REST + Indexer; transactions → Holons, accounts → Avatars, ASA support).</li>
 <li><b>CeramicOASIS</b> - Ceramic Network / ComposeDB Provider (TileDocument streams → Holons, DID resolution → Avatars; HTTP API, pin/unpin).</li>
 <li><b>BasechainOASIS</b> - Basechain (Loom Network) EVM Provider (Ethereum JSON-RPC; transactions → Holons, addresses → Avatars).</li>
@@ -282,14 +282,14 @@ You will note that every request below has a corresponding overload that also ta
 <li><b>CivicOASIS</b> - Civic Decentralised Identity Provider (Civic Pass verification → Avatars; on-chain identity attestations).</li>
 <li><b>ReclaimProtocolOASIS</b> - Reclaim Protocol ZK Identity Proofs Provider (zero-knowledge proofs of web credentials → Avatars).</li>
 <li><b>SeiOASIS</b> - Sei Network EVM Provider (chain ID 1329; EVM JSON-RPC; transactions → Holons, addresses → Avatars).</li>
-<li><b>CelestiaOASIS</b> - Celestia Modular DA Network Provider (light node REST API; blob submission/retrieval).</li>
+<li><b>CelestiaOASIS</b> - Celestia Modular DA Network Provider (celestia-node JSON-RPC; encrypted append-only blob records).</li>
 <li><b>EclipseOASIS</b> - Eclipse SVM L2 Provider (Solana JSON-RPC on mainnetbeta-rpc.eclipse.xyz; transactions → Holons).</li>
 <li><b>PushProtocolOASIS</b> - Push Protocol Decentralised Notifications Provider (REST API; notifications → Holons).</li>
 <li><b>ENSOASIS</b> - ENS (Ethereum Name Service) Provider (The Graph GraphQL subgraph; ENS names → Avatars).</li>
 <li><b>AlchemyOASIS</b> - Alchemy Web3 Infrastructure Provider (ETH JSON-RPC + NFT v3 API; transactions → Holons).</li>
 <li><b>InfuraOASIS</b> - Infura Web3 Gateway Provider (ETH JSON-RPC + IPFS pinning; holons stored as IPFS objects).</li>
 <li><b>SafeOASIS</b> - Gnosis Safe Multisig Provider (Safe Transaction REST API; multisig txs → Holons, safe addresses → Avatars).</li>
-<li><b>TablelandOASIS</b> - Tableland Decentralised SQL Provider (REST API; SQL SELECT/INSERT for holons stored as table rows).</li>
+<li><b>TablelandOASIS</b> - Tableland Decentralised SQL Provider (encrypted key-value rows in a wallet-owned table; writes are signed registry transactions, reads via the validator API).</li>
 <li><b>WakuOASIS</b> - Waku v2 Decentralised Messaging Provider (REST API; relay messages → Holons).</li>
 <li><b>LivepeerOASIS</b> - Livepeer Decentralised Video Provider (Livepeer Studio REST API; assets/streams → Holons).</li>
 <li><b>AkashOASIS</b> - Akash Decentralised Cloud Provider (Cosmos LCD REST; deployments → Holons, wallet addresses → Avatars).</li>
@@ -699,6 +699,21 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             if (Configuration["CQL_BNB_PUBLIC_SOURCE_JSON"] is string bnbPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.BnbPublicAccountMetadataSource.FromJson(bnbPublicSource)));
+            if (Configuration["CQL_QUESTDB_SYMBOL_SOURCE_JSON"] is string questDbSymbols)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.QuestDBOASIS.QuestDbSymbolQuerySource.FromJson(questDbSymbols)));
+            if (Configuration["CQL_ENSOFFCHAIN_PUBLIC_SOURCE_JSON"] is string ensOffchainPublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.ENSOffchainOASIS.EnsOffchainPublicNameSource.FromJson(ensOffchainPublicSource)));
+            if (Configuration["CQL_ROOTSTOCK_PUBLIC_SOURCE_JSON"] is string rootstockPublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.RootstockOASIS.RootstockPublicAccountMetadataSource.FromJson(rootstockPublicSource)));
+            if (Configuration["CQL_STORY_PUBLIC_SOURCE_JSON"] is string storyPublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.StoryProtocolOASIS.StoryPublicAccountMetadataSource.FromJson(storyPublicSource)));
+            if (Configuration["CQL_LENS_PUBLIC_SOURCE_JSON"] is string lensPublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.LensOASIS.LensPublicAccountMetadataSource.FromJson(lensPublicSource)));
             if (Configuration["CQL_AZURE_BLOB_PUBLIC_SOURCE_JSON"] is string azureBlobPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS.AzureBlobPublicMetadataSource.FromJson(azureBlobPublicSource)));

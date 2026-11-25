@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,77 +32,17 @@ namespace NextGenSoftware.OASIS.API.Providers.RadixOASIS;
 public partial class RadixOASIS
 {
 
-
-    public override async Task<OASISResult<bool>> ActivateProviderAsync()
-    {
-        var result = new OASISResult<bool>();
-
-        try
-        {
-            _radixService = new RadixService(_config, _httpClient);
-            
-            // Test connection by getting a dummy balance
-            var testResult = await _radixService.GetAccountBalanceAsync(_config.AccountAddress);
-            
-            if (testResult.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result,
-                    $"Failed to activate RadixOASIS provider: {testResult.Message}");
-                return result;
-            }
-
-            // Initialize first-party oracle node (Airnode-style, no middleware)
-            _chainObserver = new RadixChainObserver(_radixService, _config);
-            _oracleNode = new RadixOracleNode(_radixService, _config);
-
-            result.Result = true;
-            IsProviderActivated = true;
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result,
-                $"Error activating RadixOASIS provider: {ex.Message}", ex);
-        }
-
-        return result;
-    }
-
-    public override OASISResult<bool> ActivateProvider()
-    {
-        return ActivateProviderAsync().Result;
-    }
-
+    /// <summary>
+    /// Stops the first-party oracle node if it is running; storage activation and deactivation are the base's.
+    /// </summary>
     public override async Task<OASISResult<bool>> DeActivateProviderAsync()
     {
-        // Stop oracle node if running
-        if (_oracleNode?.IsRunning == true)
-        {
-            await _oracleNode.StopAsync();
-        }
-
-        _radixService = null;
-        _oracleNode = null;
-        _chainObserver = null;
-        IsProviderActivated = false;
-        return await Task.FromResult(new OASISResult<bool>(true));
+        if (_oracleNode.IsRunning)
+            await _oracleNode.StopAsync().ConfigureAwait(false);
+        return await base.DeActivateProviderAsync().ConfigureAwait(false);
     }
 
-    public override OASISResult<bool> DeActivateProvider()
-    {
-        // Stop oracle node if running
-        if (_oracleNode?.IsRunning == true)
-        {
-            _oracleNode.StopAsync().Wait();
-        }
-
-        _radixService = null;
-        _oracleNode = null;
-        _chainObserver = null;
-        IsProviderActivated = false;
-        return new OASISResult<bool>(true);
-    }
-
-
+    public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().GetAwaiter().GetResult();
 
     /// <summary>
     /// Sends a transaction on the Radix network

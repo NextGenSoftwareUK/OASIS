@@ -46,44 +46,33 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS.IntegrationTests
         }
 
         [Fact]
-        public void NFTDataLoading_ShouldHandleDifferentTokenAddresses()
+        public async Task NFTDataLoading_IsAnExplicitUnsupportedError()
         {
-            // Arrange
+            // Chainlink exposes no NFT metadata lookup; the provider must say so rather than invent data.
             var chainLinkProvider = new ChainLinkOASIS();
-            var testAddresses = new[]
-            {
-                "ChainLinkTestTokenAddress123",
-                "ChainLinkAnotherTokenAddress456",
-                "ChainLinkThirdTokenAddress789"
-            };
-
-            // Act & Assert
-            foreach (var address in testAddresses)
-            {
-                var result = chainLinkProvider.LoadOnChainNFTData(address);
-                Assert.False(result.IsError);
-                Assert.NotNull(result.Result);
-                Assert.Equal(address, result.Result.TokenId);
-                Assert.Contains("ChainLink NFT", result.Result.Name);
-            }
+            var sync = chainLinkProvider.LoadOnChainNFTData("0x0000000000000000000000000000000000000001");
+            var async_ = await chainLinkProvider.LoadOnChainNFTDataAsync("0x0000000000000000000000000000000000000001");
+            Assert.True(sync.IsError);
+            Assert.Null(sync.Result);
+            Assert.True(async_.IsError);
+            Assert.Null(async_.Result);
         }
 
         [Fact]
-        public async Task AsyncNFTDataLoading_ShouldWorkCorrectly()
+        public async Task RecordStorage_FailsExplicitlyBecauseChainlinkHasNoRecordStore()
         {
-            // Arrange
             var chainLinkProvider = new ChainLinkOASIS();
-            var tokenAddress = "ChainLinkAsyncTestTokenAddress123";
-
-            // Act
-            var result = await chainLinkProvider.LoadOnChainNFTDataAsync(tokenAddress);
-
-            // Assert
-            Assert.False(result.IsError);
-            Assert.NotNull(result.Result);
-            Assert.Equal(tokenAddress, result.Result.TokenId);
-            Assert.Contains("ChainLink NFT", result.Result.Name);
-            Assert.Contains("ChainLink oracle", result.Result.Description);
+            var avatar = await chainLinkProvider.SaveAvatarAsync(new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id = Guid.NewGuid(), Username = "u" });
+            var holon = await chainLinkProvider.SaveHolonAsync(new NextGenSoftware.OASIS.API.Core.Holons.Holon { Id = Guid.NewGuid() });
+            var load = await chainLinkProvider.LoadAvatarAsync(Guid.NewGuid());
+            var delete = chainLinkProvider.DeleteAvatar(Guid.NewGuid());
+            foreach (var (isError, saved, message) in new[] { (avatar.IsError, avatar.IsSaved, avatar.Message), (holon.IsError, holon.IsSaved, holon.Message),
+                         (load.IsError, false, load.Message), (delete.IsError, false, delete.Message) })
+            {
+                Assert.True(isError);
+                Assert.False(saved);
+                Assert.Contains("no OASIS record store", message);
+            }
         }
 
         [Fact]

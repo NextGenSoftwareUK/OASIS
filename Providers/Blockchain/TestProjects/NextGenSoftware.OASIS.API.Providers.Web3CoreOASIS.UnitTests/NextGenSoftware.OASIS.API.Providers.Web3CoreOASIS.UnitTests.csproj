@@ -47,6 +47,8 @@
     <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.FantomOASIS/NextGenSoftware.OASIS.API.Providers.FantomOASIS.csproj" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
     <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.MonadOASIS/NextGenSoftware.OASIS.API.Providers.MonadOASIS.csproj" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
     <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.SeiOASIS/NextGenSoftware.OASIS.API.Providers.SeiOASIS.csproj" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
+    <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.FhenixOASIS/NextGenSoftware.OASIS.API.Providers.FhenixOASIS.csproj" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
+    <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.BasechainOASIS/NextGenSoftware.OASIS.API.Providers.BasechainOASIS.csproj" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
   </ItemGroup>
 
 </Project>

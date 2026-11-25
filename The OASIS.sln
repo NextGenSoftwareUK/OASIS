@@ -1520,6 +1520,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.P
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.GUNOASIS.IntegrationTests", "Providers\Other\TestProjects\NextGenSoftware.OASIS.API.Providers.GUNOASIS.IntegrationTests\NextGenSoftware.OASIS.API.Providers.GUNOASIS.IntegrationTests.csproj", "{77074FC9-A361-550F-9395-CB7FD55DA0B5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.DaprOASIS.IntegrationTests", "Providers\Other\TestProjects\NextGenSoftware.OASIS.API.Providers.DaprOASIS.IntegrationTests\NextGenSoftware.OASIS.API.Providers.DaprOASIS.IntegrationTests.csproj", "{6264EABB-6B9E-5A42-8695-D38FEEF45F44}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.GUNOASIS.TestHarness", "Providers\Other\TestProjects\NextGenSoftware.OASIS.API.Providers.GUNOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.GUNOASIS.TestHarness.csproj", "{D77CC1A8-12EC-5431-B15A-47B77D831A95}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.GUNOASIS.UnitTests", "Providers\Other\TestProjects\NextGenSoftware.OASIS.API.Providers.GUNOASIS.UnitTests\NextGenSoftware.OASIS.API.Providers.GUNOASIS.UnitTests.csproj", "{EAA2F74F-EDC3-5AFD-B729-C3728B3502ED}"
@@ -1973,6 +1975,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.Edge.NearbySync.UnitTests", "OASIS Architecture\NextGenSoftware.OASIS.Edge.NearbySync.UnitTests\NextGenSoftware.OASIS.Edge.NearbySync.UnitTests.csproj", "{B5EB779A-580E-4ED9-95A2-CCADC0626406}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS.IntegrationTests", "Providers\Network\TestProjects\NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS.IntegrationTests\NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS.IntegrationTests.csproj", "{C63FF30B-D350-4EF1-91F8-2216B1AD072A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.IPFSOASIS.CatalogueTests", "Providers\Network\TestProjects\NextGenSoftware.OASIS.API.Providers.IPFSOASIS.CatalogueTests\NextGenSoftware.OASIS.API.Providers.IPFSOASIS.CatalogueTests.csproj", "{58F3D8B4-8AED-4F1E-8094-25C98C576489}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -8675,6 +8679,10 @@ Global
 		{77074FC9-A361-550F-9395-CB7FD55DA0B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{77074FC9-A361-550F-9395-CB7FD55DA0B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{77074FC9-A361-550F-9395-CB7FD55DA0B5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6264EABB-6B9E-5A42-8695-D38FEEF45F44}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6264EABB-6B9E-5A42-8695-D38FEEF45F44}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6264EABB-6B9E-5A42-8695-D38FEEF45F44}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6264EABB-6B9E-5A42-8695-D38FEEF45F44}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D77CC1A8-12EC-5431-B15A-47B77D831A95}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D77CC1A8-12EC-5431-B15A-47B77D831A95}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D77CC1A8-12EC-5431-B15A-47B77D831A95}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -11345,6 +11353,24 @@ Global
 		{C63FF30B-D350-4EF1-91F8-2216B1AD072A}.Release|x64.Build.0 = Release|Any CPU
 		{C63FF30B-D350-4EF1-91F8-2216B1AD072A}.Release|x86.ActiveCfg = Release|Any CPU
 		{C63FF30B-D350-4EF1-91F8-2216B1AD072A}.Release|x86.Build.0 = Release|Any CPU
+		{58F3D8B4-8AED-4F1E-8094-25C98C576489}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{58F3D8B4-8AED-4F1E-8094-25C98C576489}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{58F3D8B4-8AED-4F1E-8094-25C98C576489}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{58F3D8B4-8AED-4F1E-8094-25C98C576489}.Debug|x64.Build.0 = Debug|Any CPU
+		{58F3D8B4-8AED-4F1E-8094-25C98C576489}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{58F3D8B4-8AED-4F1E-8094-25C98C576489}.Debug|x86.Build.0 = Debug|Any CPU
+		{58F3D8B4-8AED-4F1E-8094-25C98C576489}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{58F3D8B4-8AED-4F1E-8094-25C98C576489}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{58F3D8B4-8AED-4F1E-8094-25C98C576489}.Linux|x64.ActiveCfg = Debug|Any CPU
+		{58F3D8B4-8AED-4F1E-8094-25C98C576489}.Linux|x64.Build.0 = Debug|Any CPU
+		{58F3D8B4-8AED-4F1E-8094-25C98C576489}.Linux|x86.ActiveCfg = Debug|Any CPU
+		{58F3D8B4-8AED-4F1E-8094-25C98C576489}.Linux|x86.Build.0 = Debug|Any CPU
+		{58F3D8B4-8AED-4F1E-8094-25C98C576489}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{58F3D8B4-8AED-4F1E-8094-25C98C576489}.Release|Any CPU.Build.0 = Release|Any CPU
+		{58F3D8B4-8AED-4F1E-8094-25C98C576489}.Release|x64.ActiveCfg = Release|Any CPU
+		{58F3D8B4-8AED-4F1E-8094-25C98C576489}.Release|x64.Build.0 = Release|Any CPU
+		{58F3D8B4-8AED-4F1E-8094-25C98C576489}.Release|x86.ActiveCfg = Release|Any CPU
+		{58F3D8B4-8AED-4F1E-8094-25C98C576489}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -12022,6 +12048,7 @@ Global
 		{98517208-0F09-5E81-8113-0F12281EC4D7} = {A81A02D5-428C-403C-A0EE-2776273653A4}
 		{A15AB179-7800-5B4F-A5B6-8CD1188AC7E7} = {A81A02D5-428C-403C-A0EE-2776273653A4}
 		{77074FC9-A361-550F-9395-CB7FD55DA0B5} = {D849F617-604E-4001-980D-AB2A8D0B3358}
+		{6264EABB-6B9E-5A42-8695-D38FEEF45F44} = {D849F617-604E-4001-980D-AB2A8D0B3358}
 		{D77CC1A8-12EC-5431-B15A-47B77D831A95} = {D849F617-604E-4001-980D-AB2A8D0B3358}
 		{EAA2F74F-EDC3-5AFD-B729-C3728B3502ED} = {D849F617-604E-4001-980D-AB2A8D0B3358}
 		{AB709846-A4A3-5057-AB52-AD7A7E2CC79A} = {D849F617-604E-4001-980D-AB2A8D0B3358}

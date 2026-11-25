@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -43,7 +43,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
         public string TransactionHash { get; set; }
         public bool Success { get; set; }
     }
-    public partial class ElrondOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar
+    public partial class ElrondOASIS : NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.KeyValueStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar
     {
         private readonly HttpClient _httpClient;
         private readonly string _rpcEndpoint;

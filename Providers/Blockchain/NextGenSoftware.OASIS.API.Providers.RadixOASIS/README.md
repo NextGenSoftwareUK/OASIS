@@ -103,62 +103,60 @@ var orderRequest = new CreateBridgeOrderRequest
 var order = await bridgeManager.CreateBridgeOrderAsync(orderRequest);
 ```
 
-## On-ledger storage (OasisStorage component)
+## Core storage (OasisKeyValueStore component)
 
-By default RadixOASIS delegates avatar and holon storage to the other OASIS providers. Set `OasisBlueprintAddress` and
-avatars, avatar details and holons are stored **on the Radix ledger** instead, as JSON in the `OasisStorage` Scrypto
-component (`contracts/`).
+RadixOASIS stores avatars, avatar details and holons **on the Radix ledger** through the shared
+`KeyValueStorageProviderBase` (the same record, index, version and deletion semantics as every other key-value
+provider). The backend is one `OasisKeyValueStore` Scrypto component (`contracts/src/oasis_key_value_store.rs`,
+a `KeyValueStore<String, String>`):
 
-### What it stores
+- **Writes** are notarised V1 transactions calling `put` / `delete`, signed by `PrivateKey` (secp256k1). The component
+  is owned by that key's signature badge, so the signature alone authorises a write, and the key's account pays the fee.
+  A write is acknowledged only when the node's Core API reports the intent `CommittedSuccess`; `CommittedFailure`,
+  `PermanentRejection`, a rejected submit or an unresolved status within the timeout are errors (`RadixTransactionException`).
+- **Reads** come from committed state through the node's Engine State API (`kv-store/entry`, `kv-store/iterator`).
+- **Privacy**: ledger state is public, so every value is compressed and encrypted (`PrivateKeyValueBackend`,
+  32-byte `StorageEncryptionKey`) before it is written. Keys are OASIS record keys (kinds and GUIDs, or encoded
+  username/email index entries).
 
-| Operation | Component method |
-|---|---|
-| `SaveAvatarAsync` / `LoadAvatarAsync` / `LoadAvatarByUsernameAsync` / `LoadAvatarByEmailAsync` / `DeleteAvatarAsync` | `save_avatar`, `get_avatar*`, `delete_avatar` |
-| `SaveAvatarDetailAsync` / `LoadAvatarDetailAsync` | `save_avatar_detail`, `get_avatar_detail` |
-| `SaveHolonAsync` / `LoadHolonAsync` (id or provider key) / `DeleteHolonAsync` | `save_holon`, `get_holon*`, `delete_holon` |
+### Configuration
 
-Entities are keyed by their OASIS id (GUID string); the Radix provider key of a stored entity is that id. Saves create
-or replace and keep the username/email/provider-key indexes in step. Soft deletes mark the avatar deleted; hard
-deletes remove it and its indexes. Operations that need enumeration (load-all, search, export, children by parent)
-still use the delegated path.
+```csharp
+var provider = new RadixOASIS(new RadixOASISConfig
+{
+    NetworkId = 240,                        // 1 mainnet, 2 stokenet, 240 localnet
+    NetworkName = "localnet",               // logical network name the node expects
+    CoreApiUri = "http://127.0.0.1:3333/core/",
+    EngineStateApiUri = "http://127.0.0.1:3336/engine-state/",
+    PrivateKey = "<32-byte secp256k1 key, hex>",
+    KeyValueStoreComponentAddress = "component_loc1...",
+    StorageEncryptionKey = "<32-byte key, hex>"
+});
+```
 
-Reads go through the Gateway (`/state/entity/details` for the component's key-value store addresses, then
-`/state/key-value-store/data`). Writes are V1 transactions that lock the fee from `AccountAddress`, prove the owner
-badge and call the component; the provider waits until they commit.
-
-### Security
-
-Reads are public. Every write requires a proof of the component's **owner badge**, minted once by `instantiate`, so
-only the account holding it (the provider's `AccountAddress`) can change data.
+All six storage settings go together; a partial set is rejected at construction. The bridge-only constructor
+`RadixOASIS(hostUri, networkId, accountAddress, privateKey)` leaves storage unconfigured: storage calls and activation
+fail with an explicit configuration error, while `RadixBridgeService`, `OracleNode` and `ChainObserver` still work.
+The node needs its local transaction execution index (on by default) for transaction status.
 
 ### Deploy
 
-1. Build: `scrypto build` in `contracts/` (Scrypto 1.4, current stable Rust; the wasm32 C deps need `clang`).
-   This produces `oasis_storage.wasm` and `oasis_storage.rpd`.
-2. Publish the package and call `OasisStorage::instantiate` from the account RadixOASIS will use. The badge is deposited
-   into that account.
-3. Configure the provider:
-
-```json
-"RadixOASIS": {
-  "HostUri": "https://stokenet.radixdlt.com",
-  "NetworkId": 2,
-  "AccountAddress": "account_tdx_2_...",
-  "PrivateKey": "<ed25519 hex>",
-  "OasisBlueprintAddress": "component_tdx_2_...",
-  "OasisStorageOwnerBadgeAddress": "resource_tdx_2_..."
-}
-```
-
-`StokenetOnLedgerStorageTests` (integration tests) does all of this programmatically on Stokenet: faucet-funded
-throwaway account, publish, instantiate, then save/load/delete through the provider. Run it with
-`RADIX_STOKENET_LIVE=1` and `RADIX_OASIS_STORAGE_PACKAGE_DIR` pointing at the built `.wasm`/`.rpd`.
+Build the package with the reproducible builder (`docker run --rm -v "$PWD/contracts:/src" radixdlt/scrypto-builder:v1.3.1`),
+then with `RadixLedgerClient`: `PublishPackageAsync(wasm, rpd)` and `InstantiateKeyValueStoreAsync(package)` from the
+key RadixOASIS will sign with. On a test network `FundFromFaucetAsync()` funds that key's account.
 
 ### Tests
 
-- `contracts/tests/oasis_storage_tests.rs`: ledger-simulator tests (`cargo test --release` in `contracts/`).
-- `RadixOasisStorageClientTests` (unit tests): Gateway parsing and lookups against a fake Gateway.
-- `StokenetOnLedgerStorageTests` (integration tests): live end-to-end on Stokenet (opt-in, see above).
+- `RadixNativeStorageConformanceTests` (integration tests, `-p:NativeStorageConformance=true`): the shared 26-check
+  core storage suite in both sync and async modes against a real local Babylon network started by
+  `fixture/start-radix-fixture.sh` (babylon-node v1.4.0.0, single validator, fresh genesis with faucet); each mode uses
+  its own funded key, package and component. `RadixNativeStoragePersistenceTests` checks a record survives a node restart.
+  CI: the `Radix` entry of `.github/workflows/popular-providers-native-storage.yml`.
+- `RadixKeyValueStorageConfigurationTests` (unit tests): configuration contract without a network.
+- TestHarness: `dotnet run -- localnet-storage` against the fixture's `OASIS_RADIX_*` variables.
+
+The older `OasisStorage` blueprint (`contracts/src/oasis_storage.rs`) is still in the package but RadixOASIS no
+longer uses it.
 
 ## Configuration
 

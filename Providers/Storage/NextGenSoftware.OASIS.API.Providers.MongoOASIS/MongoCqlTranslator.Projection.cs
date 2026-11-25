@@ -132,6 +132,88 @@ internal sealed partial class MongoCqlTranslator
             return SingleLet(utcName,ProjectionCell(column.Path,prefix+"utcSource"),new BsonDocument{
                 {"s",cell+".s"},{"v",Choose(Op("$eq",cell+".s",Literal(2)),UtcDatePartFromTicks(column.Function,ticks),Literal(BsonNull.Value))}});
         }
+        if (column.Function == CosmicProjectionFunction.Int64Affine)
+        {
+            if(column.Path.ValueType != typeof(long) || column.ValueType != typeof(long) || !column.Int64Multiplier.HasValue || !column.Int64Offset.HasValue)
+                throw new NotSupportedException("Native Int64 arithmetic requires an exact Int64 path and captured coefficients.");
+            var longName = prefix + "longAffine";
+            var longCell = "$$" + longName;
+            BsonValue longComputed = Op("$add", Op("$multiply", new BsonDocument("$toLong", longCell + ".v"), Literal(column.Int64Multiplier.Value)), Literal(column.Int64Offset.Value));
+            var longPresent = Op("$eq", longCell + ".s", Literal(2));
+            // MongoDB widens an overflowing long to double; only a long result is a valid Int64 cell.
+            var longIntegral = Op("$eq", new BsonDocument("$type", longComputed), Literal("long"));
+            return SingleLet(longName, ProjectionCell(column.Path, prefix + "source"), new BsonDocument {
+                {"s", Choose(longPresent, Choose(longIntegral, Literal(2), Literal(3)), longCell + ".s")},
+                {"v", Choose(Op("$and", longPresent, longIntegral), longComputed, BsonNull.Value)}
+            });
+        }
+        if (column.Function == CosmicProjectionFunction.DoubleAffine)
+        {
+            if(column.Path.ValueType != typeof(double) || column.ValueType != typeof(double) || !column.DoubleMultiplier.HasValue || !column.DoubleOffset.HasValue)
+                throw new NotSupportedException("Native Double arithmetic requires an exact Double path and captured coefficients.");
+            var doubleName = prefix + "doubleAffine";
+            var doubleCell = "$$" + doubleName;
+            BsonValue doubleComputed = Op("$add", Op("$multiply", new BsonDocument("$toDouble", doubleCell + ".v"), Literal(column.DoubleMultiplier.Value)), Literal(column.DoubleOffset.Value));
+            var doublePresent = Op("$eq", doubleCell + ".s", Literal(2));
+            // Infinity and NaN fail the magnitude test, so a non-finite result is an invalid cell.
+            // MongoDB orders NaN below every number, so NaN is excluded explicitly.
+            var doubleFinite = Op("$and", Op("$lte", new BsonDocument("$abs", doubleComputed), Literal(double.MaxValue)), Op("$ne", doubleComputed, Literal(double.NaN)));
+            return SingleLet(doubleName, ProjectionCell(column.Path, prefix + "source"), new BsonDocument {
+                {"s", Choose(doublePresent, Choose(doubleFinite, Literal(2), Literal(3)), doubleCell + ".s")},
+                {"v", Choose(Op("$and", doublePresent, doubleFinite), doubleComputed, BsonNull.Value)}
+            });
+        }
+        if (column.Function == CosmicProjectionFunction.Int32Affine)
+        {
+            if(column.Path.ValueType != typeof(int) || column.ValueType != typeof(int) || !column.Int32Multiplier.HasValue || !column.Int32Offset.HasValue)
+                throw new NotSupportedException("Native Int32 arithmetic requires an exact Int32 path and captured coefficients.");
+            var arithmeticName = prefix + "affine";
+            var cell = "$$" + arithmeticName;
+            // 64-bit arithmetic, then an explicit Int32 range check: overflow is an invalid cell.
+            BsonValue computed = Op("$add", Op("$multiply", new BsonDocument("$toLong", cell + ".v"), Literal((long)column.Int32Multiplier.Value)), Literal((long)column.Int32Offset.Value));
+            // $mod keeps the dividend's sign and $trunc($divide) truncates toward zero, matching C#.
+            if (column.Int32Divisor.HasValue)
+                computed = column.Int32IsModulo ? Op("$mod", computed, Literal((long)column.Int32Divisor.Value))
+                    : new BsonDocument("$toLong", new BsonDocument("$trunc", Op("$divide", computed, Literal((long)column.Int32Divisor.Value))));
+            var present = Op("$eq", cell + ".s", Literal(2));
+            var inRange = Op("$and", Op("$gte", computed, Literal((long)int.MinValue)), Op("$lte", computed, Literal((long)int.MaxValue)));
+            return SingleLet(arithmeticName, ProjectionCell(column.Path, prefix + "source"), new BsonDocument {
+                {"s", Choose(present, Choose(inRange, Literal(2), Literal(3)), cell + ".s")},
+                {"v", Choose(Op("$and", present, inRange), new BsonDocument("$toInt", computed), BsonNull.Value)}
+            });
+        }
+        if (column.Function == CosmicProjectionFunction.TextToInt32Case)
+        {
+            if(column.Path.ValueType != typeof(string) || column.ValueType != typeof(int)
+                || column.Int32Cases == null || column.Int32Cases.Count == 0 || !column.Int32Replacement.HasValue)
+                throw new NotSupportedException("Native text-to-Int32 CASE requires an exact String path and captured literal branches.");
+            var numericName = prefix + "numericCase";
+            var numericPresent = Op("$eq", "$$"+numericName+".s", Literal(2));
+            var numericBranches = new BsonArray();
+            foreach (var entry in column.Int32Cases)
+                numericBranches.Add(new BsonDocument{{"case",Op("$eq","$$"+numericName+".v",Literal(entry.Key))},{"then",Literal(entry.Value)}});
+            var numericSelected = new BsonDocument("$switch",new BsonDocument{{"branches",numericBranches},{"default",Literal(column.Int32Replacement.Value)}});
+            return SingleLet(numericName,ProjectionCell(column.Path,prefix+"source"),new BsonDocument {
+                {"s",Choose(numericPresent,Literal(2),Literal(3))},
+                {"v",Choose(numericPresent,numericSelected,BsonNull.Value)}
+            });
+        }
+        if (column.Function == CosmicProjectionFunction.TextValueCase)
+        {
+            if(column.Path.ValueType != typeof(string) || column.ValueType != typeof(string)
+                || column.TextCases == null || column.TextCases.Count == 0 || column.WhenFalse == null)
+                throw new NotSupportedException("Native multi-branch text CASE requires an exact String path and captured literal branches.");
+            var caseName = prefix + "textCase";
+            var present = Op("$eq", "$$"+caseName+".s", Literal(2));
+            var branches = new BsonArray();
+            foreach (var entry in column.TextCases)
+                branches.Add(new BsonDocument{{"case",Op("$eq","$$"+caseName+".v",Literal(entry.Key))},{"then",Literal(entry.Value)}});
+            var selected = new BsonDocument("$switch",new BsonDocument{{"branches",branches},{"default",Literal(column.WhenFalse)}});
+            return SingleLet(caseName,ProjectionCell(column.Path,prefix+"source"),new BsonDocument {
+                {"s",Choose(present,Literal(2),Literal(3))},
+                {"v",Choose(present,selected,BsonNull.Value)}
+            });
+        }
         if (column.Function == CosmicProjectionFunction.BooleanTextCase)
         {
             if(column.Path.ValueType != typeof(bool) || column.ValueType != typeof(string)

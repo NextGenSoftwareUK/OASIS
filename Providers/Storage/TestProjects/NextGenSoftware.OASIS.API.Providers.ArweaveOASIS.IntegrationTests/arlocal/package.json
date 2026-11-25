@@ -1,0 +1,8 @@
+{
+  "name": "oasis-arweave-arlocal-fixture",
+  "private": true,
+  "description": "Pinned local Arweave gateway for the ArweaveOASIS native storage suite.",
+  "dependencies": {
+    "arlocal": "1.1.66"
+  }
+}

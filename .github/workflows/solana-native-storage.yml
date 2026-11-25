@@ -2,11 +2,13 @@ name: Solana native storage
 
 on:
   push:
-    branches: [work/hyperdrive-provider-completion]
+    branches: [work/hyperdrive-triad]
     paths:
       - '.github/workflows/solana-native-storage.yml'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS/**'
       - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests/**'
+      - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.EclipseOASIS/**'
+      - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.EclipseOASIS.IntegrationTests/**'
   workflow_dispatch:
 
 permissions:
@@ -112,3 +114,16 @@ jobs:
             jq -e '.Succeeded and .FixtureCleanupComplete and (.Passed | length == 26)' "$report" >/dev/null
             echo "$mode: 26 native checks and logical fixture cleanup passed."
           done
+          # Eclipse (SVM) on the same local ledger, with its own airdrop-funded signer.
+          eclipse="$(mktemp -d "$RUNNER_TEMP/oasis-native.XXXXXXXX")"
+          "$bin/solana-keygen" new --silent --no-bip39-passphrase --outfile "$eclipse/keypair.json"
+          "$bin/solana" airdrop 100 "$("$bin/solana-keygen" pubkey "$eclipse/keypair.json")" --url "$SOLANA_RPC_URL" --commitment finalized
+          OASIS_NATIVE_STORAGE_FIXTURE="$eclipse" OASIS_ECLIPSE_RPC="$SOLANA_RPC_URL" OASIS_ECLIPSE_KEYPAIR="$eclipse/keypair.json" \
+            dotnet test "Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.EclipseOASIS.IntegrationTests" \
+            -p:NativeStorageConformance=true --filter "FullyQualifiedName~EclipseNativeStorageConformanceTests" \
+            -m:2 -nr:false -p:UseSharedCompilation=false --logger "console;verbosity=normal"
+          for mode in async sync; do
+            jq -e '.Succeeded and .FixtureCleanupComplete and (.Passed | length == 26)' "$eclipse/$mode.json" >/dev/null
+          done
+          rm -rf -- "$eclipse"
+          echo "Eclipse passed both storage modes against the local SVM ledger."

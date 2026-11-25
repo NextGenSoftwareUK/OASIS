@@ -13,6 +13,26 @@ internal sealed class SqliteCqlReadBudget : IDisposable
     internal const string StringLengthFunction = "cosmic_cql_utf16_length";
     internal const string TextStringLengthFunction = "cosmic_cql_text_utf16_length";
     internal const string TextStringMatchFunction = "cosmic_cql_text_ordinal_match";
+    internal const string FullTextWordFunction = "cosmic_cql_text_has_word";
+    /// <summary>O16: true when <paramref name="term"/> (already lower-case letters/digits) is a whole word of the text.
+    /// Words are maximal runs of Unicode letters or digits, compared after invariant lower-casing.</summary>
+    internal static bool HasWord(string text, string term)
+    {
+        if (text == null || string.IsNullOrEmpty(term)) return false;
+        var start = -1;
+        for (var index = 0; index <= text.Length; index++)
+        {
+            var inWord = index < text.Length && char.IsLetterOrDigit(text[index]);
+            if (inWord && start < 0) start = index;
+            else if (!inWord && start >= 0)
+            {
+                if (index - start == term.Length && string.CompareOrdinal(text.Substring(start, index - start).ToLowerInvariant(), term) == 0)
+                    return true;
+                start = -1;
+            }
+        }
+        return false;
+    }
     private static bool ValidUtf8(byte[] bytes)
     {
         if (bytes == null) return false;
@@ -123,6 +143,7 @@ internal sealed class SqliteCqlReadBudget : IDisposable
             connection.CreateFunction<byte[], long?>(StringLengthFunction, Utf16Length, isDeterministic: false);
             SetTextFunction(TextStringLengthFunction, 1, textLengthCallback);
             SetTextFunction(TextStringMatchFunction, 3, textMatchCallback);
+            connection.CreateFunction<string, string, bool>(FullTextWordFunction, HasWord, isDeterministic: true);
             connection.CreateFunction<string, string>(SqliteCqlDecimal.Function, DecimalKey, isDeterministic: false);
             connection.CreateFunction<string, string>(SqliteCqlFloating.DoubleFunction, DoubleKey, isDeterministic: false);
             connection.CreateFunction<string, string>(SqliteCqlFloating.SingleFunction, SingleKey, isDeterministic: false);
@@ -133,6 +154,7 @@ internal sealed class SqliteCqlReadBudget : IDisposable
             connection.CreateFunction<byte[], long?>(StringLengthFunction, null);
             SetTextFunction(TextStringLengthFunction, 1, null);
             SetTextFunction(TextStringMatchFunction, 3, null);
+            connection.CreateFunction<string, string, bool>(FullTextWordFunction, null);
             connection.CreateFunction<string, string>(SqliteCqlDecimal.Function, null);
             connection.CreateFunction<string, string>(SqliteCqlFloating.DoubleFunction, null);
             connection.CreateFunction<string, string>(SqliteCqlFloating.SingleFunction, null);
@@ -175,6 +197,7 @@ internal sealed class SqliteCqlReadBudget : IDisposable
             connection.CreateFunction<byte[], long?>(StringLengthFunction, null);
             SetTextFunction(TextStringLengthFunction, 1, null);
             SetTextFunction(TextStringMatchFunction, 3, null);
+            connection.CreateFunction<string, string, bool>(FullTextWordFunction, null);
             connection.CreateFunction<string, string>(SqliteCqlDecimal.Function, null);
             connection.CreateFunction<string, string>(SqliteCqlFloating.DoubleFunction, null);
             connection.CreateFunction<string, string>(SqliteCqlFloating.SingleFunction, null);

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -312,83 +312,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
 
 
 
-        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IAvatar>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Miden provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
+        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0) { await Task.CompletedTask; return NoRecordStore<IEnumerable<IAvatar>>(); }
 
-                // Query all avatars from Miden API
-                var apiResult = await _apiClient.GetAsync<List<Avatar>>($"/api/avatars?version={version}");
-                
-                if (!apiResult.IsError && apiResult.Result != null)
-                {
-                    result.Result = apiResult.Result.Cast<IAvatar>();
-                    result.IsError = false;
-                    result.Message = $"Successfully loaded {apiResult.Result.Count} avatars from Miden";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to load avatars from Miden: {apiResult.Message}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading all avatars from Miden: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0) => NoRecordStore<IEnumerable<IAvatar>>();
 
-        public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0) => LoadAllAvatarsAsync(version).Result;
+        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0) { await Task.CompletedTask; return NoRecordStore<IAvatar>(); }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0)
-        {
-            var result = new OASISResult<IAvatar>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Miden provider is not activated");
-                    return result;
-                }
-
-                // Load avatar from Miden (stored as holon)
-                var holon = await LoadHolonAsync(Id);
-                if (holon.IsError || holon.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Avatar not found");
-                    return result;
-                }
-
-                // Convert holon to avatar
-                if (holon.Result is IAvatar avatar)
-                {
-                    result.Result = avatar;
-                }
-                else
-                {
-                    result.Result = ConvertHolonToAvatar(holon.Result);
-                }
-                result.IsError = false;
-                result.Message = "Avatar loaded successfully from Miden";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
-            }
-            return result;
-        }
-
-        public override OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0) => LoadAvatarAsync(Id, version).Result;
+        public override OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0) => NoRecordStore<IAvatar>();
 
         // Additional required overrides would go here...
         // For now, implementing minimal set for bridge functionality

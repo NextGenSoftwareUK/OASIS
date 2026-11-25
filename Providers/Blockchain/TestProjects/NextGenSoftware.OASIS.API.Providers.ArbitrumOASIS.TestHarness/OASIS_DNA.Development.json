@@ -236,6 +236,7 @@
       },
       "IPFSOASIS": {
         "LookUpIPFSAddress": "QmV7AwEXdAG8r7CTjXRYpDk55aaSbWuNR9kpyycLkjLFE9",
+        "CatalogueRootPointerPath": "",
         "ConnectionString": "http://localhost:5001",
         "EnableCqlCidKeySets": false,
         "NativeImportPaths": ""

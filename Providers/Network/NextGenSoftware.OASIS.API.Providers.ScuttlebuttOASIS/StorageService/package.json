@@ -1,0 +1,10 @@
+{
+  "name": "oasis-scuttlebutt-storage-service",
+  "private": true,
+  "dependencies": {
+    "secret-stack": "6.4.2",
+    "ssb-caps": "1.1.0",
+    "ssb-db2": "8.1.0",
+    "ssb-keys": "8.5.0"
+  }
+}

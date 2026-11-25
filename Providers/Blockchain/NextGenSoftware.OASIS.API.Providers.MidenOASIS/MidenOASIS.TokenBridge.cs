@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -492,47 +492,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
             return result;
         }
 
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            return LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        }
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NoRecordStore<IEnumerable<IHolon>>();
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Miden provider is not activated");
-                    return result;
-                }
-
-                // Load all holons and filter by metadata
-                var allHolonsResult = await LoadAllHolonsAsync(type);
-                if (allHolonsResult.IsError || allHolonsResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading holons: {allHolonsResult.Message}");
-                    return result;
-                }
-
-                // Filter by metadata
-                var filteredHolons = allHolonsResult.Result.Where(h => 
-                    h.MetaData != null && 
-                    h.MetaData.TryGetValue(metaKey, out var value) && 
-                    value?.ToString() == metaValue
-                ).ToList();
-
-                result.Result = filteredHolons;
-                result.IsError = false;
-                result.Message = $"Found {filteredHolons.Count} holons matching metadata";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
-            }
-            return result;
-        }
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) { await Task.CompletedTask; return NoRecordStore<IEnumerable<IHolon>>(); }
 
         /// <summary>
         /// Convert holon to avatar

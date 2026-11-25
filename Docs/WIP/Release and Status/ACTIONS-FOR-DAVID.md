@@ -2,6 +2,26 @@
 
 2026-11-18 — CLOUD ACTIONS SUPERSEDED / DEFERRED BY DAVID: cloud migration is abandoned and work resumes locally with isolated remote CI. This supersedes CLOUD-CQL-ACCESS-PREFLIGHT-2026-11-18 and CLOUD-CQL-HANDOFF-START-2026-11-18 for the current task; no cloud setup or repeated sign-in is requested. The latest named cloud chat reports Core read restored, startup still failed without a task ID. Historical access failures below are retained. Full roadmap and shared-cluster/deployment stand-down remain intact.
 
+## COSMIC-M20-TPT-DEFINITION-2026-11-25 - Decide what table-per-type inheritance means on document/graph stores
+
+Status: OPEN (2026-11-25). COSMIC checklist row M20 (Docs/WIP/COSMIC ORM/CQL_PARITY_CHECKLIST.md) says a document/graph TPT equivalent "needs a faithful definition first". M19 (discriminator, one record per entity) is done on MongoDB, SQLite and Neo4j. M21 depends on this decision too.
+
+Choose one:
+1. Split storage: each inheritance level's declared properties live in their own record (collection/table/label per level), joined by the entity id on read and written in one unit of work.
+2. Treat M20 as satisfied by M19 (one record per entity) and mark it equivalent rather than separately built.
+
+Reply with 1 or 2. The claim is released on the claims branch until then.
+
+## GITHUB-ACTIONS-RUNNER-CAPACITY-2026-11-25
+
+Status: open, 25 November 2026. GitHub Actions in NextGenSoftwareUK/OASIS runs only 2-3 jobs at a time while 40-130 runs queue, so CI-verified items (native-storage suites, the provider TestHarness gate, CQL/COSMIC checks) wait hours. Agents now batch pushes and avoid new runs while more than about 20 are queued, which slows verification further.
+
+What only you can do (GitHub organisation settings, may cost money):
+- Check Settings > Billing and plans for NextGenSoftwareUK: Actions minutes used vs included, and the Actions spending limit. Exhausted minutes or a zero spending limit throttle private-repo jobs.
+- Choose one: raise the spending limit or plan concurrency, add larger or self-hosted runners, or tell agents to run heavy suites only on workflow_dispatch.
+
+Unblocks: every queued native-storage suite (currently Zcash) and all other sessions' CI gates.
+
 ## CLOUD-CQL-ACCESS-PREFLIGHT-2026-11-18
 
 Status: blocked, 18 November 2026. Current runtime is Windows C:/Source/OASIS2, not a verified cloud checkout; no persistent-goal tool is exposed. GitHub connector reads OASIS/Web4Site, but private OASIS-API-Core returns 404. Connector write to this existing feature branch returns 403 Resource not accessible by integration. Native git access failed with getaddrinfo thread error. These are access/tooling limits; no credentials requested.
@@ -82,7 +102,10 @@ Last updated 31 October 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (mer
 | 7 | Older items: phone tests, WSL disk, Vercel branch check, oasisweb4 site decision, iOS runtime script, Git LFS budget, upstream Holochain PRs | D |
 | 11 | Messaging programme: review and push the `work/oasis-messaging` branches (parent, API.Core, STAR ODK, 7 npm repos), publish the npm packages, physical-device Bluetooth tests, HerzApp/Our World wiring decisions | G |
 | 10 | COSMIC/CQL: decide follow-up Default-routing fix publication; hosted Azure/Oracle remain deferred | F |
-| 11 | **WEB6 model catalogue v6: review prices, then approve the push** (OpenRouter list import, media prices, 6 new text models) | G |
+| 12 | **Post-release 2026-11-24: production SQLite replication held (BINDING_MISMATCH), WEB9 fix to release, test records left on prod/dev** | POST-RELEASE-2026-11-24 |
+| 11 | **WEB6 model catalogue: review the estimated prices; decide OpenRouter billing (G2)** (v7 live on Development; OpenRouter prices move hourly) | G |
+| 12 | HyperDrive on dev: Neo4j to SQLite hold at sequence 14 — repair ran once and was refused (no write); **decision pending**: the same holon reaches SQLite from both Mongo and Neo4j | I |
+| 13 | **Railway dev: add one DNA key so IPFS keeps its catalogue across restarts** (`IPFSOASIS.CatalogueRootPointerPath`) | I |
 
 ---
 
@@ -1134,6 +1157,8 @@ Power recovery verified on 11 November UTC: battery 21% and charging (Win32_Batt
 
 ### WEB6 Ask your data Development demo entitlement · 13 November
 
+25 November update (CQL sandbox session): still open, and now the only blocker for the sandbox's Ask Your Data tab. The tab's code is finished on Web4Site `work/cosmic-cql`. A live call to `dev.api.web6.oasisomniverse.one/v1/complete` with a demo session returns `WEB6_FREE_ROUTE_UNAVAILABLE` ("No zero-price completion route is configured"). What David needs to do is configure one free inference route in Development WEB6's saved DNA: a Gemini free-tier API key, an OpenRouter key (with a free model), or an Ollama endpoint and model. That unblocks the Ask Your Data demo for every visitor.
+
 23 November runtime update: selected startup configuration-presence flags on the running Development WEB6 source4b8d3923 show no dedicated Gemini Free key, no OpenRouter credential and no Ollama endpoint/model. No secrets were printed, model requests made or settings changed. The existing permanent-Free-route action remains deferred/pending; no new login, entitlement grant or repeated owner request. Engineering continues native query delivery independently.
 
 
@@ -1412,29 +1437,33 @@ Links: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44675640513
 
 ## Part G — WEB6 model catalogue (22 November 2026)
 
-### G1. Review catalogue v6 and approve the push
+### G1. Review the estimated prices in the catalogue (now v7)
 
-**Status:** open, 22 November 2026. Everything is committed on the local WEB6 branch `claude/web6-catalogue-v6` (2 commits on top of `origin/main` `f042a53`). Nothing is pushed, because the catalogue is what WEB4 billing charges.
+**Status:** open (price review only), updated 25 November 2026. v6 was pushed on your instruction (WEB6 `0348ded`, OASIS `a712210`). v7 (WEB6 `4c54731`, OASIS `4426ead`) re-imported OpenRouter's current list after 8 imported models were retired and 21 repriced within three days, and bills per-million prices exactly instead of rounding to 4 decimals. Your review is still only the estimated prices below; the OpenRouter prices are OpenRouter's own.
 
 **What it contains**
-- OpenRouter: 336 paid text models imported at OpenRouter's own published per-token prices by `WEB6/Scripts/import_openrouter_models.py` (flat-priced chat models only; tiered, per-request, image/audio-output and router models are skipped and listed by the script). Re-run it to track OpenRouter's list. See `WEB6/docs/MODEL_CATALOGUE.md`.
-- Media unit prices (my estimates, please check against each provider's price list): StabilityAI image $0.03, OpenAI gpt-image-1 1024x1024 medium $0.042, Runway 5s $0.25, Luma $0.40, Pika 3s $0.20, Kling 5s std $0.14, ElevenLabs $0.30 per 1,000 characters (calls capped at 4,000 characters), AssemblyAI nano $0.12/hour and Deepgram nova-3 $0.0043/minute (calls capped at 4 hours).
-- Six text models with estimated prices: NVIDIA NIM, Meta Llama API, Reka Core, Writer Palmyra X 004, AI71 Falcon 180B, JAIS 30B.
-- OpenAI image calls now send `quality=medium` and the quality is part of the billed model key.
-- Per-request hold is unchanged at $2.70, so no request holds back more than before.
-- `AWSSDK.BedrockRuntime` moved to 4.x, which fixes the NU1107 restore failure (the rest of the repo is on 4.x). The Bedrock call compiles unchanged against 4.x.
+- OpenRouter: 336 paid text models at OpenRouter's own published per-token prices, imported by `WEB6/Scripts/import_openrouter_models.py` (flat-priced chat models only). Re-run it to track OpenRouter's list. See `WEB6/docs/MODEL_CATALOGUE.md`.
+- Six text models: NVIDIA NIM, Meta Llama API, Reka Core, Writer Palmyra X 004, AI71 Falcon 180B, JAIS 30B.
+- OpenAI image calls send `quality=medium`, and the quality is part of the billed model key. The per-request hold is unchanged at $2.70.
 
-**Verified:** the catalogue loads into the real `ModelInfo`/`ModelCatalogueDocument` types and passes the loader's validation rules; 11 new regression tests pass against it (and fail on a broken catalogue). **Not verified:** the full WEB6 build and test suite, because the shared checkout currently has unfinished COSMIC edits in `OASIS Architecture/…API.Core/Queries` that do not compile (`CosmicMixedProjectionResults.Grouping.cs`). Run the WEB6 tests once that lands.
+**What you need to check:** the prices that are my estimates, not published list prices:
+- Media: StabilityAI image $0.03, OpenAI gpt-image-1 1024x1024 medium $0.042, Runway 5s $0.25, Luma $0.40, Pika 3s $0.20, Kling 5s std $0.14, ElevenLabs $0.30 per 1,000 characters (calls capped at 4,000 characters), AssemblyAI nano $0.12/hour, Deepgram nova-3 $0.0043/minute (calls capped at 4 hours).
+- The six text models above.
+If any is wrong, a corrected catalogue needs a new version string (`web6-model-catalogue-YYYY-MM-DD-vN`), because published versions are immutable.
 
-**Then:** `git -C WEB6 push origin claude/web6-catalogue-v6` (or merge to `main`), advance the WEB6 gitlink and `OASIS_WEB6_COMMIT` together (`Docs/Devs/RAILWAY_DEPENDENCY_PINS.md`).
+**Verified:** the full WEB6 unit suite passes, 191/191 including the 11 catalogue invariant tests, on a clean checkout of OASIS `Development` (WEB6 `add09f4`, Core `a9fe1ec`), 25 November 2026.
 
 ### G2. Decide whether OpenRouter should bill from OpenRouter's reported cost
 
-**Status:** open decision, 22 November 2026. Not implemented. Today every billed model needs a fixed price and each request holds back its worst case up front, so models with tiered or variable prices (`openrouter/auto`, router models, per-request fees) stay unavailable. Billing from OpenRouter's reported per-call cost would open them up, but it needs a per-call spending cap and a change to how billing settles.
+**Status:** open decision, updated 25 November 2026. Today every billed model needs a fixed price and each request holds back its worst case up front, so tiered and router models (`openrouter/auto`, per-request fees) stay unavailable.
+
+New evidence: OpenRouter's fixed prices do not stay fixed. `qwen/qwen3.5-9b` input went 0.17 -> 0.10 -> 0.17 USD per million within hours on 25 November, as OpenRouter switched upstream providers. Between re-imports WEB6 therefore bills some OpenRouter models below or above cost. The new weekly `WEB6 OpenRouter price drift` workflow fails when a model is retired or priced below cost, but re-importing only narrows the gap.
+
+Billing from OpenRouter's reported per-call cost would close it and open up the router models. It needs a per-call spending cap (the hold) and a change to how billing settles. Please decide: keep fixed prices plus weekly re-imports, or bill OpenRouter from reported cost.
 
 ### G3. Security advisories in shared packages
 
-**Status:** open, agent-owned, 22 November 2026. Blocked only because the shared checkout is mid-edit. AutoMapper 16.2.0 (GHSA-gpwp-5797-mjff, GHSA-6vhm-j9h7-f9gh, high) is referenced by the Optimism, Neo4j and MongoDB provider projects; 16.3.0 is the patched release. `Microsoft.AspNetCore.WebUtilities` 8.0.20 / 10.0.0 (GHSA-x33c-w48q-qrgc, high) arrives transitively; patched in 8.0.34 / 10.0.15. The COSMIC session owns those projects: bump them when its edits settle.
+**Status:** resolved, agent-owned, 25 November 2026. AutoMapper is fixed on `Development` (provider projects no longer reference it; ONODE WebAPI uses 16.3.0). `dotnet list package --vulnerable --include-transitive` on a clean `Development` checkout reports no vulnerable packages for WEB6 WebAPI or ONODE WebAPI, so the `Microsoft.AspNetCore.WebUtilities` advisory no longer applies. Nothing is needed from you.
 
 ---
 
@@ -1485,9 +1514,255 @@ Links: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44675640513
 - The hosted tests also read a small JSON manifest of the seeded IDs, from `COSMIC_INFLUXDB_HOSTED_CQL_SOURCE` and `COSMIC_WEAVIATE_HOSTED_CQL_SOURCE`. Engineering writes that manifest once the sources exist.
 - Never put the tokens in Git or chat.
 
+## Promote the cleaned WEB4 sandbox page to the public site
+
+- Open 2026-11-25. The public sandbox at https://web4.oasisomniverse.one/web4-sandbox.html still shows 49 "local demo" steps that tell visitors to run `pwsh -File Scripts/TestHosts/*.ps1` from `C:/Source/OASIS-cosmic`. Visitors cannot run those, and PowerShell is no longer used. Every provider those steps mention now runs live in the hosted CQL Playground.
+- Fixed on the Web4Site branch `work/cosmic-cql` in commit 6930aff. The same branch now also has f301621: 'Prepare my sample records' gives the built-in MongoDB, SQLite and Neo4j presets real rows for a new demo visitor (they returned zero rows before), verified against the live dev API. And 3099bf0: the 47 'Open local query' links that point at 127.0.0.1 are hidden for public visitors (they still show when the page is opened locally), and changed scripts get new cache-busting versions. Only the launcher command lines were removed: provider descriptions, the C# walkthrough links and the page anchors are kept, and the site's tests pass (two test files need Node 21+ for `JSON.rawJSON`; this laptop has Node 18).
+- What David needs to do: approve promoting `work/cosmic-cql` to the public site (Web4Site `main`). That branch is 343 commits ahead of `main` (and `main` has 1 commit the branch lacks), so promoting it ships all the CQL playground work since mid-November, so review the Vercel preview of `work/cosmic-cql` before approving.
+- What it unblocks: the public sandbox page stops showing internal instructions.
+
+## Stop docs-only pushes from redeploying WEB4-WEB10 (Railway Watch Paths)
+
+- Open 2026-11-25. Every push to `Development` rebuilds the dev WEB4-WEB10 services, even when only docs change. The new WORK-CLAIMS rule makes every session push `claim:` commits to Development: 11 of about 22 commits in the last two hours were docs-only claims, and 7 WEB4 dev deploys were queued at once. The sandbox keeps restarting, live checks can't find a stable window, and builds pile up.
+- What David needs to do: in the Railway dashboard, for each dev service WEB4-WEB10 (Settings, then Build, then Watch Paths), add patterns so changes that touch only docs never deploy, for example `**` plus the exclusions `!Docs/**`, `!**/*.md` and `!.github/**`. The same setting can be applied to production too.
+- Why David: this changes Railway service settings, which agents must not change on their own.
+- What it unblocks: claims, status and doc updates stop restarting the live sandbox; real code changes still deploy as before.
+
+## GitHub Actions has stalled: 100+ runs queued, one running
+
+- Open 2026-11-25 (about 02:50 UTC). In the OASIS repo, 100+ workflow runs are queued and only one is running: 61 queued from Development pushes, plus every session's branches. CI jobs queued an hour ago have not started. The organisation is on GitHub's Free plan, so the private-repo Actions minutes are probably used up or a spending limit has been hit. Agents cannot check this: it needs the org admin billing scope.
+- What David needs to do: open GitHub, NextGenSoftwareUK organisation, Settings, then Billing and plans (Actions usage and spending limit). Either raise the spending limit or upgrade the plan, or decide that sessions must run less CI. Optionally, cancel the stale queued Development runs so the newest ones run first.
+- Why David: billing and plan changes are his decision.
+- What it unblocks: every session's CI checks (COSMIC ORM rows, HyperDrive providers, the CQL sandbox fixes). Right now no verified batch can reach Development.
 ## Cloud session `cloud-hyperdrive-A` cannot push to GitHub (2026-11-25)
 
 - Context: the HyperDrive provider loop must push claims to Development and run CI. In this cloud session both `git push` and the GitHub MCP write calls return 403 ("Resource not accessible by integration"). Reads work.
 - Steps: connect or reconnect GitHub at https://claude.ai/connect-github, and install the Claude GitHub App on NextGenSoftwareUK/OASIS (or ask an org owner): https://github.com/apps/claude/installations/select_target. Then start a new session with the repo selected.
 - Reason: without push there are no claims and no CI runs, so no provider can be marked done.
 - Status: DONE 2026-11-25. GitHub reconnected; claim and this entry pushed to Development (b025d919).
+
+## Hosted-only providers: accounts needed for native storage tests (cloud-hyperdrive-A, 2026-11-25)
+
+- Context: these providers have no self-hostable backend, so their native storage suite (26/26 sync + async) can only run against a real hosted account. Each needs a dedicated, empty test project/database that CI may fill and clear. Never reuse a production database. Put the values in GitHub Actions secrets (names below), never in Git or chat.
+- Steps, one account each (free tiers are enough):
+  - Nile (thenile.dev): create a database `oasis-ci`, create a database user; secret `NILE_CI_CONNECTION_STRING`.
+  - Cloudflare D1: create a D1 database `oasis-ci`; an API token with D1 edit on that account; secrets `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_D1_DATABASE_ID`, `CLOUDFLARE_D1_TOKEN`.
+  - Netlify Blobs: create a site `oasis-ci`, a personal access token; secrets `NETLIFY_SITE_ID`, `NETLIFY_BLOBS_TOKEN`.
+  - MotherDuck: create database `oasis_ci`, an access token; secret `MOTHERDUCK_CI_TOKEN`.
+  - Cloudinary: create a product environment `oasis-ci`; secrets `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`.
+  - Deno Deploy (KV): create a project `oasis-ci` with a KV database, an access token; secrets `DENO_DEPLOY_PROJECT`, `DENO_DEPLOY_TOKEN`.
+  - Fly.io: create an app `oasis-ci` with the storage the FlyIOOASIS provider uses (Postgres/LiteFS per its README), a deploy token; secrets `FLY_CI_APP`, `FLY_CI_TOKEN`.
+  - Neo4j Aura: create a free AuraDB instance `oasis-ci`; secrets `NEO4J_AURA_CI_URI`, `NEO4J_AURA_CI_USER`, `NEO4J_AURA_CI_PASSWORD`. (Neo4jOASIS itself already passes on a local Neo4j; Aura only adds the hosted path.)
+  - LanceDB Cloud: create a project and API key; secrets `LANCEDB_CLOUD_URI`, `LANCEDB_CLOUD_API_KEY`.
+- Decision needed, services that appear to be discontinued: Fauna (FaunaDB shut down in 2025), Vercel KV (sunset; existing stores moved to Upstash, which UpstashOASIS already covers) and Polybase (testnet no longer reachable; please confirm). Options: (a) mark FaunaOASIS, VercelKVOASIS and PolybaseOASIS as retired and remove them from the provider matrix, or (b) keep them as historical code with no test target. Engineering's recommendation is (a).
+- Reason: without these, these providers cannot be marked done; every self-hostable provider is being done meanwhile.
+- Status: OPEN 2026-11-25. Claims marked BLOCKED in WORK-CLAIMS.md.
+
+## Live CQL sandbox: demo databases and indexer keys (cloud-cql-C, 2026-11-25)
+
+- Context: about 40 self-hostable database providers already have CQL adapters with local or CI proof, for example Redis, Valkey, KeyDB, Dragonfly, Garnet, PostgreSQL, TimescaleDB, CockroachDB, SQL Server, Cassandra, ScyllaDB, Elasticsearch, OpenSearch, Solr, Meilisearch, Typesense, Qdrant, Weaviate, Milvus, Chroma, CouchDB, Couchbase, ArangoDB, SurrealDB, RavenDB, InfluxDB and Memcached. They are not live in the dev sandbox only because Development WEB4 has no running instance of them to read. The public chains are mostly done, and the remaining keyless public sources are being added by the cloud sessions (Rootstock, Story, Lens, QuestDB on 25 Nov).
+- Decision needed: may the CQL sessions add small demo database services to the Railway **development** environment only (one service per provider, using Railway's own templates where they exist, for example Redis and PostgreSQL), seeded with the same three public teaching records each provider already uses in CI?
+  - If yes: create a project token scoped to the development environment and store it as the GitHub Actions secret `RAILWAY_DEV_DEMO_TOKEN`, not in Git or chat. The sessions then add each service, seed it, set its `CQL_*` variable and verify that its presets return 3 and 2 records.
+  - If no: these providers stay CI-verified only and are not shown live.
+  - Nothing has been created or changed yet. This entry only asks for approval.
+  - Cost: yes, this adds Railway cost. Railway bills usage around the clock, even for idle services. Published rates checked 25 Nov 2026 ([railway.com/pricing](https://railway.com/pricing), [docs](https://docs.railway.com/reference/pricing/plans)): RAM $10 per GB-month, CPU $20 per vCPU-month, volume storage $0.15 per GB-month, egress $0.05 per GB. Memory held while idle is most of the cost. These estimates are for an idle demo with three records each, not measured:
+
+    | Group | Providers | Idle memory each | Rough cost each |
+    | --- | --- | --- | --- |
+    | Light | Redis, Valkey, KeyDB, Dragonfly, Garnet, Memcached, PostgreSQL, TimescaleDB, CouchDB, Meilisearch, Typesense, Qdrant, Chroma, SurrealDB, PocketBase, InfluxDB | 50-200 MB | about $1-3 a month |
+    | Medium | ArangoDB, RavenDB, CockroachDB, SQL Server | 300-800 MB | about $4-9 a month |
+    | Heavy (JVM or multi-process) | Cassandra, ScyllaDB, Elasticsearch, OpenSearch, Solr, Couchbase, Milvus | 1-2 GB | about $11-25 a month |
+
+    All of them together: roughly $150-300 a month, most of it from the heavy group. The light group alone: roughly $25-50 a month.
+  - Ways to keep it small:
+    1. Recommended first batch: only the light group (16 services, about $25-50 a month). It covers most of the list.
+    2. Railway's serverless (sleep when idle) setting cuts idle cost a lot. The first query after a sleep waits while the database wakes, so the sandbox looks slow or briefly unavailable for that provider.
+    3. Share one service where the adapter allows it, for example one PostgreSQL for the PostgreSQL, TimescaleDB and pgvector demos, as separate databases.
+    4. Leave the heavy group CI-verified only. They already pass in CI.
+- Keyed indexer APIs (free tiers are enough, read-only): Alchemy, QuickNode, Ankr, Covalent (GoldRush), Moralis, Dune, Zapper, Tenderly, Goldsky and Nansen. Each needs one read-only key. Save each key on the Railway development WEB4 service as `CQL_<PROVIDER>_PUBLIC_READER_KEY`, for example `CQL_ALCHEMY_PUBLIC_READER_KEY`. These are lower priority than the demo databases.
+- GOMap routing origin: WEB4 deliberately refuses the public OSRM demo servers (`router.project-osrm.org`, `routing.openstreetmap.de`), because their usage policies forbid this use. Choose one option: (a) a small OSRM container on Railway development with the Berlin extract (fits the same demo-database approval above), or (b) a hosted routing API account. Then set `CQL_GOMAP_ROUTE_QUERY_SOURCE_ORIGIN` and `CQL_GOMAP_ROUTE_QUERY_SOURCE_OWNER`.
+- Retirement decision (same question as Fauna, Vercel KV and Polybase above): BasechainOASIS and LoomOASIS target Loom Network's Basechain sidechain. **Not verified:** this comes from background knowledge that Loom stopped developing Basechain years ago and that the network may be shut down or unmaintained. Nobody has probed its RPC (`basechain.dappchains.com`) or found an official notice. Polybase is also unconfirmed (its testnet was reported unreachable). Fauna (hosted FaunaDB, shutdown announced in 2025) and Vercel KV (retired, stores moved to Upstash, which UpstashOASIS covers) match public announcements. On request, a CQL session will send one read-only request to the Basechain and Polybase endpoints and look for official notices before you decide. Options: retire them from the matrix, or keep them as historical code.
+- Reason: without these, the providers above cannot return real records in the live sandbox. Everything that needs no account is being done meanwhile.
+- Status: OPEN 2026-11-25.
+
+## ONODE Manager release, signing and alerts - 2026-11-25
+
+Status: code work continues without these; only David can do them.
+
+1. Code signing (optional; unsigned builds still ship). Add these GitHub Actions secrets to NextGenSoftwareUK/OASIS. `release-onode-manager.yml` signs automatically once they exist:
+   - Windows: `WINDOWS_CERT_PFX_BASE64` (base64 of the .pfx) and `WINDOWS_CERT_PASSWORD`.
+   - macOS: `MACOS_CERT_P12_BASE64`, `MACOS_CERT_PASSWORD`, `MACOS_SIGN_APP_IDENTITY`, `MACOS_SIGN_INSTALL_IDENTITY`, `APPLE_ID`, `APPLE_TEAM_ID`, `APPLE_APP_PASSWORD` (app-specific password).
+2. First public ONODE Manager release. Run Global OASIS Release with `optional_components` including `onode_manager` and `publish=true`. It takes about 2 hours and creates a public GitHub release. Until it runs, the ONODE Manager download links on the sites stay dead.
+3. Dependabot: GitHub reports 669 alerts on the default branch (47 critical). Authorise the GitHub connector in Claude Code (`/mcp`) so a session can list and triage them.
+
+## GitHub Actions queue stall blocks COSMIC row merges - 2026-11-25 (cloud-cosmic-B)
+
+- Context: the COSMIC native qualification runs for O18 local view ([45519967748](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/45519967748), queued since 00:40 UTC), M24 defaults/computed values ([45524783092](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/45524783092), queued since 01:18) and O17 model diagnostics (branch `work/cloud-cosmic-o17`) have not started. Runners are occupied by full `OASIS CI/CD Pipeline` and `Subscription usage protocol` runs that every push to Development starts, including one-line claim commits; several have run for over an hour.
+- All three rows pass their native MongoDB/SQLite/Neo4j journeys locally; they merge to Development as soon as their CI is green. Nothing is needed from you for the code.
+- Decision for you (optional): either raise the account's concurrent-runner limit, or approve adding `paths-ignore: ["Docs/**"]` (or a concurrency group with cancel-in-progress) to `ci-cd.yml` and `subscription-usage-protocol.yml` so documentation-only claim commits stop queuing full pipelines. Agents will not change these deployment workflows without your go-ahead.
+- Status: RESOLVED for these rows 2026-11-25 07:45 UTC: all four runs eventually ran and passed (O18 finished 02:20, M24 03:08, O17 03:15, M19 03:14; up to 1h40m queued) and were merged. The docs-only-push decision above remains open for you.
+
+## Ceramic test node image: approve a community build or build from source (cloud-hyperdrive-A, 2026-11-25)
+
+- Context: CeramicOASIS now passes the native storage suite against a real ceramic-one 0.58.0 node. The official image `public.ecr.aws/r5b3e0r5/3box/ceramic-one` no longer exists (the registry answers NAME_UNKNOWN), so the CI fixture uses the community build `docker.io/dclimate/ceramic-one:0.58.0`, pinned by digest (see `Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CeramicOASIS.IntegrationTests/start-ceramic-fixture.sh`). It runs only in CI, against throwaway data.
+- Decision: (a) accept the pinned community image for CI tests, or (b) build ceramic-one from the upstream rust-ceramic source in CI (slower, adds a Rust toolchain step). Engineering's recommendation is (a), keeping the digest pin.
+- Status: OPEN 2026-11-25. Option (a) is in use until you decide.
+
+## POST-RELEASE-2026-11-24
+
+Production runs OASIS master cfea33eae2c (PR #518) on WEB4-WEB10.
+
+What passed:
+- Health: WEB4 /api/Health and authenticated avatar, HyperDrive and subscription calls; WEB6 a2a network calls; WEB7 symbiosis (real lookup); WEB8 mesh nodes; WEB5 (api.starnet) health. All 200 or a correct domain error.
+- CQL: query-cql and query-cql/scalar return without errors on MongoDBOASIS, SQLLiteDBOASIS and Neo4jOASIS.
+
+1. WEB9 refused every bearer (ACCESS_SESSION_AUTHORITY_NOT_ADMITTED).
+   Cause: WEB9 booted OASIS only when PREPARED_STORAGE_ADMISSION_JSON was set. Fixed on Development in e9b0c22fd18 (boots the same way as WEB6-WEB8).
+   Your step: promote to master and redeploy WEB9 production. Then check GET https://api.web9.oasisomniverse.one/v1/singularity/status with a sandbox bearer.
+
+2. Production SQLite replication is still held. Route hyperdrive-target-v2:SQLLiteDBOASIS:...AB2C2, seq 2, operation 41844155-6e4a-4c17-bc09-46d03a4a61c3.
+   - It was held with STORAGE_BINDING_INVALID. The shipped /app/OASISSQLLiteDB.db is now gone, as confirmed in the container.
+   - It was re-armed once with --cosmic-rearm-held-head: operator a5e52d14-7e82-43b4-8f21-0a53529246b6, request /data/COSMIC/ReplicaRearm/prod-seq2.json. The result was success, and a Rearm audit record is on the row.
+   - The retry (attempt 2) failed with COSMIC_REPLICA_STORAGE_BINDING_MISMATCH: "The native receiver does not match the enrolled storage identity." Seq 4-20 (9 entries) are Pending behind it.
+   - MISMATCH is deliberately not re-armable, and --cosmic-repair-baseline covers only lineage conflicts. No supported tool releases it. Do not re-arm again.
+   - Needs a code investigation: the route's enrolled target fingerprint versus the /data/OASISSQLLiteDB.db CosmicReplicationStoreIdentity row.
+   - Dev is separate and unchanged: v2 ...4982 is held at 543 (AUTHORIZATION_DENIED, 333 behind), and v1 SQLite is held at 535 (LINEAGE_CONFLICT). The dev current route ...2461 is drained.
+
+3. Test records are still on production and dev, because the sandbox sweep is broken.
+   - The production log says, on every 15-minute sweep: "Listing MongoDBOASIS holons of <avatar> failed: Mongo holon collection read failed", then "removed 0 demo avatars and 0 holons; 6 kept for retry".
+   - The read is MongoDBOASIS.ReadHolonCollectionGraphAsync. Its exception is swallowed, so the cause needs a reproduction.
+   - Production leftovers:
+     - demo holons 61b08937-ea30-6ed0-ed21-9642411c8b76 (Espresso), 16074723-5dbe-a6a2-e71d-6d1860e5e393 (Flat White) and b2b542d7-f855-89a4-2421-468bcf14666c (Tea), owner 7e2a53a2
+     - probe holons ed6b2550-eace-3f0e-d20e-abad408680df, 11eec3b0-b947-b0f5-c62b-ef67af11a7dc, e0efb380-7470-9afa-11a4-ec68697080ad and 950cf30a-bcfb-c18d-b77f-3ae4fec2dbb5
+     - sandbox avatars from this session: a9ca5a2e-dd6a-4def-98ef-d33e7cae60e0 and d0745e8f-8df3-4e0e-8fce-3690f53ff416. They own no holons.
+   - Dev leftover: probe holon 4c15ba78-ff19-5a49-89d4-5c78abf8d6c6.
+   - Owner sessions have expired, and avatar delete needs admin rights. Direct database deletes would leave their replication obligations (some are in the held queue above) inconsistent, so nothing was force-deleted.
+   - Once the sweep is fixed, it removes them by itself. Then confirm in Mongo that the IDs above are absent.
+
+## ONET: two decisions before the last protocol items (2026-11-24)
+
+Status: decided by David, 24 November 2026; engineering in progress (no further owner action). Plan: [ONET_STORAGE_AND_HOLONET_PLAN_2026-11.md](../ONET/ONET_STORAGE_AND_HOLONET_PLAN_2026-11.md).
+
+1. Message encryption (audit item #24): **encrypt, with a coordinated upgrade.** ONET application frames move to version 2 (encrypted for the target node and signed). Older nodes stop exchanging messages with upgraded ones, so every ONET node (Railway WEB4 and any self-hosted ONODEs) must be on the same release.
+2. Holochain-carried ONET traffic (plan item 8): **build the `onet` zome now.** It is a coordinator-only module in the OASIS hApp (DNA hash unchanged).
+
+### POST-RELEASE-2026-11-24: update 2026-11-25
+- Sandbox sweep: root cause found and fixed in PR #527 (CI running).
+  - V2 HolonManager.LoadAllHolons dropped the avatar, so the sweep listed the whole Mongo Holon collection. Production has 18 legacy duplicate-HolonId groups (259 extra docs, June/July 2026), which that read rejects as ambiguous.
+  - Fix: Core 1aa5cb4b (on Core Development) plus a native owner filter in Mongo, with a real-Mongo regression test.
+  - Your decision: the 259 legacy duplicate documents need a reviewed data repair. Nothing was deleted.
+- BINDING_MISMATCH: root cause found.
+  - The 2026-11-23 process enrolled route ...AB2C2 against /app/OASISSQLLiteDB.db: endpoint fingerprint 4171877D... (that is sha("sqlite-file-v1:/app/OASISSQLLiteDB.db")), store bfcf03a6-dbe4-408b-b3d7-97a733e5e229.
+  - That image-shipped file and the identity it created disappeared on redeploy. The live store is /data/OASISSQLLiteDB.db, identity 93d05201-d755-4e9a-a24d-be34e269af7c.
+  - Current boot uses the DNA path /data, and no SQLite enrollments have happened since 2026-11-23, so new writes are not affected.
+  - All 10 stuck obligations (seq 2-20) belong to the 2026-11-23 demo and probe test holons, which are due for deletion anyway.
+  - Your decision: an obligation whose enrolled target store no longer exists can never be delivered as enrolled. Releasing it needs a new reviewed tool, either to retarget it to the successor store (re-binding plus normal or baseline delivery) or to retire it with recorded evidence that the target is gone. Both change the "never reset or skip" rule, so I did not build one without your choice.
+- The production release (promotion PR and Railway deploy of WEB9 + sweep fixes) is waiting for your go-ahead.
+
+## Part I — HyperDrive replication on dev (24 November 2026)
+
+### I1. Neo4j to SQLite hold at sequence 14 (dev)
+
+- Decision, 25 November 2026: David chose "Keep SQLite's v18". The read-only compare showed the held Neo4j payload at
+  version 1 (ff3aa32d-94ae-42b6-a2a4-ab396158fb58) and SQLite's head at version 18 (8a4802aa-0f1c-4d63-804c-c714ec828a60,
+  modified 29 October), so they differ. SQLite keeps v18 and the Neo4j sequence-14 obligation is retired without delivery.
+- DONE, 25 November 2026: David approved, and `--cosmic-retire-held` ran once on dev (Development 5cb1a0f8) with
+  `Docs/WIP/HyperDrive-Providers/I1/neo-seq14-retire-request.json` (same SHA-256 on the volume). Output
+  `{"success":true,"retired":true,"sequence":14}`. A read-only re-inspect shows sequence 14 Completed and SQLite still at
+  v18 (8a4802aa). 535/543 untouched. Closed.
+
+- Status, 25 November 2026: David approved the reviewed baseline repair in the CQL sandbox session, which ran it once.
+  The target refused it before any write: `COSMIC_REPLICA_INITIALIZATION_RECONCILIATION_REQUIRED` (exit 1). Request
+  `/data/COSMIC/ReplicaRepair/neo-seq14-request.json` (init operation 9c165163-0a7d-4a14-93e7-a0fb500b5c23) is spent:
+  never resubmit or regenerate it; its journal stays at phase Submitted with no receipt. The source obligation is
+  unchanged and 535/543 are untouched.
+- What the inspection showed (`--cosmic-inspect-held Neo4jOASIS 14`, read-only, Development 8b7614d3): operation
+  b64bce63-3aeb-40c0-b3b2-b75675a87023, root holon 715eb09e-ce75-4ab3-9f4e-e76c0493281a, actor
+  c0b43739-cc8e-48c3-9a6f-6a071a95170f, payload digest 6B8C1A22…398D, state ReconciliationRequired.
+- Why it was refused: that holon is already in the SQLite target, installed on 30 October by the Mongo to SQLite
+  sequence-8 repair. The same holon now arrives from a second source (Neo4j), and a baseline only installs into an
+  absent target. This is not a data loss; it is two enrolled sources governing one target replica.
+- Next step (engineering, read-only): compare the held Neo4j payload with SQLite's current head for 715eb09e (version
+  and content digest). Then:
+  - If they are the same content, the hold can be acknowledged as already satisfied. That needs a new reviewed
+    "equivalent head" completion in the repair command (it does not exist yet); engineering will build it.
+  - If they differ, Mongo and Neo4j have diverged for this holon and **David decides which lineage wins** (keep the
+    Mongo-derived SQLite copy and retire the Neo4j obligation, or replace it with the Neo4j version).
+- Also found: `OASIS_SANDBOX` is not set on the dev service, so the shell repair/inspect commands need
+  `OASIS_SANDBOX=true` on their command line.
+
+### I2. Add the IPFS catalogue pointer key to Railway dev
+
+- Status: open, 25 November 2026.
+- What: in Railway, project OASIS, environment **dev**, service WEB4 (`5123199a-43c4-4439-9921-e10e2aec7841`), edit the
+  variable `OASIS_DNA_JSON`. In `OASIS` → `StorageProviders` → `IPFSOASIS`, add
+  `"CatalogueRootPointerPath": "/data/IPFS/catalogue-root"` next to `LookUpIPFSAddress`. Change nothing else.
+- Why: the entrypoint rewrites the DNA file from `OASIS_DNA_JSON` on every boot, so IPFS forgot its current catalogue on
+  each restart and replication failed with "The IPFS catalogue has no persisted storage identity". The code fix (now on
+  Development, commit 8ebfa79c) keeps the catalogue root in this file on the `/data` volume. The agent could not set it:
+  the 31.6K-character value is too long for a Windows command line, and Railway's API refuses the CLI login token from a
+  script.
+- After: the next deploy picks it up; the first IPFS write upgrades the old catalogue and the replication-source error
+  stops. Tell the agent when it is saved and it will verify in the dev logs.
+- Unblocks: IPFS as a HyperDrive replication source on dev. Staging/production need the same key when promoted.
+
+## COSMIC A05 decision: should `ParentHolon` keep driving persisted parent ids? - 2026-11-25 (cloud-cosmic-B)
+
+- Context: checklist row A05 still needs EF-style inverse reference fix-up (a tracked child's `ParentHolon` pointing at its tracked parent instance). It was implemented and tested in cloud-cosmic-B, then withdrawn before pushing.
+- Blocker: the save path (`OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/HolonManager/HolonManager-Private.Helpers.cs`, around line 594) treats a non-null `ParentHolon` as authoritative. It overwrites `ParentHolonId` from it, and as a "fail-safe/fallback" copies the parent's celestial ids (ParentStarId, ParentPlanetId, ParentMultiverseId and others) into the child. With fix-up on, re-parenting by `ParentHolonId` was silently undone on all three stores, and saving a child could change its stored celestial ids. Bypassing this inside the COSMIC session would be a parallel path, which the root-cause policy forbids.
+- Decision needed (pick one):
+  1. COSMIC sessions treat `ParentHolonId` as the persisted truth and `ParentHolon` as a non-persisted navigation. The legacy derivation stays for non-COSMIC STAR/ODK callers only. A05 then ships with fix-up. Recommended.
+  2. Keep the legacy behaviour everywhere. A05 is then marked as not applicable, documenting that `ParentHolon` assignment is a write.
+- Reason: either choice changes what a save writes, which affects STAR/ODK celestial graphs, so it is your call.
+- Status: OPEN 2026-11-25 08:40 UTC. The claim in WORK-CLAIMS.md is marked BLOCKED; other rows continue.
+
+## Approve deleting the six LOST_METHODS_REVIEW files
+
+- Open 2026-11-25. These files hold commented-out methods from the file-split audit, each annotated with a verdict (almost all "superseded"). They compile to nothing but clutter the code base:
+  - `Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Repositories/AvatarRepository.LOST_METHODS_REVIEW.cs`
+  - `ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Managers/NFTManager.LOST_METHODS_REVIEW.cs`
+  - `ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Managers/STARNET/OAPP System/OAPPManager.LOST_METHODS_REVIEW.cs`
+  - `ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Managers/STARNET/OAPP System/OAPPTemplateManager.LOST_METHODS_REVIEW.cs`
+  - `ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Managers/STARNET/OAPP System/RuntimeManager.LOST_METHODS_REVIEW.cs`
+  - `ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Managers/STARNET/STARNET System/STARNETManagerBase.LOST_METHODS_REVIEW.cs`
+- Decision needed: reply "delete them" to have them removed, or name any method you want restored first. The audit found no genuine losses beyond WalletManager, which was already restored.
+
+## WRLD 3D is gone: decide the WRLD3D provider and check the Our World map
+
+- Open 2026-11-25. wrld3d.com no longer serves WRLD: the home page, developer page and wrld.js docs return unrelated gambling spam, and docs.wrld3d.com redirects there. WRLD never offered a server-side API (maps were drawn client-side by wrld.js and its Unity and mobile SDKs).
+- Done by engineering: WRLD3DOASIS no longer reports success for map operations; each returns false with the reason in `LastError`. The Web4Site homepage no longer loads WRLD's logo from wrld3d.com (Web4Site main 065b4ee).
+- Decision 1: keep WRLD3DOASIS as an unavailable provider, or remove it (project, solution entries, `MapProviderType.WRLD3D`, NuGet listing). Reply "remove WRLD3D" or "keep".
+- Decision 2: the Our World Unity project ships WRLD streaming resources (`Assets/StreamingAssets/WrldResources/`), so its in-app map probably depends on WRLD's servers. Please open Our World and check whether the map still loads. If it does not, choose a replacement renderer for Unity (Mapbox Maps SDK for Unity, Google Maps 3D, or Cesium for Unity) and engineering will migrate it. Mapbox already has a working OASIS provider (MapboxOASIS) to pair with its Unity SDK.
+
+## Published ONODE.Core 2.0.1 NuGet package cannot be restored
+
+- Open 2026-11-25. `NextGenSoftware.OASIS.API.ONODE.Core` 2.0.1 on nuget.org depends on `Ipfs.Http.Client` >= 0.42, which does not exist on nuget.org (the newest there is 0.33.0). Any project that falls back to the package (for example a checkout without the ONODE.Core submodule, or an external NuGet consumer) fails restore with NU1102.
+- The source is already fixed: IPFSOASIS now packs the local Ipfs.Http.Client DLL privately instead of declaring it as a NuGet dependency. Only the published package is stale.
+- Decision needed: approve publishing a new ONODE.Core version (and the IPFSOASIS package) through the normal NuGet release, so the fixed dependency graph reaches nuget.org. Existing versions are not changed or republished.
+
+## Shared NuGet cache on the dev machine is corrupt (Mvc.Testing 10.0.0)
+
+- Open 2026-11-25. `C:\Users\David\.nuget\packages\microsoft.aspnetcore.mvc.testing\10.0.0` is half-deleted and its `Microsoft.AspNetCore.Mvc.Testing.Tasks.dll` is locked by a running build server, so restores that need it fail with "Access denied". Sessions currently work around it with a private `NUGET_PACKAGES` folder and `-nodeReuse:false`.
+- Fix (briefly interrupts other sessions' builds): when no release build is running, run `dotnet build-server shutdown`, delete that `10.0.0` folder, then restore any project once to re-download it. Reply "repair the NuGet cache" and Claude will do it.
+
+## Bot and pinning accounts for Telegram, Discord and Pinata native storage tests (cloud-hyperdrive-A, 2026-11-25)
+
+- Context: these three providers can only be tested against the real hosted services. Each needs a dedicated test account or bot that CI may fill and clear. Put values in GitHub Actions secrets, never in Git or chat.
+- Steps:
+  - Telegram: create a bot with @BotFather and a private test channel with the bot as admin; secrets `TELEGRAM_CI_BOT_TOKEN`, `TELEGRAM_CI_CHAT_ID`.
+  - Discord: create an application and bot in the Discord developer portal, invite it to a private test server with a dedicated channel (send/read/manage messages); secrets `DISCORD_CI_BOT_TOKEN`, `DISCORD_CI_CHANNEL_ID`.
+  - Pinata: create a free Pinata account and a scoped API key (pinning + unpinning) for a test group; secret `PINATA_CI_JWT`.
+- Note: Telegram and Discord message history is not a durable keyed store. Engineering will first check whether either can meet the suite's contract within platform rules, and will classify a provider as non-storage rather than force it, as was done for Farcaster.
+- Status: OPEN 2026-11-25. Claims marked BLOCKED on the claims branch.
+
+## PLANOASIS: what is the PLAN backend? (cloud-hyperdrive-A, 2026-11-25)
+
+- Context: PLANOASIS calls `https://api.plan.network/avatars/{id}` and similar REST paths, but its README is the generic template and no API documentation or self-hostable server could be found, so the native storage suite cannot be run. Details: `Docs/WIP/HyperDrive-Providers/PLAN_LOOM_CLASSIFICATION_2026-11-25.md`.
+- Decision: either (a) point engineering at PLAN's API documentation and a dedicated test account (secret `PLAN_CI_API_KEY` if it uses one), or (b) retire PLANOASIS from the provider matrix. Engineering's recommendation is (b) unless PLAN is a live service you rely on.
+- Status: OPEN 2026-11-25. Claim marked BLOCKED.
+
+## Oracle Object Storage test bucket (cloud-hyperdrive-A, 2026-11-25)
+
+- Context: OracleObjectStorageOASIS can only be tested against Oracle Cloud (OCI) Object Storage; there is no local OCI emulator. OracleDB (the priority Oracle provider) already passes on its own.
+- Steps: in an OCI tenancy (Always Free is enough) create a bucket `oasis-ci` in one region and an API signing key for a user limited to that bucket; secrets `OCI_CI_TENANCY_OCID`, `OCI_CI_USER_OCID`, `OCI_CI_FINGERPRINT`, `OCI_CI_PRIVATE_KEY`, `OCI_CI_REGION`, `OCI_CI_NAMESPACE`, `OCI_CI_BUCKET`.
+- Status: OPEN 2026-11-25. Claim marked BLOCKED.

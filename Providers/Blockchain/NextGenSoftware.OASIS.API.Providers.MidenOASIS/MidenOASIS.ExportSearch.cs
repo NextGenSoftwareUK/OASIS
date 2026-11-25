@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -34,96 +34,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
 {
     public partial class MidenOASIS
     {
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
-        {
-            var result = new OASISResult<bool>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Miden provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
+        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true) { await Task.CompletedTask; return NoRecordStore<bool>(); }
 
-                // Delete avatar by ID from Miden API
-                var apiResult = await _apiClient.PostAsync<bool>($"/api/avatars/delete/{id}", new { softDelete });
-                
-                if (!apiResult.IsError)
-                {
-                    result.Result = apiResult.Result;
-                    result.IsError = false;
-                    result.Message = "Successfully deleted avatar by ID from Miden";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to delete avatar by ID from Miden: {apiResult.Message}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by ID from Miden: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true) => NoRecordStore<bool>();
 
-        public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
-        {
-            return DeleteAvatarAsync(id, softDelete).Result;
-        }
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) { await Task.CompletedTask; return NoRecordStore<IEnumerable<IHolon>>(); }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Miden provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                // Query holons by metadata from Miden API
-                var requestPayload = new
-                {
-                    metadata = metaKeyValuePairs,
-                    matchMode = metaKeyValuePairMatchMode.ToString(),
-                    holonType = type.ToString(),
-                    version = version
-                };
-                
-                var apiResult = await _apiClient.PostAsync<List<Holon>>("/api/holons/search/metadata", requestPayload);
-                
-                if (!apiResult.IsError && apiResult.Result != null)
-                {
-                    var holons = apiResult.Result.Where(h => type == HolonType.All || h.HolonType == type).Cast<IHolon>();
-                    result.Result = holons;
-                    result.IsError = false;
-                    result.Message = $"Successfully loaded {holons.Count()} holons by metadata from Miden";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to load holons by metadata from Miden: {apiResult.Message}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata from Miden: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            return LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        }
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NoRecordStore<IEnumerable<IHolon>>();
 
         public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
         {
@@ -183,188 +100,21 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
             return result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IAvatarDetail>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Miden provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
+        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0) { await Task.CompletedTask; return NoRecordStore<IEnumerable<IAvatarDetail>>(); }
 
-                // Query all avatar details from Miden API
-                var apiResult = await _apiClient.GetAsync<List<AvatarDetail>>($"/api/avatars/details?version={version}");
-                
-                if (!apiResult.IsError && apiResult.Result != null)
-                {
-                    result.Result = apiResult.Result.Cast<IAvatarDetail>();
-                    result.IsError = false;
-                    result.Message = $"Successfully loaded {apiResult.Result.Count} avatar details from Miden";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to load avatar details from Miden: {apiResult.Message}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading all avatar details from Miden: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0) => NoRecordStore<IEnumerable<IAvatarDetail>>();
 
-        public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
-        {
-            return LoadAllAvatarDetailsAsync(version).Result;
-        }
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) { await Task.CompletedTask; return NoRecordStore<IEnumerable<IHolon>>(); }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Miden provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
+        public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => NoRecordStore<IEnumerable<IHolon>>();
 
-                // Export all holons from Miden API
-                var apiResult = await _apiClient.GetAsync<List<Holon>>($"/api/holons/export?version={version}");
-                
-                if (!apiResult.IsError && apiResult.Result != null)
-                {
-                    result.Result = apiResult.Result.Cast<IHolon>();
-                    result.IsError = false;
-                    result.Message = $"Successfully exported {apiResult.Result.Count} holons from Miden";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to export all holons from Miden: {apiResult.Message}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error exporting all holons from Miden: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons) { await Task.CompletedTask; return NoRecordStore<bool>(); }
 
-        public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
-        {
-            return ExportAllAsync(version).Result;
-        }
+        public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => NoRecordStore<bool>();
 
-        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
-        {
-            var result = new OASISResult<bool>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Miden provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
+        public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) => NoRecordStore<ISearchResults>();
 
-                if (holons == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Holons cannot be null");
-                    return result;
-                }
-
-                // Import holons to Miden API
-                var apiResult = await _apiClient.PostAsync<bool>("/api/holons/import", holons);
-                
-                if (!apiResult.IsError)
-                {
-                    result.Result = apiResult.Result;
-                    result.IsError = false;
-                    result.Message = $"Successfully imported {holons.Count()} holons to Miden";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to import holons to Miden: {apiResult.Message}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error importing holons to Miden: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
-        {
-            return ImportAsync(holons).Result;
-        }
-
-        public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
-        {
-            return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
-        }
-
-        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
-        {
-            var result = new OASISResult<ISearchResults>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Miden provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (searchParams == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Search parameters cannot be null");
-                    return result;
-                }
-
-                // Build search request payload
-                var searchPayload = new
-                {
-                    query = searchParams is ISearchTextGroup textGroup ? textGroup.SearchQuery : "",
-                    version = version
-                };
-
-                // Search holons and avatars from Miden API
-                var apiResult = await _apiClient.PostAsync<SearchResults>("/api/search", searchPayload);
-                
-                if (!apiResult.IsError && apiResult.Result != null)
-                {
-                    result.Result = apiResult.Result;
-                    result.IsError = false;
-                    result.Message = $"Successfully searched Miden: found {apiResult.Result.SearchResultAvatars?.Count() ?? 0} avatars and {apiResult.Result.SearchResultHolons?.Count() ?? 0} holons";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to search Miden: {apiResult.Message}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error searching Miden: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) { await Task.CompletedTask; return NoRecordStore<ISearchResults>(); }
 
     }
 }

@@ -57,25 +57,34 @@ Removed:
 
 Also: `ONETProtocol` now raises `NodeConnected`/`NodeDisconnected`. It used to declare them and never raise them, so no provider forwarded any connect events.
 
-### Target
+### Holochain transport — implemented (November 2026)
 
-Holochain carries ONET traffic; ONET identity and signing stay the same, so both modes interoperate at the message level.
+David decided on 24 November 2026 to build this now.
 
-- `onet` zome in the OASIS hApp:
-  - `register_node(record)`: commits a node record (ONET node id, public key, advertised address, capabilities) signed with the ONET key, linked from a well-known anchor;
-  - `list_nodes()`: reads the anchor links (discovery);
-  - `send(to_agent, frame)` using `send_remote_signal`; the receiving zome emits the frame as a signal.
-- `HoloNETP2PProvider` sends the existing signed `ONETTcpApplicationMessageChannel` frames through `send`, raises `MessageReceived` from HoloNET signals after the same signature, freshness and single-use checks, and builds nodes from `list_nodes()`.
-- Map agent pubkey to ONET node id through the signed node record; reject records whose id is not SHA-256 of the key.
-- Enable `ApplicationEndpoint` in both modes by putting the endpoint on top of the provider rather than TCP.
+OASIS hApp (`OASIS-Holochain-hApp`), coordinator module `dnas/oasis/zomes/coordinator/oasis/src/onet.rs`. It's coordinator-only, so the DNA hash and existing data are unchanged:
+- `onet_register_node(record)`: publishes or replaces this agent's ONET node record (`node_id`, `public_key`, `advertised_address`, `signature`) as its membership of the HyperNET session `onet`. The zome rejects ids that are not lowercase-hex SHA-256, unsigned records, and records over 900 bytes.
+- `onet_nodes()`: every agent with a well-formed record. This is discovery.
+- `onet_send({to, frame})`: one remote signal of kind `onet-frame` to one agent. The frame is opaque bytes and at most 512 KiB.
+- It reuses HyperNET's `recv_remote_signal`, because a zome has only one.
 
-### Steps
+ONODE `HoloNETP2PProvider`, after the conductor connection and the ONET transport start:
+- registers this node's record. The ONET identity signs `onet.node|<nodeId>|<agentPubKey>|<advertisedAddress>`.
+- reads `onet_nodes` on start and every minute. It keeps only records whose id is the SHA-256 of the key and whose signature verifies, registers their keys and connects them at `holochain:<agentPubKey>`.
+- sends frames to `holochain:` peers through `onet_send`. `ONETProtocol.HolochainFrameSender` is the hook, and a `holochain:` peer is never tried over TCP.
+- feeds `onet-frame` signals into `ReceiveApplicationFrameAsync`. That runs the same checks as TCP frames: signature, identity, freshness, single use, then decryption.
 
-1. Write the `onet` zome and add it to the hApp DNA (HoloNET/hApp repo). Zome tests with Tryorama.
-2. Provider: replace the TCP path with zome calls and signal handling; fix `GetConnectedNodesAsync`; real `NodeConnected`/`NodeDisconnected` from node records and signal activity.
-3. Move `ApplicationEndpoint` onto `IP2PNetworkProvider` transport.
-4. Live test with the existing HoloNET TestHarness (it manages the conductor itself): two agents exchange signed frames and peer lists.
-5. Docs: DNA `ONET.NetworkType`, conductor requirements, and the interop note.
+Remote signals are fire and forget. A successful hand-off counts as accepted, and replies come back as frames of their own.
+
+## Message encryption (audit #24) — implemented (November 2026)
+
+Decided on 24 November 2026: encrypt, with a coordinated upgrade.
+
+- Application frames are version 2. `ONETFrameCrypto` seals each one for the target's identity key: a fresh P-256 ECDH key per frame, HKDF-SHA256, then AES-256-GCM, with version, source, target and issued time as associated data. The sealed frame is then signed.
+- Receivers verify the signature, sender identity, freshness and single use before decrypting. The decrypted message must match the signed header.
+- No plaintext fallback: a peer with no registered key can't be messaged (`ONET_TARGET_KEY_UNKNOWN`), and v1 frames are rejected.
+- **Coordinated upgrade:** every ONET node (Railway WEB4 and self-hosted ONODEs) must run the same release.
+- Key learning: on connect to a TCP peer whose key is unknown, the node sends `ONET_KEY`. The peer answers `ONET_KEY <base64 SPKI>`, and the key is registered only if its SHA-256 equals the node id. Peer exchange, bootstrap records, stored peers and Holochain node records also supply keys.
+- Trade-off: identity keys both sign and act as the static ECDH key. Compromising a node's key therefore exposes frames previously sent to it.
 
 ## Order
 
