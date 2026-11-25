@@ -26,6 +26,8 @@ on:
       - 'Providers/Social/TestProjects/NextGenSoftware.OASIS.API.Providers.MatrixOASIS.IntegrationTests/**'
       - 'Providers/Other/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS/**'
       - 'Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS.IntegrationTests/**'
+      - 'Providers/Other/NextGenSoftware.OASIS.API.Providers.ONION-Protocol/**'
+      - 'Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.OnionOASIS.IntegrationTests/**'
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.ArweaveOASIS/**'
       - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ArweaveOASIS.IntegrationTests/**'
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS/**'
@@ -66,7 +68,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        provider: [CouchDB, Couchbase, ArangoDB, SurrealDB, ClickHouse, InfluxDB, Chroma, PgVector, ArcadeDB, QuestDB, PouchDB, NATSJetStream, Nostr, Dapr, GUN, Marqo, Pinot, Matrix, OrbitDB, Arweave, Scuttlebutt, Appwrite, Pinecone, Tableland, Celestia, Ceramic, BlueSky, Filecoin, Urbit, Radix]
+        provider: [CouchDB, Couchbase, ArangoDB, SurrealDB, ClickHouse, InfluxDB, Chroma, PgVector, ArcadeDB, QuestDB, PouchDB, NATSJetStream, Nostr, Dapr, GUN, Marqo, Pinot, Matrix, OrbitDB, Arweave, Scuttlebutt, Appwrite, Pinecone, Tableland, Celestia, Ceramic, BlueSky, Filecoin, Urbit, Radix, Onion]
     defaults:
       run:
         working-directory: OASIS
@@ -245,6 +247,24 @@ jobs:
               node "$service_dir/storage-service.mjs" "$fixture/orbitdb-sync" 18902 >"$fixture/orbitdb-sync.log" 2>&1 & relays="$relays $!"
               wait_for "grep -q ready '$fixture/orbitdb-async.log' && grep -q ready '$fixture/orbitdb-sync.log'"
               export OASIS_ORBITDB_ASYNC_SERVICE=http://127.0.0.1:18901 OASIS_ORBITDB_SYNC_SERVICE=http://127.0.0.1:18902 ;;
+            Onion)
+              # Two OrbitDB storage services published as onion services on a private loopback Tor network
+              # (3 authorities, 2 relays, 1 client); never contacts the public Tor network.
+              # Mask the packaged system Tor before installing so it never starts and joins the public network.
+              sudo systemctl mask tor.service tor@default.service
+              sudo apt-get install -y -q tor
+              service_dir="$PWD/Providers/Other/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS/StorageService"
+              npm ci --prefix "$service_dir" --no-audit --no-fund
+              export OASIS_ORBITDB_STORAGE_TOKEN="$password" OASIS_ONION_STORAGE_TOKEN="$password" OASIS_ONION_SOCKS_PORT=19150
+              node "$service_dir/storage-service.mjs" "$fixture/onion-async" 18931 >"$fixture/onion-async.log" 2>&1 & relays="$relays $!"
+              node "$service_dir/storage-service.mjs" "$fixture/onion-sync" 18932 >"$fixture/onion-sync.log" 2>&1 & relays="$relays $!"
+              wait_for "grep -q ready '$fixture/onion-async.log' && grep -q ready '$fixture/onion-sync.log'"
+              tor_status=0
+              Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.OnionOASIS.IntegrationTests/Fixture/start-loopback-tor-network.sh \
+                "$fixture" "$OASIS_ONION_SOCKS_PORT" async=18931 sync=18932 || tor_status=$?
+              relays="$relays $(cat "$fixture/tor/pids" 2>/dev/null || true)"
+              (( tor_status == 0 ))
+              export OASIS_ONION_ASYNC_SERVICE="http://$(cat "$fixture/tor/async.onion")" OASIS_ONION_SYNC_SERVICE="http://$(cat "$fixture/tor/sync.onion")" ;;
             Arweave)
               # Disposable arlocal gateway (pinned) and one freshly minted wallet per storage mode.
               tests_dir="$PWD/Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ArweaveOASIS.IntegrationTests"
