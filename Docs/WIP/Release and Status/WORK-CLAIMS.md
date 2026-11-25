@@ -50,3 +50,4 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | COSMIC M24 model defaults, computed and generated properties | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-m24 | 2026-11-25 01:10 | IN PROGRESS |
 | OrbitDBOASIS native storage (@orbitdb/core + Helia service) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-orbitdb | 2026-11-25 01:10 | IN PROGRESS |
 | RootstockOASIS live public CQL source (anonymous public-node.rsk.co balance reads, BNB pattern) | CQL sandbox (WEB4) | cloud: cloud-cql-C | work/cloud-cql-rootstock | 2026-11-25 01:04 | IN PROGRESS |
+| ScuttlebuttOASIS native storage (ssb-db2 feed service) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-scuttlebutt | 2026-11-25 01:25 | IN PROGRESS |
