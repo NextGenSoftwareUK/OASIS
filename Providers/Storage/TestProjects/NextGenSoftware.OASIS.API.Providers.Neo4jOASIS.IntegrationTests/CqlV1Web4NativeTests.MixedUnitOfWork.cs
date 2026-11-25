@@ -238,6 +238,22 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.IsFalse(hasB.IsError,hasB.ErrorCode+": "+hasB.Message);Assert.AreEqual(1,hasB.Result.Count);
         }
         checks++;
+        // M24 default and computed values are applied at SaveChanges and stored natively.
+        using(var gen=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            Assert.IsFalse(gen.HasDefaultValue<Holon,string>(row=>row.Description,"default-description").IsError);
+            Assert.IsFalse(gen.HasComputedValue<Holon,string>(row=>row.CustomKey,row=>(row.Name??"").ToUpperInvariant()).IsError);
+            var plain=New("gen-plain");var given=New("gen-given");given.Description="explicit";
+            foreach(var row in new[]{plain,given})Assert.IsFalse(gen.Add(row).IsError);
+            var genSaved=await gen.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));Assert.IsFalse(genSaved.IsError,genSaved.ErrorCode+": "+genSaved.Message);
+            var storedPlain=(await Stored(plain.Id)).Single();var storedGiven=(await Stored(given.Id)).Single();
+            Assert.AreEqual("default-description",storedPlain.Description);Assert.AreEqual("explicit",storedGiven.Description);
+            Assert.AreEqual("GEN-PLAIN",storedPlain.CustomKey);
+            plain.Name="gen-renamed";Assert.IsFalse(gen.Update(plain).IsError);
+            Assert.IsFalse((await gen.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()))).IsError);
+            Assert.AreEqual("GEN-RENAMED",(await Stored(plain.Id)).Single().CustomKey,"Computed values follow every save.");
+        }
+        checks++;
         // M29 seed data: idempotent insert of fixed-identity rows in one unit of work.
         Holon[] Seed()=>new[]{
             new Holon{Id=seedIds[0],Name="seed-one",CreatedByAvatarId=actor,IsActive=true,IsPublic=false},
@@ -254,7 +270,7 @@ public sealed partial class CqlV1Web4NativeTests
         }
         Assert.AreEqual(2,(await Stored(seedIds)).Count);checks++;
         return new NativeFixtureJourneyProof(checks,4,new Dictionary<string,bool>{
-            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true,["notificationTrackingVerified"]=true,["collectionMembershipVerified"]=true,["stringTransformsVerified"]=true,["compiledQueryVerified"]=true,["asOfHistoryVerified"]=true,["setCollectionVerified"]=true});
+            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true,["notificationTrackingVerified"]=true,["collectionMembershipVerified"]=true,["stringTransformsVerified"]=true,["compiledQueryVerified"]=true,["asOfHistoryVerified"]=true,["setCollectionVerified"]=true,["generatedValuesVerified"]=true});
     }
 
     public sealed class SetModelHolon : Holon
