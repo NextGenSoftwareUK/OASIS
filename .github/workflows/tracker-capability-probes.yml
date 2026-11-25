@@ -10,6 +10,7 @@ on:
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.LayerZeroV2OASIS/**'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.deBridgeOASIS/**'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ChainflipOASIS/**'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ChainlinkFunctionsOASIS/**'
       - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.Providers.CrossChainTrackers.CapabilityTests/**'
   schedule:
     - cron: '17 5 * * 1' # weekly: public APIs drift
@@ -49,14 +50,14 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - name: Run capability-v1 against the public Axelar, Hyperlane, LayerZero, deBridge and Chainflip APIs
+      - name: Run capability-v1 against the public Axelar, Hyperlane, LayerZero, deBridge, Chainflip and Chainlink Functions (router eth_call)
         run: |
           set -euo pipefail
           reports="$(mktemp -d "$RUNNER_TEMP/oasis-capability.XXXXXXXX")"
           OASIS_TRACKER_PUBLIC_LIVE=1 OASIS_CAPABILITY_REPORTS="$reports" dotnet test \
             Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.Providers.CrossChainTrackers.CapabilityTests \
             -m:2 -nr:false -p:UseSharedCompilation=false --logger "console;verbosity=normal"
-          for provider in AxelarOASIS HyperlaneOASIS LayerZeroV2OASIS deBridgeOASIS ChainflipOASIS; do
+          for provider in AxelarOASIS HyperlaneOASIS LayerZeroV2OASIS deBridgeOASIS ChainflipOASIS ChainlinkFunctionsOASIS; do
             jq -e '.Succeeded and .SuiteVersion == "capability-v1" and (.Passed | length == 5) and .Observation.ReadOnly and .Observation.RoundTrips > 0' \
               "$reports/$provider.json" >/dev/null
             jq -c '{Provider, Observation}' "$reports/$provider.json"

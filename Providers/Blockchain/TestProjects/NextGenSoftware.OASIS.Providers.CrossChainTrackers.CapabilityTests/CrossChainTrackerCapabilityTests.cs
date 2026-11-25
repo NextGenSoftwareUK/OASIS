@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.AxelarOASIS;
 using NextGenSoftware.OASIS.API.Providers.ChainflipOASIS;
+using NextGenSoftware.OASIS.API.Providers.ChainlinkFunctionsOASIS;
 using NextGenSoftware.OASIS.API.Providers.deBridgeOASIS;
 using NextGenSoftware.OASIS.API.Providers.HyperlaneOASIS;
 using NextGenSoftware.OASIS.API.Providers.LayerZeroV2OASIS;
@@ -180,6 +181,29 @@ public sealed class CrossChainTrackerCapabilityTests
             var before = guard.Requests;
             RequireTransfer(await Load(provider.GetTransfersBySourceTxAsync("1")), t => t.Id == "1" && Same(t.Recipient, destination), "chainflip");
             return new NonStorageConformance.Probe(host, "SwapById", guard.Requests - before, true, true);
+        });
+    }
+
+    [TestMethod]
+    public async Task ChainlinkFunctionsReadsSubscriptionOneFromTheRouter()
+    {
+        const string host = "ethereum-rpc.publicnode.com";
+        var guard = new PublicReadGuard(host, (HttpMethod.Post, "/"));
+        using var native = new HttpClient(new PublicReadGuard(host, (HttpMethod.Post, "/")));
+        var provider = new ChainlinkFunctionsOASIS($"https://{host}", ChainlinkFunctionsOASIS.MainnetRouter, guard);
+        await RunAsync(provider, "ChainlinkFunctionsOASIS", async () =>
+        {
+            // getSubscription(1) read directly; subscription 1 is the router's first subscription.
+            var call = JsonSerializer.Serialize(new { jsonrpc = "2.0", id = 1, method = "eth_call",
+                @params = new object[] { new { to = ChainlinkFunctionsOASIS.MainnetRouter, data = "0xa47c7696" + 1.ToString("x64") }, "latest" } });
+            using var raw = await ReadJsonAsync(native, HttpMethod.Post, $"https://{host}/", call);
+            var hex = raw.RootElement.GetProperty("result").GetString()![2..];
+            var owner = "0x" + hex.Substring(2 * 64 + 24, 40); // tuple offset word, balance word, then the owner word
+            var before = guard.Requests;
+            var loaded = await provider.LoadAvatarByProviderKeyAsync("1").WaitAsync(TimeSpan.FromSeconds(60));
+            Assert.IsFalse(loaded.IsError, loaded.Message);
+            Assert.IsTrue(Same(loaded.Result.MetaData["owner"]?.ToString(), owner), "The provider's subscription owner differs from the router's.");
+            return new NonStorageConformance.Probe(host, "RouterGetSubscription", guard.Requests - before, true, true);
         });
     }
 }
