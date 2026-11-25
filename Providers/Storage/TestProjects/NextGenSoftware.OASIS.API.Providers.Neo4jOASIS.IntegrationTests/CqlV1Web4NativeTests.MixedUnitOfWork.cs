@@ -164,6 +164,176 @@ public sealed partial class CqlV1Web4NativeTests
             CollectionAssert.AreEqual(new[]{withRed.Id},red.Result.Select(row=>row.Id).ToArray());
         }
         checks++;
+        // Q09 string transforms: ordinal Replace and Trim(char) compared with a literal, natively.
+        using(var strings=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            var dashed=New("code-dashed");dashed.MetaData=new Dictionary<string,object>{{"code","ab-12-cd"}};
+            var starred=New("code-starred");starred.MetaData=new Dictionary<string,object>{{"code","**x**"}};
+            foreach(var row in new[]{dashed,starred})Assert.IsFalse(strings.Add(row).IsError);
+            Assert.IsFalse((await strings.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()))).IsError);
+            var both=new[]{dashed.Id,starred.Id};
+            async Task<Guid[]> Ids(System.Linq.Expressions.Expression<Func<Holon,bool>> filter)
+            {
+                var rows=await strings.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>both.Contains(row.Id)).Where(filter).ToCosmicListAsync();
+                Assert.IsFalse(rows.IsError,rows.ErrorCode+": "+rows.Message);return rows.Result.Select(row=>row.Id).ToArray();
+            }
+            CollectionAssert.AreEqual(new[]{dashed.Id},await Ids(row=>CosmicQueryMetadata.Value<string>(row,"code").Replace("-","")=="ab12cd"));
+            CollectionAssert.AreEqual(new[]{starred.Id},await Ids(row=>CosmicQueryMetadata.Value<string>(row,"code").Trim('*')=="x"));
+            CollectionAssert.AreEqual(new[]{starred.Id},await Ids(row=>CosmicQueryMetadata.Value<string>(row,"code").Replace("-","")!="ab12cd"));
+        }
+        checks++;
+        // Q65 compiled query: built once per argument and actor policy, then reused.
+        using(var compiledSession=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            var byName=new CosmicCompiledQuery<string,Holon>((root,name)=>root.Where(row=>row.Name==name));
+            var first=await byName.ExecuteAsync(compiledSession,"uow-added",trackingMode:CosmicQueryTrackingMode.NoTracking);
+            Assert.IsFalse(first.IsError,first.ErrorCode+": "+first.Message);
+            var again=await byName.ExecuteAsync(compiledSession,"uow-added",trackingMode:CosmicQueryTrackingMode.NoTracking);
+            var other=await byName.ExecuteAsync(compiledSession,"uow-keep-updated",trackingMode:CosmicQueryTrackingMode.NoTracking);
+            Assert.IsTrue(first.Result.Any(row=>row.Id==added.Id));
+            CollectionAssert.AreEquivalent(first.Result.Select(row=>row.Id).ToArray(),again.Result.Select(row=>row.Id).ToArray());
+            Assert.IsFalse(other.Result.Any(row=>row.Id==added.Id));
+            Assert.AreEqual(1L,byName.CacheHits);Assert.AreEqual(2L,byName.CacheMisses);
+        }
+        checks++;
+        // O15 as-of reads: archived versions are read natively; history needs version control on.
+        var versioned=(IOASISDBStorageProvider)provider;var hadHistory=versioned.IsVersionControlEnabled;
+        versioned.IsVersionControlEnabled=true;
+        try
+        {
+            using var history=CosmicSession.Create(manager,adapter,access).Result;
+            var aged=New("asof-v1");Assert.IsFalse(history.Add(aged).IsError);
+            Assert.IsFalse((await history.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()))).IsError);
+            await Task.Delay(1100);var betweenOneAndTwo=DateTime.UtcNow;await Task.Delay(1100);
+            aged.Name="asof-v2";Assert.IsFalse(history.Update(aged).IsError);
+            var second=await history.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));Assert.IsFalse(second.IsError,second.ErrorCode+": "+second.Message);
+            await Task.Delay(1100);var afterTwo=DateTime.UtcNow;
+            using var reader2=CosmicSession.Create(manager,adapter,access).Result;
+            var asOfOne=await reader2.FindAsOfAsync<Holon>(aged.Id,betweenOneAndTwo);
+            Assert.IsFalse(asOfOne.IsError,asOfOne.ErrorCode+": "+asOfOne.Message);Assert.AreEqual("asof-v1",asOfOne.Result.Name);
+            Assert.AreEqual("asof-v2",(await reader2.FindAsOfAsync<Holon>(aged.Id,afterTwo)).Result.Name);
+        }
+        finally { versioned.IsVersionControlEnabled=hadHistory; }
+        checks++;
+        // A15 set collections: a HashSet<T> owned collection round-trips as a set and is queryable natively.
+        {
+            var setBuilder=new CosmicModelBuilder();
+            setBuilder.Entity<SetModelHolon>().OwnsMany(row=>row.Labels).HasMetadataKey("labels");
+            var setModel=setBuilder.Build();Assert.IsFalse(setModel.IsError,setModel.Message);
+            var withSet=new SetModelHolon{Id=Guid.NewGuid(),Name="set-holon",Labels=new HashSet<string>{"a","b","a"},
+                CreatedByAvatarId=actor,IsActive=true,IsPublic=false,IsNewHolon=true};
+            owned.Add(withSet.Id);
+            using(var setWriter=CosmicSession.Create(manager,adapter,access,setModel.Result).Result)
+            {
+                Assert.IsFalse(setWriter.Add(withSet).IsError);
+                var setSaved=await setWriter.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));
+                Assert.IsFalse(setSaved.IsError,setSaved.ErrorCode+": "+setSaved.Message);
+            }
+            using var setReader=CosmicSession.Create(manager,adapter,access,setModel.Result).Result;
+            var loadedSet=(await setReader.FindAsync<SetModelHolon>(withSet.Id)).Result;
+            Assert.IsNotNull(loadedSet);Assert.IsTrue(loadedSet.Labels.SetEquals(new[]{"a","b"}));
+            var setId=withSet.Id;
+            var hasB=await setReader.Linq<SetModelHolon>(CosmicQueryTrackingMode.NoTracking).Result
+                .Where(row=>row.Id==setId).Where(row=>CosmicQueryMetadata.Contains(row,"b","labels")).ToCosmicListAsync();
+            Assert.IsFalse(hasB.IsError,hasB.ErrorCode+": "+hasB.Message);Assert.AreEqual(1,hasB.Result.Count);
+        }
+        checks++;
+        // M24 default and computed values are applied at SaveChanges and stored natively.
+        using(var gen=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            Assert.IsFalse(gen.HasDefaultValue<Holon,string>(row=>row.Description,"default-description").IsError);
+            Assert.IsFalse(gen.HasComputedValue<Holon,string>(row=>row.CustomKey,row=>(row.Name??"").ToUpperInvariant()).IsError);
+            var plain=New("gen-plain");var given=New("gen-given");given.Description="explicit";
+            foreach(var row in new[]{plain,given})Assert.IsFalse(gen.Add(row).IsError);
+            var genSaved=await gen.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));Assert.IsFalse(genSaved.IsError,genSaved.ErrorCode+": "+genSaved.Message);
+            var storedPlain=(await Stored(plain.Id)).Single();var storedGiven=(await Stored(given.Id)).Single();
+            Assert.AreEqual("default-description",storedPlain.Description);Assert.AreEqual("explicit",storedGiven.Description);
+            Assert.AreEqual("GEN-PLAIN",storedPlain.CustomKey);
+            plain.Name="gen-renamed";Assert.IsFalse(gen.Update(plain).IsError);
+            Assert.IsFalse((await gen.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()))).IsError);
+            Assert.AreEqual("GEN-RENAMED",(await Stored(plain.Id)).Single().CustomKey,"Computed values follow every save.");
+        }
+        checks++;
+        // M23 read-only views: named query, rows never tracked, so never saved.
+        using(var viewSession=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            var viewId=keep.Id;
+            Assert.IsFalse(viewSession.HasView<Holon>("kept",root=>root.Where(row=>row.Id==viewId)).IsError);
+            var viewRows=await viewSession.QueryViewAsync<Holon>("kept");
+            Assert.IsFalse(viewRows.IsError,viewRows.ErrorCode+": "+viewRows.Message);
+            Assert.AreEqual(1,viewRows.Result.Count);
+            Assert.AreEqual(CosmicEntityState.Detached,viewSession.State(viewRows.Result[0]).Result,"View rows are not tracked.");
+            Assert.AreEqual(0,viewSession.Statistics.EntityCount);
+            Assert.IsTrue((await viewSession.QueryViewAsync<Holon>("missing")).IsError);
+        }
+        checks++;
+        // S07 graph merge: a disconnected parent with an edited child and a new child merges atomically.
+        {
+            var parent=New("graph-parent");var child=New("graph-child");
+            using(var setup=CosmicSession.Create(manager,adapter,access).Result)
+            {
+                Assert.IsFalse(setup.Add(parent).IsError);
+                Assert.IsFalse((await setup.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()))).IsError);
+                child.ParentHolonId=parent.Id;Assert.IsFalse(setup.Add(child).IsError);
+                Assert.IsFalse((await setup.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()))).IsError);
+            }
+            var fresh=New("graph-new-child");
+            var detached=new Holon{Id=parent.Id,Name="graph-parent-edited",CreatedByAvatarId=actor,IsActive=true,IsPublic=false,
+                Children=new List<IHolon>{
+                    new Holon{Id=child.Id,Name="graph-child-edited",ParentHolonId=parent.Id,CreatedByAvatarId=actor,IsActive=true,IsPublic=false},
+                    fresh}};
+            using(var merger=CosmicSession.Create(manager,adapter,access).Result)
+            {
+                var mergedGraph=await merger.MergeGraphAsync(detached);
+                Assert.IsFalse(mergedGraph.IsError,mergedGraph.ErrorCode+": "+mergedGraph.Message);Assert.AreEqual(3,mergedGraph.Result);
+                var graphSaved=await merger.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));
+                Assert.IsFalse(graphSaved.IsError,graphSaved.ErrorCode+": "+graphSaved.Message);
+            }
+            var graph=await Stored(parent.Id,child.Id,fresh.Id);
+            Assert.AreEqual("graph-parent-edited",graph.Single(row=>row.Id==parent.Id).Name);
+            Assert.AreEqual("graph-child-edited",graph.Single(row=>row.Id==child.Id).Name);
+            Assert.AreEqual(parent.Id,graph.Single(row=>row.Id==fresh.Id).ParentHolonId);
+        }
+        checks++;
+        // Q55 multi-branch text CASE: one string path, literal WHEN branches and ELSE, evaluated natively.
+        using(var cases=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            var gold=New("tier-gold");gold.MetaData=new Dictionary<string,object>{{"tier","g"}};
+            var silver=New("tier-silver");silver.MetaData=new Dictionary<string,object>{{"tier","s"}};
+            var other=New("tier-other");other.MetaData=new Dictionary<string,object>{{"tier","x"}};
+            foreach(var row in new[]{gold,silver,other})Assert.IsFalse(cases.Add(row).IsError);
+            Assert.IsFalse((await cases.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()))).IsError);
+            var tiers=new[]{gold.Id,silver.Id,other.Id};
+            var labelled=await cases.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>tiers.Contains(row.Id))
+                .Select(row=>new{row.Name,Label=CosmicQueryMetadata.Value<string>(row,"tier")=="g"?"Gold"
+                    :CosmicQueryMetadata.Value<string>(row,"tier")=="s"?"Silver":"Standard"}).ToCosmicListAsync();
+            Assert.IsFalse(labelled.IsError,labelled.ErrorCode+": "+labelled.Message);
+            var byName=labelled.Result.ToDictionary(row=>row.Name,row=>row.Label);
+            Assert.AreEqual("Gold",byName["tier-gold"]);Assert.AreEqual("Silver",byName["tier-silver"]);Assert.AreEqual("Standard",byName["tier-other"]);
+            Assert.ThrowsException<CosmicLinqException>(()=>cases.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result
+                .Select(row=>row.Name=="a"?"A":row.Description=="b"?"B":"C"),"Branches over different paths are refused.");
+        }
+        checks++;
+        // O16 full-text: every term is a whole word (letters/digits), case-insensitive, natively evaluated.
+        using(var text=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            var match=New("ft-match");match.MetaData=new Dictionary<string,object>{{"body","The Quick brown-fox jumps"}};
+            var partial=New("ft-partial");partial.MetaData=new Dictionary<string,object>{{"body","quickly brownish fox"}};
+            foreach(var row in new[]{match,partial})Assert.IsFalse(text.Add(row).IsError);
+            Assert.IsFalse((await text.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()))).IsError);
+            var both=new[]{match.Id,partial.Id};
+            async Task<Guid[]> Search(string terms)
+            {
+                var rows=await text.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>both.Contains(row.Id))
+                    .Where(row=>CosmicQueryText.Matches(CosmicQueryMetadata.Value<string>(row,"body"),terms)).ToCosmicListAsync();
+                Assert.IsFalse(rows.IsError,rows.ErrorCode+": "+rows.Message);return rows.Result.Select(row=>row.Id).OrderBy(id=>id).ToArray();
+            }
+            CollectionAssert.AreEqual(new[]{match.Id},await Search("quick BROWN"),"Whole words only, case-insensitive.");
+            CollectionAssert.AreEqual(new[]{match.Id,partial.Id}.OrderBy(id=>id).ToArray(),await Search("fox"));
+            Assert.AreEqual(0,(await Search("quic")).Length,"A word prefix is not a match.");
+            Assert.ThrowsException<ArgumentException>(()=>CosmicQueryFullText.ParseTerms("brown-fox"));
+        }
+        checks++;
         // M29 seed data: idempotent insert of fixed-identity rows in one unit of work.
         Holon[] Seed()=>new[]{
             new Holon{Id=seedIds[0],Name="seed-one",CreatedByAvatarId=actor,IsActive=true,IsPublic=false},
@@ -180,6 +350,11 @@ public sealed partial class CqlV1Web4NativeTests
         }
         Assert.AreEqual(2,(await Stored(seedIds)).Count);checks++;
         return new NativeFixtureJourneyProof(checks,4,new Dictionary<string,bool>{
-            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true,["notificationTrackingVerified"]=true,["collectionMembershipVerified"]=true});
+            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true,["notificationTrackingVerified"]=true,["collectionMembershipVerified"]=true,["stringTransformsVerified"]=true,["compiledQueryVerified"]=true,["asOfHistoryVerified"]=true,["setCollectionVerified"]=true,["generatedValuesVerified"]=true,["readOnlyViewsVerified"]=true,["graphMergeVerified"]=true,["multiBranchCaseVerified"]=true,["fullTextVerified"]=true});
+    }
+
+    public sealed class SetModelHolon : Holon
+    {
+        public HashSet<string> Labels { get; set; } = new();
     }
 }

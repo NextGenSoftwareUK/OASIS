@@ -158,8 +158,22 @@ function Get-CleanupInventory([string]$path) {
 
 function Write-CleanupLedger([string]$message) {
     if (!$DryRun) {
-        [void][IO.Directory]::CreateDirectory((Split-Path -Parent $cleanupLedger))
-        Add-Content -LiteralPath $cleanupLedger -Encoding UTF8 -Value ("`n{0} cleanup script PID{1}: {2}" -f [DateTime]::UtcNow.ToString('o'), $PID, $message)
+        # The ledger is shared with agents/editors that may hold it open, so Add-Content can fail with
+        # "Stream was not readable". Append through a FileStream that shares read/write access, retry a
+        # few times, and never let a ledger write stop the cleanup itself.
+        $line = "`n{0} cleanup script PID{1}: {2}" -f [DateTime]::UtcNow.ToString('o'), $PID, $message
+        $bytes = [Text.UTF8Encoding]::new($false).GetBytes($line + [Environment]::NewLine)
+        for ($attempt = 1; $attempt -le 5; $attempt++) {
+            try {
+                [void][IO.Directory]::CreateDirectory((Split-Path -Parent $cleanupLedger))
+                $stream = [IO.FileStream]::new($cleanupLedger, [IO.FileMode]::Append, [IO.FileAccess]::Write, [IO.FileShare]::ReadWrite -bor [IO.FileShare]::Delete)
+                try { $stream.Write($bytes, 0, $bytes.Length) } finally { $stream.Dispose() }
+                return
+            } catch {
+                if ($attempt -eq 5) { Write-Warning "Cleanup ledger not written ($($_.Exception.Message)): $message"; return }
+                Start-Sleep -Milliseconds (200 * $attempt)
+            }
+        }
     }
 }
 

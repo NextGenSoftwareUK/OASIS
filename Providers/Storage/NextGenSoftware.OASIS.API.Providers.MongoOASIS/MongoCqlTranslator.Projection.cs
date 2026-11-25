@@ -132,6 +132,22 @@ internal sealed partial class MongoCqlTranslator
             return SingleLet(utcName,ProjectionCell(column.Path,prefix+"utcSource"),new BsonDocument{
                 {"s",cell+".s"},{"v",Choose(Op("$eq",cell+".s",Literal(2)),UtcDatePartFromTicks(column.Function,ticks),Literal(BsonNull.Value))}});
         }
+        if (column.Function == CosmicProjectionFunction.TextValueCase)
+        {
+            if(column.Path.ValueType != typeof(string) || column.ValueType != typeof(string)
+                || column.TextCases == null || column.TextCases.Count == 0 || column.WhenFalse == null)
+                throw new NotSupportedException("Native multi-branch text CASE requires an exact String path and captured literal branches.");
+            var caseName = prefix + "textCase";
+            var present = Op("$eq", "$$"+caseName+".s", Literal(2));
+            var branches = new BsonArray();
+            foreach (var entry in column.TextCases)
+                branches.Add(new BsonDocument{{"case",Op("$eq","$$"+caseName+".v",Literal(entry.Key))},{"then",Literal(entry.Value)}});
+            var selected = new BsonDocument("$switch",new BsonDocument{{"branches",branches},{"default",Literal(column.WhenFalse)}});
+            return SingleLet(caseName,ProjectionCell(column.Path,prefix+"source"),new BsonDocument {
+                {"s",Choose(present,Literal(2),Literal(3))},
+                {"v",Choose(present,selected,BsonNull.Value)}
+            });
+        }
         if (column.Function == CosmicProjectionFunction.BooleanTextCase)
         {
             if(column.Path.ValueType != typeof(bool) || column.ValueType != typeof(string)
