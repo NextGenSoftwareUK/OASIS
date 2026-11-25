@@ -90,3 +90,4 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | Dependabot runtime alerts in Docker/PouchDbRuntime (qs, body-parser, path-to-regexp, uuid via express 4.21.2) | Security / Docker runtime | local: WEB6 catalogue session | Development (direct, small) | 2026-11-25 | IN PROGRESS |
 | BasechainOASIS (EVM) native storage | HyperDrive providers | local: HyperDrive provider programme | work/hyperdrive-triad | 2026-11-25 06:11 | DONE 6961e8d6 (evm run 45528939313) |
 | AztecOASIS / MidenOASIS / BlockStackOASIS fake-storage removal | HyperDrive providers | local: HyperDrive provider programme | work/hyperdrive-triad | 2026-11-25 06:11 | DONE 6961e8d6, 511b9b32 |
+| Dependabot runtime alerts in HashgraphOASIS SdkBridge (protobufjs 8.0.1, @grpc/grpc-js) | Security / Providers | local: WEB6 catalogue session | Development (direct, small) | 2026-11-25 | IN PROGRESS |
