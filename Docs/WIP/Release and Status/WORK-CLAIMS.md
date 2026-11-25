@@ -25,7 +25,7 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | Starknet native storage | HyperDrive providers | local: HyperDrive provider programme | work/hyperdrive-triad | 2026-11-25 00:03 | DONE 988b4bf4 (starknet-native-storage.yml green) |
 | Marqo native storage | HyperDrive providers | local: HyperDrive provider programme | work/hyperdrive-triad | 2026-11-25 00:03 | DONE 720c268f (matrix green) |
 | Druid native storage | HyperDrive providers | local: HyperDrive provider programme | work/hyperdrive-triad | 2026-11-25 00:03 | DONE 988b4bf4 (druid-native-storage.yml green) |
-| Pinot native storage | HyperDrive providers | local: HyperDrive provider programme | work/hyperdrive-triad | 2026-11-25 00:03 | IN PROGRESS |
+| Pinot native storage | HyperDrive providers | local: HyperDrive provider programme | work/hyperdrive-triad | 2026-11-25 00:03 | DONE 511b9b32 (popular matrix run 45519020083) |
 | IPFS catalogue root pointer (dev replication-source fault) | HyperDrive replication | local: HyperDrive provider programme | work/hyperdrive-triad | 2026-11-25 00:03 | CODE DONE c2da27e5 (CI green); Railway dev DNA key applied at the next Development merge |
 | ChainLinkOASIS / Connext / read-only chain adapters classification | HyperDrive providers | local: HyperDrive provider programme | work/hyperdrive-triad | 2026-11-25 00:03 | DONE 897db2c5 |
 | Provider TestHarness projects build (all 172) | Providers/TestProjects | local: testharness-build-fix | work/testharness-build-fix | 2026-11-24 | DONE 603b3222 |
@@ -46,8 +46,8 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | COSMIC A15 set (HashSet) owned collections | COSMIC ORM | local: COSMIC ORM roadmap (work/cosmic-cql-ton-public session) | work/cosmic-cql-ton-public | 2026-11-25 02:10 | IN PROGRESS |
 | GUNOASIS native storage (GUN relay) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-gun | 2026-11-25 00:45 | IN PROGRESS |
 | MatrixOASIS native storage (Synapse, room state events) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-matrix | 2026-11-25 00:50 | IN PROGRESS |
-| ElrondOASIS (MultiversX) native storage | HyperDrive providers | local: HyperDrive provider programme | work/hyperdrive-triad | 2026-11-25 00:46 | IN PROGRESS |
-| FhenixOASIS (EVM) native storage | HyperDrive providers | local: HyperDrive provider programme | work/hyperdrive-triad | 2026-11-25 00:46 | IN PROGRESS (evm-native-storage.yml) |
+| ElrondOASIS (MultiversX) native storage | HyperDrive providers | local: HyperDrive provider programme | work/hyperdrive-triad | 2026-11-25 00:46 | DONE 0b17810a (multiversx run 45524444807) |
+| FhenixOASIS (EVM) native storage | HyperDrive providers | local: HyperDrive provider programme | work/hyperdrive-triad | 2026-11-25 00:46 | DONE 9857135b (evm run 45518241302) |
 | ArweaveOASIS native storage (arlocal) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-arweave | 2026-11-25 01:00 | IN PROGRESS |
 | COSMIC M24 model defaults, computed and generated properties | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-m24 | 2026-11-25 01:10 | IN PROGRESS |
 | OrbitDBOASIS native storage (@orbitdb/core + Helia service) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-orbitdb | 2026-11-25 01:10 | IN PROGRESS |
@@ -88,3 +88,5 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | Web4Site CQL Playground: hide 127.0.0.1 local demo links from public visitors; bump changed script versions | CQL sandbox (Web4Site repo) | local: CQL sandbox (cql-sandbox session) | Web4Site work/cosmic-cql | 2026-11-25 01:30 | DONE Web4Site 3099bf0 (public promotion awaits David) |
 | Solana/EOSIO storage provider type for composed Eclipse/Telos (ProviderUniqueStorageKey stamps outer type) | HyperDrive providers | cloud: vigilant-ramanujan | claude/vigilant-ramanujan-01l59a | 2026-11-25 | IN PROGRESS |
 | Dependabot runtime alerts in Docker/PouchDbRuntime (qs, body-parser, path-to-regexp, uuid via express 4.21.2) | Security / Docker runtime | local: WEB6 catalogue session | Development (direct, small) | 2026-11-25 | IN PROGRESS |
+| BasechainOASIS (EVM) native storage | HyperDrive providers | local: HyperDrive provider programme | work/hyperdrive-triad | 2026-11-25 06:11 | DONE 6961e8d6 (evm run 45528939313) |
+| AztecOASIS / MidenOASIS / BlockStackOASIS fake-storage removal | HyperDrive providers | local: HyperDrive provider programme | work/hyperdrive-triad | 2026-11-25 06:11 | DONE 6961e8d6, 511b9b32 |
