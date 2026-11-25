@@ -22,19 +22,21 @@ OPORTAL, the ONODE popup and billing UI are now owned by a different session. CQ
 - Next 3: Ceramic signed commits (DID), BlockStack Gaia auth tokens, Aztec/Miden real storage designs.
 - Blockers: ACTIONS-FOR-DAVID I1 and the hosted-account providers.
 
-## Progress (cloud-hyperdrive-A, updated 2026-11-25 01:50 UTC)
+## Progress (cloud-hyperdrive-A, updated 2026-11-25 02:55 UTC)
 
 Done in CI (native core-storage suite 26/26, sync + async):
 - TelosOASIS and SEEDSOASIS: storage now goes through the EOSIO (Antelope) implementation; `antelope-family-native-storage.yml`, run 45518765561.
+- DaprOASIS: gRPC health probe, emptied key indexes removed; `popular-providers-native-storage.yml`, run 45519314086.
+- GUNOASIS: real GUN wire protocol, chunked node replies merged; run 45520161955.
 
-Passing 26/26 in both modes locally against real backends, waiting for CI (`work/cloud-hd-scuttlebutt` carries all nine in one `popular-providers-native-storage.yml` run):
-- DaprOASIS (daprd + Redis): gRPC health probe; emptied key indexes removed.
-- GUNOASIS (GUN relay): rebuilt on the real GUN wire protocol; chunked node replies merged.
-- MatrixOASIS (Synapse): records as encrypted room state events.
+Passing 26/26 in both modes locally against real backends, waiting for CI (`work/cloud-hd-scuttlebutt` carries these in one `popular-providers-native-storage.yml` run):
+- MatrixOASIS (Synapse): records as encrypted room state events. Tests passed in run 45521345637; the job failed only removing Synapse-owned fixture files (fixed on the branch).
 - OrbitDBOASIS (@orbitdb/core 4 service): stable identity and address across restarts.
 - ArweaveOASIS (arlocal): owner-pinned, revisioned, encrypted records.
 - ScuttlebuttOASIS (ssb-db2 service): records in a signed feed.
-- AppwriteOASIS (self-hosted 1.7.4), PineconeOASIS (Pinecone Local), TablelandOASIS (local validator + Hardhat).
+- AppwriteOASIS (self-hosted 1.7.4), PineconeOASIS (Pinecone Local), TablelandOASIS (local validator + Hardhat), CelestiaOASIS (local devnet), CeramicOASIS (ceramic-one 0.58.0).
+
+Also passing locally: BlueSkyOASIS (self-hosted PDS) and EclipseOASIS (delegates to SolanaOASIS; eclipse-native-storage.yml). In progress: FilecoinOASIS.
 
 Blocked on hosted accounts or a retire decision: see "Hosted-only providers" in `Docs/WIP/Release and Status/ACTIONS-FOR-DAVID.md`.
 

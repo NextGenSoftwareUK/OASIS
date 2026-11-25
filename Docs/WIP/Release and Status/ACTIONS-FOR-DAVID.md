@@ -82,6 +82,7 @@ Last updated 31 October 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (mer
 | 7 | Older items: phone tests, WSL disk, Vercel branch check, oasisweb4 site decision, iOS runtime script, Git LFS budget, upstream Holochain PRs | D |
 | 11 | Messaging programme: review and push the `work/oasis-messaging` branches (parent, API.Core, STAR ODK, 7 npm repos), publish the npm packages, physical-device Bluetooth tests, HerzApp/Our World wiring decisions | G |
 | 10 | COSMIC/CQL: decide follow-up Default-routing fix publication; hosted Azure/Oracle remain deferred | F |
+| 12 | **Post-release 2026-11-24: production SQLite replication held (BINDING_MISMATCH), WEB9 fix to release, test records left on prod/dev** | POST-RELEASE-2026-11-24 |
 | 11 | **WEB6 model catalogue v6: review prices, then approve the push** (OpenRouter list import, media prices, 6 new text models) | G |
 | 12 | **HyperDrive on dev: approve one baseline repair for the Neo4j to SQLite replication hold at sequence 14** (the IPFS replication-source fault needs nothing from you) | I |
 
@@ -1135,6 +1136,8 @@ Power recovery verified on 11 November UTC: battery 21% and charging (Win32_Batt
 
 ### WEB6 Ask your data Development demo entitlement · 13 November
 
+25 November update (CQL sandbox session): still open, and now the only blocker for the sandbox's Ask Your Data tab. The tab's code is finished on Web4Site `work/cosmic-cql`. A live call to `dev.api.web6.oasisomniverse.one/v1/complete` with a demo session returns `WEB6_FREE_ROUTE_UNAVAILABLE` ("No zero-price completion route is configured"). What David needs to do is configure one free inference route in Development WEB6's saved DNA: a Gemini free-tier API key, an OpenRouter key (with a free model), or an Ollama endpoint and model. That unblocks the Ask Your Data demo for every visitor.
+
 23 November runtime update: selected startup configuration-presence flags on the running Development WEB6 source4b8d3923 show no dedicated Gemini Free key, no OpenRouter credential and no Ollama endpoint/model. No secrets were printed, model requests made or settings changed. The existing permanent-Free-route action remains deferred/pending; no new login, entitlement grant or repeated owner request. Engineering continues native query delivery independently.
 
 
@@ -1486,6 +1489,26 @@ Links: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44675640513
 - The hosted tests also read a small JSON manifest of the seeded IDs, from `COSMIC_INFLUXDB_HOSTED_CQL_SOURCE` and `COSMIC_WEAVIATE_HOSTED_CQL_SOURCE`. Engineering writes that manifest once the sources exist.
 - Never put the tokens in Git or chat.
 
+## Promote the cleaned WEB4 sandbox page to the public site
+
+- Open 2026-11-25. The public sandbox at https://web4.oasisomniverse.one/web4-sandbox.html still shows 49 "local demo" steps that tell visitors to run `pwsh -File Scripts/TestHosts/*.ps1` from `C:/Source/OASIS-cosmic`. Visitors cannot run those, and PowerShell is no longer used. Every provider those steps mention now runs live in the hosted CQL Playground.
+- Fixed on the Web4Site branch `work/cosmic-cql` in commit 6930aff. The same branch now also has f301621: 'Prepare my sample records' gives the built-in MongoDB, SQLite and Neo4j presets real rows for a new demo visitor (they returned zero rows before), verified against the live dev API. And 3099bf0: the 47 'Open local query' links that point at 127.0.0.1 are hidden for public visitors (they still show when the page is opened locally), and changed scripts get new cache-busting versions. Only the launcher command lines were removed: provider descriptions, the C# walkthrough links and the page anchors are kept, and the site's tests pass (two test files need Node 21+ for `JSON.rawJSON`; this laptop has Node 18).
+- What David needs to do: approve promoting `work/cosmic-cql` to the public site (Web4Site `main`). That branch is 343 commits ahead of `main` (and `main` has 1 commit the branch lacks), so promoting it ships all the CQL playground work since mid-November, so review the Vercel preview of `work/cosmic-cql` before approving.
+- What it unblocks: the public sandbox page stops showing internal instructions.
+
+## Stop docs-only pushes from redeploying WEB4-WEB10 (Railway Watch Paths)
+
+- Open 2026-11-25. Every push to `Development` rebuilds the dev WEB4-WEB10 services, even when only docs change. The new WORK-CLAIMS rule makes every session push `claim:` commits to Development: 11 of about 22 commits in the last two hours were docs-only claims, and 7 WEB4 dev deploys were queued at once. The sandbox keeps restarting, live checks can't find a stable window, and builds pile up.
+- What David needs to do: in the Railway dashboard, for each dev service WEB4-WEB10 (Settings, then Build, then Watch Paths), add patterns so changes that touch only docs never deploy, for example `**` plus the exclusions `!Docs/**`, `!**/*.md` and `!.github/**`. The same setting can be applied to production too.
+- Why David: this changes Railway service settings, which agents must not change on their own.
+- What it unblocks: claims, status and doc updates stop restarting the live sandbox; real code changes still deploy as before.
+
+## GitHub Actions has stalled: 100+ runs queued, one running
+
+- Open 2026-11-25 (about 02:50 UTC). In the OASIS repo, 100+ workflow runs are queued and only one is running: 61 queued from Development pushes, plus every session's branches. CI jobs queued an hour ago have not started. The organisation is on GitHub's Free plan, so the private-repo Actions minutes are probably used up or a spending limit has been hit. Agents cannot check this: it needs the org admin billing scope.
+- What David needs to do: open GitHub, NextGenSoftwareUK organisation, Settings, then Billing and plans (Actions usage and spending limit). Either raise the spending limit or upgrade the plan, or decide that sessions must run less CI. Optionally, cancel the stale queued Development runs so the newest ones run first.
+- Why David: billing and plan changes are his decision.
+- What it unblocks: every session's CI checks (COSMIC ORM rows, HyperDrive providers, the CQL sandbox fixes). Right now no verified batch can reach Development.
 ## Cloud session `cloud-hyperdrive-A` cannot push to GitHub (2026-11-25)
 
 - Context: the HyperDrive provider loop must push claims to Development and run CI. In this cloud session both `git push` and the GitHub MCP write calls return 403 ("Resource not accessible by integration"). Reads work.
@@ -1536,6 +1559,63 @@ Status: code work continues without these; only David can do them.
 - All three rows pass their native MongoDB/SQLite/Neo4j journeys locally; they merge to Development as soon as their CI is green. Nothing is needed from you for the code.
 - Decision for you (optional): either raise the account's concurrent-runner limit, or approve adding `paths-ignore: ["Docs/**"]` (or a concurrency group with cancel-in-progress) to `ci-cd.yml` and `subscription-usage-protocol.yml` so documentation-only claim commits stop queuing full pipelines. Agents will not change these deployment workflows without your go-ahead.
 - Status: OPEN 2026-11-25 01:52 UTC.
+
+## Ceramic test node image: approve a community build or build from source (cloud-hyperdrive-A, 2026-11-25)
+
+- Context: CeramicOASIS now passes the native storage suite against a real ceramic-one 0.58.0 node. The official image `public.ecr.aws/r5b3e0r5/3box/ceramic-one` no longer exists (the registry answers NAME_UNKNOWN), so the CI fixture uses the community build `docker.io/dclimate/ceramic-one:0.58.0`, pinned by digest (see `Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CeramicOASIS.IntegrationTests/start-ceramic-fixture.sh`). It runs only in CI, against throwaway data.
+- Decision: (a) accept the pinned community image for CI tests, or (b) build ceramic-one from the upstream rust-ceramic source in CI (slower, adds a Rust toolchain step). Engineering's recommendation is (a), keeping the digest pin.
+- Status: OPEN 2026-11-25. Option (a) is in use until you decide.
+
+## POST-RELEASE-2026-11-24
+
+Production runs OASIS master cfea33eae2c (PR #518) on WEB4-WEB10.
+
+What passed:
+- Health: WEB4 /api/Health and authenticated avatar, HyperDrive and subscription calls; WEB6 a2a network calls; WEB7 symbiosis (real lookup); WEB8 mesh nodes; WEB5 (api.starnet) health. All 200 or a correct domain error.
+- CQL: query-cql and query-cql/scalar return without errors on MongoDBOASIS, SQLLiteDBOASIS and Neo4jOASIS.
+
+1. WEB9 refused every bearer (ACCESS_SESSION_AUTHORITY_NOT_ADMITTED).
+   Cause: WEB9 booted OASIS only when PREPARED_STORAGE_ADMISSION_JSON was set. Fixed on Development in e9b0c22fd18 (boots the same way as WEB6-WEB8).
+   Your step: promote to master and redeploy WEB9 production. Then check GET https://api.web9.oasisomniverse.one/v1/singularity/status with a sandbox bearer.
+
+2. Production SQLite replication is still held. Route hyperdrive-target-v2:SQLLiteDBOASIS:...AB2C2, seq 2, operation 41844155-6e4a-4c17-bc09-46d03a4a61c3.
+   - It was held with STORAGE_BINDING_INVALID. The shipped /app/OASISSQLLiteDB.db is now gone, as confirmed in the container.
+   - It was re-armed once with --cosmic-rearm-held-head: operator a5e52d14-7e82-43b4-8f21-0a53529246b6, request /data/COSMIC/ReplicaRearm/prod-seq2.json. The result was success, and a Rearm audit record is on the row.
+   - The retry (attempt 2) failed with COSMIC_REPLICA_STORAGE_BINDING_MISMATCH: "The native receiver does not match the enrolled storage identity." Seq 4-20 (9 entries) are Pending behind it.
+   - MISMATCH is deliberately not re-armable, and --cosmic-repair-baseline covers only lineage conflicts. No supported tool releases it. Do not re-arm again.
+   - Needs a code investigation: the route's enrolled target fingerprint versus the /data/OASISSQLLiteDB.db CosmicReplicationStoreIdentity row.
+   - Dev is separate and unchanged: v2 ...4982 is held at 543 (AUTHORIZATION_DENIED, 333 behind), and v1 SQLite is held at 535 (LINEAGE_CONFLICT). The dev current route ...2461 is drained.
+
+3. Test records are still on production and dev, because the sandbox sweep is broken.
+   - The production log says, on every 15-minute sweep: "Listing MongoDBOASIS holons of <avatar> failed: Mongo holon collection read failed", then "removed 0 demo avatars and 0 holons; 6 kept for retry".
+   - The read is MongoDBOASIS.ReadHolonCollectionGraphAsync. Its exception is swallowed, so the cause needs a reproduction.
+   - Production leftovers:
+     - demo holons 61b08937-ea30-6ed0-ed21-9642411c8b76 (Espresso), 16074723-5dbe-a6a2-e71d-6d1860e5e393 (Flat White) and b2b542d7-f855-89a4-2421-468bcf14666c (Tea), owner 7e2a53a2
+     - probe holons ed6b2550-eace-3f0e-d20e-abad408680df, 11eec3b0-b947-b0f5-c62b-ef67af11a7dc, e0efb380-7470-9afa-11a4-ec68697080ad and 950cf30a-bcfb-c18d-b77f-3ae4fec2dbb5
+     - sandbox avatars from this session: a9ca5a2e-dd6a-4def-98ef-d33e7cae60e0 and d0745e8f-8df3-4e0e-8fce-3690f53ff416. They own no holons.
+   - Dev leftover: probe holon 4c15ba78-ff19-5a49-89d4-5c78abf8d6c6.
+   - Owner sessions have expired, and avatar delete needs admin rights. Direct database deletes would leave their replication obligations (some are in the held queue above) inconsistent, so nothing was force-deleted.
+   - Once the sweep is fixed, it removes them by itself. Then confirm in Mongo that the IDs above are absent.
+
+## ONET: two decisions before the last protocol items (2026-11-24)
+
+Status: decided by David, 24 November 2026; engineering in progress (no further owner action). Plan: [ONET_STORAGE_AND_HOLONET_PLAN_2026-11.md](../ONET/ONET_STORAGE_AND_HOLONET_PLAN_2026-11.md).
+
+1. Message encryption (audit item #24): **encrypt, with a coordinated upgrade.** ONET application frames move to version 2 (encrypted for the target node and signed). Older nodes stop exchanging messages with upgraded ones, so every ONET node (Railway WEB4 and any self-hosted ONODEs) must be on the same release.
+2. Holochain-carried ONET traffic (plan item 8): **build the `onet` zome now.** It is a coordinator-only module in the OASIS hApp (DNA hash unchanged).
+
+### POST-RELEASE-2026-11-24: update 2026-11-25
+- Sandbox sweep: root cause found and fixed in PR #527 (CI running).
+  - V2 HolonManager.LoadAllHolons dropped the avatar, so the sweep listed the whole Mongo Holon collection. Production has 18 legacy duplicate-HolonId groups (259 extra docs, June/July 2026), which that read rejects as ambiguous.
+  - Fix: Core 1aa5cb4b (on Core Development) plus a native owner filter in Mongo, with a real-Mongo regression test.
+  - Your decision: the 259 legacy duplicate documents need a reviewed data repair. Nothing was deleted.
+- BINDING_MISMATCH: root cause found.
+  - The 2026-11-23 process enrolled route ...AB2C2 against /app/OASISSQLLiteDB.db: endpoint fingerprint 4171877D... (that is sha("sqlite-file-v1:/app/OASISSQLLiteDB.db")), store bfcf03a6-dbe4-408b-b3d7-97a733e5e229.
+  - That image-shipped file and the identity it created disappeared on redeploy. The live store is /data/OASISSQLLiteDB.db, identity 93d05201-d755-4e9a-a24d-be34e269af7c.
+  - Current boot uses the DNA path /data, and no SQLite enrollments have happened since 2026-11-23, so new writes are not affected.
+  - All 10 stuck obligations (seq 2-20) belong to the 2026-11-23 demo and probe test holons, which are due for deletion anyway.
+  - Your decision: an obligation whose enrolled target store no longer exists can never be delivered as enrolled. Releasing it needs a new reviewed tool, either to retarget it to the successor store (re-binding plus normal or baseline delivery) or to retire it with recorded evidence that the target is gone. Both change the "never reset or skip" rule, so I did not build one without your choice.
+- The production release (promotion PR and Railway deploy of WEB9 + sweep fixes) is waiting for your go-ahead.
 
 ## Part I — HyperDrive replication on dev (24 November 2026)
 
