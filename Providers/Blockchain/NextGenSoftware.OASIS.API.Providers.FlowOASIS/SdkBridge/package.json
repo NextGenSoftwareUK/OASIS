@@ -1,0 +1,6 @@
+{
+  "name": "oasis-flow-sdk-bridge",
+  "private": true,
+  "type": "module",
+  "dependencies": { "@onflow/fcl": "1.21.11", "elliptic": "6.6.1", "sha3": "2.1.4" }
+}
