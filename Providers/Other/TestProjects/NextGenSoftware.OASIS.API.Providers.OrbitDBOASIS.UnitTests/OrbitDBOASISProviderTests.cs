@@ -1,3 +1,4 @@
+using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS;
@@ -14,7 +15,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS.UnitTests
         private OrbitDBOASIS _provider = null!;
 
         [TestInitialize]
-        public void Setup() => _provider = OrbitDBOASISTestFactory.Create();
+        public void Setup() => _provider = new OrbitDBOASIS("http://127.0.0.1:18900", "token", new byte[32]);
 
         [TestMethod]
         public void ProviderType_ShouldBeSet()
@@ -35,6 +36,14 @@ namespace NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS.UnitTests
         [TestMethod]
         public void ProviderCategory_ShouldBeSet()
             => Assert.IsNotNull(_provider.ProviderCategory);
+
+        [TestMethod]
+        public void Constructor_RequiresA32ByteEncryptionKey()
+            => Assert.ThrowsException<ArgumentException>(() => new OrbitDBOASIS("http://127.0.0.1:18900", "token", new byte[16]));
+
+        [TestMethod]
+        public void Constructor_RequiresTheServiceToken()
+            => Assert.ThrowsException<ArgumentException>(() => new OrbitDBOASIS("http://127.0.0.1:18900", "", new byte[32]));
 
         [TestCleanup]
         public void Cleanup()
