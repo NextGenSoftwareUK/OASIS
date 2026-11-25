@@ -55,7 +55,12 @@ def run(node, wallet, handle, writer, outsider):
     native = node.application_info(app)["params"]
     assert native["creator"] == writer
     assert base64.b64decode(native["approval-program"], validate=True) == approval
-    submit(transaction.PaymentTxn(writer, node.suggested_params(), logic.get_application_address(app), 10_000_000))
+    # Box storage minimum balance is paid by the application account. The default covers the focused cases; the
+    # shared storage suite publishes dozens of encrypted records and sets OASIS_ALGORAND_RECORD_APP_FUNDING higher.
+    funding = int(os.environ.get("OASIS_ALGORAND_RECORD_APP_FUNDING", "10000000"))
+    if funding < 10_000_000:
+        raise ValueError("OASIS_ALGORAND_RECORD_APP_FUNDING must be at least 10 ALGO in microAlgos")
+    submit(transaction.PaymentTxn(writer, node.suggested_params(), logic.get_application_address(app), funding))
 
     def call(sender, args, names):
         return transaction.ApplicationNoOpTxn(
@@ -290,7 +295,7 @@ def main():
     handle = wallet.init_wallet_handle(wallet_id, "")
     try:
         writer, outsider = [
-            address for address in wallet.list_keys(handle) if node.account_info(address)["amount"] > 12_000_000
+            address for address in wallet.list_keys(handle) if node.account_info(address)["amount"] > 12_000_000 + int(os.environ.get("OASIS_ALGORAND_RECORD_APP_FUNDING", "0"))
         ][:2]
         run(node, wallet, handle, writer, outsider)
     finally:

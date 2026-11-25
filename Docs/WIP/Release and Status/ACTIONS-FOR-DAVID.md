@@ -84,7 +84,7 @@ Last updated 31 October 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (mer
 | 10 | COSMIC/CQL: decide follow-up Default-routing fix publication; hosted Azure/Oracle remain deferred | F |
 | 12 | **Post-release 2026-11-24: production SQLite replication held (BINDING_MISMATCH), WEB9 fix to release, test records left on prod/dev** | POST-RELEASE-2026-11-24 |
 | 11 | **WEB6 model catalogue v6: review prices, then approve the push** (OpenRouter list import, media prices, 6 new text models) | G |
-| 12 | HyperDrive on dev: Neo4j to SQLite baseline repair at sequence 14 — **approved 25 November**, handed to the CQL sandbox session to run | I |
+| 12 | **HyperDrive on dev: confirm the Neo4j to SQLite baseline repair at sequence 14** in the CQL sandbox session (explained there) | I |
 | 13 | **Railway dev: add one DNA key so IPFS keeps its catalogue across restarts** (`IPFSOASIS.CatalogueRootPointerPath`) | I |
 
 ---
@@ -1624,8 +1624,8 @@ Status: decided by David, 24 November 2026; engineering in progress (no further 
 
 ### I1. Approve a baseline repair for Neo4j to SQLite at sequence 14
 
-- Status: approved by David on 25 November 2026 ("Sure its fine"); handed to the CQL sandbox session, which ran the
-  earlier Mongo to SQLite repairs, to execute once. Originally reported 24 November 2026 by the CQL/WEB4 session from the live dev WEB4 logs
+- Status: awaiting David's confirmation in the CQL sandbox session, 25 November 2026. David replied "Sure its fine"
+  before it had been explained; it is a one-shot write to hosted dev data, so it runs only after he confirms there. Originally reported 24 November 2026 by the CQL/WEB4 session from the live dev WEB4 logs
   (`railway logs -e dev -s 5123199a-43c4-4439-9921-e10e2aec7841`).
 - What: `Replication Neo4jOASIS -> hyperdrive-target:SQLLiteDBOASIS blocked at sequence 14, operation
   b64bce63-3aeb-40c0-b3b2-b75675a87023: COSMIC_REPLICA_LINEAGE_CONFLICT`. This is a new hold and is not the protected
@@ -1661,3 +1661,13 @@ Status: decided by David, 24 November 2026; engineering in progress (no further 
 - After: the next deploy picks it up; the first IPFS write upgrades the old catalogue and the replication-source error
   stops. Tell the agent when it is saved and it will verify in the dev logs.
 - Unblocks: IPFS as a HyperDrive replication source on dev. Staging/production need the same key when promoted.
+
+## COSMIC A05 decision: should `ParentHolon` keep driving persisted parent ids? - 2026-11-25 (cloud-cosmic-B)
+
+- Context: checklist row A05 still needs EF-style inverse reference fix-up (a tracked child's `ParentHolon` pointing at its tracked parent instance). It was implemented and tested in cloud-cosmic-B, then withdrawn before pushing.
+- Blocker: the save path (`OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/HolonManager/HolonManager-Private.Helpers.cs`, around line 594) treats a non-null `ParentHolon` as authoritative. It overwrites `ParentHolonId` from it, and as a "fail-safe/fallback" copies the parent's celestial ids (ParentStarId, ParentPlanetId, ParentMultiverseId and others) into the child. With fix-up on, re-parenting by `ParentHolonId` was silently undone on all three stores, and saving a child could change its stored celestial ids. Bypassing this inside the COSMIC session would be a parallel path, which the root-cause policy forbids.
+- Decision needed (pick one):
+  1. COSMIC sessions treat `ParentHolonId` as the persisted truth and `ParentHolon` as a non-persisted navigation. The legacy derivation stays for non-COSMIC STAR/ODK callers only. A05 then ships with fix-up. Recommended.
+  2. Keep the legacy behaviour everywhere. A05 is then marked as not applicable, documenting that `ParentHolon` assignment is a write.
+- Reason: either choice changes what a save writes, which affects STAR/ODK celestial graphs, so it is your call.
+- Status: OPEN 2026-11-25 08:40 UTC. The claim in WORK-CLAIMS.md is marked BLOCKED; other rows continue.

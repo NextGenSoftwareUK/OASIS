@@ -9,8 +9,10 @@ Branch `work/cql-sandbox-providers` (worktree `C:\Source\OASIS2-cql-sandbox`). T
 - HoloOASIS cold start: the timing log (Development `d0e8cc33`) shows conductor connect 2.2s, then 96.1s for the persisted cell to start running (Holochain network join), then about 1s to install, activate and check the fixture, about 98s in all. That is inside the 480s budget. The earlier 7-minute boot could not be measured after the fact; the log line will show which phase is slow if it happens again.
 - Done: browser check of the live CQL Playground (HoloOASIS returns its 3 teaching records). Web4Site 6930aff removes 49 laptop-only pwsh launcher steps from the public page; Web4Site f301621 adds sample records so the built-in MongoDB/SQLite/Neo4j presets return rows for new visitors (verified live). Both are on Web4Site `work/cosmic-cql`; public promotion waits on David.
 - First federation sweep: 129 of 208 passed in the first run; the failures were an expired test token and a WEB4 redeploy mid-run. Optimism, Linea and Scroll pass on retry.
-- In progress: full live sweep (rows + federation) after the deploys settle; IPFS/SOLID/ActivityPub test projects build fix.
-- Next 3: fix anything the full sweep finds; IPFS test-project build; next unclaimed sandbox item.
+- Done 25 Nov: clean full live sweep, 208/208 plain presets and 208/208 federation presets across 107 providers (Development `e88664cd`). IPFS/SOLID/ActivityPub test projects now reference the WebAPI project and build in CI (run 45528232647, `11c7dbdd`). Web4Site 3099bf0 hides 127.0.0.1 local-demo links for public visitors.
+- Done 25 Nov, browser check of every sandbox tab on the live page with a fresh demo session. Import Your Data: demo shop created in MongoDB, SQLite and Neo4j; preview, import (5 created) and the first holon read separately from all three stores. Failover: with MongoDB offline for the session, the load failed over and SQLite served the replica. COSMIC ORM: all four steps OK (save graph, load with children, query children, find by metadata). Ask Your Data is the only tab not working; it is blocked on David (free WEB6 model route).
+- Cosmetic, not fixed: the failover route JSON shows provider enum numbers (47, 49) rather than names; the route table below it is readable.
+- Remaining work in this lane is blocked on David (see Blockers).
 
 ## Blockers
 

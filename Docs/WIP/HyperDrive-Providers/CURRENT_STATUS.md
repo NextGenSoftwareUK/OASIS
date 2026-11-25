@@ -10,7 +10,7 @@ OPORTAL, the ONODE popup and billing UI are now owned by a different session. CQ
 
 ## Progress (local HyperDrive programme, updated 2026-11-25 03:00 UTC)
 
-- Done: 92 storage providers pass the native core-storage-v2 suite on their real backend (today: Cardano, Starknet,
+- Done: 91 storage providers pass the native core-storage-v2 suite on their real backend (today: Cardano, Starknet,
   Marqo, Druid, Pinot, Fhenix); the EVM suite now runs in CI (`evm-native-storage.yml`, 15 providers 30/30).
 - Fake storage removed (explicit errors instead of false success): Connext, ChainLink, Aztec, Miden; BlockStack's Gaia
   client now reports failures. Ten read-only chain adapters reclassified as non-storage.
@@ -81,11 +81,13 @@ Not yet covered:
 
 There are 234 shipping provider projects: 178 storage or specialised storage, 56 non-storage.
 
-Done (92 pass the native core-storage-v2 suite 52/52 against their real backend; ActivityPub passes capability-v1 5/5):
+Done (91 pass the native core-storage-v2 suite 52/52 against their real backend; ActivityPub passes capability-v1 5/5):
 
-- Every priority provider is done: HoloOASIS, Solana, MongoDB, SQLite, Neo4j, Supabase, SQL Server, Oracle (OracleDB),
+- Every priority provider except TON is done: HoloOASIS, Solana, MongoDB, SQLite, Neo4j, Supabase, SQL Server, Oracle (OracleDB),
   AWS, IPFS, NEAR, Cosmos, Azure (CosmosDB + Storage), Google Cloud, Polkadot, ActivityPub, SOLID, Polygon, Arbitrum,
-  TRON, EOSIO, TON and Hedera (Hashgraph).
+  TRON, EOSIO and Hedera (Hashgraph). Correction (2026-11-25): TON was listed here in error; it was qualified for
+  HyperDrive routing only, never through the shared core-storage suite. That run is now claimed (TONOASIS on the local
+  TVM sandbox).
 - On 2026-11-23 the source of all 23 priority providers was scanned for `NotImplementedException`, TODO stubs, placeholders
   and mocks. Every hit was commented-out legacy code or an explanatory comment. No shipping path is a stub.
 - Others (Neon and Convex are not priority providers and take their normal place in popularity order): Neon, Convex, Ethereum, Avalanche, BNB Chain, Sui, AWS S3, Cloudflare, DynamoDB, Turso, Upstash,
@@ -119,6 +121,8 @@ Done (92 pass the native core-storage-v2 suite 52/52 against their real backend;
   no row DELETE; PouchDB never checked write status and turned every read error into "not found"; Berachain and Sei had
   no chain identity, which the EVM base requires for signing, so their writes failed on every network; PgVector and
   ArcadeDB were missing ProviderName/Description.
+- TON: the shared suite now runs too (2026-11-25): 26/26 in both modes against the shipping TONOASIS on a disposable local TVM sandbox running the compiled TonHolonStore (`.github/workflows/ton-native-storage.yml`). It was listed as done from its HyperDrive routing qualification only.
+- Web3CoreOASIS is the EVM contract client, not a storage provider; the matrix no longer lists it as pending.
 - NATS JetStream passes in the CI matrix (new integration-test project). Neo4jOASIS2 is a thin subclass of Neo4jOASIS (same
   driver and record implementation), so the Neo4jOASIS run covers it.
 - XRPL now has real storage and passes 26/26 in both modes against rippled standalone + Kubo
@@ -152,7 +156,7 @@ Partly done, with open items:
 - Turso: managed Turso and hosted WEB4 activation are still open.
 - HoloOASIS.Edge: the shared suite and cross-agent replication are still open.
 - HoloOASIS.Unity: the Android conductor device lifecycle is still open.
-- Algorand: chain reads and payments pass; durable storage is still open.
+- Algorand: done 2026-11-25. Passes the shared suite 26/26 in both modes against its native record-box application on a disposable LocalNet (`.github/workflows/algorand-native-storage.yml`). Fixes: detail lookups by username/email read the stored detail record; holon graphs are saved (children were refused); batch saves acknowledge counts; Import and owner export work on enrolled records; metadata queries select from the decrypted records instead of public Indexer fields; an unversioned save publishes the next revision instead of failing the predecessor check. The suite needs the application funded for its box storage (fixture `OASIS_ALGORAND_RECORD_APP_FUNDING`).
 
 Next, breadth first, in order of popularity (shared suite not yet run):
 1. Pinecone, LanceDB (Cloud), Zilliz: hosted vector stores, need accounts

@@ -264,13 +264,13 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
         // ─── Avatar: Save / Delete ────────────────────────────────────────────────
 
         public override Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
-            => SaveStoredRecordAsync<Avatar, IAvatar>(avatar, avatar is { Version: > 0 } ? avatar.Version - 1 : 0, "avatar");
+            => SaveStoredRecordAsync<Avatar, IAvatar>(avatar, ProposedPredecessor(avatar), "avatar");
 
         public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar) => SaveAvatarAsync(avatar).Result;
 
         public override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
             => SaveStoredRecordAsync<AvatarDetail, IAvatarDetail>(avatarDetail,
-                avatarDetail is { Version: > 0 } ? avatarDetail.Version - 1 : 0, "avatar-detail");
+                ProposedPredecessor(avatarDetail), "avatar-detail");
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail) =>
             SaveAvatarDetailAsync(avatarDetail).Result;
@@ -350,6 +350,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
         {
+            if (_recordBoxes != null)
+                return await LoadEnrolledAvatarDetailByAliasAsync("username", avatarUsername, version).ConfigureAwait(false);
             var r = await LoadAvatarByUsernameAsync(avatarUsername, version);
             var result = new OASISResult<IAvatarDetail>();
             if (!r.IsError && r.Result != null)
@@ -363,9 +365,25 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
         {
+            if (_recordBoxes != null)
+                return await LoadEnrolledAvatarDetailByAliasAsync("email", avatarEmail, version).ConfigureAwait(false);
             var result = new OASISResult<IAvatarDetail>();
-            OASISErrorHandling.HandleError(ref result, "AlgorandOASIS: Email lookup is not supported.");
-            return await Task.FromResult(result);
+            OASISErrorHandling.HandleError(ref result, "AlgorandOASIS: Email lookup requires an enrolled record application; public accounts have no email.");
+            return result;
+        }
+
+        /// <summary>
+        /// An avatar detail is stored under its avatar's ID, so the avatar's username/email alias identifies it.
+        /// </summary>
+        private async Task<OASISResult<IAvatarDetail>> LoadEnrolledAvatarDetailByAliasAsync(string kind, string value, int version)
+        {
+            var avatar = await LoadEnrolledAvatarByAliasAsync(kind, value, 0).ConfigureAwait(false);
+            if (avatar.IsError || avatar.Result == null)
+                return new OASISResult<IAvatarDetail>
+                {
+                    IsError = true, ErrorCode = avatar.ErrorCode, Message = avatar.Message, Exception = avatar.Exception
+                };
+            return await LoadAvatarDetailAsync(avatar.Result.Id, version).ConfigureAwait(false);
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0) =>
@@ -579,6 +597,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
             int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true,
             bool loadChildrenFromProvider = false, int version = 0)
         {
+            if (_recordBoxes != null)
+                return await LoadEnrolledHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type,
+                    loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError,
+                    loadChildrenFromProvider, version).ConfigureAwait(false);
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
@@ -664,7 +686,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
             bool saveChildrenOnProvider = false)
         {
             if (_recordBoxes != null)
-                return await SaveEnrolledHolonAsync(holon, saveChildren).ConfigureAwait(false);
+                return await SaveEnrolledHolonAsync(holon, saveChildren, recursive, maxChildDepth).ConfigureAwait(false);
             // Submit the caller-signed transaction. A submission receipt does not establish confirmation.
             var result = new OASISResult<IHolon>();
             try
@@ -735,6 +757,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
                     if (!response.IsError && response.Result != null)
                     {
                         submitted.Add(response.Result);
+                        result.SavedCount += response.SavedCount;
                     }
                     else
                     {
@@ -749,6 +772,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
                     index++;
                 }
 
+                // Enrolled record writes are confirmed publications; caller-signed transactions are only submissions.
+                result.IsSaved = _recordBoxes != null && !result.IsError && submitted.Count > 0;
                 result.Message = result.IsError
                     ? $"AlgorandOASIS: Submitted {submitted.Count} transactions and rejected {result.ErrorCount}."
                     : $"AlgorandOASIS: Submitted {submitted.Count} transactions.";
@@ -843,8 +868,22 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
             var result = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref result, "AlgorandOASIS: Import is not supported.");
-            return await Task.FromResult(result);
+            if (_recordBoxes == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "AlgorandOASIS: Import requires an enrolled record application.");
+                return result;
+            }
+            var saved = await SaveHolonsAsync(holons, saveChildren: true, continueOnError: false).ConfigureAwait(false);
+            if (saved.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"AlgorandOASIS: Import stopped after {saved.SavedCount} records: {saved.Message}", saved.Exception);
+                result.SavedCount = saved.SavedCount;
+                return result;
+            }
+            result.Result = true;
+            result.IsSaved = saved.IsSaved;
+            result.SavedCount = saved.SavedCount;
+            return result;
         }
 
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).Result;
@@ -852,8 +891,19 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "AlgorandOASIS: Use ExportAllDataForAvatarByUsernameAsync(address).");
-            return await Task.FromResult(result);
+            if (_recordBoxes == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "AlgorandOASIS: Use ExportAllDataForAvatarByUsernameAsync(address).");
+                return result;
+            }
+            var all = await LoadAllHolonsAsync(loadChildren: false, continueOnError: false, version: version).ConfigureAwait(false);
+            if (all.IsError || all.Result == null)
+                return all;
+            var owned = all.Result.Where(holon => holon.CreatedByAvatarId == avatarId).ToArray();
+            result.Result = owned;
+            result.IsLoaded = true;
+            result.LoadedCount = owned.Length;
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0) =>

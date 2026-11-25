@@ -91,6 +91,36 @@ public partial class AlgorandOASIS
         return result;
     }
 
+    /// <summary>
+    /// Enrolled records carry their own holon metadata (inside the encrypted envelope), so a metadata query selects from
+    /// the decrypted enrolled collection rather than from public Indexer transaction fields.
+    /// </summary>
+    private async Task<OASISResult<IEnumerable<IHolon>>> LoadEnrolledHolonsByMetaDataAsync(
+        Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode matchMode, HolonType type,
+        bool loadChildren, bool recursive, int maxChildDepth, int currentChildDepth, bool continueOnError,
+        bool loadChildrenFromProvider, int version)
+    {
+        if (metaKeyValuePairs == null || metaKeyValuePairs.Count == 0)
+            return new OASISResult<IEnumerable<IHolon>> { IsError = true, Message = "At least one metadata key and value is required." };
+        if (!Enum.IsDefined(matchMode))
+            return new OASISResult<IEnumerable<IHolon>> { IsError = true, Message = "Unknown metadata match mode." };
+
+        var collection = await LoadEnrolledCollectionAsync(null, type, loadChildren, recursive, maxChildDepth,
+            currentChildDepth, continueOnError, loadChildrenFromProvider, version).ConfigureAwait(false);
+        if (collection.IsError || collection.Result == null)
+            return collection;
+
+        bool Matches(IHolon holon, KeyValuePair<string, string> pair) =>
+            holon.MetaData != null && holon.MetaData.TryGetValue(pair.Key, out var value) &&
+            string.Equals(value?.ToString(), pair.Value, StringComparison.Ordinal);
+        var selected = collection.Result.Where(holon => matchMode == MetaKeyValuePairMatchMode.All
+            ? metaKeyValuePairs.All(pair => Matches(holon, pair))
+            : metaKeyValuePairs.Any(pair => Matches(holon, pair))).ToArray();
+        collection.Result = selected;
+        collection.LoadedCount = selected.Length;
+        return collection;
+    }
+
     public Task<OASISResult<IReadOnlyList<Guid>>> DiscoverStoredHolonIdsAsync(CancellationToken cancellationToken = default)
         => DiscoverStoredRecordIdsAsync("holon", cancellationToken);
 
