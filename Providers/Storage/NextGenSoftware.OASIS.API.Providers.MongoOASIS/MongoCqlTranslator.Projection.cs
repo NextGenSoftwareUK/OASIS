@@ -132,6 +132,21 @@ internal sealed partial class MongoCqlTranslator
             return SingleLet(utcName,ProjectionCell(column.Path,prefix+"utcSource"),new BsonDocument{
                 {"s",cell+".s"},{"v",Choose(Op("$eq",cell+".s",Literal(2)),UtcDatePartFromTicks(column.Function,ticks),Literal(BsonNull.Value))}});
         }
+        if (column.Function == CosmicProjectionFunction.Int64Affine)
+        {
+            if(column.Path.ValueType != typeof(long) || column.ValueType != typeof(long) || !column.Int64Multiplier.HasValue || !column.Int64Offset.HasValue)
+                throw new NotSupportedException("Native Int64 arithmetic requires an exact Int64 path and captured coefficients.");
+            var longName = prefix + "longAffine";
+            var longCell = "$$" + longName;
+            BsonValue longComputed = Op("$add", Op("$multiply", new BsonDocument("$toLong", longCell + ".v"), Literal(column.Int64Multiplier.Value)), Literal(column.Int64Offset.Value));
+            var longPresent = Op("$eq", longCell + ".s", Literal(2));
+            // MongoDB widens an overflowing long to double; only a long result is a valid Int64 cell.
+            var longIntegral = Op("$eq", new BsonDocument("$type", longComputed), Literal("long"));
+            return SingleLet(longName, ProjectionCell(column.Path, prefix + "source"), new BsonDocument {
+                {"s", Choose(longPresent, Choose(longIntegral, Literal(2), Literal(3)), longCell + ".s")},
+                {"v", Choose(Op("$and", longPresent, longIntegral), longComputed, BsonNull.Value)}
+            });
+        }
         if (column.Function == CosmicProjectionFunction.DoubleAffine)
         {
             if(column.Path.ValueType != typeof(double) || column.ValueType != typeof(double) || !column.DoubleMultiplier.HasValue || !column.DoubleOffset.HasValue)

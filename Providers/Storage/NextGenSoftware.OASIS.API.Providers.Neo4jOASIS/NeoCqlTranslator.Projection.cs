@@ -27,6 +27,14 @@ internal sealed partial class NeoCqlTranslator
             return (utcSource.State,"CASE WHEN ("+utcSource.State+")=2 THEN "+
                 NeoCqlUtcDateParts.Value(column.Function,"datetime("+utcSource.Value+")")+" ELSE null END");
         }
+        if (column.Function == CosmicProjectionFunction.Int64Affine)
+        {
+            if(column.Path.ValueType != typeof(long) || column.ValueType != typeof(long) || !column.Int64Multiplier.HasValue || !column.Int64Offset.HasValue)
+                throw new System.NotSupportedException("Native Int64 arithmetic requires an exact Int64 path and captured coefficients.");
+            var longSource=TranslateProjectionPath(column.Path);
+            // Cypher integers are 64-bit and overflow raises a native error, so a result is never wrapped.
+            return (longSource.State,"CASE WHEN ("+longSource.State+")=2 THEN (("+longSource.Value+")*"+Bind(column.Int64Multiplier.Value)+"+"+Bind(column.Int64Offset.Value)+") ELSE null END");
+        }
         if (column.Function == CosmicProjectionFunction.DoubleAffine)
         {
             if(column.Path.ValueType != typeof(double) || column.ValueType != typeof(double) || !column.DoubleMultiplier.HasValue || !column.DoubleOffset.HasValue)
