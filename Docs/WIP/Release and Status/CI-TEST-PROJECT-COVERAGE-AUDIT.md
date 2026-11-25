@@ -271,3 +271,17 @@ Suggested order: the 9 OASIS Architecture projects first (pure unit tests, no li
 - Providers/Template/Test Projects/NextGenSoftware.OASIS.API.Providers.ProviderNameOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.ProviderNameOASIS.IntegrationTests.csproj
 - Providers/Template/Test Projects/NextGenSoftware.OASIS.API.Providers.ProviderNameOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.ProviderNameOASIS.UnitTests.csproj
 - Tools/NextGenSoftware.OASIS.HyperDrive.Migration.UnitTests/NextGenSoftware.OASIS.HyperDrive.Migration.UnitTests.csproj
+
+## Progress (PR 529)
+
+Wired into the coverage job and passing locally: Contracts, Managers, Edge.Messaging, Edge.NearbySync, HyperDrive.Migration (61 tests); BNBChain, SOLID, HoloOASIS.Edge, ThreeFold, HoloOASIS.Unity, Scuttlebutt, EdgeSQLite (508 tests).
+
+Tried and broken (next to fix):
+- TRONOASIS.UnitTests: many runtime failures (prepared storage/outbox, permission RPC, codegen)
+- ElrondOASIS.UnitTests: 2 failing (Activate/DeActivateProviderAsync)
+- ChainLinkOASIS.UnitTests: 1 failing (LoadOnChainNFTData)
+- BlockStackOASIS.UnitTests: 1 failing (LoadAllAvatars_ShouldReturnEmptySet)
+- FantomOASIS.UnitTests: does not compile (Assert.Equal on EnumValue)
+- BaseOASIS.UnitTests, AvalancheOASIS.UnitTests: do not compile (const BigInteger, constructor signature drift)
+- SEEDSOASIS.UnitTests: does not compile (constructor now needs TelosOASIS)
+- PLANOASIS.UnitTests: does not compile (PLANOASIS namespace used as a type)
