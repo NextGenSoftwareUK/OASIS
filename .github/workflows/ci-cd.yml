@@ -1221,6 +1221,10 @@ jobs:
       working-directory: OASIS/Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS
       run: npm ci --ignore-scripts --no-audit --no-fund
 
+    - name: Install NEAR SDK bridge for NEAR unit tests
+      working-directory: OASIS/Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.NEAROASIS/SdkBridge
+      run: npm ci --ignore-scripts --no-audit --no-fund
+
     - name: Install Polkadot SDK bridge for Polkadot unit tests
       working-directory: OASIS/Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/SdkBridge
       run: npm ci --ignore-scripts --no-audit --no-fund
@@ -1270,6 +1274,7 @@ jobs:
           "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests.csproj"
           "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.UnitTests.csproj"
           "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests.csproj"
+          "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.csproj"
           "ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.Core.UnitTests/NextGenSoftware.OASIS.API.ONODE.Core.Tests/NextGenSoftware.OASIS.API.ONODE.Core.Tests.csproj"
           "ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.csproj"
           "STAR ODK/NextGenSoftware.OASIS.STAR.UnitTests/NextGenSoftware.OASIS.STAR.UnitTests.csproj"

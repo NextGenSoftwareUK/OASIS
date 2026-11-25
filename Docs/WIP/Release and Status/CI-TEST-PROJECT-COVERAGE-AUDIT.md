@@ -282,7 +282,7 @@ Batch 2, tried and broken (next to fix):
 - Need test infrastructure the coverage job does not have (not wired in):
   - Arbitrum (22 of 37 fail): every test talks to the reusable local Ethereum test chain on 127.0.0.1:18546, which Scripts/TestHosts/Run-ReusableEthereumTests.ps1 starts. Belongs in an EVM workflow that starts that host, not the coverage job.
   - SOLANA (14 of 831 fail): the chain-indexed billing tests need the durable usage protocol service (USAGE_PROTOCOL_UNAVAILABLE) and response headers it sets; they should be gated on that service like the Mongo replica-set tests.
-  - NEAR (13 of 491 fail): need the pinned NEAR SDK ("Reuse the existing pinned SDK; do not restore/download another copy") plus one ArgumentException vs InvalidOperationException mismatch to check.
+- NEAR: 12 failures were the missing SdkBridge npm packages (the coverage job now installs them); 1 was a Windows race reading ready.json while another process held it (the test now retries until its deadline). Wired in (490).
 - CosmosBlockChain: 3 tests need the owned Mongo replica set (now LiveService); 3 need the CosmJS bridge installed in the test output and Node 22+ (CosmJS requires an ES module; Node 18 fails). The coverage job now sets up Node from NODE_VERSION and installs the bridge. Verified in CI only, since this machine has Node 18.
 - GoogleCloud: 2 tests read real GCS buckets named by OASIS_GCS_PUBLIC_SOURCE; now tagged LiveService. Wired in (510).
 - Polkadot: needed the SdkBridge npm packages; the coverage job now installs them. Wired in (393).
