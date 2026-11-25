@@ -82,6 +82,7 @@ Last updated 31 October 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (mer
 | 7 | Older items: phone tests, WSL disk, Vercel branch check, oasisweb4 site decision, iOS runtime script, Git LFS budget, upstream Holochain PRs | D |
 | 11 | Messaging programme: review and push the `work/oasis-messaging` branches (parent, API.Core, STAR ODK, 7 npm repos), publish the npm packages, physical-device Bluetooth tests, HerzApp/Our World wiring decisions | G |
 | 10 | COSMIC/CQL: decide follow-up Default-routing fix publication; hosted Azure/Oracle remain deferred | F |
+| 12 | **Post-release 2026-11-24: production SQLite replication held (BINDING_MISMATCH), WEB9 fix to release, test records left on prod/dev** | POST-RELEASE-2026-11-24 |
 | 11 | **WEB6 model catalogue v6: review prices, then approve the push** (OpenRouter list import, media prices, 6 new text models) | G |
 
 ---
@@ -1541,3 +1542,34 @@ Status: code work continues without these; only David can do them.
 - Context: CeramicOASIS now passes the native storage suite against a real ceramic-one 0.58.0 node. The official image `public.ecr.aws/r5b3e0r5/3box/ceramic-one` no longer exists (the registry answers NAME_UNKNOWN), so the CI fixture uses the community build `docker.io/dclimate/ceramic-one:0.58.0`, pinned by digest (see `Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CeramicOASIS.IntegrationTests/start-ceramic-fixture.sh`). It runs only in CI, against throwaway data.
 - Decision: (a) accept the pinned community image for CI tests, or (b) build ceramic-one from the upstream rust-ceramic source in CI (slower, adds a Rust toolchain step). Engineering's recommendation is (a), keeping the digest pin.
 - Status: OPEN 2026-11-25. Option (a) is in use until you decide.
+
+## POST-RELEASE-2026-11-24
+
+Production runs OASIS master cfea33eae2c (PR #518) on WEB4-WEB10.
+
+What passed:
+- Health: WEB4 /api/Health and authenticated avatar, HyperDrive and subscription calls; WEB6 a2a network calls; WEB7 symbiosis (real lookup); WEB8 mesh nodes; WEB5 (api.starnet) health. All 200 or a correct domain error.
+- CQL: query-cql and query-cql/scalar return without errors on MongoDBOASIS, SQLLiteDBOASIS and Neo4jOASIS.
+
+1. WEB9 refused every bearer (ACCESS_SESSION_AUTHORITY_NOT_ADMITTED).
+   Cause: WEB9 booted OASIS only when PREPARED_STORAGE_ADMISSION_JSON was set. Fixed on Development in e9b0c22fd18 (boots the same way as WEB6-WEB8).
+   Your step: promote to master and redeploy WEB9 production. Then check GET https://api.web9.oasisomniverse.one/v1/singularity/status with a sandbox bearer.
+
+2. Production SQLite replication is still held. Route hyperdrive-target-v2:SQLLiteDBOASIS:...AB2C2, seq 2, operation 41844155-6e4a-4c17-bc09-46d03a4a61c3.
+   - It was held with STORAGE_BINDING_INVALID. The shipped /app/OASISSQLLiteDB.db is now gone, as confirmed in the container.
+   - It was re-armed once with --cosmic-rearm-held-head: operator a5e52d14-7e82-43b4-8f21-0a53529246b6, request /data/COSMIC/ReplicaRearm/prod-seq2.json. The result was success, and a Rearm audit record is on the row.
+   - The retry (attempt 2) failed with COSMIC_REPLICA_STORAGE_BINDING_MISMATCH: "The native receiver does not match the enrolled storage identity." Seq 4-20 (9 entries) are Pending behind it.
+   - MISMATCH is deliberately not re-armable, and --cosmic-repair-baseline covers only lineage conflicts. No supported tool releases it. Do not re-arm again.
+   - Needs a code investigation: the route's enrolled target fingerprint versus the /data/OASISSQLLiteDB.db CosmicReplicationStoreIdentity row.
+   - Dev is separate and unchanged: v2 ...4982 is held at 543 (AUTHORIZATION_DENIED, 333 behind), and v1 SQLite is held at 535 (LINEAGE_CONFLICT). The dev current route ...2461 is drained.
+
+3. Test records are still on production and dev, because the sandbox sweep is broken.
+   - The production log says, on every 15-minute sweep: "Listing MongoDBOASIS holons of <avatar> failed: Mongo holon collection read failed", then "removed 0 demo avatars and 0 holons; 6 kept for retry".
+   - The read is MongoDBOASIS.ReadHolonCollectionGraphAsync. Its exception is swallowed, so the cause needs a reproduction.
+   - Production leftovers:
+     - demo holons 61b08937-ea30-6ed0-ed21-9642411c8b76 (Espresso), 16074723-5dbe-a6a2-e71d-6d1860e5e393 (Flat White) and b2b542d7-f855-89a4-2421-468bcf14666c (Tea), owner 7e2a53a2
+     - probe holons ed6b2550-eace-3f0e-d20e-abad408680df, 11eec3b0-b947-b0f5-c62b-ef67af11a7dc, e0efb380-7470-9afa-11a4-ec68697080ad and 950cf30a-bcfb-c18d-b77f-3ae4fec2dbb5
+     - sandbox avatars from this session: a9ca5a2e-dd6a-4def-98ef-d33e7cae60e0 and d0745e8f-8df3-4e0e-8fce-3690f53ff416. They own no holons.
+   - Dev leftover: probe holon 4c15ba78-ff19-5a49-89d4-5c78abf8d6c6.
+   - Owner sessions have expired, and avatar delete needs admin rights. Direct database deletes would leave their replication obligations (some are in the held queue above) inconsistent, so nothing was force-deleted.
+   - Once the sweep is fixed, it removes them by itself. Then confirm in Mongo that the IDs above are absent.
