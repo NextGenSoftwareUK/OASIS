@@ -1,0 +1,14 @@
+{
+  "OperatorId": "b547d0f9-aa27-478b-8d97-bf9098a07363",
+  "Sequence": 14,
+  "SourceOperationId": "b64bce63-3aeb-40c0-b3b2-b75675a87023",
+  "AttemptCount": 1,
+  "SourcePayloadDigest": "6B8C1A22CC1C1D1817365BEE1439B1CC438532AADB5B593771115152F531398D",
+  "SourceStoreIdentity": "neo4j-store:B4394B445F3E3D05C4D5D226D576FFA512F9A1A1ED34180BF6BCC58D1C7F4F0B",
+  "TargetFile": "/data/OASISSQLLiteDB.db",
+  "RootId": "715eb09e-ce75-4ab3-9f4e-e76c0493281a",
+  "PayloadVersionId": "ff3aa32d-94ae-42b6-a2a4-ab396158fb58",
+  "PayloadVersion": 1,
+  "SupersedingVersionId": "8a4802aa-0f1c-4d63-804c-c714ec828a60",
+  "SupersedingVersion": 18
+}

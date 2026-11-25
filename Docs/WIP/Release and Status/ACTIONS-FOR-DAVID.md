@@ -1663,6 +1663,14 @@ Status: decided by David, 24 November 2026; engineering in progress (no further 
 
 ### I1. Neo4j to SQLite hold at sequence 14 (dev)
 
+- Decision, 25 November 2026: David chose "Keep SQLite's v18". The read-only compare showed the held Neo4j payload at
+  version 1 (ff3aa32d-94ae-42b6-a2a4-ab396158fb58) and SQLite's head at version 18 (8a4802aa-0f1c-4d63-804c-c714ec828a60,
+  modified 29 October), so they differ. SQLite keeps v18 and the Neo4j sequence-14 obligation is retired without delivery.
+- Waiting on David: approve one run of `--cosmic-retire-held` on dev with the request
+  `Docs/WIP/HyperDrive-Providers/I1/neo-seq14-retire-request.json` (branch `work/i1-retire-held`). Before writing, the
+  command rechecks that the Neo4j payload is still v1 and SQLite is still v18. It changes only sequence 14 (to Completed,
+  with a retirement record) and refuses if anything differs. A rerun does nothing. 535/543 stay untouched.
+
 - Status, 25 November 2026: David approved the reviewed baseline repair in the CQL sandbox session, which ran it once.
   The target refused it before any write: `COSMIC_REPLICA_INITIALIZATION_RECONCILIATION_REQUIRED` (exit 1). Request
   `/data/COSMIC/ReplicaRepair/neo-seq14-request.json` (init operation 9c165163-0a7d-4a14-93e7-a0fb500b5c23) is spent:
