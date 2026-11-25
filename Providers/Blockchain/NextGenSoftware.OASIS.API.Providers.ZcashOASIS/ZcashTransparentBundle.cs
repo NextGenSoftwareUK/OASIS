@@ -29,7 +29,7 @@ internal static class ZcashTransparentBundle
         for (ulong index = 0; index < inputs; index++)
         {
             offset += 32 + 4; // prevout txid and index
-            offset = Skip(tx, offset, ReadCompactSize(tx, ref offset)); // scriptSig
+            offset = SkipLengthPrefixed(tx, offset); // scriptSig
             offset += 4; // sequence
         }
 
@@ -38,7 +38,7 @@ internal static class ZcashTransparentBundle
         for (ulong index = 0; index < outputs; index++)
         {
             offset += 8; // value
-            offset = Skip(tx, offset, ReadCompactSize(tx, ref offset)); // scriptPubKey
+            offset = SkipLengthPrefixed(tx, offset); // scriptPubKey
         }
         if (offset > tx.Length)
             throw new InvalidDataException("The Zcash transaction ends inside its transparent outputs.");
@@ -48,8 +48,11 @@ internal static class ZcashTransparentBundle
         return Convert.ToHexString(rebuilt).ToLowerInvariant();
     }
 
-    private static int Skip(byte[] tx, int offset, ulong length)
+    /// <summary>Skips a CompactSize length prefix and the bytes it counts; returns the offset after them.</summary>
+    private static int SkipLengthPrefixed(byte[] tx, int offset)
     {
+        // Read the length first: it advances offset past the prefix, and the skip must start after it.
+        var length = ReadCompactSize(tx, ref offset);
         var end = checked(offset + (int)length);
         if (end > tx.Length) throw new InvalidDataException("The Zcash transaction is truncated.");
         return end;

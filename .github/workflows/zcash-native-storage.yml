@@ -43,16 +43,11 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - name: Cache the Zcash proving parameters
-        uses: actions/cache@v4
-        with:
-          path: ${{ runner.temp }}/zcash-params
-          key: zcash-params-v1
       - name: Run the shared core storage suite against a disposable zcashd regtest node and Kubo
         run: |
           set -euo pipefail
           fixture="$(mktemp -d "$RUNNER_TEMP/oasis-native.XXXXXXXX")"
-          params="$RUNNER_TEMP/zcash-params"; mkdir -p "$params"
+          datadir="$(mktemp -d "$RUNNER_TEMP/zcashd-data.XXXXXXXX")"
           zcashd="" kubo="" miner=""
           cleanup() {
             status=$?
@@ -60,22 +55,45 @@ jobs:
             if [[ -n "$zcashd" ]]; then (( status != 0 )) && docker logs --tail 60 "$zcashd"; docker rm -fv "$zcashd" >/dev/null || status=1; fi
             if [[ -n "$kubo" ]]; then docker rm -fv "$kubo" >/dev/null || status=1; fi
             [[ "$fixture" == "$RUNNER_TEMP"/oasis-native.* ]] && rm -rf -- "$fixture"
+            # The container writes the data directory as its own user; remove it through the image.
+            [[ "$datadir" == "$RUNNER_TEMP"/zcashd-data.* ]] && { docker run --rm -v "$datadir:/data" --entrypoint rm electriccoinco/zcashd:latest -rf /data/regtest >/dev/null 2>&1 || true; rm -rf -- "$datadir" || true; }
             exit "$status"
           }
           trap cleanup EXIT
           user=oasis; password="$(openssl rand -hex 16)"
-          zcashd="$(docker run -d -p 127.0.0.1:18232:18232 -v "$params:/root/.zcash-params" --entrypoint bash \
-            electriccoinco/zcashd:latest -c "zcash-fetch-params && exec zcashd -printtoconsole -regtest -server -listen=0 \
-              -txindex -insightexplorer -experimentalfeatures \
-              -i-am-aware-zcashd-will-be-replaced-by-zebrad-and-zallet-in-2025 \
-              -nuparams=5ba81b19:1 -nuparams=76b809bb:1 -nuparams=2bb40e60:1 -nuparams=f5b9230b:1 \
-              -nuparams=e9ff75a6:1 -nuparams=c2d6d0b4:1 \
-              -rpcbind=0.0.0.0 -rpcallowip=0.0.0.0/0 -rpcport=18232 -rpcuser=$user -rpcpassword=$password")"
+          # zcashd only starts with a configuration file in its data directory (/srv/zcashd/.zcash for the image user).
+          cat > "$datadir/zcash.conf" <<CONF
+          regtest=1
+          server=1
+          listen=0
+          txindex=1
+          insightexplorer=1
+          experimentalfeatures=1
+          i-am-aware-zcashd-will-be-replaced-by-zebrad-and-zallet-in-2025=1
+          nuparams=5ba81b19:1
+          nuparams=76b809bb:1
+          nuparams=2bb40e60:1
+          nuparams=f5b9230b:1
+          nuparams=e9ff75a6:1
+          nuparams=c2d6d0b4:1
+          rpcuser=$user
+          rpcpassword=$password
+          [regtest]
+          rpcbind=0.0.0.0
+          rpcallowip=0.0.0.0/0
+          rpcport=18232
+          CONF
+          sed -i 's/^          //' "$datadir/zcash.conf"
+          chmod 0777 "$datadir"; chmod 0666 "$datadir/zcash.conf"
+          zcashd="$(docker run -d -p 127.0.0.1:18232:18232 -v "$datadir:/srv/zcashd/.zcash" --entrypoint zcashd \
+            electriccoinco/zcashd:latest -printtoconsole)"
           kubo="$(docker run -d -p 127.0.0.1:15001:5001 ipfs/kubo@sha256:97ece99cfccea95613ab3634f761d0200e9e8b1f49294b5428e19b5b9056759d daemon --offline)"
           cli() { docker exec "$zcashd" zcash-cli -regtest -rpcport=18232 -rpcuser="$user" -rpcpassword="$password" "$@"; }
-          for attempt in $(seq 1 300); do
+          for attempt in $(seq 1 120); do
             if cli getblockchaininfo >/dev/null 2>&1 && curl -fsS -X POST http://127.0.0.1:15001/api/v0/version >/dev/null 2>&1; then break; fi
-            [[ "$attempt" != 300 ]]; sleep 3
+            # Fail fast with the node log if zcashd exited instead of waiting out the whole budget.
+            [[ "$(docker inspect -f '{{.State.Running}}' "$zcashd")" == true ]] || { echo "zcashd exited during startup" >&2; exit 1; }
+            [[ "$attempt" != 120 ]]; sleep 3
           done
           cli getinfo | jq -c '{version, blocks}'
           cli generate 101 >/dev/null
