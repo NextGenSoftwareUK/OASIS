@@ -19,16 +19,60 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS;
 
 public partial class AlgorandOASIS
 {
-    private Task<OASISResult<IHolon>> SaveEnrolledHolonAsync(IHolon holon, bool saveChildren)
+    /// <summary>
+    /// Saves a holon and, when requested, its child graph. Each holon is its own record; children are linked to their
+    /// parent through <see cref="IHolon.ParentHolonId"/> (the collection reader rebuilds graphs from that link), so the
+    /// stored parent payload never embeds child copies. SavedCount is the number of records published.
+    /// </summary>
+    private async Task<OASISResult<IHolon>> SaveEnrolledHolonAsync(IHolon holon, bool saveChildren,
+        bool recursive = true, int maxChildDepth = 0, int depth = 0)
     {
-        if (holon == null || holon.Version < 0 || saveChildren && holon.Children is { Count: > 0 })
-            return Task.FromResult(new OASISResult<IHolon>
+        if (holon == null || holon.Version < 0)
+            return new OASISResult<IHolon>
             {
                 IsError = true,
-                Message = "An Algorand root save requires a valid holon version and a single record."
-            });
-        // HolonManager stamps the proposed revision before invoking the provider.
-        return SaveStoredHolonAsync(holon, Math.Max(0, holon.Version - 1));
+                Message = "An Algorand save requires a holon with a valid version."
+            };
+
+        var children = saveChildren && holon.Children is { Count: > 0 } ? holon.Children.ToList() : null;
+        var embedded = holon.Children;
+        holon.Children = null;
+        OASISResult<IHolon> saved;
+        try
+        {
+            // HolonManager stamps the proposed revision before invoking the provider.
+            saved = await SaveStoredHolonAsync(holon, Math.Max(0, holon.Version - 1)).ConfigureAwait(false);
+        }
+        finally
+        {
+            holon.Children = embedded;
+        }
+        if (saved.IsError || saved.Result == null || children == null)
+            return saved;
+
+        var descend = recursive && (maxChildDepth == 0 || depth + 1 < maxChildDepth);
+        var total = saved.SavedCount;
+        foreach (var child in children)
+        {
+            child.ParentHolonId = holon.Id;
+            var childSaved = await SaveEnrolledHolonAsync(child, descend, recursive, maxChildDepth, depth + 1)
+                .ConfigureAwait(false);
+            if (childSaved.IsError || childSaved.Result == null)
+                return new OASISResult<IHolon>(saved.Result)
+                {
+                    IsError = true,
+                    IsSaved = false,
+                    SavedCount = total,
+                    ErrorCode = childSaved.ErrorCode,
+                    Exception = childSaved.Exception,
+                    Message = $"Saved the Algorand holon {holon.Id} but not its child {child.Id}: {childSaved.Message}"
+                };
+            total += childSaved.SavedCount;
+        }
+
+        saved.Result.Children = children;
+        saved.SavedCount = total;
+        return saved;
     }
 
     public async Task<OASISResult<IHolon>> SoftDeleteStoredHolonAsync(Guid id, Guid deletedByAvatarId,
