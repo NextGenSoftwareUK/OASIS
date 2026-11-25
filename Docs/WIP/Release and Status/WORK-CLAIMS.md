@@ -39,3 +39,4 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | COSMIC O18 EF6 databinding/local-view integration | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-o18 | 2026-11-25 02:00 | IN PROGRESS |
 | SEEDSOASIS native storage (Antelope fixture) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-seeds | 2026-11-25 00:35 | IN PROGRESS |
 | DaprOASIS native storage (daprd sidecar + Redis state store) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-dapr | 2026-11-25 00:40 | IN PROGRESS |
+| ZcashOASIS native storage (regtest zcashd + Kubo, Bitcoin pattern) | HyperDrive providers | local: testharness-build-fix | work/zcash-native-storage | 2026-11-25 02:20 | IN PROGRESS |
