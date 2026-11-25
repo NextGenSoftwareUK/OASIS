@@ -282,7 +282,7 @@ You will note that every request below has a corresponding overload that also ta
 <li><b>CivicOASIS</b> - Civic Decentralised Identity Provider (Civic Pass verification → Avatars; on-chain identity attestations).</li>
 <li><b>ReclaimProtocolOASIS</b> - Reclaim Protocol ZK Identity Proofs Provider (zero-knowledge proofs of web credentials → Avatars).</li>
 <li><b>SeiOASIS</b> - Sei Network EVM Provider (chain ID 1329; EVM JSON-RPC; transactions → Holons, addresses → Avatars).</li>
-<li><b>CelestiaOASIS</b> - Celestia Modular DA Network Provider (light node REST API; blob submission/retrieval).</li>
+<li><b>CelestiaOASIS</b> - Celestia Modular DA Network Provider (celestia-node JSON-RPC; encrypted append-only blob records).</li>
 <li><b>EclipseOASIS</b> - Eclipse SVM L2 Provider (Solana JSON-RPC on mainnetbeta-rpc.eclipse.xyz; transactions → Holons).</li>
 <li><b>PushProtocolOASIS</b> - Push Protocol Decentralised Notifications Provider (REST API; notifications → Holons).</li>
 <li><b>ENSOASIS</b> - ENS (Ethereum Name Service) Provider (The Graph GraphQL subgraph; ENS names → Avatars).</li>
