@@ -7,8 +7,27 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS
 {
+    /// <summary>
+    /// WRLD (WRLD3D) map provider, unavailable. The WRLD platform no longer serves its developer
+    /// site or documentation (wrld3d.com serves unrelated content as of 2026-11-25), and it never
+    /// offered a server-side API: maps were drawn client-side by wrld.js and its SDKs. Every map
+    /// operation therefore returns false with the reason in <see cref="LastError"/>, rather than
+    /// reporting success for work that is not done.
+    /// </summary>
     public class WRDLD3DOASIS : IOASISMapProvider
     {
+        public const string UnavailableReason =
+            "WRLD3D is unavailable: the WRLD platform no longer serves its developer site and has no server-side API.";
+
+        /// <summary>Why the last operation failed.</summary>
+        public string LastError { get; private set; }
+
+        private bool Unavailable()
+        {
+            LastError = UnavailableReason;
+            return false;
+        }
+
         public MapProviderType MapProviderType { get; set; }
         public string MapProviderName { get; set; }
         public string MapProviderDescription { get; set; }
@@ -17,7 +36,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS
         {
             MapProviderType = MapProviderType.WRLD3D;
             MapProviderName = "WRLD 3D";
-            MapProviderDescription = "WRLD 3D OASIS Map Provider";
+            MapProviderDescription = "WRLD3D OASIS Map Provider (unavailable: the WRLD platform no longer serves its developer site).";
         }
 
         public bool CreateAndDrawRouteOnMapBetweenHolons(IHolon fromHolon, IHolon toHolon)
@@ -26,7 +45,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS
             {
                 // Create and draw route between holons using WRLD 3D
                 // This would use WRLD 3D's routing capabilities
-                return true;
+                return Unavailable();
             }
             catch (Exception)
             {
@@ -40,7 +59,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS
             {
                 // Create and draw route between points using WRLD 3D
                 // This would use WRLD 3D's routing capabilities
-                return true;
+                return Unavailable();
             }
             catch (Exception)
             {
@@ -54,7 +73,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS
             {
                 // Draw 2D sprite on HUD using WRLD 3D
                 // This would use WRLD 3D's HUD drawing capabilities
-                return true;
+                return Unavailable();
             }
             catch (Exception)
             {
@@ -68,7 +87,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS
             {
                 // Draw 2D sprite on map using WRLD 3D
                 // This would use WRLD 3D's map drawing capabilities
-                return true;
+                return Unavailable();
             }
             catch (Exception)
             {
@@ -82,7 +101,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS
             {
                 // Draw 3D object on map using WRLD 3D
                 // This would use WRLD 3D's 3D object capabilities
-                return true;
+                return Unavailable();
             }
             catch (Exception)
             {
@@ -96,7 +115,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS
             {
                 // Draw route on map using WRLD 3D
                 // This would use WRLD 3D's route drawing capabilities
-                return true;
+                return Unavailable();
             }
             catch (Exception)
             {
@@ -110,7 +129,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS
             {
                 // Highlight building on map using WRLD 3D
                 // This would use WRLD 3D's building highlighting capabilities
-                return true;
+                return Unavailable();
             }
             catch (Exception)
             {
@@ -124,7 +143,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS
             {
                 // Pan map down using WRLD 3D
                 // This would use WRLD 3D's pan capabilities
-                return true;
+                return Unavailable();
             }
             catch (Exception)
             {
@@ -138,7 +157,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS
             {
                 // Pan map left using WRLD 3D
                 // This would use WRLD 3D's pan capabilities
-                return true;
+                return Unavailable();
             }
             catch (Exception)
             {
@@ -152,7 +171,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS
             {
                 // Pan map right using WRLD 3D
                 // This would use WRLD 3D's pan capabilities
-                return true;
+                return Unavailable();
             }
             catch (Exception)
             {
@@ -166,7 +185,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS
             {
                 // Pan map up using WRLD 3D
                 // This would use WRLD 3D's pan capabilities
-                return true;
+                return Unavailable();
             }
             catch (Exception)
             {
@@ -180,7 +199,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS
             {
                 // Select building on map using WRLD 3D
                 // This would use WRLD 3D's building selection capabilities
-                return true;
+                return Unavailable();
             }
             catch (Exception)
             {
@@ -194,7 +213,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS
             {
                 // Select holon on map using WRLD 3D
                 // This would use WRLD 3D's holon selection capabilities
-                return true;
+                return Unavailable();
             }
             catch (Exception)
             {
@@ -224,7 +243,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS
             {
                 // Zoom map in using WRLD 3D
                 // This would use WRLD 3D's zoom capabilities
-                return true;
+                return Unavailable();
             }
             catch (Exception)
             {
@@ -238,7 +257,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS
             {
                 // Zoom map out using WRLD 3D
                 // This would use WRLD 3D's zoom capabilities
-                return true;
+                return Unavailable();
             }
             catch (Exception)
             {
@@ -252,7 +271,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS
             {
                 // Zoom to holon on map using WRLD 3D
                 // This would use WRLD 3D's zoom to object capabilities
-                return true;
+                return Unavailable();
             }
             catch (Exception)
             {
@@ -262,157 +281,157 @@ namespace NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS
 
         public bool CreateAndDrawRouteOnMapBetweenHolons(Guid fromHolonId, Guid toHolonId)
         {
-            try { return true; } catch { return false; }
+            try { return Unavailable(); } catch { return false; }
         }
 
         public bool DrawRouteOnMap(float startX, float startY, float endX, float endY, Color colour)
         {
-            try { return true; } catch { return false; }
+            try { return Unavailable(); } catch { return false; }
         }
 
         public bool SelectQuestOnMap(object quest)
         {
-            try { return true; } catch { return false; }
+            try { return Unavailable(); } catch { return false; }
         }
 
         public bool ZoomToHolonOnMap(Guid holonId)
         {
-            try { return true; } catch { return false; }
+            try { return Unavailable(); } catch { return false; }
         }
 
         public bool ZoomToQuestOnMap(IQuest quest)
         {
-            try { return true; } catch { return false; }
+            try { return Unavailable(); } catch { return false; }
         }
 
         public bool ZoomToQuestOnMap(Guid questId)
         {
-            try { return true; } catch { return false; }
+            try { return Unavailable(); } catch { return false; }
         }
 
         public bool PlaceHolonOnMap(IHolon holon, float x, float y)
         {
-            try { return true; } catch { return false; }
+            try { return Unavailable(); } catch { return false; }
         }
 
         public bool PlaceBuildingOnMap(IBuilding building, float x, float y)
         {
-            try { return true; } catch { return false; }
+            try { return Unavailable(); } catch { return false; }
         }
 
         public bool PlaceQuestOnMap(object quest, float x, float y)
         {
-            try { return true; } catch { return false; }
+            try { return Unavailable(); } catch { return false; }
         }
 
         public bool PlaceGeoNFTOnMap(object geoNFT, float x, float y)
         {
-            try { return true; } catch { return false; }
+            try { return Unavailable(); } catch { return false; }
         }
 
         public bool PlaceGeoHotSpotOnMap(object geoHotSpot, float x, float y)
         {
-            try { return true; } catch { return false; }
+            try { return Unavailable(); } catch { return false; }
         }
 
         public bool PlaceOAPPOnMap(object oapp, float x, float y)
         {
-            try { return true; } catch { return false; }
+            try { return Unavailable(); } catch { return false; }
         }
 
         public bool CreateAndDrawRouteOnMapBetweenQuests(object fromQuest, object toQuest)
         {
-            try { return true; } catch { return false; }
+            try { return Unavailable(); } catch { return false; }
         }
 
         public bool CreateAndDrawRouteOnMapBetweenQuests(Guid fromQuestId, Guid toQuestId)
         {
-            try { return true; } catch { return false; }
+            try { return Unavailable(); } catch { return false; }
         }
 
         public bool CreateAndDrawRouteOnMapBetweenGeoNFTs(object fromGeoNFT, object toGeoNFT)
         {
-            try { return true; } catch { return false; }
+            try { return Unavailable(); } catch { return false; }
         }
 
         public bool CreateAndDrawRouteOnMapBetweenGeoNFTs(Guid fromGeoNFTId, Guid toGeoNFTId)
         {
-            try { return true; } catch { return false; }
+            try { return Unavailable(); } catch { return false; }
         }
 
         public bool CreateAndDrawRouteOnMapBetweenGeoHotSpots(object fromGeoHotSpot, object toGeoHotSpot)
         {
-            try { return true; } catch { return false; }
+            try { return Unavailable(); } catch { return false; }
         }
 
         public bool CreateAndDrawRouteOnMapBetweenGeoHotSpots(Guid fromGeoHotSpotId, Guid toGeoHotSpotId)
         {
-            try { return true; } catch { return false; }
+            try { return Unavailable(); } catch { return false; }
         }
 
         public bool CreateAndDrawRouteOnMapBetweenOAPPs(object fromOAPP, object toOAPP)
         {
-            try { return true; } catch { return false; }
+            try { return Unavailable(); } catch { return false; }
         }
 
         public bool CreateAndDrawRouteOnMapBetweenOAPPs(Guid fromOAPPId, Guid toOAPPId)
         {
-            try { return true; } catch { return false; }
+            try { return Unavailable(); } catch { return false; }
         }
 
         public bool CreateAndDrawRouteOnMapBetweenBuildings(IBuilding fromBuilding, IBuilding toBuilding)
         {
-            try { return true; } catch { return false; }
+            try { return Unavailable(); } catch { return false; }
         }
 
         public bool CreateAndDrawRouteOnMapBetweenBuildings(Guid fromBuildingId, Guid toBuildingId)
         {
-            try { return true; } catch { return false; }
+            try { return Unavailable(); } catch { return false; }
         }
 
         public bool ZoomToGeoNFTOnMap(object geoNFT)
         {
-            try { return true; } catch { return false; }
+            try { return Unavailable(); } catch { return false; }
         }
 
         public bool ZoomToGeoNFTOnMap(Guid geoNFTId)
         {
-            try { return true; } catch { return false; }
+            try { return Unavailable(); } catch { return false; }
         }
 
         public bool ZoomToGeoHotSpotOnMap(object geoHotSpot)
         {
-            try { return true; } catch { return false; }
+            try { return Unavailable(); } catch { return false; }
         }
 
         public bool ZoomToGeoHotSpotOnMap(Guid geoHotSpotId)
         {
-            try { return true; } catch { return false; }
+            try { return Unavailable(); } catch { return false; }
         }
 
         public bool ZoomToOAPPOnMap(object oapp)
         {
-            try { return true; } catch { return false; }
+            try { return Unavailable(); } catch { return false; }
         }
 
         public bool ZoomToOAPPOnMap(Guid oappId)
         {
-            try { return true; } catch { return false; }
+            try { return Unavailable(); } catch { return false; }
         }
 
         public bool ZoomToBuildingOnMap(IBuilding building)
         {
-            try { return true; } catch { return false; }
+            try { return Unavailable(); } catch { return false; }
         }
 
         public bool ZoomToBuildingOnMap(Guid buildingId)
         {
-            try { return true; } catch { return false; }
+            try { return Unavailable(); } catch { return false; }
         }
 
         public bool ZoomToCoOrdsOnMap(float x, float y)
         {
-            try { return true; } catch { return false; }
+            try { return Unavailable(); } catch { return false; }
         }
 
         // IQuest support is not currently available in Core; method omitted.

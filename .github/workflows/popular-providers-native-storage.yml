@@ -22,6 +22,27 @@ on:
       - 'Providers/Other/NextGenSoftware.OASIS.API.Providers.DaprOASIS/**'
       - 'Providers/Other/NextGenSoftware.OASIS.API.Providers.GUNOASIS/**'
       - 'Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.GUNOASIS.IntegrationTests/**'
+      - 'Providers/Social/NextGenSoftware.OASIS.API.Providers.MatrixOASIS/**'
+      - 'Providers/Social/TestProjects/NextGenSoftware.OASIS.API.Providers.MatrixOASIS.IntegrationTests/**'
+      - 'Providers/Other/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS/**'
+      - 'Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS.IntegrationTests/**'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.ArweaveOASIS/**'
+      - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ArweaveOASIS.IntegrationTests/**'
+      - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS/**'
+      - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS.IntegrationTests/**'
+      - 'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/StorageServiceKeyValueBackend.cs'
+      - 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.AppwriteOASIS/**'
+      - 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AppwriteOASIS.IntegrationTests/**'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.PineconeOASIS/**'
+      - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.PineconeOASIS.IntegrationTests/**'
+      - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.TablelandOASIS/**'
+      - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.TablelandOASIS.IntegrationTests/**'
+      - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.CelestiaOASIS/**'
+      - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.CelestiaOASIS.IntegrationTests/**'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.CeramicOASIS/**'
+      - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CeramicOASIS.IntegrationTests/**'
+      - 'Providers/Social/NextGenSoftware.OASIS.API.Providers.BlueSkyOASIS/**'
+      - 'Providers/Social/TestProjects/NextGenSoftware.OASIS.API.Providers.BlueSkyOASIS.IntegrationTests/**'
       - 'Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.DaprOASIS.IntegrationTests/**'
       - 'Providers/Social/NextGenSoftware.OASIS.API.Providers.NostrOASIS/**'
       - 'Providers/*/TestProjects/*/*NativeStorageConformanceTests.cs'
@@ -37,7 +58,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        provider: [CouchDB, Couchbase, ArangoDB, SurrealDB, ClickHouse, InfluxDB, Chroma, PgVector, ArcadeDB, QuestDB, PouchDB, NATSJetStream, Nostr, Dapr, GUN, Marqo, Pinot]
+        provider: [CouchDB, Couchbase, ArangoDB, SurrealDB, ClickHouse, InfluxDB, Chroma, PgVector, ArcadeDB, QuestDB, PouchDB, NATSJetStream, Nostr, Dapr, GUN, Marqo, Pinot, Matrix, OrbitDB, Arweave, Scuttlebutt, Appwrite, Pinecone, Tableland, Celestia, Ceramic, BlueSky]
     defaults:
       run:
         working-directory: OASIS
@@ -65,6 +86,16 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
+      # @tableland/local 3.0.2 bundles Hardhat 2.22.2, which supports Node 18/20 only.
+      - uses: actions/setup-node@v4
+        if: matrix.provider == 'Tableland'
+        with:
+          node-version: '20.18.1'
+      # The Ceramic storage service uses the Ceramic SDK 0.12, which needs Node 22.
+      - uses: actions/setup-node@v4
+        if: matrix.provider == 'Ceramic'
+        with:
+          node-version: '22'
       - name: Run the shared core storage suite against the real backend
         env:
           PROVIDER: ${{ matrix.provider }}
@@ -73,8 +104,18 @@ jobs:
           password="$(openssl rand -hex 16)"
           container=""
           relays=""
+          appwrite_fixture=""
+          tableland_fixture=""
           cleanup() {
             status=$?
+            if [[ -n "$tableland_fixture" ]]; then
+              bash "$tableland_fixture/stop-tableland.sh" "$fixture" || status=1
+              if (( status != 0 )); then tail -n 40 "$fixture/tableland.log" || true; fi
+            fi
+            if [[ -n "$appwrite_fixture" ]]; then
+              if (( status != 0 )); then docker logs --tail 40 oasis-appwrite-http || true; fi
+              "$appwrite_fixture" stop || status=1
+            fi
             for pid in $relays; do kill -TERM "$pid" 2>/dev/null || true; wait "$pid" 2>/dev/null || true; done
             if [[ -n "$container" ]]; then
               for c in $container; do
@@ -82,7 +123,7 @@ jobs:
                 docker rm -fv "$c" >/dev/null || status=1
               done
             fi
-            [[ "$fixture" == "$RUNNER_TEMP"/oasis-native.* ]] && rm -rf -- "$fixture"
+            [[ "$fixture" == "$RUNNER_TEMP"/oasis-native.* ]] && sudo rm -rf -- "$fixture"
             exit "$status"
           }
           trap cleanup EXIT
@@ -165,6 +206,94 @@ jobs:
             Pinot)
               container="$(docker run -d -p 127.0.0.1:19000:9000 -p 127.0.0.1:18099:8000 docker.io/apachepinot/pinot@sha256:922d95a946546b377e9e7a8c208e138bdc91c904d2d6397a89a64a6593c03915 QuickStart -type EMPTY)"
               wait_for "curl -fsS http://127.0.0.1:19000/health && curl -fsS http://127.0.0.1:18099/health" 150 ;;
+            Matrix)
+              # Disposable Synapse homeserver: loopback listener, no federation, message rate limits lifted for the fixture.
+              synapse_image=matrixdotorg/synapse:v1.138.0
+              mkdir "$fixture/synapse"
+              docker run --rm -v "$fixture/synapse:/data" -e SYNAPSE_SERVER_NAME=oasis.test -e SYNAPSE_REPORT_STATS=no "$synapse_image" generate
+              sudo python3 - "$fixture/synapse/homeserver.yaml" <<'PY'
+          import sys
+          path = sys.argv[1]
+          text = open(path).read()
+          text = text.replace("  - port: 8008\n", "  - port: 8008\n    bind_addresses: ['127.0.0.1']\n", 1)
+          text = text.replace('trusted_key_servers:\n  - server_name: "matrix.org"\n', "trusted_key_servers: []\n")
+          text = text.rstrip("\n") + "\nrc_message:\n  per_second: 1000\n  burst_count: 1000\n"
+          open(path, "w").write(text)
+          PY
+              container="$(docker run -d --network host -v "$fixture/synapse:/data" "$synapse_image")"
+              wait_for "curl -fsS http://127.0.0.1:8008/health"
+              docker exec "$container" register_new_matrix_user -c /data/homeserver.yaml -u oasis -p "$password" --no-admin http://127.0.0.1:8008
+              token="$(curl -fsS -X POST http://127.0.0.1:8008/_matrix/client/v3/login \
+                -d "{\"type\":\"m.login.password\",\"identifier\":{\"type\":\"m.id.user\",\"user\":\"oasis\"},\"password\":\"$password\"}" | jq -er .access_token)"
+              room() { curl -fsS -X POST -H "Authorization: Bearer $token" http://127.0.0.1:8008/_matrix/client/v3/createRoom -d '{"preset":"private_chat"}' | jq -er .room_id; }
+              export OASIS_MATRIX_HOMESERVER=http://127.0.0.1:8008 OASIS_MATRIX_USER=oasis \
+                OASIS_MATRIX_ASYNC_ROOM="$(room)" OASIS_MATRIX_SYNC_ROOM="$(room)" ;;
+            OrbitDB)
+              # Two disposable OrbitDB storage services (one database per mode); state lives in the fixture directory.
+              service_dir="$PWD/Providers/Other/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS/StorageService"
+              npm ci --prefix "$service_dir" --no-audit --no-fund
+              export OASIS_ORBITDB_STORAGE_TOKEN="$password"
+              node "$service_dir/storage-service.mjs" "$fixture/orbitdb-async" 18901 >"$fixture/orbitdb-async.log" 2>&1 & relays="$relays $!"
+              node "$service_dir/storage-service.mjs" "$fixture/orbitdb-sync" 18902 >"$fixture/orbitdb-sync.log" 2>&1 & relays="$relays $!"
+              wait_for "grep -q ready '$fixture/orbitdb-async.log' && grep -q ready '$fixture/orbitdb-sync.log'"
+              export OASIS_ORBITDB_ASYNC_SERVICE=http://127.0.0.1:18901 OASIS_ORBITDB_SYNC_SERVICE=http://127.0.0.1:18902 ;;
+            Arweave)
+              # Disposable arlocal gateway (pinned) and one freshly minted wallet per storage mode.
+              tests_dir="$PWD/Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ArweaveOASIS.IntegrationTests"
+              bridge="$PWD/Providers/Storage/NextGenSoftware.OASIS.API.Providers.ArweaveOASIS/SdkBridge/bridge.mjs"
+              npm ci --prefix "$(dirname "$bridge")" --no-audit --no-fund
+              npm ci --prefix "$tests_dir/arlocal" --no-audit --no-fund
+              (cd "$tests_dir/arlocal" && exec npx --no-install arlocal 1984) >"$fixture/arlocal.log" 2>&1 & relays="$relays $!"
+              wait_for "curl -fsS http://127.0.0.1:1984/info"
+              gateway=http://127.0.0.1:1984
+              for mode in async sync; do
+                echo "{\"operation\":\"generateWallet\",\"gateway\":\"$gateway\"}" | node "$bridge" >"$fixture/$mode-wallet.out"
+                jq -ec .wallet "$fixture/$mode-wallet.out" >"$fixture/$mode-wallet.json"
+                curl -fsS "$gateway/mint/$(jq -er .address "$fixture/$mode-wallet.out")/1000000000000000" >/dev/null
+                rm -- "$fixture/$mode-wallet.out"
+              done
+              curl -fsS "$gateway/mine" >/dev/null
+              export OASIS_ARWEAVE_GATEWAY="$gateway" OASIS_ARWEAVE_SDK_BRIDGE="$bridge" \
+                OASIS_ARWEAVE_ASYNC_WALLET_FILE="$fixture/async-wallet.json" OASIS_ARWEAVE_SYNC_WALLET_FILE="$fixture/sync-wallet.json" ;;
+            Scuttlebutt)
+              # Two disposable Scuttlebutt storage services, each owning its own signed feed (one per storage mode).
+              service_dir="$PWD/Providers/Network/NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS/StorageService"
+              npm ci --prefix "$service_dir" --no-audit --no-fund
+              export OASIS_SSB_STORAGE_TOKEN="$password"
+              node "$service_dir/storage-service.cjs" "$fixture/ssb-async" 18905 >"$fixture/ssb-async.log" 2>&1 & relays="$relays $!"
+              node "$service_dir/storage-service.cjs" "$fixture/ssb-sync" 18906 >"$fixture/ssb-sync.log" 2>&1 & relays="$relays $!"
+              wait_for "grep -q ready '$fixture/ssb-async.log' && grep -q ready '$fixture/ssb-sync.log'"
+              export OASIS_SSB_ASYNC_SERVICE=http://127.0.0.1:18905 OASIS_SSB_SYNC_SERVICE=http://127.0.0.1:18906 ;;
+            Appwrite)
+              # Self-hosted Appwrite 1.7.4 (app, worker, MariaDB, Redis) on 127.0.0.1:18080, provisioned through its REST API.
+              appwrite_fixture="$PWD/Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AppwriteOASIS.IntegrationTests/fixture/start-appwrite.sh"
+              "$appwrite_fixture" start "$fixture/appwrite.env"
+              set -a; . "$fixture/appwrite.env"; set +a ;;
+            Pinecone)
+              # Pinecone Local, one serverless 1-dimension dense index per storage mode (pinned by digest).
+              pinecone_image=ghcr.io/pinecone-io/pinecone-index@sha256:d60708292452e1e1d0740da86f653706a73b3682f302e1f0c18908f59e7ec7e0
+              for port in 15081 15082; do
+                container="$container $(docker run -d --network host -e PORT=$port -e INDEX_TYPE=serverless -e VECTOR_TYPE=dense -e DIMENSION=1 -e METRIC=cosine "$pinecone_image")"
+              done
+              for port in 15081 15082; do
+                wait_for "curl -fsS -X POST -H 'Api-Key: pclocal' -H 'X-Pinecone-API-Version: 2026-07' -H 'Content-Type: application/json' -d '{}' http://127.0.0.1:$port/describe_index_stats | grep -q '\"dimension\":1'"
+              done
+              export OASIS_PINECONE_ASYNC_HOST=http://127.0.0.1:15081 OASIS_PINECONE_SYNC_HOST=http://127.0.0.1:15082 ;;
+            Tableland)
+              # Local Tableland network (Hardhat chain 31337 + validator); one table and dev wallet per storage mode.
+              tableland_fixture="$PWD/Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.TablelandOASIS.IntegrationTests/fixture"
+              bash "$tableland_fixture/start-tableland.sh" "$fixture"
+              wait_for "curl -fsS http://127.0.0.1:8080/api/v1/health" ;;
+            Celestia)
+              # Local Celestia devnet (celestia-app + celestia-node, digest-pinned); the script prints container ids and the node URL/token.
+              eval "$(Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.CelestiaOASIS.IntegrationTests/fixture/start-celestia.sh)"
+              export OASIS_CELESTIA_URL OASIS_CELESTIA_TOKEN ;;
+            Ceramic)
+              # ceramic-one 0.58.0 (digest-pinned community build; see ACTIONS-FOR-DAVID) plus one storage service per mode.
+              source "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CeramicOASIS.IntegrationTests/start-ceramic-fixture.sh" ;;
+            BlueSky)
+              # Postgres + local PLC directory + official PDS (pinned by digest); creates oasis-async.test / oasis-sync.test.
+              container="$(Providers/Social/TestProjects/NextGenSoftware.OASIS.API.Providers.BlueSkyOASIS.IntegrationTests/start-pds-fixture.sh "$password")" ;;
             Couchbase)
               container="$(docker run -d -p 127.0.0.1:8091-8097:8091-8097 -p 127.0.0.1:11210:11210 -p 127.0.0.1:11280:11280 couchbase/server:community-7.6.2)"
               wait_for "curl -fsS http://127.0.0.1:8091/ui/index.html"
@@ -181,4 +310,24 @@ jobs:
           for mode in async sync; do
             jq -e '.Succeeded and .FixtureCleanupComplete and (.Passed | length == 26)' "$fixture/$mode.json" >/dev/null
           done
+          if [[ "$PROVIDER" == OrbitDB ]]; then
+            auth="Authorization: Bearer $password"
+            curl -fsS -X PUT -H "$auth" "http://127.0.0.1:18901/kv?key=durability/probe" --data-binary kept >/dev/null
+            for pid in $relays; do kill -TERM "$pid"; wait "$pid" || true; done
+            relays=""
+            node "$service_dir/storage-service.mjs" "$fixture/orbitdb-async" 18901 >"$fixture/orbitdb-restart.log" 2>&1 & relays="$!"
+            wait_for "grep -q ready '$fixture/orbitdb-restart.log'"
+            [[ "$(curl -fsS -H "$auth" "http://127.0.0.1:18901/kv?key=durability/probe")" == kept ]]
+            echo "OrbitDB data survived a storage service restart."
+          fi
+          if [[ "$PROVIDER" == Scuttlebutt ]]; then
+            auth="Authorization: Bearer $password"
+            curl -fsS -X PUT -H "$auth" "http://127.0.0.1:18905/kv?key=durability/probe" --data-binary kept >/dev/null
+            for pid in $relays; do kill -TERM "$pid"; wait "$pid" || true; done
+            relays=""
+            node "$service_dir/storage-service.cjs" "$fixture/ssb-async" 18905 >"$fixture/ssb-restart.log" 2>&1 & relays="$!"
+            wait_for "grep -q ready '$fixture/ssb-restart.log'"
+            [[ "$(curl -fsS -H "$auth" "http://127.0.0.1:18905/kv?key=durability/probe")" == kept ]]
+            echo "Scuttlebutt feed data survived a storage service restart."
+          fi
           echo "$PROVIDER passed both storage modes against its real backend."

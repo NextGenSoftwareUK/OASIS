@@ -23,6 +23,65 @@ public partial class HolonRepository
                 return (utcSource.State,"CASE WHEN ("+utcSource.State+")=2 THEN "+
                     SqliteCqlUtcDateParts.Value(column.Function,utcSource.Value)+" ELSE NULL END");
             }
+            if (column.Function == CosmicProjectionFunction.Int64Affine)
+            {
+                if(column.Path.ValueType != typeof(long) || column.ValueType != typeof(long) || !column.Int64Multiplier.HasValue || !column.Int64Offset.HasValue)
+                    throw new NotSupportedException("Native Int64 arithmetic requires an exact Int64 path and captured coefficients.");
+                var longSource=ProjectionOperand(column.Path,prefix,comparable);
+                var longComputed="(("+longSource.Value+")*"+Bind(column.Int64Multiplier.Value)+"+"+Bind(column.Int64Offset.Value)+")";
+                // SQLite turns integer overflow into REAL; only an INTEGER result is a valid Int64 cell.
+                var integral="typeof("+longComputed+")='integer'";
+                return ("CASE WHEN ("+longSource.State+")=2 AND NOT "+integral+" THEN 3 ELSE ("+longSource.State+") END",
+                    "CASE WHEN ("+longSource.State+")=2 AND "+integral+" THEN "+longComputed+" ELSE NULL END");
+            }
+            if (column.Function == CosmicProjectionFunction.DoubleAffine)
+            {
+                if(column.Path.ValueType != typeof(double) || column.ValueType != typeof(double) || !column.DoubleMultiplier.HasValue || !column.DoubleOffset.HasValue)
+                    throw new NotSupportedException("Native Double arithmetic requires an exact Double path and captured coefficients.");
+                var doubleSource=ProjectionOperand(column.Path,prefix,comparable);
+                // Metadata Doubles project as exact order keys; arithmetic reads the stored JSON number instead.
+                var rawDouble=column.Path.IsMetadata
+                    ? "("+MetadataSubquery(column.Path.Segments, alias => alias+".value", _ => "1", prefix+"dv")+" LIMIT 1)"
+                    : doubleSource.Value;
+                var doubleComputed="((CAST("+rawDouble+" AS REAL))*"+Bind(column.DoubleMultiplier.Value)+"+"+Bind(column.DoubleOffset.Value)+")";
+                // A finite result has an absolute value no greater than Double.MaxValue; overflow (Inf) and NaN fail this test.
+                var finite="abs("+doubleComputed+") <= 1.7976931348623157e308";
+                // The result is published in the same exact order-key form as a selected Double (17 significant digits round-trip).
+                var encoded=SqliteCqlFloating.DoubleFunction+"(printf('%.17g',"+doubleComputed+"))";
+                return ("CASE WHEN ("+doubleSource.State+")=2 AND NOT coalesce("+finite+",0) THEN 3 ELSE ("+doubleSource.State+") END",
+                    "CASE WHEN ("+doubleSource.State+")=2 AND coalesce("+finite+",0) THEN "+encoded+" ELSE NULL END");
+            }
+            if (column.Function == CosmicProjectionFunction.Int32Affine)
+            {
+                if(column.Path.ValueType != typeof(int) || column.ValueType != typeof(int) || !column.Int32Multiplier.HasValue || !column.Int32Offset.HasValue)
+                    throw new NotSupportedException("Native Int32 arithmetic requires an exact Int32 path and captured coefficients.");
+                var arithmeticSource=ProjectionOperand(column.Path,prefix,comparable);
+                var computed="(("+arithmeticSource.Value+")*"+Bind((long)column.Int32Multiplier.Value)+"+"+Bind((long)column.Int32Offset.Value)+")";
+                // SQLite integer division and remainder truncate toward zero, matching C#.
+                if(column.Int32Divisor.HasValue)computed="("+computed+(column.Int32IsModulo?" % ":" / ")+Bind((long)column.Int32Divisor.Value)+")";
+                return ("CASE WHEN ("+arithmeticSource.State+")=2 AND "+computed+" NOT BETWEEN -2147483648 AND 2147483647 THEN 3 ELSE ("+arithmeticSource.State+") END",
+                    "CASE WHEN ("+arithmeticSource.State+")=2 AND "+computed+" BETWEEN -2147483648 AND 2147483647 THEN "+computed+" ELSE NULL END");
+            }
+            if (column.Function == CosmicProjectionFunction.TextToInt32Case)
+            {
+                if(column.Path.ValueType != typeof(string) || column.ValueType != typeof(int)
+                    || column.Int32Cases == null || column.Int32Cases.Count == 0 || !column.Int32Replacement.HasValue)
+                    throw new NotSupportedException("Native text-to-Int32 CASE requires an exact String path and captured literal branches.");
+                var numericSource=ProjectionOperand(column.Path,prefix,comparable);
+                var numericBranches=string.Concat(column.Int32Cases.Select(entry=>" WHEN "+Bind(entry.Key)+" THEN "+Bind((long)entry.Value)));
+                return ("CASE WHEN ("+numericSource.State+")=2 THEN 2 ELSE 3 END",
+                    "CASE WHEN ("+numericSource.State+")=2 THEN CASE ("+numericSource.Value+")"+numericBranches+" ELSE "+Bind((long)column.Int32Replacement.Value)+" END ELSE NULL END");
+            }
+            if (column.Function == CosmicProjectionFunction.TextValueCase)
+            {
+                if(column.Path.ValueType != typeof(string) || column.ValueType != typeof(string)
+                    || column.TextCases == null || column.TextCases.Count == 0 || column.WhenFalse == null)
+                    throw new NotSupportedException("Native multi-branch text CASE requires an exact String path and captured literal branches.");
+                var caseSource=ProjectionOperand(column.Path,prefix,comparable);
+                var branches=string.Concat(column.TextCases.Select(entry=>" WHEN "+Bind(entry.Key)+" THEN "+Bind(entry.Value)));
+                return ("CASE WHEN ("+caseSource.State+")=2 THEN 2 ELSE 3 END",
+                    "CASE WHEN ("+caseSource.State+")=2 THEN CASE ("+caseSource.Value+")"+branches+" ELSE "+Bind(column.WhenFalse)+" END ELSE NULL END");
+            }
             if (column.Function == CosmicProjectionFunction.BooleanTextCase)
             {
                 if(column.Path.ValueType != typeof(bool) || column.ValueType != typeof(string)

@@ -1,6 +1,6 @@
 # NextGenSoftware.OASIS.API.Providers.AppwriteOASIS
 
-Connects the OASIS to Appwrite via its Databases REST API. Appwrite is an open-source, self-hostable Firebase/Supabase alternative with auth, databases, storage, and functions. No Appwrite SDK required — uses System.Net.Http. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one
+Connects the OASIS to Appwrite via its Databases REST API, storing avatars, avatar details and holons as one document per key (attributes `key` string 255 and `value` large string, with a key index on `key`) through the shared key-value storage semantics. Appwrite is an open-source, self-hostable Firebase/Supabase alternative with auth, databases, storage, and functions. No Appwrite SDK required — uses System.Net.Http. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one
 
 ## Installation
 

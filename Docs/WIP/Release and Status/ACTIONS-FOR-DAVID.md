@@ -2,6 +2,16 @@
 
 2026-11-18 — CLOUD ACTIONS SUPERSEDED / DEFERRED BY DAVID: cloud migration is abandoned and work resumes locally with isolated remote CI. This supersedes CLOUD-CQL-ACCESS-PREFLIGHT-2026-11-18 and CLOUD-CQL-HANDOFF-START-2026-11-18 for the current task; no cloud setup or repeated sign-in is requested. The latest named cloud chat reports Core read restored, startup still failed without a task ID. Historical access failures below are retained. Full roadmap and shared-cluster/deployment stand-down remain intact.
 
+## GITHUB-ACTIONS-RUNNER-CAPACITY-2026-11-25
+
+Status: open, 25 November 2026. GitHub Actions in NextGenSoftwareUK/OASIS runs only 2-3 jobs at a time while 40-130 runs queue, so CI-verified items (native-storage suites, the provider TestHarness gate, CQL/COSMIC checks) wait hours. Agents now batch pushes and avoid new runs while more than about 20 are queued, which slows verification further.
+
+What only you can do (GitHub organisation settings, may cost money):
+- Check Settings > Billing and plans for NextGenSoftwareUK: Actions minutes used vs included, and the Actions spending limit. Exhausted minutes or a zero spending limit throttle private-repo jobs.
+- Choose one: raise the spending limit or plan concurrency, add larger or self-hosted runners, or tell agents to run heavy suites only on workflow_dispatch.
+
+Unblocks: every queued native-storage suite (currently Zcash) and all other sessions' CI gates.
+
 ## CLOUD-CQL-ACCESS-PREFLIGHT-2026-11-18
 
 Status: blocked, 18 November 2026. Current runtime is Windows C:/Source/OASIS2, not a verified cloud checkout; no persistent-goal tool is exposed. GitHub connector reads OASIS/Web4Site, but private OASIS-API-Core returns 404. Connector write to this existing feature branch returns 403 Resource not accessible by integration. Native git access failed with getaddrinfo thread error. These are access/tooling limits; no credentials requested.
@@ -83,8 +93,8 @@ Last updated 31 October 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (mer
 | 11 | Messaging programme: review and push the `work/oasis-messaging` branches (parent, API.Core, STAR ODK, 7 npm repos), publish the npm packages, physical-device Bluetooth tests, HerzApp/Our World wiring decisions | G |
 | 10 | COSMIC/CQL: decide follow-up Default-routing fix publication; hosted Azure/Oracle remain deferred | F |
 | 12 | **Post-release 2026-11-24: production SQLite replication held (BINDING_MISMATCH), WEB9 fix to release, test records left on prod/dev** | POST-RELEASE-2026-11-24 |
-| 11 | **WEB6 model catalogue v6: review prices, then approve the push** (OpenRouter list import, media prices, 6 new text models) | G |
-| 12 | **HyperDrive on dev: confirm the Neo4j to SQLite baseline repair at sequence 14** in the CQL sandbox session (explained there) | I |
+| 11 | **WEB6 model catalogue: review the estimated prices; decide OpenRouter billing (G2)** (v7 live on Development; OpenRouter prices move hourly) | G |
+| 12 | HyperDrive on dev: Neo4j to SQLite hold at sequence 14 — repair ran once and was refused (no write); **decision pending**: the same holon reaches SQLite from both Mongo and Neo4j | I |
 | 13 | **Railway dev: add one DNA key so IPFS keeps its catalogue across restarts** (`IPFSOASIS.CatalogueRootPointerPath`) | I |
 
 ---
@@ -1417,29 +1427,33 @@ Links: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44675640513
 
 ## Part G — WEB6 model catalogue (22 November 2026)
 
-### G1. Review catalogue v6 and approve the push
+### G1. Review the estimated prices in the catalogue (now v7)
 
-**Status:** open, 22 November 2026. Everything is committed on the local WEB6 branch `claude/web6-catalogue-v6` (2 commits on top of `origin/main` `f042a53`). Nothing is pushed, because the catalogue is what WEB4 billing charges.
+**Status:** open (price review only), updated 25 November 2026. v6 was pushed on your instruction (WEB6 `0348ded`, OASIS `a712210`). v7 (WEB6 `4c54731`, OASIS `4426ead`) re-imported OpenRouter's current list after 8 imported models were retired and 21 repriced within three days, and bills per-million prices exactly instead of rounding to 4 decimals. Your review is still only the estimated prices below; the OpenRouter prices are OpenRouter's own.
 
 **What it contains**
-- OpenRouter: 336 paid text models imported at OpenRouter's own published per-token prices by `WEB6/Scripts/import_openrouter_models.py` (flat-priced chat models only; tiered, per-request, image/audio-output and router models are skipped and listed by the script). Re-run it to track OpenRouter's list. See `WEB6/docs/MODEL_CATALOGUE.md`.
-- Media unit prices (my estimates, please check against each provider's price list): StabilityAI image $0.03, OpenAI gpt-image-1 1024x1024 medium $0.042, Runway 5s $0.25, Luma $0.40, Pika 3s $0.20, Kling 5s std $0.14, ElevenLabs $0.30 per 1,000 characters (calls capped at 4,000 characters), AssemblyAI nano $0.12/hour and Deepgram nova-3 $0.0043/minute (calls capped at 4 hours).
-- Six text models with estimated prices: NVIDIA NIM, Meta Llama API, Reka Core, Writer Palmyra X 004, AI71 Falcon 180B, JAIS 30B.
-- OpenAI image calls now send `quality=medium` and the quality is part of the billed model key.
-- Per-request hold is unchanged at $2.70, so no request holds back more than before.
-- `AWSSDK.BedrockRuntime` moved to 4.x, which fixes the NU1107 restore failure (the rest of the repo is on 4.x). The Bedrock call compiles unchanged against 4.x.
+- OpenRouter: 336 paid text models at OpenRouter's own published per-token prices, imported by `WEB6/Scripts/import_openrouter_models.py` (flat-priced chat models only). Re-run it to track OpenRouter's list. See `WEB6/docs/MODEL_CATALOGUE.md`.
+- Six text models: NVIDIA NIM, Meta Llama API, Reka Core, Writer Palmyra X 004, AI71 Falcon 180B, JAIS 30B.
+- OpenAI image calls send `quality=medium`, and the quality is part of the billed model key. The per-request hold is unchanged at $2.70.
 
-**Verified:** the catalogue loads into the real `ModelInfo`/`ModelCatalogueDocument` types and passes the loader's validation rules; 11 new regression tests pass against it (and fail on a broken catalogue). **Not verified:** the full WEB6 build and test suite, because the shared checkout currently has unfinished COSMIC edits in `OASIS Architecture/…API.Core/Queries` that do not compile (`CosmicMixedProjectionResults.Grouping.cs`). Run the WEB6 tests once that lands.
+**What you need to check:** the prices that are my estimates, not published list prices:
+- Media: StabilityAI image $0.03, OpenAI gpt-image-1 1024x1024 medium $0.042, Runway 5s $0.25, Luma $0.40, Pika 3s $0.20, Kling 5s std $0.14, ElevenLabs $0.30 per 1,000 characters (calls capped at 4,000 characters), AssemblyAI nano $0.12/hour, Deepgram nova-3 $0.0043/minute (calls capped at 4 hours).
+- The six text models above.
+If any is wrong, a corrected catalogue needs a new version string (`web6-model-catalogue-YYYY-MM-DD-vN`), because published versions are immutable.
 
-**Then:** `git -C WEB6 push origin claude/web6-catalogue-v6` (or merge to `main`), advance the WEB6 gitlink and `OASIS_WEB6_COMMIT` together (`Docs/Devs/RAILWAY_DEPENDENCY_PINS.md`).
+**Verified:** the full WEB6 unit suite passes, 191/191 including the 11 catalogue invariant tests, on a clean checkout of OASIS `Development` (WEB6 `add09f4`, Core `a9fe1ec`), 25 November 2026.
 
 ### G2. Decide whether OpenRouter should bill from OpenRouter's reported cost
 
-**Status:** open decision, 22 November 2026. Not implemented. Today every billed model needs a fixed price and each request holds back its worst case up front, so models with tiered or variable prices (`openrouter/auto`, router models, per-request fees) stay unavailable. Billing from OpenRouter's reported per-call cost would open them up, but it needs a per-call spending cap and a change to how billing settles.
+**Status:** open decision, updated 25 November 2026. Today every billed model needs a fixed price and each request holds back its worst case up front, so tiered and router models (`openrouter/auto`, per-request fees) stay unavailable.
+
+New evidence: OpenRouter's fixed prices do not stay fixed. `qwen/qwen3.5-9b` input went 0.17 -> 0.10 -> 0.17 USD per million within hours on 25 November, as OpenRouter switched upstream providers. Between re-imports WEB6 therefore bills some OpenRouter models below or above cost. The new weekly `WEB6 OpenRouter price drift` workflow fails when a model is retired or priced below cost, but re-importing only narrows the gap.
+
+Billing from OpenRouter's reported per-call cost would close it and open up the router models. It needs a per-call spending cap (the hold) and a change to how billing settles. Please decide: keep fixed prices plus weekly re-imports, or bill OpenRouter from reported cost.
 
 ### G3. Security advisories in shared packages
 
-**Status:** open, agent-owned, 22 November 2026. Blocked only because the shared checkout is mid-edit. AutoMapper 16.2.0 (GHSA-gpwp-5797-mjff, GHSA-6vhm-j9h7-f9gh, high) is referenced by the Optimism, Neo4j and MongoDB provider projects; 16.3.0 is the patched release. `Microsoft.AspNetCore.WebUtilities` 8.0.20 / 10.0.0 (GHSA-x33c-w48q-qrgc, high) arrives transitively; patched in 8.0.34 / 10.0.15. The COSMIC session owns those projects: bump them when its edits settle.
+**Status:** resolved, agent-owned, 25 November 2026. AutoMapper is fixed on `Development` (provider projects no longer reference it; ONODE WebAPI uses 16.3.0). `dotnet list package --vulnerable --include-transitive` on a clean `Development` checkout reports no vulnerable packages for WEB6 WebAPI or ONODE WebAPI, so the `Microsoft.AspNetCore.WebUtilities` advisory no longer applies. Nothing is needed from you.
 
 ---
 
@@ -1622,30 +1636,27 @@ Status: decided by David, 24 November 2026; engineering in progress (no further 
 
 ## Part I — HyperDrive replication on dev (24 November 2026)
 
-### I1. Approve a baseline repair for Neo4j to SQLite at sequence 14
+### I1. Neo4j to SQLite hold at sequence 14 (dev)
 
-- Status: awaiting David's confirmation in the CQL sandbox session, 25 November 2026. David replied "Sure its fine"
-  before it had been explained; it is a one-shot write to hosted dev data, so it runs only after he confirms there. Originally reported 24 November 2026 by the CQL/WEB4 session from the live dev WEB4 logs
-  (`railway logs -e dev -s 5123199a-43c4-4439-9921-e10e2aec7841`).
-- What: `Replication Neo4jOASIS -> hyperdrive-target:SQLLiteDBOASIS blocked at sequence 14, operation
-  b64bce63-3aeb-40c0-b3b2-b75675a87023: COSMIC_REPLICA_LINEAGE_CONFLICT`. This is a new hold and is not the protected
-  Mongo to SQLite 535/543 holds, which stay untouched.
-- Why: this is the designed outcome when a source holon already had versions before the route was enrolled. The SQLite
-  target never received the earlier versions, so normal delivery must refuse version N without its predecessor. No data
-  is lost; the delivery is held, not dropped. The fix is the reviewed initial-baseline repair, which writes to the hosted
-  SQLite target, so it needs your approval. The Neo4j to SQLite route is supported by the deployed repair command
-  (`ReplicaBaselineRepairCommand`, Development).
-- Steps: reply "approve the Neo4j to SQLite baseline repair for sequence 14" and the agent prepares the reviewed request
-  (read-only source and target inspection first), shows you the exact holon, version and digests, and runs
-  `dotnet NextGenSoftware.OASIS.API.ONODE.WebAPI.dll --cosmic-repair-baseline /data/COSMIC/ReplicaRepair/<request>.json`
-  in the dev WEB4 service once. Procedure and safety rules: `Docs/WIP/COSMIC ORM/REPLICA_BASELINE_AND_RECOVERY.md`.
-- Unblocks: the Neo4j to SQLite route on dev (later operations on that route queue behind the hold).
-- Not needed from you: the second fault in the same report, `Replication source binding IPFSOASIS unavailable` ("The
-  IPFS catalogue has no persisted storage identity"), is an engineering bug, fixed on `work/hyperdrive-triad`. The
-  catalogue root pointer lived in the DNA file, which the Railway entrypoint rewrites from `OASIS_DNA_JSON` on every
-  boot, so each restart rolled IPFS back to the legacy v1 catalogue (`QmXZ6Sh7...`). The new
-  `IPFSOASIS.CatalogueRootPointerPath` DNA setting keeps the root on the `/data` volume; the agent sets it in Railway's
-  `OASIS_DNA_JSON` when the fix is deployed.
+- Status, 25 November 2026: David approved the reviewed baseline repair in the CQL sandbox session, which ran it once.
+  The target refused it before any write: `COSMIC_REPLICA_INITIALIZATION_RECONCILIATION_REQUIRED` (exit 1). Request
+  `/data/COSMIC/ReplicaRepair/neo-seq14-request.json` (init operation 9c165163-0a7d-4a14-93e7-a0fb500b5c23) is spent:
+  never resubmit or regenerate it; its journal stays at phase Submitted with no receipt. The source obligation is
+  unchanged and 535/543 are untouched.
+- What the inspection showed (`--cosmic-inspect-held Neo4jOASIS 14`, read-only, Development 8b7614d3): operation
+  b64bce63-3aeb-40c0-b3b2-b75675a87023, root holon 715eb09e-ce75-4ab3-9f4e-e76c0493281a, actor
+  c0b43739-cc8e-48c3-9a6f-6a071a95170f, payload digest 6B8C1A22…398D, state ReconciliationRequired.
+- Why it was refused: that holon is already in the SQLite target, installed on 30 October by the Mongo to SQLite
+  sequence-8 repair. The same holon now arrives from a second source (Neo4j), and a baseline only installs into an
+  absent target. This is not a data loss; it is two enrolled sources governing one target replica.
+- Next step (engineering, read-only): compare the held Neo4j payload with SQLite's current head for 715eb09e (version
+  and content digest). Then:
+  - If they are the same content, the hold can be acknowledged as already satisfied. That needs a new reviewed
+    "equivalent head" completion in the repair command (it does not exist yet); engineering will build it.
+  - If they differ, Mongo and Neo4j have diverged for this holon and **David decides which lineage wins** (keep the
+    Mongo-derived SQLite copy and retire the Neo4j obligation, or replace it with the Neo4j version).
+- Also found: `OASIS_SANDBOX` is not set on the dev service, so the shell repair/inspect commands need
+  `OASIS_SANDBOX=true` on their command line.
 
 ### I2. Add the IPFS catalogue pointer key to Railway dev
 
@@ -1671,3 +1682,32 @@ Status: decided by David, 24 November 2026; engineering in progress (no further 
   2. Keep the legacy behaviour everywhere. A05 is then marked as not applicable, documenting that `ParentHolon` assignment is a write.
 - Reason: either choice changes what a save writes, which affects STAR/ODK celestial graphs, so it is your call.
 - Status: OPEN 2026-11-25 08:40 UTC. The claim in WORK-CLAIMS.md is marked BLOCKED; other rows continue.
+
+## Approve deleting the six LOST_METHODS_REVIEW files
+
+- Open 2026-11-25. These files hold commented-out methods from the file-split audit, each annotated with a verdict (almost all "superseded"). They compile to nothing but clutter the code base:
+  - `Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Repositories/AvatarRepository.LOST_METHODS_REVIEW.cs`
+  - `ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Managers/NFTManager.LOST_METHODS_REVIEW.cs`
+  - `ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Managers/STARNET/OAPP System/OAPPManager.LOST_METHODS_REVIEW.cs`
+  - `ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Managers/STARNET/OAPP System/OAPPTemplateManager.LOST_METHODS_REVIEW.cs`
+  - `ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Managers/STARNET/OAPP System/RuntimeManager.LOST_METHODS_REVIEW.cs`
+  - `ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Managers/STARNET/STARNET System/STARNETManagerBase.LOST_METHODS_REVIEW.cs`
+- Decision needed: reply "delete them" to have them removed, or name any method you want restored first. The audit found no genuine losses beyond WalletManager, which was already restored.
+
+## WRLD 3D is gone: decide the WRLD3D provider and check the Our World map
+
+- Open 2026-11-25. wrld3d.com no longer serves WRLD: the home page, developer page and wrld.js docs return unrelated gambling spam, and docs.wrld3d.com redirects there. WRLD never offered a server-side API (maps were drawn client-side by wrld.js and its Unity and mobile SDKs).
+- Done by engineering: WRLD3DOASIS no longer reports success for map operations; each returns false with the reason in `LastError`. The Web4Site homepage no longer loads WRLD's logo from wrld3d.com (Web4Site main 065b4ee).
+- Decision 1: keep WRLD3DOASIS as an unavailable provider, or remove it (project, solution entries, `MapProviderType.WRLD3D`, NuGet listing). Reply "remove WRLD3D" or "keep".
+- Decision 2: the Our World Unity project ships WRLD streaming resources (`Assets/StreamingAssets/WrldResources/`), so its in-app map probably depends on WRLD's servers. Please open Our World and check whether the map still loads. If it does not, choose a replacement renderer for Unity (Mapbox Maps SDK for Unity, Google Maps 3D, or Cesium for Unity) and engineering will migrate it. Mapbox already has a working OASIS provider (MapboxOASIS) to pair with its Unity SDK.
+
+## Published ONODE.Core 2.0.1 NuGet package cannot be restored
+
+- Open 2026-11-25. `NextGenSoftware.OASIS.API.ONODE.Core` 2.0.1 on nuget.org depends on `Ipfs.Http.Client` >= 0.42, which does not exist on nuget.org (the newest there is 0.33.0). Any project that falls back to the package (for example a checkout without the ONODE.Core submodule, or an external NuGet consumer) fails restore with NU1102.
+- The source is already fixed: IPFSOASIS now packs the local Ipfs.Http.Client DLL privately instead of declaring it as a NuGet dependency. Only the published package is stale.
+- Decision needed: approve publishing a new ONODE.Core version (and the IPFSOASIS package) through the normal NuGet release, so the fixed dependency graph reaches nuget.org. Existing versions are not changed or republished.
+
+## Shared NuGet cache on the dev machine is corrupt (Mvc.Testing 10.0.0)
+
+- Open 2026-11-25. `C:\Users\David\.nuget\packages\microsoft.aspnetcore.mvc.testing\10.0.0` is half-deleted and its `Microsoft.AspNetCore.Mvc.Testing.Tasks.dll` is locked by a running build server, so restores that need it fail with "Access denied". Sessions currently work around it with a private `NUGET_PACKAGES` folder and `-nodeReuse:false`.
+- Fix (briefly interrupts other sessions' builds): when no release build is running, run `dotnet build-server shutdown`, delete that `10.0.0` folder, then restore any project once to re-download it. Reply "repair the NuGet cache" and Claude will do it.

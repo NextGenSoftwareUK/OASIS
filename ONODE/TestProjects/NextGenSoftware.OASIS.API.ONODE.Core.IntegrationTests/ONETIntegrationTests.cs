@@ -364,6 +364,78 @@ public class ONETIntegrationTests : IDisposable
         }
     }
 
+    [Fact]
+    public async Task ONETProtocol_SendMessage_ToPeerWithUnknownKey_IsRefusedNotSentInPlaintext()
+    {
+        var a = NewNodeIdentity();
+        var b = NewNodeIdentity();
+        var nodeA = new ONETProtocol(storageProvider: null) { ListenPort = GetFreeTcpPort() };
+        var nodeB = new ONETProtocol(storageProvider: null) { ListenPort = GetFreeTcpPort() };
+        await nodeA.StartNetworkAsync();
+        await nodeB.StartNetworkAsync();
+        nodeA.RegisterLocalNodeIdentity(a.Id, a.Public, a.Private);
+        // nodeB has no identity, so it cannot answer ONET_KEY and A never learns a key to encrypt for.
+        var received = 0;
+        nodeB.MessageReceived += (_, _) => received++;
+        try
+        {
+            (await nodeA.ConnectToNodeAsync(b.Id, $"127.0.0.1:{nodeB.ListenPort}")).IsError.Should().BeFalse();
+
+            var send = await nodeA.SendMessageAsync(new ONETMessage { TargetNodeId = b.Id, Content = "secret" });
+
+            send.IsError.Should().BeTrue();
+            send.Message.Should().Contain("no registered public key");
+            received.Should().Be(0);
+        }
+        finally
+        {
+            await nodeA.StopNetworkAsync();
+            await nodeB.StopNetworkAsync();
+        }
+    }
+
+    [Fact]
+    public async Task ONETProtocol_SendMessage_ToHolochainAddressedPeer_TravelsThroughTheHolochainFrameSender()
+    {
+        var a = NewNodeIdentity();
+        var b = NewNodeIdentity();
+        var nodeA = new ONETProtocol(storageProvider: null) { ListenPort = GetFreeTcpPort() };
+        var nodeB = new ONETProtocol(storageProvider: null) { ListenPort = GetFreeTcpPort() };
+        await nodeA.StartNetworkAsync();
+        await nodeB.StartNetworkAsync();
+        nodeA.RegisterLocalNodeIdentity(a.Id, a.Public, a.Private);
+        nodeB.RegisterLocalNodeIdentity(b.Id, b.Public, b.Private);
+        nodeA.RegisterNodePublicKey(b.Id, b.Public);
+        _ = nodeB.ApplicationEndpoint;
+        var handedToHolochain = new List<string>();
+        var received = new List<string>();
+        nodeB.MessageReceived += (_, e) => received.Add(e.Message);
+        try
+        {
+            (await nodeA.ConnectToNodeAsync(b.Id, ONETProtocol.HolochainAddressPrefix + "uhCAkAgentB")).IsError.Should().BeFalse();
+
+            var unavailable = await nodeA.SendMessageAsync(new ONETMessage { TargetNodeId = b.Id, Content = "hello" });
+            unavailable.IsError.Should().BeTrue("there is no HoloNET transport yet, and TCP must not be tried for a Holochain peer");
+
+            // Stands in for the onet zome: hand the sealed, signed frame to the other node as a received signal would.
+            nodeA.HolochainFrameSender = async (agent, frame, _) =>
+            {
+                handedToHolochain.Add(agent);
+                var accepted = await nodeB.ReceiveApplicationFrameAsync(frame, CancellationToken.None);
+                return new OASISResult<bool> { Result = accepted, IsError = !accepted };
+            };
+            await nodeA.SendMessageAsync(new ONETMessage { TargetNodeId = b.Id, Content = "over holochain" });
+
+            handedToHolochain.Should().Equal("uhCAkAgentB");
+            received.Should().Contain("over holochain");
+        }
+        finally
+        {
+            await nodeA.StopNetworkAsync();
+            await nodeB.StopNetworkAsync();
+        }
+    }
+
     private static (string Id, string Public, string Private) NewNodeIdentity()
     {
         using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
@@ -411,18 +483,21 @@ public class ONETIntegrationTests : IDisposable
     public async Task ONETProtocol_SendMessage_ToPeerWithoutEndpoint_ReportsFailure()
     {
         var a = NewNodeIdentity();
+        var s = NewNodeIdentity();
         var nodeA = new ONETProtocol(storageProvider: null) { ListenPort = GetFreeTcpPort() };
         var silent = new ONETProtocol(storageProvider: null) { ListenPort = GetFreeTcpPort() };
         await nodeA.StartNetworkAsync();
         await silent.StartNetworkAsync();
         nodeA.RegisterLocalNodeIdentity(a.Id, a.Public, a.Private);
+        // The silent peer's key is known, so the frame is encrypted and sent; the peer has no endpoint to answer it.
+        nodeA.RegisterNodePublicKey(s.Id, s.Public);
 
         try
         {
             await Task.Delay(300);
-            (await nodeA.ConnectToNodeAsync("silent", $"127.0.0.1:{silent.ListenPort}")).IsError.Should().BeFalse();
+            (await nodeA.ConnectToNodeAsync(s.Id, $"127.0.0.1:{silent.ListenPort}")).IsError.Should().BeFalse();
 
-            var send = await nodeA.SendMessageAsync(new ONETMessage { TargetNodeId = "silent", Content = "x" });
+            var send = await nodeA.SendMessageAsync(new ONETMessage { TargetNodeId = s.Id, Content = "x" });
 
             send.IsError.Should().BeTrue("a peer that never acknowledges must not be reported as delivered");
         }

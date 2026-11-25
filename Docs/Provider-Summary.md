@@ -173,11 +173,11 @@ Includes L1/L2 chains, cross-chain bridges, omnichain messaging, and on-chain to
 | Google Maps | `NextGenSoftware.OASIS.API.Providers.GoogleMapsOASIS` | Google Maps Platform: Routes API directions, Places API (New) search, Geocoding API |
 | HERE Maps | `NextGenSoftware.OASIS.API.Providers.HEREMapsOASIS` | HERE Routing API v8 directions, Geocoding & Search v1 |
 | MapLibre | `NextGenSoftware.OASIS.API.Providers.MapLibreOASIS` | MapLibre style-spec GeoJSON scenes with OSRM directions and Nominatim search |
-| Mapbox | `NextGenSoftware.OASIS.API.Providers.MapboxOASIS` | Mapbox mapping & geospatial |
+| Mapbox | `NextGenSoftware.OASIS.API.Providers.MapboxOASIS` | Mapbox Directions API v5 routing and Geocoding API v6 search |
 | Niantic Lightship | `NextGenSoftware.OASIS.API.Providers.NianticLightshipOASIS` | Niantic Lightship AR platform |
 | Ready Player Me | `NextGenSoftware.OASIS.API.Providers.ReadyPlayerMeOASIS` | Ready Player Me cross-platform avatars |
 | The Sandbox | `NextGenSoftware.OASIS.API.Providers.TheSandboxOASIS` | The Sandbox voxel gaming metaverse |
-| WRLD 3D | `NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS` | WRLD 3D geospatial metaverse platform |
+| WRLD 3D | `NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS` | Unavailable: the WRLD platform no longer serves its developer site |
 
 ---
 

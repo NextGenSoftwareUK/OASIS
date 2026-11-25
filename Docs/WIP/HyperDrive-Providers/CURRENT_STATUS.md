@@ -22,25 +22,25 @@ OPORTAL, the ONODE popup and billing UI are now owned by a different session. CQ
 - Next 3: Ceramic signed commits (DID), BlockStack Gaia auth tokens, Aztec/Miden real storage designs.
 - Blockers: ACTIONS-FOR-DAVID I1 and the hosted-account providers.
 
-## Progress (cloud-hyperdrive-A, updated 2026-11-25 02:55 UTC)
+## Progress (cloud-hyperdrive-A, updated 2026-11-25 09:20 UTC)
 
-Done in CI (native core-storage suite 26/26, sync + async):
-- TelosOASIS and SEEDSOASIS: storage now goes through the EOSIO (Antelope) implementation; `antelope-family-native-storage.yml`, run 45518765561.
-- DaprOASIS: gRPC health probe, emptied key indexes removed; `popular-providers-native-storage.yml`, run 45519314086.
-- GUNOASIS: real GUN wire protocol, chunked node replies merged; run 45520161955.
+Done in CI (native core-storage suite 26/26, sync + async, against real backends):
+- TelosOASIS and SEEDSOASIS: storage through the EOSIO (Antelope) implementation; `antelope-family-native-storage.yml`, run 45518765561.
+- DaprOASIS (run 45519314086) and GUNOASIS (run 45520161955).
+- MatrixOASIS (Synapse room state), OrbitDBOASIS (@orbitdb/core 4 service), ArweaveOASIS (arlocal; owner-pinned, revisioned,
+  encrypted), ScuttlebuttOASIS (ssb-db2 feed service), AppwriteOASIS (self-hosted 1.7.4), PineconeOASIS (Pinecone Local),
+  TablelandOASIS (local validator + Hardhat), CelestiaOASIS (local devnet), CeramicOASIS (ceramic-one 0.58.0) and BlueSkyOASIS
+  (self-hosted PDS + local PLC): all in `popular-providers-native-storage.yml` run 45535697095 (`work/cloud-hd-scuttlebutt`).
+  OrbitDB and Scuttlebutt also pass a service-restart durability check in CI.
 
-Passing 26/26 in both modes locally against real backends, waiting for CI (`work/cloud-hd-scuttlebutt` carries these in one `popular-providers-native-storage.yml` run):
-- MatrixOASIS (Synapse): records as encrypted room state events. Tests passed in run 45521345637; the job failed only removing Synapse-owned fixture files (fixed on the branch).
-- OrbitDBOASIS (@orbitdb/core 4 service): stable identity and address across restarts.
-- ArweaveOASIS (arlocal): owner-pinned, revisioned, encrypted records.
-- ScuttlebuttOASIS (ssb-db2 service): records in a signed feed.
-- AppwriteOASIS (self-hosted 1.7.4), PineconeOASIS (Pinecone Local), TablelandOASIS (local validator + Hardhat), CelestiaOASIS (local devnet), CeramicOASIS (ceramic-one 0.58.0).
+EclipseOASIS: done by the hyperdrive-triad session (f2717b1b); the duplicate `work/cloud-hd-eclipse` branch is not merged.
+In progress: FilecoinOASIS.
 
-Also passing locally: BlueSkyOASIS (self-hosted PDS) and EclipseOASIS (delegates to SolanaOASIS; eclipse-native-storage.yml). In progress: FilecoinOASIS.
+Known gap: providers that delegate storage (Eclipse to Solana, Telos to EOSIO) stamp saved records with the inner
+provider's ProviderUniqueStorageKey type; routing by the outer type does not find them. Fix is to make the stamped type
+configurable in SolanaOASIS/EOSIOOASIS.
 
 Blocked on hosted accounts or a retire decision: see "Hosted-only providers" in `Docs/WIP/Release and Status/ACTIONS-FOR-DAVID.md`.
-
-CI capacity is the bottleneck: provider runs queue for over an hour behind Development pipelines.
 
 ## Branches
 
@@ -123,6 +123,7 @@ Done (91 pass the native core-storage-v2 suite 52/52 against their real backend;
   ArcadeDB were missing ProviderName/Description.
 - TON: the shared suite now runs too (2026-11-25): 26/26 in both modes against the shipping TONOASIS on a disposable local TVM sandbox running the compiled TonHolonStore (`.github/workflows/ton-native-storage.yml`). It was listed as done from its HyperDrive routing qualification only.
 - Web3CoreOASIS is the EVM contract client, not a storage provider; the matrix no longer lists it as pending.
+- Zcash now has real storage and passes 26/26 in both modes against a zcashd regtest node + Kubo (`.github/workflows/zcash-native-storage.yml`). ZcashOASIS sits on KeyValueStorageProviderBase: each record is an encrypted raw-block Kubo envelope (CIDv1 = SHA-256 of its bytes) and every put/delete is a transparent transaction from the wallet-held storage address whose 71-byte OP_RETURN commits SHA-256(key) and the envelope SHA-256. The old ZcashRepository invented txids and holons. Fixes found on the way: OP_RETURN is appended to the unsigned transparent bundle (zcashd createrawtransaction has no data outputs); the ZIP-317 fee is measured in transparent bytes (OP_RETURN costs extra actions); v5 signing is given the spent output; coins are taken from the node UTXO set, not the trailing wallet list; immature coinbase is never spent.
 - NATS JetStream passes in the CI matrix (new integration-test project). Neo4jOASIS2 is a thin subclass of Neo4jOASIS (same
   driver and record implementation), so the Neo4jOASIS run covers it.
 - XRPL now has real storage and passes 26/26 in both modes against rippled standalone + Kubo

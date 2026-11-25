@@ -11,6 +11,10 @@ on:
       - 'Providers/Maps/NextGenSoftware.OASIS.API.Providers.MapLibreOASIS/**'
       - 'Providers/Maps/TestProjects/NextGenSoftware.OASIS.API.Providers.MapPlatforms.UnitTests/**'
       - 'Providers/Maps/TestProjects/NextGenSoftware.OASIS.API.Providers.MapLibreOASIS.UnitTests/**'
+      - 'Providers/Maps/NextGenSoftware.OASIS.API.Providers.MapboxOASIS/**'
+      - 'Providers/Maps/NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS/**'
+      - 'Providers/Maps/TestProjects/NextGenSoftware.OASIS.API.Providers.MapboxOASIS.UnitTests/**'
+      - 'Providers/Maps/TestProjects/NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS.UnitTests/**'
       - 'OASIS Architecture/NextGenSoftware.OASIS.API.Contracts/**'
   pull_request:
     branches: [Development, master]
@@ -53,7 +57,7 @@ jobs:
           /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
 
   maplibre:
-    name: MapLibre provider and scene (controlled tests)
+    name: MapLibre, Mapbox and WRLD3D providers (controlled tests)
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -82,3 +86,13 @@ jobs:
           dotnet test Providers/Maps/TestProjects/NextGenSoftware.OASIS.API.Providers.MapLibreOASIS.UnitTests
           /m:2 /nr:false /p:UseSharedCompilation=false
           --filter "TestCategory!=MapLibreStyleNative&TestCategory!=Live" --logger "console;verbosity=normal"
+      - name: Test Mapbox
+        working-directory: OASIS
+        run: >
+          dotnet test Providers/Maps/TestProjects/NextGenSoftware.OASIS.API.Providers.MapboxOASIS.UnitTests
+          /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+      - name: Test WRLD3D
+        working-directory: OASIS
+        run: >
+          dotnet test Providers/Maps/TestProjects/NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS.UnitTests
+          /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"

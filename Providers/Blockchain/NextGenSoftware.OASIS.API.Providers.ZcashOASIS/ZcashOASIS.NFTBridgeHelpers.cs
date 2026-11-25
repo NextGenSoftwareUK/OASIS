@@ -22,7 +22,6 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using Newtonsoft.Json;
-using NextGenSoftware.OASIS.API.Providers.ZcashOASIS.Infrastructure.Repositories;
 using NextGenSoftware.OASIS.API.Providers.ZcashOASIS.Infrastructure.Services.Zcash;
 using NextGenSoftware.OASIS.API.Providers.ZcashOASIS.Models;
 using NextGenSoftware.OASIS.API.Core.Managers;

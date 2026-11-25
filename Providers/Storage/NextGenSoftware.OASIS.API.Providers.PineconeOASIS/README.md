@@ -28,6 +28,10 @@ Use this package for the responsibility described above, alongside its owning OA
 
 Provider adapters require their respective service configuration and credentials. Runtime libraries require the host application's lifecycle and persistent paths where applicable. Supply only the settings actually required by the owning component; do not copy production DNA into a client or public release.
 
+## Storage model
+
+`new PineconeOASIS(indexHost, apiKey)` targets one existing serverless index with `dimension=1`, dense vectors (any metric). Activation validates the index via `describe_index_stats` and never creates one. Every OASIS record (avatar, avatar detail, holon, username/email/parent indexes) is one vector in the `oasis` namespace: `id` = OASIS record key, `values` = `[1]`, `metadata.v` = the record JSON. Semantics come from the shared `KeyValueStorageProviderBase`; listing uses `/vectors/list` (serverless only). Records over Pinecone's 40 KB metadata limit, and keys over its 512-byte id limit, are rejected before any request. The index is private to its API key, so records are not additionally encrypted. Pinecone serverless reads are eventually consistent; Pinecone Local (used by the native conformance suite) is immediately consistent. Records written by earlier versions in the `avatars`/`avatar-details`/`holons` namespaces are not read.
+
 ## Errors and security
 
 For APIs returning `OASISResult<T>`, check `IsError`, `ErrorCode` and `Message`; do not treat a failed result as success. Preserve useful diagnostics without logging access tokens, passwords or private keys. Keep secrets in the host's appropriate protected configuration or platform storage.

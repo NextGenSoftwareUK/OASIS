@@ -25,9 +25,10 @@ internal static class ReplicaHeldObligationInspectCommand
     {
         try
         {
-            if (args.Length != 3 || Environment.GetEnvironmentVariable("OASIS_SANDBOX") != "true"
+            var compareSqlite = args.Length == 4 && args[3] == "--compare-sqlite";
+            if ((args.Length != 3 && !compareSqlite) || Environment.GetEnvironmentVariable("OASIS_SANDBOX") != "true"
                 || !long.TryParse(args[2], out var sequence) || sequence <= 0)
-                throw new InvalidOperationException("Usage in the demo shell: --cosmic-inspect-held <MongoDBOASIS|Neo4jOASIS|SQLLiteDBOASIS> <sequence>.");
+                throw new InvalidOperationException("Usage in the demo shell: --cosmic-inspect-held <MongoDBOASIS|Neo4jOASIS|SQLLiteDBOASIS> <sequence> [--compare-sqlite].");
             var sourceType = ReplicaBaselineRepairCommand.SourceProfile(args[1]);
             var dna = Newtonsoft.Json.JsonConvert.DeserializeObject<OASISDNA>(Environment.GetEnvironmentVariable("OASIS_DNA_JSON")
                 ?? throw new InvalidOperationException("Configured DNA required."));
@@ -61,6 +62,28 @@ internal static class ReplicaHeldObligationInspectCommand
                 var inspection = held.Result.Inspection;
                 var payload = CommittedHolonReplicaPayload.Read(held.Result.PayloadJson);
                 var route = inspection.NativeRoute;
+                object sqliteHeads = null;
+                if (compareSqlite)
+                {
+                    // Read-only: load the current SQLite copy of each root through the shipping
+                    // provider and report only its version identity.
+                    var sqlite = new SQLLiteDBOASIS(settings.SQLLiteDBOASIS.ConnectionString);
+                    var opened = await sqlite.ActivateProviderAsync();
+                    if (opened.IsError) throw new InvalidOperationException("SQLite activation failed.");
+                    try
+                    {
+                        var heads = new System.Collections.Generic.List<object>();
+                        foreach (var root in payload.Roots)
+                        {
+                            var current = await sqlite.LoadHolonAsync(root.Id, loadChildren: false, recursive: false);
+                            heads.Add(new { rootId = root.Id, exists = !current.IsError && current.Result != null,
+                                version = current.Result?.Version, versionId = current.Result?.VersionId,
+                                modifiedDate = current.Result?.ModifiedDate, errorCode = current.IsError ? current.ErrorCode : null });
+                        }
+                        sqliteHeads = heads;
+                    }
+                    finally { await sqlite.DeActivateProviderAsync(); (sqlite as IDisposable)?.Dispose(); }
+                }
                 Console.WriteLine(JsonSerializer.Serialize(new
                 {
                     sourceProvider = sourceType.ToString(),
@@ -74,6 +97,8 @@ internal static class ReplicaHeldObligationInspectCommand
                     actorId = payload.ActorId,
                     operation = payload.Operation.ToString(),
                     rootIds = payload.Roots.Select(root => root.Id).ToArray(),
+                    payloadRoots = payload.Roots.Select(root => new { rootId = root.Id, version = root.Version, versionId = root.VersionId, modifiedDate = root.ModifiedDate }).ToArray(),
+                    sqliteHeads,
                     sourceStoreIdentity,
                     sqliteTargetFile = sqliteFile,
                     nativeRoute = route == null ? null : new

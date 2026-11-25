@@ -8,7 +8,7 @@
     <Product>WEB4 OASIS API Ceramic OASIS Provider</Product>
     <Title>WEB4 OASIS API Ceramic OASIS Provider</Title>
     <Summary>Ceramic Network OASIS Provider — decentralised mutable data streams. https://oasisomniverse.one</Summary>
-    <Description>Connects the OASIS to the Ceramic Network decentralised data protocol via the Ceramic HTTP API. Maps DIDs to OASIS Avatars and Ceramic streams to OASIS Holons. Supports ComposeDB queries. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
+    <Description>Connects the OASIS to the Ceramic Network through a ceramic-one node: avatars and holons are encrypted records in a signed Ceramic model instance document written by the pinned Ceramic storage service. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
     <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
     <PackageIcon>OASIS.jpg</PackageIcon>
     <Authors>David Ellams (NextGen World Ltd)</Authors>
@@ -53,5 +53,11 @@
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" Condition="Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
     <PackageReference Include="NextGenSoftware.OASIS.API.Core" Version="2.0.0" Condition="!Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+    <ProjectReference Include="..\..\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="StorageService\node_modules\**" />
+    <Compile Remove="StorageService\**" />
   </ItemGroup>
 </Project>
