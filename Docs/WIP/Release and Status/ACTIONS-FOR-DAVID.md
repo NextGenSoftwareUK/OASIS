@@ -1706,3 +1706,8 @@ Status: decided by David, 24 November 2026; engineering in progress (no further 
 - Open 2026-11-25. `NextGenSoftware.OASIS.API.ONODE.Core` 2.0.1 on nuget.org depends on `Ipfs.Http.Client` >= 0.42, which does not exist on nuget.org (the newest there is 0.33.0). Any project that falls back to the package (for example a checkout without the ONODE.Core submodule, or an external NuGet consumer) fails restore with NU1102.
 - The source is already fixed: IPFSOASIS now packs the local Ipfs.Http.Client DLL privately instead of declaring it as a NuGet dependency. Only the published package is stale.
 - Decision needed: approve publishing a new ONODE.Core version (and the IPFSOASIS package) through the normal NuGet release, so the fixed dependency graph reaches nuget.org. Existing versions are not changed or republished.
+
+## Shared NuGet cache on the dev machine is corrupt (Mvc.Testing 10.0.0)
+
+- Open 2026-11-25. `C:\Users\David\.nuget\packages\microsoft.aspnetcore.mvc.testing\10.0.0` is half-deleted and its `Microsoft.AspNetCore.Mvc.Testing.Tasks.dll` is locked by a running build server, so restores that need it fail with "Access denied". Sessions currently work around it with a private `NUGET_PACKAGES` folder and `-nodeReuse:false`.
+- Fix (briefly interrupts other sessions' builds): when no release build is running, run `dotnet build-server shutdown`, delete that `10.0.0` folder, then restore any project once to re-download it. Reply "repair the NuGet cache" and Claude will do it.
