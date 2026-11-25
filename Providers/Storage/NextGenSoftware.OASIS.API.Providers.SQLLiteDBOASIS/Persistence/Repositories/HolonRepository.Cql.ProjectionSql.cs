@@ -23,6 +23,17 @@ public partial class HolonRepository
                 return (utcSource.State,"CASE WHEN ("+utcSource.State+")=2 THEN "+
                     SqliteCqlUtcDateParts.Value(column.Function,utcSource.Value)+" ELSE NULL END");
             }
+            if (column.Function == CosmicProjectionFunction.DoubleAffine)
+            {
+                if(column.Path.ValueType != typeof(double) || column.ValueType != typeof(double) || !column.DoubleMultiplier.HasValue || !column.DoubleOffset.HasValue)
+                    throw new NotSupportedException("Native Double arithmetic requires an exact Double path and captured coefficients.");
+                var doubleSource=ProjectionOperand(column.Path,prefix,comparable);
+                var doubleComputed="((CAST("+doubleSource.Value+" AS REAL))*"+Bind(column.DoubleMultiplier.Value)+"+"+Bind(column.DoubleOffset.Value)+")";
+                // A finite result has an absolute value no greater than Double.MaxValue; overflow (Inf) and NaN fail this test.
+                var finite="abs("+doubleComputed+") <= 1.7976931348623157e308";
+                return ("CASE WHEN ("+doubleSource.State+")=2 AND NOT coalesce("+finite+",0) THEN 3 ELSE ("+doubleSource.State+") END",
+                    "CASE WHEN ("+doubleSource.State+")=2 AND coalesce("+finite+",0) THEN "+doubleComputed+" ELSE NULL END");
+            }
             if (column.Function == CosmicProjectionFunction.Int32Affine)
             {
                 if(column.Path.ValueType != typeof(int) || column.ValueType != typeof(int) || !column.Int32Multiplier.HasValue || !column.Int32Offset.HasValue)

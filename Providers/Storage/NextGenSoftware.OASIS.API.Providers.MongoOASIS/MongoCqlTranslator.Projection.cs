@@ -132,6 +132,22 @@ internal sealed partial class MongoCqlTranslator
             return SingleLet(utcName,ProjectionCell(column.Path,prefix+"utcSource"),new BsonDocument{
                 {"s",cell+".s"},{"v",Choose(Op("$eq",cell+".s",Literal(2)),UtcDatePartFromTicks(column.Function,ticks),Literal(BsonNull.Value))}});
         }
+        if (column.Function == CosmicProjectionFunction.DoubleAffine)
+        {
+            if(column.Path.ValueType != typeof(double) || column.ValueType != typeof(double) || !column.DoubleMultiplier.HasValue || !column.DoubleOffset.HasValue)
+                throw new NotSupportedException("Native Double arithmetic requires an exact Double path and captured coefficients.");
+            var doubleName = prefix + "doubleAffine";
+            var doubleCell = "$$" + doubleName;
+            BsonValue doubleComputed = Op("$add", Op("$multiply", new BsonDocument("$toDouble", doubleCell + ".v"), Literal(column.DoubleMultiplier.Value)), Literal(column.DoubleOffset.Value));
+            var doublePresent = Op("$eq", doubleCell + ".s", Literal(2));
+            // Infinity and NaN fail the magnitude test, so a non-finite result is an invalid cell.
+            // MongoDB orders NaN below every number, so NaN is excluded explicitly.
+            var doubleFinite = Op("$and", Op("$lte", new BsonDocument("$abs", doubleComputed), Literal(double.MaxValue)), Op("$ne", doubleComputed, Literal(double.NaN)));
+            return SingleLet(doubleName, ProjectionCell(column.Path, prefix + "source"), new BsonDocument {
+                {"s", Choose(doublePresent, Choose(doubleFinite, Literal(2), Literal(3)), doubleCell + ".s")},
+                {"v", Choose(Op("$and", doublePresent, doubleFinite), doubleComputed, BsonNull.Value)}
+            });
+        }
         if (column.Function == CosmicProjectionFunction.Int32Affine)
         {
             if(column.Path.ValueType != typeof(int) || column.ValueType != typeof(int) || !column.Int32Multiplier.HasValue || !column.Int32Offset.HasValue)
