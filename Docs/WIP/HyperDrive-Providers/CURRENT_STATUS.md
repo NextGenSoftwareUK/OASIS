@@ -10,7 +10,7 @@ OPORTAL, the ONODE popup and billing UI are now owned by a different session. CQ
 
 ## Progress (local HyperDrive programme, updated 2026-11-25 03:00 UTC)
 
-- Done: 95 storage providers pass the native core-storage-v2 suite on their real backend (today: Cardano, Starknet,
+- Done: 89 storage providers pass the native core-storage-v2 suite on their real backend (today: Cardano, Starknet,
   Marqo, Druid, Pinot, Fhenix); the EVM suite now runs in CI (`evm-native-storage.yml`, 15 providers 30/30).
 - Fake storage removed (explicit errors instead of false success): Connext, ChainLink, Aztec, Miden; BlockStack's Gaia
   client now reports failures. Ten read-only chain adapters reclassified as non-storage.
@@ -78,17 +78,19 @@ Not yet covered:
 
 There are 234 shipping provider projects: 178 storage or specialised storage, 56 non-storage.
 
-Done (95 pass the native core-storage-v2 suite 52/52 against their real backend; ActivityPub passes capability-v1 5/5):
+Done (89 pass the native core-storage-v2 suite 52/52 against their real backend; ActivityPub passes capability-v1 5/5):
 
 - Every priority provider is done: HoloOASIS, Solana, MongoDB, SQLite, Neo4j, Supabase, SQL Server, Oracle (OracleDB),
   AWS, IPFS, NEAR, Cosmos, Azure (CosmosDB + Storage), Google Cloud, Polkadot, ActivityPub, SOLID, Polygon, Arbitrum,
   TRON, EOSIO, TON and Hedera (Hashgraph).
 - On 2026-11-23 the source of all 23 priority providers was scanned for `NotImplementedException`, TODO stubs, placeholders
   and mocks. Every hit was commented-out legacy code or an explanatory comment. No shipping path is a stub.
-- Others (Neon and Convex are not priority providers and take their normal place in popularity order): Neon, Convex, Ethereum, Avalanche, BNB Chain, Sui, AWS S3, Cloudflare, DynamoDB, Firebase, PocketBase, Turso, Upstash,
-  ThreeFold, Cassandra, CockroachDB, Dragonfly, DuckDB, Elasticsearch, Garnet, KeyDB, LocalFile, Meilisearch, Memcached,
-  Milvus, MinIO, OpenSearch, PlanetScale, PostgreSQL, Qdrant, RavenDB, Redis, ScyllaDB, Solr, TimescaleDB, Typesense,
-  ValKey, Weaviate.
+- Others (Neon and Convex are not priority providers and take their normal place in popularity order): Neon, Convex, Ethereum, Avalanche, BNB Chain, Sui, AWS S3, Cloudflare, DynamoDB, Turso, Upstash,
+  ThreeFold, Cassandra, CockroachDB, Dragonfly, DuckDB, Elasticsearch, Garnet, KeyDB, LocalFile, Memcached,
+  Milvus, MinIO, PlanetScale, PostgreSQL, Qdrant, RavenDB, Redis, ScyllaDB, TimescaleDB, Typesense, ValKey.
+- Correction (2026-11-25): Firebase, PocketBase, Meilisearch, OpenSearch, Solr and Weaviate were listed here in error.
+  Their evidence is verified CQL, WEB4 cutover or demo runs (e.g. 6fbc64f3 Meilisearch, e54973c3 OpenSearch, a8548dfb
+  Solr, cead58e3 Firebase, 9adc67d5 PocketBase), not the shared core-storage suite; they are back in the queue.
 - Added on 2026-11-24, all 26/26 checks in both sync and async modes against real servers in CI
   (`.github/workflows/popular-providers-native-storage.yml`): CouchDB, Couchbase, ArangoDB, SurrealDB, ClickHouse,
   InfluxDB, Chroma and PgVector. On a local Hardhat chain (`Scripts/TestHosts/run-local-evm-storage-conformance.cjs`):
