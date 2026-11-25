@@ -215,6 +215,29 @@ public sealed partial class CqlV1Web4NativeTests
         }
         finally { versioned.IsVersionControlEnabled=hadHistory; }
         checks++;
+        // A15 set collections: a HashSet<T> owned collection round-trips as a set and is queryable natively.
+        {
+            var setBuilder=new CosmicModelBuilder();
+            setBuilder.Entity<SetModelHolon>().OwnsMany(row=>row.Labels).HasMetadataKey("labels");
+            var setModel=setBuilder.Build();Assert.IsFalse(setModel.IsError,setModel.Message);
+            var withSet=new SetModelHolon{Id=Guid.NewGuid(),Name="set-holon",Labels=new HashSet<string>{"a","b","a"},
+                CreatedByAvatarId=actor,IsActive=true,IsPublic=false,IsNewHolon=true};
+            owned.Add(withSet.Id);
+            using(var setWriter=CosmicSession.Create(manager,adapter,access,setModel.Result).Result)
+            {
+                Assert.IsFalse(setWriter.Add(withSet).IsError);
+                var setSaved=await setWriter.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));
+                Assert.IsFalse(setSaved.IsError,setSaved.ErrorCode+": "+setSaved.Message);
+            }
+            using var setReader=CosmicSession.Create(manager,adapter,access,setModel.Result).Result;
+            var loadedSet=(await setReader.FindAsync<SetModelHolon>(withSet.Id)).Result;
+            Assert.IsNotNull(loadedSet);Assert.IsTrue(loadedSet.Labels.SetEquals(new[]{"a","b"}));
+            var setId=withSet.Id;
+            var hasB=await setReader.Linq<SetModelHolon>(CosmicQueryTrackingMode.NoTracking).Result
+                .Where(row=>row.Id==setId).Where(row=>CosmicQueryMetadata.Contains(row,"b","labels")).ToCosmicListAsync();
+            Assert.IsFalse(hasB.IsError,hasB.ErrorCode+": "+hasB.Message);Assert.AreEqual(1,hasB.Result.Count);
+        }
+        checks++;
         // M29 seed data: idempotent insert of fixed-identity rows in one unit of work.
         Holon[] Seed()=>new[]{
             new Holon{Id=seedIds[0],Name="seed-one",CreatedByAvatarId=actor,IsActive=true,IsPublic=false},
@@ -231,6 +254,11 @@ public sealed partial class CqlV1Web4NativeTests
         }
         Assert.AreEqual(2,(await Stored(seedIds)).Count);checks++;
         return new NativeFixtureJourneyProof(checks,4,new Dictionary<string,bool>{
-            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true,["notificationTrackingVerified"]=true,["collectionMembershipVerified"]=true,["stringTransformsVerified"]=true,["compiledQueryVerified"]=true,["asOfHistoryVerified"]=true});
+            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true,["notificationTrackingVerified"]=true,["collectionMembershipVerified"]=true,["stringTransformsVerified"]=true,["compiledQueryVerified"]=true,["asOfHistoryVerified"]=true,["setCollectionVerified"]=true});
+    }
+
+    public sealed class SetModelHolon : Holon
+    {
+        public HashSet<string> Labels { get; set; } = new();
     }
 }
