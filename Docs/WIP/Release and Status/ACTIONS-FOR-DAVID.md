@@ -84,7 +84,7 @@ Last updated 31 October 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (mer
 | 10 | COSMIC/CQL: decide follow-up Default-routing fix publication; hosted Azure/Oracle remain deferred | F |
 | 12 | **Post-release 2026-11-24: production SQLite replication held (BINDING_MISMATCH), WEB9 fix to release, test records left on prod/dev** | POST-RELEASE-2026-11-24 |
 | 11 | **WEB6 model catalogue v6: review prices, then approve the push** (OpenRouter list import, media prices, 6 new text models) | G |
-| 12 | HyperDrive on dev: Neo4j to SQLite baseline repair at sequence 14 — **approved 25 November**, handed to the CQL sandbox session to run | I |
+| 12 | **HyperDrive on dev: confirm the Neo4j to SQLite baseline repair at sequence 14** in the CQL sandbox session (explained there) | I |
 | 13 | **Railway dev: add one DNA key so IPFS keeps its catalogue across restarts** (`IPFSOASIS.CatalogueRootPointerPath`) | I |
 
 ---
@@ -1541,6 +1541,8 @@ Links: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44675640513
   - If yes: create a project token scoped to the development environment and store it as the GitHub Actions secret `RAILWAY_DEV_DEMO_TOKEN`, not in Git or chat. The sessions then add each service, seed it, set its `CQL_*` variable and verify that its presets return 3 and 2 records.
   - If no: these providers stay CI-verified only and are not shown live.
 - Keyed indexer APIs (free tiers are enough, read-only): Alchemy, QuickNode, Ankr, Covalent (GoldRush), Moralis, Dune, Zapper, Tenderly, Goldsky and Nansen. Each needs one read-only key. Save each key on the Railway development WEB4 service as `CQL_<PROVIDER>_PUBLIC_READER_KEY`, for example `CQL_ALCHEMY_PUBLIC_READER_KEY`. These are lower priority than the demo databases.
+- GOMap routing origin: WEB4 deliberately refuses the public OSRM demo servers (`router.project-osrm.org`, `routing.openstreetmap.de`), because their usage policies forbid this use. Choose one option: (a) a small OSRM container on Railway development with the Berlin extract (fits the same demo-database approval above), or (b) a hosted routing API account. Then set `CQL_GOMAP_ROUTE_QUERY_SOURCE_ORIGIN` and `CQL_GOMAP_ROUTE_QUERY_SOURCE_OWNER`.
+- Retirement decision (same question as Fauna, Vercel KV and Polybase above): BasechainOASIS and LoomOASIS target Loom Network's Basechain, which has been wound down. Either retire them from the matrix or keep them as historical code.
 - Reason: without these, the providers above cannot return real records in the live sandbox. Everything that needs no account is being done meanwhile.
 - Status: OPEN 2026-11-25.
 
@@ -1559,7 +1561,7 @@ Status: code work continues without these; only David can do them.
 - Context: the COSMIC native qualification runs for O18 local view ([45519967748](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/45519967748), queued since 00:40 UTC), M24 defaults/computed values ([45524783092](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/45524783092), queued since 01:18) and O17 model diagnostics (branch `work/cloud-cosmic-o17`) have not started. Runners are occupied by full `OASIS CI/CD Pipeline` and `Subscription usage protocol` runs that every push to Development starts, including one-line claim commits; several have run for over an hour.
 - All three rows pass their native MongoDB/SQLite/Neo4j journeys locally; they merge to Development as soon as their CI is green. Nothing is needed from you for the code.
 - Decision for you (optional): either raise the account's concurrent-runner limit, or approve adding `paths-ignore: ["Docs/**"]` (or a concurrency group with cancel-in-progress) to `ci-cd.yml` and `subscription-usage-protocol.yml` so documentation-only claim commits stop queuing full pipelines. Agents will not change these deployment workflows without your go-ahead.
-- Status: OPEN 2026-11-25 01:52 UTC.
+- Status: RESOLVED for these rows 2026-11-25 07:45 UTC: all four runs eventually ran and passed (O18 finished 02:20, M24 03:08, O17 03:15, M19 03:14; up to 1h40m queued) and were merged. The docs-only-push decision above remains open for you.
 
 ## Ceramic test node image: approve a community build or build from source (cloud-hyperdrive-A, 2026-11-25)
 
@@ -1622,8 +1624,8 @@ Status: decided by David, 24 November 2026; engineering in progress (no further 
 
 ### I1. Approve a baseline repair for Neo4j to SQLite at sequence 14
 
-- Status: approved by David on 25 November 2026 ("Sure its fine"); handed to the CQL sandbox session, which ran the
-  earlier Mongo to SQLite repairs, to execute once. Originally reported 24 November 2026 by the CQL/WEB4 session from the live dev WEB4 logs
+- Status: awaiting David's confirmation in the CQL sandbox session, 25 November 2026. David replied "Sure its fine"
+  before it had been explained; it is a one-shot write to hosted dev data, so it runs only after he confirms there. Originally reported 24 November 2026 by the CQL/WEB4 session from the live dev WEB4 logs
   (`railway logs -e dev -s 5123199a-43c4-4439-9921-e10e2aec7841`).
 - What: `Replication Neo4jOASIS -> hyperdrive-target:SQLLiteDBOASIS blocked at sequence 14, operation
   b64bce63-3aeb-40c0-b3b2-b75675a87023: COSMIC_REPLICA_LINEAGE_CONFLICT`. This is a new hold and is not the protected
@@ -1659,3 +1661,13 @@ Status: decided by David, 24 November 2026; engineering in progress (no further 
 - After: the next deploy picks it up; the first IPFS write upgrades the old catalogue and the replication-source error
   stops. Tell the agent when it is saved and it will verify in the dev logs.
 - Unblocks: IPFS as a HyperDrive replication source on dev. Staging/production need the same key when promoted.
+
+## COSMIC A05 decision: should `ParentHolon` keep driving persisted parent ids? - 2026-11-25 (cloud-cosmic-B)
+
+- Context: checklist row A05 still needs EF-style inverse reference fix-up (a tracked child's `ParentHolon` pointing at its tracked parent instance). It was implemented and tested in cloud-cosmic-B, then withdrawn before pushing.
+- Blocker: the save path (`OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/HolonManager/HolonManager-Private.Helpers.cs`, around line 594) treats a non-null `ParentHolon` as authoritative. It overwrites `ParentHolonId` from it, and as a "fail-safe/fallback" copies the parent's celestial ids (ParentStarId, ParentPlanetId, ParentMultiverseId and others) into the child. With fix-up on, re-parenting by `ParentHolonId` was silently undone on all three stores, and saving a child could change its stored celestial ids. Bypassing this inside the COSMIC session would be a parallel path, which the root-cause policy forbids.
+- Decision needed (pick one):
+  1. COSMIC sessions treat `ParentHolonId` as the persisted truth and `ParentHolon` as a non-persisted navigation. The legacy derivation stays for non-COSMIC STAR/ODK callers only. A05 then ships with fix-up. Recommended.
+  2. Keep the legacy behaviour everywhere. A05 is then marked as not applicable, documenting that `ParentHolon` assignment is a write.
+- Reason: either choice changes what a save writes, which affects STAR/ODK celestial graphs, so it is your call.
+- Status: OPEN 2026-11-25 08:40 UTC. The claim in WORK-CLAIMS.md is marked BLOCKED; other rows continue.
