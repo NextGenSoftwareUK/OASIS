@@ -39,7 +39,7 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | CQL startup head-of-line blocking: a slow HoloOASIS activation keeps IPFS/NEAR/Neo4j/Polkadot/Polygon/SOLID/Solana/TON NOT_READY on live dev (serial canonical lane) | CQL sandbox (WEB4) | cloud: cloud-cql-C | work/cloud-cql-activation-lane | 2026-11-25 00:38 | IN PROGRESS |
 | COSMIC O18 EF6 databinding/local-view integration | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-o18 | 2026-11-25 02:00 | IN PROGRESS |
 | SEEDSOASIS native storage (Antelope fixture) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-seeds | 2026-11-25 00:35 | DONE 48add53f (antelope-family-native-storage.yml run 45518765561 green) |
-| DaprOASIS native storage (daprd sidecar + Redis state store) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-dapr | 2026-11-25 00:40 | IN PROGRESS |
+| DaprOASIS native storage (daprd sidecar + Redis state store) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-dapr | 2026-11-25 00:40 | DONE f688e203 (popular-providers-native-storage run 45519314086 green) |
 | ZcashOASIS native storage (regtest zcashd + Kubo, Bitcoin pattern) | HyperDrive providers | local: testharness-build-fix | work/zcash-native-storage | 2026-11-25 02:20 | IN PROGRESS |
 | COSMIC A15 set (HashSet) owned collections | COSMIC ORM | local: COSMIC ORM roadmap (work/cosmic-cql-ton-public session) | work/cosmic-cql-ton-public | 2026-11-25 02:10 | IN PROGRESS |
 | GUNOASIS native storage (GUN relay) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-gun | 2026-11-25 00:45 | IN PROGRESS |
