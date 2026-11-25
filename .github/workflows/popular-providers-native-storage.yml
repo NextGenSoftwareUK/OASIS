@@ -35,6 +35,8 @@ on:
       - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.PineconeOASIS.IntegrationTests/**'
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.TablelandOASIS/**'
       - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.TablelandOASIS.IntegrationTests/**'
+      - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.CelestiaOASIS/**'
+      - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.CelestiaOASIS.IntegrationTests/**'
       - 'Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.DaprOASIS.IntegrationTests/**'
       - 'Providers/Social/NextGenSoftware.OASIS.API.Providers.NostrOASIS/**'
       - 'Providers/*/TestProjects/*/*NativeStorageConformanceTests.cs'
@@ -50,7 +52,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        provider: [CouchDB, Couchbase, ArangoDB, SurrealDB, ClickHouse, InfluxDB, Chroma, PgVector, ArcadeDB, QuestDB, PouchDB, NATSJetStream, Nostr, Dapr, GUN, Matrix, OrbitDB, Arweave, Scuttlebutt, Appwrite, Pinecone, Tableland]
+        provider: [CouchDB, Couchbase, ArangoDB, SurrealDB, ClickHouse, InfluxDB, Chroma, PgVector, ArcadeDB, QuestDB, PouchDB, NATSJetStream, Nostr, Dapr, GUN, Matrix, OrbitDB, Arweave, Scuttlebutt, Appwrite, Pinecone, Tableland, Celestia]
     defaults:
       run:
         working-directory: OASIS
@@ -265,6 +267,10 @@ jobs:
               tableland_fixture="$PWD/Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.TablelandOASIS.IntegrationTests/fixture"
               bash "$tableland_fixture/start-tableland.sh" "$fixture"
               wait_for "curl -fsS http://127.0.0.1:8080/api/v1/health" ;;
+            Celestia)
+              # Local Celestia devnet (celestia-app + celestia-node, digest-pinned); the script prints container ids and the node URL/token.
+              eval "$(Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.CelestiaOASIS.IntegrationTests/fixture/start-celestia.sh)"
+              export OASIS_CELESTIA_URL OASIS_CELESTIA_TOKEN ;;
             Couchbase)
               container="$(docker run -d -p 127.0.0.1:8091-8097:8091-8097 -p 127.0.0.1:11210:11210 -p 127.0.0.1:11280:11280 couchbase/server:community-7.6.2)"
               wait_for "curl -fsS http://127.0.0.1:8091/ui/index.html"
