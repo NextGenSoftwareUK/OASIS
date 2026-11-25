@@ -27,6 +27,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AppwriteOASIS.TestHarness
                         $"APPWRITEOASIS_{ps[i].Name!.ToUpperInvariant()}");
 
                     if (env != null) { args[i] = Convert.ChangeType(env, ps[i].ParameterType); continue; }
+                    // An unconfigured endpoint points at a closed loopback port so activation fails visibly.
+                    if (ps[i].Name == "appwriteUrl") { args[i] = "http://127.0.0.1:1/v1"; continue; }
                     if (ps[i].HasDefaultValue) { args[i] = ps[i].DefaultValue; continue; }
 
                     var d = Default(ps[i].ParameterType);
