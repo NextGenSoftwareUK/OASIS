@@ -49,3 +49,9 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | ArweaveOASIS native storage (arlocal) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-arweave | 2026-11-25 01:00 | IN PROGRESS |
 | COSMIC M24 model defaults, computed and generated properties | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-m24 | 2026-11-25 01:10 | IN PROGRESS |
 | OrbitDBOASIS native storage (@orbitdb/core + Helia service) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-orbitdb | 2026-11-25 01:10 | IN PROGRESS |
+| RootstockOASIS live public CQL source (anonymous public-node.rsk.co balance reads, BNB pattern) | CQL sandbox (WEB4) | cloud: cloud-cql-C | work/cloud-cql-rootstock | 2026-11-25 01:04 | IN PROGRESS |
+| ScuttlebuttOASIS native storage (ssb-db2 feed service) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-scuttlebutt | 2026-11-25 01:25 | IN PROGRESS |
+| StoryProtocolOASIS live public CQL source (anonymous mainnet.storyrpc.io finalized balance reads, chain 1514) | CQL sandbox (WEB4) | cloud: cloud-cql-C | work/cloud-cql-storyprotocol | 2026-11-25 01:11 | IN PROGRESS |
+| LensOASIS live public CQL source (anonymous rpc.lens.xyz finalized balance reads, Lens Chain 232) | CQL sandbox (WEB4) | cloud: cloud-cql-C | work/cloud-cql-lens | 2026-11-25 01:13 | IN PROGRESS |
+| AppwriteOASIS native storage (self-hosted Appwrite in Docker) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-appwrite | 2026-11-25 01:20 | IN PROGRESS |
+| TablelandOASIS native storage (@tableland/local validator + Hardhat) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-tableland | 2026-11-25 01:20 | IN PROGRESS |
