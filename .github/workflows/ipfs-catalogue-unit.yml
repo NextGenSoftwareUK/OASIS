@@ -6,7 +6,7 @@ on:
     paths:
       - '.github/workflows/ipfs-catalogue-unit.yml'
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.IPFSOASIS/**'
-      - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests/**'
+      - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.CatalogueTests/**'
       - 'OASIS Architecture/NextGenSoftware.OASIS.API.DNA/OASISDNA.Storage.cs'
   workflow_dispatch:
 
@@ -47,6 +47,5 @@ jobs:
       - name: Catalogue root pointer and acknowledged publication (controlled transport, no IPFS daemon)
         working-directory: OASIS
         run: |
-          dotnet test Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests \
-            -m:2 -nr:false -p:UseSharedCompilation=false --logger "console;verbosity=normal" \
-            --filter "FullyQualifiedName~IPFSCatalogueRootPointerTests|FullyQualifiedName~IPFSAvatarSaveAcknowledgementTests"
+          dotnet test Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.CatalogueTests \
+            -m:2 -nr:false -p:UseSharedCompilation=false --logger "console;verbosity=normal"

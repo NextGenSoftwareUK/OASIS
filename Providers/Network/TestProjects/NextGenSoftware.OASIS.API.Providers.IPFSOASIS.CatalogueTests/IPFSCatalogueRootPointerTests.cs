@@ -7,13 +7,12 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.DNA;
 using Xunit;
 
-namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests;
+namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.CatalogueTests;
 
 /// <summary>
 /// The catalogue root is mutable state. Hosts such as Railway regenerate the DNA file from OASIS_DNA_JSON on every boot,
 /// so with <see cref="IPFSOASISSettings.CatalogueRootPointerPath"/> set the published root must survive that regeneration.
 /// </summary>
-[Collection("Owned IPFS")]
 public class IPFSCatalogueRootPointerTests
 {
     private const string RecordCid = "Qmc1XJWAyg3FyUwbzG9SpL1sQiwxnyUHPyxbt5vYL5Rzdk";

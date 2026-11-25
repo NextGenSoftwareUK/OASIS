@@ -4,6 +4,8 @@ using System.Text;
 using Ipfs;
 using NextGenSoftware.OASIS.API.DNA;
 
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("NextGenSoftware.OASIS.API.Providers.IPFSOASIS.CatalogueTests")]
+
 namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 
 /// <summary>
