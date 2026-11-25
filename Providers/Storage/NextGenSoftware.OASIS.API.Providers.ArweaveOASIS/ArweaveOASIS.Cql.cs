@@ -39,32 +39,20 @@ public partial class ArweaveOASIS : ICosmicQueryStorageProvider
             if (!IsProviderActivated)
                 return Error("CQL_PROVIDER_INACTIVE", "Activate the configured Arweave provider first.");
             var rows = new List<IHolon>();
-            long payloadBytes = 0;
             foreach (var id in selected.Result)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                // Pin tag discovery to the configured signing wallet's native owner.
-                // A public transaction with a copied GUID cannot impersonate its record.
-                var tags = new Dictionary<string,string> { ["OASIS-Type"] = "Holon", ["OASIS-Id"] = id.ToString("D") };
-                var ids = await _arweaveService.QueryOwnedByTagsAsync(tags);
+                // Reads go through the owner-pinned, encrypted record store: a public transaction with a
+                // copied GUID or tag set cannot impersonate the configured wallet's record.
+                var loaded = await LoadHolonAsync(id, loadChildren: false, recursive: false);
                 cancellationToken.ThrowIfCancellationRequested();
-                if (ids.Count == 0) continue;
-                if (ids.Count != 1)
-                    return Error("CQL_REVISION_AMBIGUOUS", "Multiple native revisions require an explicit revision policy; none was silently selected.");
-                var tombstones = await _arweaveService.QueryOwnedByTagsAsync(new() {
-                    ["OASIS-Type"] = "Holon-Tombstone", ["OASIS-Id"] = id.ToString("D") });
-                cancellationToken.ThrowIfCancellationRequested();
-                if (tombstones.Count != 0) continue;
-                var transactionTombstones = await _arweaveService.QueryOwnedByTagsAsync(new() {
-                    ["OASIS-Type"] = "Holon-Tombstone", ["OASIS-Original-TxId"] = ids[0] });
-                cancellationToken.ThrowIfCancellationRequested();
-                if (transactionTombstones.Count != 0) continue;
-                var bytes = await _arweaveService.GetTransactionDataAsync(ids[0]);
-                cancellationToken.ThrowIfCancellationRequested();
-                payloadBytes = checked(payloadBytes + bytes.Length);
-                if (payloadBytes > 4 * 1024 * 1024)
-                    return Error("CQL_QUERY_LIMIT", "The complete decoded payload exceeds 4 MiB.");
-                var row = JsonConvert.DeserializeObject<Holon>(new UTF8Encoding(false, true).GetString(bytes));
+                if (loaded.IsError)
+                {
+                    if (loaded.ErrorCode == OASISResultErrorCodes.RecordNotFound && loaded.Exception == null) continue;
+                    return Error("CQL_QUERY_FAILED", "Native Arweave query failed; no partial result published.",
+                        loaded.Exception ?? new InvalidOperationException(loaded.Message));
+                }
+                var row = loaded.Result;
                 if (row == null || row.Id != id || !plan.Query.ReadAccess.CanRead(row))
                     throw new InvalidDataException("Native Arweave record differs from the authorized identity.");
                 if (row.IsDeleted) continue;

@@ -15,7 +15,11 @@ namespace NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS.TestHarness
             try
             {
                 // Initialize Scuttlebutt provider
-                var scuttlebuttProvider = new ScuttlebuttOASIS();
+                // Requires a running StorageService/storage-service.cjs; see the provider README.
+                var scuttlebuttProvider = new ScuttlebuttOASIS(
+                    Environment.GetEnvironmentVariable("OASIS_SSB_SERVICE") ?? "http://127.0.0.1:18904",
+                    Environment.GetEnvironmentVariable("OASIS_SSB_STORAGE_TOKEN") ?? throw new InvalidOperationException("Set OASIS_SSB_STORAGE_TOKEN."),
+                    System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
                 
                 Console.WriteLine("✅ Scuttlebutt Provider initialized successfully");
                 Console.WriteLine($"Provider Name: {scuttlebuttProvider.ProviderName}");

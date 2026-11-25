@@ -53,6 +53,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="NextGenSoftware.OASIS.API.Providers.ArweaveOASIS.UnitTests" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
   <ItemGroup>

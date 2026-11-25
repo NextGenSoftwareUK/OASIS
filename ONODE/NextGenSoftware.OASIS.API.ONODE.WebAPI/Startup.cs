@@ -282,14 +282,14 @@ You will note that every request below has a corresponding overload that also ta
 <li><b>CivicOASIS</b> - Civic Decentralised Identity Provider (Civic Pass verification → Avatars; on-chain identity attestations).</li>
 <li><b>ReclaimProtocolOASIS</b> - Reclaim Protocol ZK Identity Proofs Provider (zero-knowledge proofs of web credentials → Avatars).</li>
 <li><b>SeiOASIS</b> - Sei Network EVM Provider (chain ID 1329; EVM JSON-RPC; transactions → Holons, addresses → Avatars).</li>
-<li><b>CelestiaOASIS</b> - Celestia Modular DA Network Provider (light node REST API; blob submission/retrieval).</li>
+<li><b>CelestiaOASIS</b> - Celestia Modular DA Network Provider (celestia-node JSON-RPC; encrypted append-only blob records).</li>
 <li><b>EclipseOASIS</b> - Eclipse SVM L2 Provider (Solana JSON-RPC on mainnetbeta-rpc.eclipse.xyz; transactions → Holons).</li>
 <li><b>PushProtocolOASIS</b> - Push Protocol Decentralised Notifications Provider (REST API; notifications → Holons).</li>
 <li><b>ENSOASIS</b> - ENS (Ethereum Name Service) Provider (The Graph GraphQL subgraph; ENS names → Avatars).</li>
 <li><b>AlchemyOASIS</b> - Alchemy Web3 Infrastructure Provider (ETH JSON-RPC + NFT v3 API; transactions → Holons).</li>
 <li><b>InfuraOASIS</b> - Infura Web3 Gateway Provider (ETH JSON-RPC + IPFS pinning; holons stored as IPFS objects).</li>
 <li><b>SafeOASIS</b> - Gnosis Safe Multisig Provider (Safe Transaction REST API; multisig txs → Holons, safe addresses → Avatars).</li>
-<li><b>TablelandOASIS</b> - Tableland Decentralised SQL Provider (REST API; SQL SELECT/INSERT for holons stored as table rows).</li>
+<li><b>TablelandOASIS</b> - Tableland Decentralised SQL Provider (encrypted key-value rows in a wallet-owned table; writes are signed registry transactions, reads via the validator API).</li>
 <li><b>WakuOASIS</b> - Waku v2 Decentralised Messaging Provider (REST API; relay messages → Holons).</li>
 <li><b>LivepeerOASIS</b> - Livepeer Decentralised Video Provider (Livepeer Studio REST API; assets/streams → Holons).</li>
 <li><b>AkashOASIS</b> - Akash Decentralised Cloud Provider (Cosmos LCD REST; deployments → Holons, wallet addresses → Avatars).</li>

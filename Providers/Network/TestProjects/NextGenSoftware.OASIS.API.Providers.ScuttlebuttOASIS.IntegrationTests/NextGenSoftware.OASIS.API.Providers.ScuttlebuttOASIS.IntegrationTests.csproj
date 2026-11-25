@@ -22,6 +22,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS\NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS.csproj" />
   </ItemGroup>
 

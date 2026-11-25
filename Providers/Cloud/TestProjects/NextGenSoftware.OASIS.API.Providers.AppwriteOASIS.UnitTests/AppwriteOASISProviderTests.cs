@@ -14,7 +14,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AppwriteOASIS.UnitTests
         private AppwriteOASIS _provider = null!;
 
         [TestInitialize]
-        public void Setup() => _provider = AppwriteOASISTestFactory.Create();
+        public void Setup() => _provider = new AppwriteOASIS("https://synthetic.invalid/v1", "project", "key", "database");
 
         [TestMethod]
         public void ProviderType_ShouldBeSet()
