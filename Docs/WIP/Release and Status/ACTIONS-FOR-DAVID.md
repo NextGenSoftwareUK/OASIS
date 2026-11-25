@@ -1490,4 +1490,4 @@ Links: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44675640513
 - Context: the HyperDrive provider loop must push claims to Development and run CI. In this cloud session both `git push` and the GitHub MCP write calls return 403 ("Resource not accessible by integration"). Reads work.
 - Steps: connect or reconnect GitHub at https://claude.ai/connect-github, and install the Claude GitHub App on NextGenSoftwareUK/OASIS (or ask an org owner): https://github.com/apps/claude/installations/select_target. Then start a new session with the repo selected.
 - Reason: without push there are no claims and no CI runs, so no provider can be marked done.
-- Status: OPEN. Local claim commit for TelosOASIS native storage (4f6f7e75) exists only in this container.
+- Status: DONE 2026-11-25. GitHub reconnected; claim and this entry pushed to Development (b025d919).
