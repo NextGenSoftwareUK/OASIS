@@ -138,3 +138,4 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | PLANOASIS native storage | HyperDrive providers | cloud: cloud-hyperdrive-A | n/a | 2026-11-25 22:15 | BLOCKED: backend unknown, see ACTIONS-FOR-DAVID (PLANOASIS) |
 | SignProtocolOASIS native storage (Sign Protocol contracts on local Hardhat) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-signprotocol | 2026-11-25 22:20 | IN PROGRESS |
 | OracleObjectStorageOASIS native storage (hosted OCI only) | HyperDrive providers | cloud: cloud-hyperdrive-A | n/a | 2026-11-25 22:20 | BLOCKED: see ACTIONS-FOR-DAVID (Oracle Object Storage test bucket) |
+| GOMapOASIS onto Shared.Maps MapProviderBase (remove duplicated geo/OSRM/Nominatim/models) | Map providers | local: maps/interop session | work/gomap-shared-maps | 2026-11-25 | IN PROGRESS |
