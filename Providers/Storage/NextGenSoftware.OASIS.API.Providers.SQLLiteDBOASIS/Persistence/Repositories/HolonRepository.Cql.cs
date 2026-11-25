@@ -524,17 +524,17 @@ public partial class HolonRepository
             }
             if (predicate is CosmicQueryStringTransform transform)
             {
-                string Transformed(string column) => transform.Kind == CosmicQueryStringTransformKind.Replace
-                    ? "replace(" + column + "," + Bind(transform.First) + "," + Bind(transform.Second) + ")"
-                    : "trim(" + column + "," + Bind(transform.First) + ")";
-                string Test(string column) => "(" + Transformed(column) + (transform.Equal ? " = " : " <> ") + Bind(transform.Value) + ")";
+                string Transformed(string operand) => transform.Kind == CosmicQueryStringTransformKind.Replace
+                    ? "replace(" + operand + "," + Bind(transform.First) + "," + Bind(transform.Second) + ")"
+                    : "trim(" + operand + "," + Bind(transform.First) + ")";
+                string Test(string operand) => "(" + Transformed(operand) + (transform.Equal ? " = " : " <> ") + Bind(transform.Value) + ")";
                 if (transform.Path.IsMetadata)
                     return MetadataPredicate(transform.Path.Segments, alias => "(" + alias + ".type = 'text' AND " + Test(alias + ".value") + ")");
                 if (transform.Path.Segments.Count != 1 || !SqliteCqlContract.Fields.TryGetValue(transform.Path.Segments[0], out var transformField)
                     || transformField.ValueType != typeof(string))
                     throw new NotSupportedException("SQLite CQL string transform path is unsupported.");
-                var column = CanonicalColumn(transformField.Name);
-                return "(typeof(" + column + ") = 'text' AND " + Test(column) + ")";
+                var transformColumn = CanonicalColumn(transformField.Name);
+                return "(typeof(" + transformColumn + ") = 'text' AND " + Test(transformColumn) + ")";
             }
             if (predicate is CosmicQueryStringMatch match)
             {

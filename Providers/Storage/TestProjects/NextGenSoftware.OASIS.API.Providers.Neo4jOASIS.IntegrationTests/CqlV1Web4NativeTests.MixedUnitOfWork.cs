@@ -182,6 +182,20 @@ public sealed partial class CqlV1Web4NativeTests
             CollectionAssert.AreEqual(new[]{starred.Id},await Ids(row=>CosmicQueryMetadata.Value<string>(row,"code").Replace("-","")!="ab12cd"));
         }
         checks++;
+        // Q65 compiled query: built once per argument and actor policy, then reused.
+        using(var compiledSession=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            var byName=new CosmicCompiledQuery<string,Holon>((root,name)=>root.Where(row=>row.Name==name));
+            var first=await byName.ExecuteAsync(compiledSession,"uow-added",trackingMode:CosmicQueryTrackingMode.NoTracking);
+            Assert.IsFalse(first.IsError,first.ErrorCode+": "+first.Message);
+            var again=await byName.ExecuteAsync(compiledSession,"uow-added",trackingMode:CosmicQueryTrackingMode.NoTracking);
+            var other=await byName.ExecuteAsync(compiledSession,"uow-keep-updated",trackingMode:CosmicQueryTrackingMode.NoTracking);
+            Assert.IsTrue(first.Result.Any(row=>row.Id==added.Id));
+            CollectionAssert.AreEquivalent(first.Result.Select(row=>row.Id).ToArray(),again.Result.Select(row=>row.Id).ToArray());
+            Assert.IsFalse(other.Result.Any(row=>row.Id==added.Id));
+            Assert.AreEqual(1L,byName.CacheHits);Assert.AreEqual(2L,byName.CacheMisses);
+        }
+        checks++;
         // M29 seed data: idempotent insert of fixed-identity rows in one unit of work.
         Holon[] Seed()=>new[]{
             new Holon{Id=seedIds[0],Name="seed-one",CreatedByAvatarId=actor,IsActive=true,IsPublic=false},
@@ -198,6 +212,6 @@ public sealed partial class CqlV1Web4NativeTests
         }
         Assert.AreEqual(2,(await Stored(seedIds)).Count);checks++;
         return new NativeFixtureJourneyProof(checks,4,new Dictionary<string,bool>{
-            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true,["notificationTrackingVerified"]=true,["collectionMembershipVerified"]=true,["stringTransformsVerified"]=true});
+            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true,["notificationTrackingVerified"]=true,["collectionMembershipVerified"]=true,["stringTransformsVerified"]=true,["compiledQueryVerified"]=true});
     }
 }
