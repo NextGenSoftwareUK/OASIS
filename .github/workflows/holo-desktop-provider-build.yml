@@ -175,10 +175,9 @@ jobs:
           $bundle = 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/OASIS_hAPP'
           $happ = Join-Path $bundle 'oasis.happ'
           $manifest = Get-Content -LiteralPath (Join-Path $bundle 'build-manifest.json') -Raw | ConvertFrom-Json
-          $validSource = if ($env:HOLO_EXACT_SOURCE -eq 'true') {
-            $manifest.schemaVersion -eq 1 -and $manifest.sourceCommit -cmatch '^[a-f0-9]{40}$' -and
-              $manifest.producerRunId -gt 0 -and $manifest.producerArtifactId -gt 0
-          } else { $manifest.sourceCommit -ceq 'a9fbde84b4f33ebe7ac8d8a08ce73ce16ceab608' }
+          # One provenance rule for every mode: the checked-in producer manifest must identify its build and match the bundle.
+          $validSource = $manifest.schemaVersion -eq 1 -and $manifest.sourceCommit -cmatch '^[a-f0-9]{40}$' -and
+            $manifest.producerRunId -gt 0 -and $manifest.producerArtifactId -gt 0
           if (!$validSource -or
               (Get-FileHash -LiteralPath $happ -Algorithm SHA256).Hash -ine $manifest.artifactSha256) {
             throw 'The verified producer bundle failed provenance checks.'
