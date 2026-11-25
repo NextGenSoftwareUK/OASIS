@@ -121,7 +121,7 @@ jobs:
                 docker rm -fv "$c" >/dev/null || status=1
               done
             fi
-            [[ "$fixture" == "$RUNNER_TEMP"/oasis-native.* ]] && rm -rf -- "$fixture"
+            [[ "$fixture" == "$RUNNER_TEMP"/oasis-native.* ]] && sudo rm -rf -- "$fixture"
             exit "$status"
           }
           trap cleanup EXIT
