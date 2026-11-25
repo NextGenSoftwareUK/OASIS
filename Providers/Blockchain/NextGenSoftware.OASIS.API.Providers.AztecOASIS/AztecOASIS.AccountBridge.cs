@@ -23,7 +23,6 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using Newtonsoft.Json;
-using NextGenSoftware.OASIS.API.Providers.AztecOASIS.Infrastructure.Repositories;
 using NextGenSoftware.OASIS.API.Providers.AztecOASIS.Infrastructure.Services.Aztec;
 using NextGenSoftware.OASIS.API.Providers.AztecOASIS.Models;
 using Nethereum.Signer;
