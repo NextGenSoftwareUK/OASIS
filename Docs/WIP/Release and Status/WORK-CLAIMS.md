@@ -83,3 +83,4 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | FilecoinOASIS native storage (local Lotus devnet) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-filecoin | 2026-11-25 02:10 | IN PROGRESS |
 | Dependabot dev-tooling alerts: Web3CoreOASIS undici (Hardhat) and TONOASIS SdkBridge protobufjs | Security / Providers | local: WEB6 catalogue session | Development (direct, small) | 2026-11-25 03:00 | DONE (Web3Core: 148 contracts compile, 45 Hardhat tests pass; TON: Tact output identical) |
 | ENSOffchainOASIS live public CQL source (anonymous api.web3.bio ENS name profiles) | CQL sandbox (WEB4) | cloud: cloud-cql-C | work/cloud-cql-ensoffchain | 2026-11-25 02:45 | IN PROGRESS |
+| COSMIC M23 keyless entities / read-only views | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-m23 | 2026-11-25 02:25 | IN PROGRESS |
