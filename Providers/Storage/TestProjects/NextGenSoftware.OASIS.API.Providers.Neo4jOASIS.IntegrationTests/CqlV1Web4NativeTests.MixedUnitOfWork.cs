@@ -196,6 +196,25 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.AreEqual(1L,byName.CacheHits);Assert.AreEqual(2L,byName.CacheMisses);
         }
         checks++;
+        // O15 as-of reads: archived versions are read natively; history needs version control on.
+        var versioned=(IOASISDBStorageProvider)provider;var hadHistory=versioned.IsVersionControlEnabled;
+        versioned.IsVersionControlEnabled=true;
+        try
+        {
+            using var history=CosmicSession.Create(manager,adapter,access).Result;
+            var aged=New("asof-v1");Assert.IsFalse(history.Add(aged).IsError);
+            Assert.IsFalse((await history.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()))).IsError);
+            await Task.Delay(1100);var betweenOneAndTwo=DateTime.UtcNow;await Task.Delay(1100);
+            aged.Name="asof-v2";Assert.IsFalse(history.Update(aged).IsError);
+            var second=await history.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));Assert.IsFalse(second.IsError,second.ErrorCode+": "+second.Message);
+            await Task.Delay(1100);var afterTwo=DateTime.UtcNow;
+            using var reader2=CosmicSession.Create(manager,adapter,access).Result;
+            var asOfOne=await reader2.FindAsOfAsync<Holon>(aged.Id,betweenOneAndTwo);
+            Assert.IsFalse(asOfOne.IsError,asOfOne.ErrorCode+": "+asOfOne.Message);Assert.AreEqual("asof-v1",asOfOne.Result.Name);
+            Assert.AreEqual("asof-v2",(await reader2.FindAsOfAsync<Holon>(aged.Id,afterTwo)).Result.Name);
+        }
+        finally { versioned.IsVersionControlEnabled=hadHistory; }
+        checks++;
         // M29 seed data: idempotent insert of fixed-identity rows in one unit of work.
         Holon[] Seed()=>new[]{
             new Holon{Id=seedIds[0],Name="seed-one",CreatedByAvatarId=actor,IsActive=true,IsPublic=false},
@@ -212,6 +231,6 @@ public sealed partial class CqlV1Web4NativeTests
         }
         Assert.AreEqual(2,(await Stored(seedIds)).Count);checks++;
         return new NativeFixtureJourneyProof(checks,4,new Dictionary<string,bool>{
-            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true,["notificationTrackingVerified"]=true,["collectionMembershipVerified"]=true,["stringTransformsVerified"]=true,["compiledQueryVerified"]=true});
+            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true,["notificationTrackingVerified"]=true,["collectionMembershipVerified"]=true,["stringTransformsVerified"]=true,["compiledQueryVerified"]=true,["asOfHistoryVerified"]=true});
     }
 }
