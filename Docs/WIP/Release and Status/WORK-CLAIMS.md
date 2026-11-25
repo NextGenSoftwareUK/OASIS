@@ -125,5 +125,4 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | COSMIC M20 inheritance table-per-type equivalent | COSMIC ORM | local: maps/interop session | work/cosmic-m20-tpt | 2026-11-25 | RELEASED: checklist says a document/graph TPT layout needs a faithful definition first; needs a COSMIC design decision before code |
 | BlockStackOASIS Gaia hub auth (signed v1 token) and native storage on a local gaia-hub | HyperDrive providers | local: HyperDrive provider programme | work/hyperdrive-triad | 2026-11-25 21:45 | IN PROGRESS |
 | COSMIC Q30 DateOnly/TimeOnly/DateTimeOffset/TimeSpan translation | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-q30 | 2026-11-25 21:30 | IN PROGRESS |
-| MidenOASIS native storage (local miden-node; ledger commitment pattern) | HyperDrive providers | local: HyperDrive provider programme | work/miden-native-storage | 2026-11-25 22:30 | IN PROGRESS |
 | MidenOASIS native storage (local miden-node via @miden-sdk/miden-sdk worker) | HyperDrive providers | local: testharness-build-fix | work/miden-native-storage | 2026-11-25 | IN PROGRESS |
