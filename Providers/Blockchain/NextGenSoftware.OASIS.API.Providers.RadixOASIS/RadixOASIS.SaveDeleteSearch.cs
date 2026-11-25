@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,78 +31,6 @@ namespace NextGenSoftware.OASIS.API.Providers.RadixOASIS;
 
 public partial class RadixOASIS
 {
-    public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
-    {
-        return DeleteAvatarAsync(id, softDelete).Result;
-    }
-
-    public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string email, bool softDelete = true)
-    {
-        // First load the avatar to get its ID
-        var avatarResult = await LoadAvatarByEmailAsync(email);
-        if (avatarResult.IsError || avatarResult.Result == null)
-        {
-            return new OASISResult<bool>
-            {
-                IsError = true,
-                Message = $"Failed to load avatar by email: {avatarResult.Message}"
-            };
-        }
-
-        // Then delete using the ID
-        return await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
-    }
-
-    public override OASISResult<bool> DeleteAvatarByEmail(string email, bool softDelete = true)
-    {
-        return DeleteAvatarByEmailAsync(email, softDelete).Result;
-    }
-
-    public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string username, bool softDelete = true)
-    {
-        // First load the avatar to get its ID
-        var avatarResult = await LoadAvatarByUsernameAsync(username);
-        if (avatarResult.IsError || avatarResult.Result == null)
-        {
-            return new OASISResult<bool>
-            {
-                IsError = true,
-                Message = $"Failed to load avatar by username: {avatarResult.Message}"
-            };
-        }
-
-        // Then delete using the ID
-        return await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
-    }
-
-    public override OASISResult<bool> DeleteAvatarByUsername(string username, bool softDelete = true)
-    {
-        return DeleteAvatarByUsernameAsync(username, softDelete).Result;
-    }
-
-    public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
-    {
-        // First load the avatar to get its ID
-        var avatarResult = await LoadAvatarByProviderKeyAsync(providerKey);
-        if (avatarResult.IsError || avatarResult.Result == null)
-        {
-            return new OASISResult<bool>
-            {
-                IsError = true,
-                Message = $"Failed to load avatar by provider key: {avatarResult.Message}"
-            };
-        }
-
-        // Then delete using the ID
-        return await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
-    }
-
-    public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
-    {
-        return DeleteAvatarAsync(providerKey, softDelete).Result;
-    }
-
-
 
     public async Task<OASISResult<decimal>> GetAccountBalanceAsync(string accountAddress, CancellationToken token = default)
     {
@@ -292,8 +220,6 @@ public partial class RadixOASIS
         }
     }
 
-
-
     public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
     {
         var result = new OASISResult<IEnumerable<IAvatar>>();
@@ -384,109 +310,6 @@ public partial class RadixOASIS
         catch (Exception ex)
         {
             OASISErrorHandling.HandleError(ref result, $"Error getting holons near me: {ex.Message}", ex);
-        }
-        return result;
-    }
-
-
-
-    public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
-    {
-        var result = new OASISResult<ISearchResults>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                var activateResult = await ActivateProviderAsync();
-                if (activateResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Radix provider: {activateResult.Message}");
-                    return result;
-                }
-            }
-
-            // Check if OASIS blueprint is configured
-            if (string.IsNullOrEmpty(_config.OasisBlueprintAddress))
-            {
-                // No blueprint configured - delegate to ProviderManager as fallback
-                return await SearchManager.Instance.SearchAsync(searchParams, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default, null, true, loadChildren, recursive, maxChildDepth, continueOnError, version);
-            }
-
-            // Extract search query from searchParams
-            string searchQuery = "";
-            if (searchParams is ISearchTextGroup searchTextGroup)
-            {
-                searchQuery = searchTextGroup.SearchQuery ?? "";
-            }
-
-            // Query search results from Radix OASIS blueprint component using Gateway API
-            var url = $"{_config.HostUri}/state/entity/component/{Uri.EscapeDataString(_config.OasisBlueprintAddress)}";
-            var queryData = new
-            {
-                network = _config.NetworkId == 1 ? "mainnet" : "stokenet",
-                method = "search_holons",
-                args = new[] { searchQuery, version.ToString() }
-            };
-
-            var response = await HttpClientHelper.PostAsync<object, System.Text.Json.JsonElement>(
-                _httpClient,
-                url,
-                queryData);
-
-            if (!response.IsError && response.Result.ValueKind == System.Text.Json.JsonValueKind.Object)
-            {
-                var searchResults = new SearchResults();
-                
-                // Parse avatars
-                if (response.Result.TryGetProperty("avatars", out var avatarsElement) && avatarsElement.ValueKind == System.Text.Json.JsonValueKind.Array)
-                {
-                    var avatars = new List<IAvatar>();
-                    foreach (var avatarElement in avatarsElement.EnumerateArray())
-                    {
-                        var avatarJson = avatarElement.GetRawText();
-                        var avatar = System.Text.Json.JsonSerializer.Deserialize<Avatar>(avatarJson);
-                        if (avatar != null) avatars.Add(avatar);
-                    }
-                    searchResults.SearchResultAvatars = avatars;
-                }
-
-                // Parse holons
-                if (response.Result.TryGetProperty("holons", out var holonsElement) && holonsElement.ValueKind == System.Text.Json.JsonValueKind.Array)
-                {
-                    var holons = new List<IHolon>();
-                    foreach (var holonElement in holonsElement.EnumerateArray())
-                    {
-                        var holonJson = holonElement.GetRawText();
-                        var holon = System.Text.Json.JsonSerializer.Deserialize<Holon>(holonJson);
-                        if (holon != null)
-                        {
-                            // Load children if requested
-                            if (loadChildren && recursive && maxChildDepth > 0)
-                            {
-                                var childrenResult = await LoadHolonsForParentAsync(holon.Id, HolonType.All, loadChildren, recursive, maxChildDepth - 1, 0, continueOnError, false, version);
-                                if (!childrenResult.IsError && childrenResult.Result != null)
-                                {
-                                    holon.Children = childrenResult.Result.ToList();
-                                }
-                            }
-                            holons.Add(holon);
-                        }
-                    }
-                    searchResults.SearchResultHolons = holons;
-                }
-
-                result.Result = searchResults;
-                result.IsError = false;
-                result.Message = $"Successfully searched Radix: found {searchResults.SearchResultAvatars?.Count ?? 0} avatars and {searchResults.SearchResultHolons?.Count ?? 0} holons";
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, $"Failed to search Radix: {response.Message}");
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error searching Radix: {ex.Message}", ex);
         }
         return result;
     }

@@ -45,6 +45,8 @@ on:
       - 'Providers/Social/TestProjects/NextGenSoftware.OASIS.API.Providers.BlueSkyOASIS.IntegrationTests/**'
       - 'Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.DaprOASIS.IntegrationTests/**'
       - 'Providers/Social/NextGenSoftware.OASIS.API.Providers.NostrOASIS/**'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.RadixOASIS/**'
+      - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.RadixOASIS.IntegrationTests/**'
       - 'Providers/*/TestProjects/*/*NativeStorageConformanceTests.cs'
   workflow_dispatch:
 
@@ -58,7 +60,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        provider: [CouchDB, Couchbase, ArangoDB, SurrealDB, ClickHouse, InfluxDB, Chroma, PgVector, ArcadeDB, QuestDB, PouchDB, NATSJetStream, Nostr, Dapr, GUN, Marqo, Pinot, Matrix, OrbitDB, Arweave, Scuttlebutt, Appwrite, Pinecone, Tableland, Celestia, Ceramic, BlueSky]
+        provider: [CouchDB, Couchbase, ArangoDB, SurrealDB, ClickHouse, InfluxDB, Chroma, PgVector, ArcadeDB, QuestDB, PouchDB, NATSJetStream, Nostr, Dapr, GUN, Marqo, Pinot, Matrix, OrbitDB, Arweave, Scuttlebutt, Appwrite, Pinecone, Tableland, Celestia, Ceramic, BlueSky, Radix]
     defaults:
       run:
         working-directory: OASIS
@@ -291,6 +293,10 @@ jobs:
             Ceramic)
               # ceramic-one 0.58.0 (digest-pinned community build; see ACTIONS-FOR-DAVID) plus one storage service per mode.
               source "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CeramicOASIS.IntegrationTests/start-ceramic-fixture.sh" ;;
+            Radix)
+              # Local Babylon network: one babylon-node v1.4.0.0 validator (digest-pinned) on a fresh localnet genesis with a
+              # faucet, plus the OASIS Scrypto package built by the pinned scrypto-builder. Appends the node id to $container.
+              source "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.RadixOASIS.IntegrationTests/fixture/start-radix-fixture.sh" ;;
             BlueSky)
               # Postgres + local PLC directory + official PDS (pinned by digest); creates oasis-async.test / oasis-sync.test.
               container="$(Providers/Social/TestProjects/NextGenSoftware.OASIS.API.Providers.BlueSkyOASIS.IntegrationTests/start-pds-fixture.sh "$password")" ;;
@@ -329,5 +335,16 @@ jobs:
             wait_for "grep -q ready '$fixture/ssb-restart.log'"
             [[ "$(curl -fsS -H "$auth" "http://127.0.0.1:18905/kv?key=durability/probe")" == kept ]]
             echo "Scuttlebutt feed data survived a storage service restart."
+          fi
+          if [[ "$PROVIDER" == Radix ]]; then
+            radix_persistence() {
+              OASIS_RADIX_PERSISTENCE_PHASE="$1" dotnet test "$project" --no-build -p:NativeStorageConformance=true \
+                --filter "FullyQualifiedName~RadixNativeStoragePersistenceTests" --logger "console;verbosity=normal"
+            }
+            radix_persistence write
+            docker restart "$container" >/dev/null
+            wait_for "curl -fsS -X POST -H 'Content-Type: application/json' -d '{\"network\":\"localnet\"}' http://127.0.0.1:13333/core/lts/transaction/construction"
+            radix_persistence read
+            echo "Radix ledger data survived a node restart."
           fi
           echo "$PROVIDER passed both storage modes against its real backend."
