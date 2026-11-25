@@ -391,6 +391,14 @@ public sealed partial class CqlV1Web4NativeTests
                 .Select(row=>new{row.Name,Score=CosmicQueryMetadata.Value<int>(row,"score")*3-1,Shifted=(CosmicQueryMetadata.Value<int>(row,"score")+2)*2}).ToCosmicListAsync();
             Assert.IsFalse(computed.IsError,computed.ErrorCode+": "+computed.Message);
             Assert.AreEqual(20,computed.Result.Single().Score);Assert.AreEqual(18,computed.Result.Single().Shifted);
+            var divided=await math.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>row.Id==small.Id)
+                .Select(row=>new{Half=(CosmicQueryMetadata.Value<int>(row,"score")*3+1)/2,Rest=CosmicQueryMetadata.Value<int>(row,"score")%3,
+                    Toward=(CosmicQueryMetadata.Value<int>(row,"score")-10)/2}).ToCosmicListAsync();
+            Assert.IsFalse(divided.IsError,divided.ErrorCode+": "+divided.Message);
+            Assert.AreEqual(11,divided.Result.Single().Half);Assert.AreEqual(1,divided.Result.Single().Rest);
+            Assert.AreEqual(-1,divided.Result.Single().Toward,"Integer division truncates toward zero.");
+            Assert.ThrowsException<CosmicLinqException>(()=>math.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result
+                .Select(row=>CosmicQueryMetadata.Value<int>(row,"score")/0),"Division by a zero literal is refused.");
             var overflow=await math.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>row.Id==huge.Id)
                 .Select(row=>CosmicQueryMetadata.Value<int>(row,"score")*2).ToCosmicListAsync();
             Assert.IsTrue(overflow.IsError,"An Int32 overflow must not wrap.");

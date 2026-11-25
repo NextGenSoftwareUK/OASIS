@@ -139,7 +139,11 @@ internal sealed partial class MongoCqlTranslator
             var arithmeticName = prefix + "affine";
             var cell = "$$" + arithmeticName;
             // 64-bit arithmetic, then an explicit Int32 range check: overflow is an invalid cell.
-            var computed = Op("$add", Op("$multiply", new BsonDocument("$toLong", cell + ".v"), Literal((long)column.Int32Multiplier.Value)), Literal((long)column.Int32Offset.Value));
+            BsonValue computed = Op("$add", Op("$multiply", new BsonDocument("$toLong", cell + ".v"), Literal((long)column.Int32Multiplier.Value)), Literal((long)column.Int32Offset.Value));
+            // $mod keeps the dividend's sign and $trunc($divide) truncates toward zero, matching C#.
+            if (column.Int32Divisor.HasValue)
+                computed = column.Int32IsModulo ? Op("$mod", computed, Literal((long)column.Int32Divisor.Value))
+                    : new BsonDocument("$toLong", new BsonDocument("$trunc", Op("$divide", computed, Literal((long)column.Int32Divisor.Value))));
             var present = Op("$eq", cell + ".s", Literal(2));
             var inRange = Op("$and", Op("$gte", computed, Literal((long)int.MinValue)), Op("$lte", computed, Literal((long)int.MaxValue)));
             return SingleLet(arithmeticName, ProjectionCell(column.Path, prefix + "source"), new BsonDocument {

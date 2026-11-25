@@ -29,6 +29,8 @@ public partial class HolonRepository
                     throw new NotSupportedException("Native Int32 arithmetic requires an exact Int32 path and captured coefficients.");
                 var arithmeticSource=ProjectionOperand(column.Path,prefix,comparable);
                 var computed="(("+arithmeticSource.Value+")*"+Bind((long)column.Int32Multiplier.Value)+"+"+Bind((long)column.Int32Offset.Value)+")";
+                // SQLite integer division and remainder truncate toward zero, matching C#.
+                if(column.Int32Divisor.HasValue)computed="("+computed+(column.Int32IsModulo?" % ":" / ")+Bind((long)column.Int32Divisor.Value)+")";
                 return ("CASE WHEN ("+arithmeticSource.State+")=2 AND "+computed+" NOT BETWEEN -2147483648 AND 2147483647 THEN 3 ELSE ("+arithmeticSource.State+") END",
                     "CASE WHEN ("+arithmeticSource.State+")=2 AND "+computed+" BETWEEN -2147483648 AND 2147483647 THEN "+computed+" ELSE NULL END");
             }
