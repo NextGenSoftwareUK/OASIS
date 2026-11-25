@@ -1602,3 +1602,17 @@ Status: decided by David, 24 November 2026; engineering in progress (no further 
 
 1. Message encryption (audit item #24): **encrypt, with a coordinated upgrade.** ONET application frames move to version 2 (encrypted for the target node and signed). Older nodes stop exchanging messages with upgraded ones, so every ONET node (Railway WEB4 and any self-hosted ONODEs) must be on the same release.
 2. Holochain-carried ONET traffic (plan item 8): **build the `onet` zome now.** It is a coordinator-only module in the OASIS hApp (DNA hash unchanged).
+
+### POST-RELEASE-2026-11-24: update 2026-11-25
+- Sandbox sweep: root cause found and fixed in PR #527 (CI running).
+  - V2 HolonManager.LoadAllHolons dropped the avatar, so the sweep listed the whole Mongo Holon collection. Production has 18 legacy duplicate-HolonId groups (259 extra docs, June/July 2026), which that read rejects as ambiguous.
+  - Fix: Core 1aa5cb4b (on Core Development) plus a native owner filter in Mongo, with a real-Mongo regression test.
+  - Your decision: the 259 legacy duplicate documents need a reviewed data repair. Nothing was deleted.
+- BINDING_MISMATCH: root cause found.
+  - The 2026-11-23 process enrolled route ...AB2C2 against /app/OASISSQLLiteDB.db: endpoint fingerprint 4171877D... (that is sha("sqlite-file-v1:/app/OASISSQLLiteDB.db")), store bfcf03a6-dbe4-408b-b3d7-97a733e5e229.
+  - That image-shipped file and the identity it created disappeared on redeploy. The live store is /data/OASISSQLLiteDB.db, identity 93d05201-d755-4e9a-a24d-be34e269af7c.
+  - Current boot uses the DNA path /data, and no SQLite enrollments have happened since 2026-11-23, so new writes are not affected.
+  - All 10 stuck obligations (seq 2-20) belong to the 2026-11-23 demo and probe test holons, which are due for deletion anyway.
+  - Your decision: an obligation whose enrolled target store no longer exists can never be delivered as enrolled. Releasing it needs a new reviewed tool, either to retarget it to the successor store (re-binding plus normal or baseline delivery) or to retire it with recorded evidence that the target is gone. Both change the "never reset or skip" rule, so I did not build one without your choice.
+- The production release (promotion PR and Railway deploy of WEB9 + sweep fixes) is waiting for your go-ahead.
+
