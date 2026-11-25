@@ -58,7 +58,7 @@ public class CosmicProjectionIntentTests
     {
         var source = CosmicQuery<Holon>.Create();
         Assert.True(source.Select(holon => new[] { holon.Name }).IsError);
-        Assert.True(source.Select(holon => new { Computed = holon.Version + 1 }).IsError);
+        Assert.True(source.Select(holon => new { Computed = holon.Version * holon.Version }).IsError);
         Assert.True(source.Select(holon => new { Constant = "coffee" }).IsError);
     }
 
