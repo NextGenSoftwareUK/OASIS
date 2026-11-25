@@ -136,7 +136,7 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | COSMIC Q61 NHibernate Criteria/QueryOver compatibility | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-q61 | 2026-11-25 22:12 | DONE b23ebdf (Core) CI 45715834231 |
 | LoomOASIS native storage | HyperDrive providers | cloud: cloud-hyperdrive-A | n/a | 2026-11-25 22:15 | CLASSIFIED non-storage (PLAN_LOOM_CLASSIFICATION_2026-11-25.md) |
 | PLANOASIS native storage | HyperDrive providers | cloud: cloud-hyperdrive-A | n/a | 2026-11-25 22:15 | BLOCKED: backend unknown, see ACTIONS-FOR-DAVID (PLANOASIS) |
-| SignProtocolOASIS native storage (Sign Protocol contracts on local Hardhat) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-signprotocol | 2026-11-25 22:20 | IN PROGRESS |
+| SignProtocolOASIS native storage (Sign Protocol contracts on local Hardhat) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-signprotocol | 2026-11-25 22:20 | DONE (popular-providers run 45713760017 green) |
 | OracleObjectStorageOASIS native storage (hosted OCI only) | HyperDrive providers | cloud: cloud-hyperdrive-A | n/a | 2026-11-25 22:20 | BLOCKED: see ACTIONS-FOR-DAVID (Oracle Object Storage test bucket) |
 | GOMapOASIS onto Shared.Maps MapProviderBase (remove duplicated geo/OSRM/Nominatim/models) | Map providers | local: maps/interop session | work/gomap-shared-maps | 2026-11-25 | IN PROGRESS |
 | FlowOASIS native storage (Cadence OasisKv contract on the local Flow emulator, Node FCL bridge) | HyperDrive providers | local: HyperDrive provider programme | work/blockstack-gaia | 2026-11-25 23:40 | IN PROGRESS |
