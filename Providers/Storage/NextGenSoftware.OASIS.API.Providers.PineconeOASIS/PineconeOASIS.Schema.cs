@@ -30,10 +30,15 @@ public partial class PineconeOASIS
         }
         using var document = JsonDocument.Parse(body.ToArray());
         var index = document.RootElement;
-        if (index.GetProperty("dimension").GetInt32() != 1 || index.GetProperty("vectorType").GetString() != "dense")
+        // Storage needs exactly one property of the index: it accepts one-dimensional dense vectors. A dimension of 1
+        // proves that (sparse indexes have no dimension). vectorType and metric are not part of every API version's
+        // statistics response; when reported they must agree, but storage never depends on the metric.
+        if (!index.TryGetProperty("dimension", out var dimension) || dimension.GetInt32() != 1)
             throw new InvalidDataException("Pinecone requires a one-dimensional dense document-storage index.");
-        var metric = index.GetProperty("metric").GetString();
-        if (metric != "cosine" && metric != "dotproduct" && metric != "euclidean")
+        if (index.TryGetProperty("vectorType", out var vectorType) && vectorType.GetString() != "dense")
+            throw new InvalidDataException("Pinecone requires a one-dimensional dense document-storage index.");
+        if (index.TryGetProperty("metric", out var metricValue) &&
+            metricValue.GetString() is not ("cosine" or "dotproduct" or "euclidean"))
             throw new InvalidDataException("Unsupported Pinecone index metric.");
         if (index.GetProperty("totalVectorCount").GetInt64() < 0 ||
             !index.GetProperty("indexFullness").TryGetDouble(out var fullness) || !double.IsFinite(fullness) || fullness < 0 || fullness > 1)
