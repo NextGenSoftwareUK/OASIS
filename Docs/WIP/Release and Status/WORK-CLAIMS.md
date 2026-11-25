@@ -85,3 +85,4 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | ENSOffchainOASIS live public CQL source (anonymous api.web3.bio ENS name profiles) | CQL sandbox (WEB4) | cloud: cloud-cql-C | work/cloud-cql-ensoffchain | 2026-11-25 02:45 | DONE (code) 25a128c2aa; live pending Railway enrollment by CQL sandbox session (CLOUD_CQL_C_ENROLLMENT_HANDOFF_2026-11-25.md) |
 | COSMIC M23 keyless entities / read-only views | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-m23 | 2026-11-25 02:25 | IN PROGRESS |
 | Dependabot runtime alerts in Docker/PouchDbRuntime (qs, body-parser, path-to-regexp, uuid via express 4.21.2) | Security / Docker runtime | local: WEB6 catalogue session | Development (direct, small) | 2026-11-25 04:00 | IN PROGRESS |
+| COSMIC A16 polymorphic/any associations | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-a16 | 2026-11-25 07:53 | IN PROGRESS |
