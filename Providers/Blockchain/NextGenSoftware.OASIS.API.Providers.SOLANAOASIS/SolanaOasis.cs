@@ -80,13 +80,30 @@ public partial class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvid
         }
     }
 
+    /// <summary>
+    /// The provider type stamped into <c>ProviderUniqueStorageKey</c> on every record this instance writes,
+    /// and used for every provider-key read. It is <see cref="Core.Enums.ProviderType.SolanaOASIS"/> unless
+    /// another SVM provider (e.g. EclipseOASIS) composes this implementation as its storage engine, in which
+    /// case records belong to the composing provider.
+    /// </summary>
+    internal Core.Enums.ProviderType StorageProviderType => _storageProviderType;
+    private readonly Core.Enums.ProviderType _storageProviderType;
+
     public SolanaOASIS(string hostUri, string privateKey, string publicKey)
-        : this(hostUri, privateKey, publicKey, null) { }
+        : this(hostUri, privateKey, publicKey, Core.Enums.ProviderType.SolanaOASIS) { }
+
+    /// <summary>Composes the Solana storage implementation on behalf of another SVM provider.</summary>
+    internal SolanaOASIS(string hostUri, string privateKey, string publicKey, Core.Enums.ProviderType storageProviderType)
+        : this(hostUri, privateKey, publicKey, null, storageProviderType: storageProviderType) { }
 
     internal SolanaOASIS(string hostUri, string privateKey, string publicKey,
         System.Net.Http.HttpMessageHandler nativeFeeReadHandler,
-        Func<string,CancellationToken,Task<Solnet.Rpc.Models.TransactionMetaSlotInfo>> transactionReader = null)
+        Func<string,CancellationToken,Task<Solnet.Rpc.Models.TransactionMetaSlotInfo>> transactionReader = null,
+        Core.Enums.ProviderType storageProviderType = Core.Enums.ProviderType.SolanaOASIS)
     {
+        if (storageProviderType is Core.Enums.ProviderType.None or Core.Enums.ProviderType.All or Core.Enums.ProviderType.Default)
+            throw new ArgumentOutOfRangeException(nameof(storageProviderType), "A concrete storage provider type is required.");
+        this._storageProviderType = storageProviderType;
         this.ProviderName = nameof(SolanaOASIS);
         this.ProviderDescription = "Solana Blockchain Provider";
         this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.SolanaOASIS);

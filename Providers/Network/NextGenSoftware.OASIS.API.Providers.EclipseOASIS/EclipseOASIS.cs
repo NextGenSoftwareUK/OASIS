@@ -51,7 +51,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EclipseOASIS
             if (string.IsNullOrWhiteSpace(privateKey) != string.IsNullOrWhiteSpace(publicKey))
                 throw new ArgumentException("Supply both the private and the public key of the Eclipse signer, or neither.");
             if (!string.IsNullOrWhiteSpace(privateKey))
-                _svmStorage = new SolanaOASIS(RpcUrl, privateKey, publicKey);
+                _svmStorage = new SolanaOASIS(RpcUrl, privateKey, publicKey, Core.Enums.ProviderType.EclipseOASIS);
         }
 
         private static OASISResult<T> NoSigner<T>()

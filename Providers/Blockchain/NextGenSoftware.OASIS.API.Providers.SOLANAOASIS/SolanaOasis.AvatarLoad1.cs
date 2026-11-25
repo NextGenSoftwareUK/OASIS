@@ -58,7 +58,7 @@ public partial class SolanaOASIS
                 throw new InvalidOperationException($"Solana RPC health check failed: {health.Reason ?? health.RawRpcResponse}. ");
 
             _solanaRepository = new SolanaRepository(_oasisSolanaAccount, _rpcClient, null, signature => _transactionReader(signature, default));
-            _solanaService = new SolanaService(_oasisSolanaAccount, _rpcClient, _solanaRepository);
+            _solanaService = new SolanaService(_oasisSolanaAccount, _rpcClient, _solanaRepository, _storageProviderType);
 
             result.Result = true;
             IsProviderActivated = true;
@@ -115,7 +115,7 @@ public partial class SolanaOASIS
             if(version!=0 && solanaAvatarDto.Version!=version)
                 throw new KeyNotFoundException("Solana signature does not reference the requested avatar version.");
             var avatar=solanaAvatarDto.GetAvatar();
-            avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS]=providerKey;
+            avatar.ProviderUniqueStorageKey[_storageProviderType]=providerKey;
             result.Result=avatar;
             result.IsLoaded = true;
             result.LoadedCount = 1;
@@ -156,7 +156,7 @@ public partial class SolanaOASIS
             foreach(var entry in records)
             {
                 var record=entry.Record.GetAvatar();
-                record.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS]=entry.Signature;
+                record.ProviderUniqueStorageKey[_storageProviderType]=entry.Signature;
                 mapped.Add(record);
             }
             result.Result=mapped;

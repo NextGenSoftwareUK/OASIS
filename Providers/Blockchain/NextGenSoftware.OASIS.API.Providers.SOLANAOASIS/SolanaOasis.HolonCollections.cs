@@ -56,7 +56,7 @@ public partial class SolanaOASIS
                 foreach(var entry in stored)
                 {
                     var holon=entry.Record.GetHolon();
-                    holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS]=entry.Signature;
+                    holon.ProviderUniqueStorageKey[_storageProviderType]=entry.Signature;
                     mapped.Add(holon);
                 }
                 return mapped;

@@ -61,7 +61,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
             this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
 
-            _eosioOASIS = new EOSIOOASIS.EOSIOOASIS(host, eosAccountName, eosChainId, eosAccountPk);
+            _eosioOASIS = new EOSIOOASIS.EOSIOOASIS(host, eosAccountName, eosChainId, eosAccountPk, API.Core.Enums.ProviderType.TelosOASIS);
             _httpClient = new HttpClient();
             _httpClient.BaseAddress = new Uri(host);
         }

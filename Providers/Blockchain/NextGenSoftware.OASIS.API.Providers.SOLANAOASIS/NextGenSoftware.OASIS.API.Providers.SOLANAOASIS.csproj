@@ -2,6 +2,7 @@
     <ItemGroup>
       <InternalsVisibleTo Include="NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests" />
       <InternalsVisibleTo Include="NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests" />
+      <InternalsVisibleTo Include="NextGenSoftware.OASIS.API.Providers.EclipseOASIS" />
     </ItemGroup>
 
     <PropertyGroup>
