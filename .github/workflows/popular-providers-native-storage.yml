@@ -37,6 +37,8 @@ on:
       - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.PineconeOASIS.IntegrationTests/**'
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.TablelandOASIS/**'
       - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.TablelandOASIS.IntegrationTests/**'
+      - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.SignProtocolOASIS/**'
+      - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.SignProtocolOASIS.IntegrationTests/**'
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.CelestiaOASIS/**'
       - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.CelestiaOASIS.IntegrationTests/**'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.CeramicOASIS/**'
@@ -64,7 +66,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        provider: [CouchDB, Couchbase, ArangoDB, SurrealDB, ClickHouse, InfluxDB, Chroma, PgVector, ArcadeDB, QuestDB, PouchDB, NATSJetStream, Nostr, Dapr, GUN, Marqo, Pinot, Matrix, OrbitDB, Arweave, Scuttlebutt, Appwrite, Pinecone, Tableland, Celestia, Ceramic, BlueSky, Filecoin, Urbit]
+        provider: [CouchDB, Couchbase, ArangoDB, SurrealDB, ClickHouse, InfluxDB, Chroma, PgVector, ArcadeDB, QuestDB, PouchDB, NATSJetStream, Nostr, Dapr, GUN, Marqo, Pinot, Matrix, OrbitDB, Arweave, Scuttlebutt, Appwrite, Pinecone, Tableland, Celestia, Ceramic, BlueSky, Filecoin, Urbit, SignProtocol]
     defaults:
       run:
         working-directory: OASIS
@@ -97,9 +99,9 @@ jobs:
         if: matrix.provider == 'Tableland'
         with:
           node-version: '20.18.1'
-      # The Ceramic storage service uses the Ceramic SDK 0.12, which needs Node 22.
+      # The Ceramic storage service uses the Ceramic SDK 0.12, which needs Node 22; the Sign Protocol fixture is pinned to it too.
       - uses: actions/setup-node@v4
-        if: matrix.provider == 'Ceramic'
+        if: matrix.provider == 'Ceramic' || matrix.provider == 'SignProtocol'
         with:
           node-version: '22'
       - name: Run the shared core storage suite against the real backend
@@ -311,6 +313,11 @@ jobs:
               # Offline fake ship ~zod (-F -L) from the pinned Vere runtime and pill, with the %oasis desk installed; prints the container id and URL/+code.
               eval "$(Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.UrbitOASIS.IntegrationTests/fixture/start-urbit-fixture.sh "$fixture")"
               export OASIS_URBIT_URL OASIS_URBIT_CODE ;;
+            SignProtocol)
+              # Local Hardhat chain 31337 with the Sign Protocol SP contract (pinned sign-protocol-evm commit) behind an ERC1967 proxy;
+              # one freshly funded wallet per storage mode. The script prints the chain pid and writes settings.env.
+              relays="$relays $(Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.SignProtocolOASIS.IntegrationTests/fixture/start-sign-protocol.sh "$fixture")"
+              set -a; source "$fixture/settings.env"; set +a ;;
             Couchbase)
               container="$(docker run -d -p 127.0.0.1:8091-8097:8091-8097 -p 127.0.0.1:11210:11210 -p 127.0.0.1:11280:11280 couchbase/server:community-7.6.2)"
               wait_for "curl -fsS http://127.0.0.1:8091/ui/index.html"
