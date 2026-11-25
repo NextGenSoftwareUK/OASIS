@@ -39,7 +39,7 @@ async function main() {
     const artifact = compiled.contracts[entry].Web3CoreOASIS;
     const factory = new ethers.ContractFactory(artifact.abi, artifact.evm.bytecode.object, owner);
     const contractsByCase = {};
-    for (const name of ['EthereumOASIS', 'ArbitrumOASIS', 'PolygonOASIS', 'OptimismOASIS', 'BaseOASIS', 'LineaOASIS', 'ScrollOASIS', 'zkSyncOASIS', 'AbstractOASIS', 'BerachainOASIS', 'FantomOASIS', 'MonadOASIS', 'RootstockOASIS', 'SeiOASIS', 'FhenixOASIS']) {
+    for (const name of ['EthereumOASIS', 'ArbitrumOASIS', 'PolygonOASIS', 'OptimismOASIS', 'BaseOASIS', 'LineaOASIS', 'ScrollOASIS', 'zkSyncOASIS', 'AbstractOASIS', 'BerachainOASIS', 'FantomOASIS', 'MonadOASIS', 'RootstockOASIS', 'SeiOASIS', 'FhenixOASIS', 'BasechainOASIS']) {
       for (const mode of ['SYNC', 'ASYNC']) {
         const contract = await factory.deploy();
         await contract.waitForDeployment();
