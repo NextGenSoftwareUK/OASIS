@@ -1535,3 +1535,9 @@ Status: code work continues without these; only David can do them.
 - All three rows pass their native MongoDB/SQLite/Neo4j journeys locally; they merge to Development as soon as their CI is green. Nothing is needed from you for the code.
 - Decision for you (optional): either raise the account's concurrent-runner limit, or approve adding `paths-ignore: ["Docs/**"]` (or a concurrency group with cancel-in-progress) to `ci-cd.yml` and `subscription-usage-protocol.yml` so documentation-only claim commits stop queuing full pipelines. Agents will not change these deployment workflows without your go-ahead.
 - Status: OPEN 2026-11-25 01:52 UTC.
+
+## Ceramic test node image: approve a community build or build from source (cloud-hyperdrive-A, 2026-11-25)
+
+- Context: CeramicOASIS now passes the native storage suite against a real ceramic-one 0.58.0 node. The official image `public.ecr.aws/r5b3e0r5/3box/ceramic-one` no longer exists (the registry answers NAME_UNKNOWN), so the CI fixture uses the community build `docker.io/dclimate/ceramic-one:0.58.0`, pinned by digest (see `Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CeramicOASIS.IntegrationTests/start-ceramic-fixture.sh`). It runs only in CI, against throwaway data.
+- Decision: (a) accept the pinned community image for CI tests, or (b) build ceramic-one from the upstream rust-ceramic source in CI (slower, adds a Rust toolchain step). Engineering's recommendation is (a), keeping the digest pin.
+- Status: OPEN 2026-11-25. Option (a) is in use until you decide.
