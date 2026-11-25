@@ -276,3 +276,10 @@ Suggested order: the 9 OASIS Architecture projects first (pure unit tests, no li
 
 Wired into the coverage job and passing locally: Contracts, Managers, Edge.Messaging, Edge.NearbySync, HyperDrive.Migration (61 tests); BNBChain, SOLID, HoloOASIS.Edge, ThreeFold, HoloOASIS.Unity, Scuttlebutt, EdgeSQLite (508 tests); Elrond, ChainLink, BlockStack (152 tests, stale assertions updated to the providers' deliberate errors); Fantom, SEEDS, PLAN (24 tests: tests aligned to the real providers, PLAN provider moved out of the BlockStackOASIS namespace, network calls pointed at a closed local port); Base, Avalanche (24 tests: constructor order and descriptions updated, null-argument tests now check activation fails cleanly, host pointed at a closed local port); TRON (508 tests: Mongo replica-set tests now skip unless SUBSCRIPTION_TEST_MONGODB_URI names the owned replica set, LiveService trait; coverage job runs npm ci in Web3CoreOASIS for the solc codegen test).
 
+Batch 2, passing as they were and wired in: MongoDB (647), SQLLiteDB (229), EdgeStorage.ProtocolTests (229), DynamoDB (678), AzureStorage (109), OracleDB (481), Arweave (67), Radix (67), CouchDB (41), ClickHouse (53), Cloudflare (27), Aptos (55).
+
+Batch 2, tried and broken (next to fix):
+- Failing tests: GoogleCloud (2), SOLANA (14), NEAR (14), CosmosBlockChain (6), Polkadot (2), Arbitrum (22)
+- Do not compile: TON (duplicate Microsoft.AspNetCore.App FrameworkReference), Telos, Polygon, Ethereum, Upstash, MongoOASIS (namespace used as type), ONODE.WebAPI.Tests
+
+Coverage job: it now runs every project and fails at the end, so one failing project no longer hides the rest. Core.UnitTests had two stale tests failing on Development too (Q36 made Version + 1 a native projection; Core 8183ce3 reverted the V2 owner pass-through); both are fixed here.
