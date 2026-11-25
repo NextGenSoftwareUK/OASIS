@@ -130,6 +130,9 @@ internal sealed partial class NeoCqlTranslator
             case CosmicQueryAnyDescendant descendant:
                 HasRelationship = true;
                 return TranslateDescendant(descendant);
+            case CosmicQueryChildAggregate aggregate:
+                HasRelationship = true;
+                return TranslateChildAggregate(aggregate);
             case CosmicQueryAnyChild child:
             {
                 HasRelationship = true;

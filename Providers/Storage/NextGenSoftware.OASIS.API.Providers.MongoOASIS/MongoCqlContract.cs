@@ -42,7 +42,7 @@ internal static class MongoCqlContract
         return new CosmicQueryCapabilities(CosmicQueryFeatures.StringTransform | CosmicQueryFeatures.FullText | CosmicQueryFeatures.MetadataArrayContains | CosmicQueryFeatures.StringLength | CosmicQueryFeatures.AncestorExists|CosmicQueryFeatures.And|CosmicQueryFeatures.Or|CosmicQueryFeatures.Not
             |CosmicQueryFeatures.Metadata|CosmicQueryFeatures.NullLiteral|CosmicQueryFeatures.BooleanConstant
             |CosmicQueryFeatures.MetadataExists|CosmicQueryFeatures.MetadataNull|CosmicQueryFeatures.Membership
-            |CosmicQueryFeatures.Ordering|CosmicQueryFeatures.Paging | CosmicQueryFeatures.TailPaging|CosmicQueryFeatures.FieldComparison|CosmicQueryFeatures.StringContains|CosmicQueryFeatures.StringStartsWith|CosmicQueryFeatures.StringEndsWith|CosmicQueryFeatures.GraphExpansion|CosmicQueryFeatures.GraphReadAccess|CosmicQueryFeatures.GraphSnapshot|CosmicQueryFeatures.ChildExists|CosmicQueryFeatures.DescendantExists|CosmicQueryFeatures.SourceRelationshipComposition | CosmicQueryFeatures.PostWindowElementPredicate,
+            |CosmicQueryFeatures.Ordering|CosmicQueryFeatures.Paging | CosmicQueryFeatures.TailPaging|CosmicQueryFeatures.FieldComparison|CosmicQueryFeatures.StringContains|CosmicQueryFeatures.StringStartsWith|CosmicQueryFeatures.StringEndsWith|CosmicQueryFeatures.GraphExpansion|CosmicQueryFeatures.GraphReadAccess|CosmicQueryFeatures.GraphSnapshot|CosmicQueryFeatures.ChildExists|CosmicQueryFeatures.ChildAggregate|CosmicQueryFeatures.DescendantExists|CosmicQueryFeatures.SourceRelationshipComposition | CosmicQueryFeatures.PostWindowElementPredicate,
             fields.ToArray(),metadata,new CosmicQueryTraversalCapability(32,10000));
     }
 }

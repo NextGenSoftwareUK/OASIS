@@ -462,6 +462,7 @@ public partial class HolonRepository
         {
             if(predicate is CosmicQueryAnyDescendant descendant)return TranslateDescendant(descendant);
             if(predicate is CosmicQueryAnyAncestor ancestor)return TranslateAncestor(ancestor);
+            if(predicate is CosmicQueryChildAggregate aggregate)return TranslateChildAggregate(aggregate);
             if(predicate is CosmicQueryAnyChild child)
             {
                 HasRelationship=true;
