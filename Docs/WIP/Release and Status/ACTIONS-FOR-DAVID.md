@@ -1208,12 +1208,10 @@ H1 enabled-button follow-up (22 November):44990168013/job137109268095 SUCCESS on
 
 ## ONET: two decisions before the last protocol items (2026-11-24)
 
-Status: open, 24 November 2026. Everything else in the ONET plan is done and on Development (peer store, node identity, node events, real HoloNET mode, topology). Plan: [ONET_STORAGE_AND_HOLONET_PLAN_2026-11.md](../ONET/ONET_STORAGE_AND_HOLONET_PLAN_2026-11.md).
+Status: decided by David, 24 November 2026; engineering in progress (no further owner action). Plan: [ONET_STORAGE_AND_HOLONET_PLAN_2026-11.md](../ONET/ONET_STORAGE_AND_HOLONET_PLAN_2026-11.md).
 
-1. Message encryption (audit item #24). ONET messages are signed and replay-protected but travel unencrypted. Adding encryption changes the wire format, so every ONET node (Railway WEB4 and any self-hosted ONODEs) must upgrade in the same release; older nodes would stop exchanging messages with upgraded ones. Decide: (a) encrypt, with a coordinated all-node upgrade, or (b) keep signed-only for now.
-2. Holochain-carried ONET traffic (plan item 8). Needs a new `onet` zome in the OASIS hApp and a live-conductor test run. HoloNET mode already works over the signed ONET transport. Decide whether to schedule the zome work now or later.
-
-Reply with the choices and the work continues from the plan.
+1. Message encryption (audit item #24): **encrypt, with a coordinated upgrade.** ONET application frames move to version 2 (encrypted for the target node and signed). Older nodes stop exchanging messages with upgraded ones, so every ONET node (Railway WEB4 and any self-hosted ONODEs) must be on the same release.
+2. Holochain-carried ONET traffic (plan item 8): **build the `onet` zome now.** It is a coordinator-only module in the OASIS hApp (DNA hash unchanged).
 
 ## ONODE Manager release, signing and alerts - 2026-11-25
 
