@@ -61,7 +61,7 @@ public sealed partial class SqliteHolonReplicationOutbox
                 }
                 if(exists)throw new InvalidDataException("Unfinished obligation has an initialization acknowledgement.");
             }
-            if(observed.State!=HolonDeliveryState.ReconciliationRequired || observed.ErrorCode!="COSMIC_REPLICA_LINEAGE_CONFLICT"
+            if(observed.State!=HolonDeliveryState.ReconciliationRequired || !HolonReplicaReviewedHoldCodes.IsReviewable(observed.ErrorCode)
                 || observed.RecoveryEvidence==null || observed.RecoveryEvidence.RequiresNativeReconciliation)
                 throw new InvalidDataException("Only a reviewed lineage conflict without unresolved execution can complete.");
             using(var head=connection.CreateCommand())
