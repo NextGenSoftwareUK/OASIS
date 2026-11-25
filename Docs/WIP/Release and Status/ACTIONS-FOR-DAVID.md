@@ -2,6 +2,16 @@
 
 2026-11-18 — CLOUD ACTIONS SUPERSEDED / DEFERRED BY DAVID: cloud migration is abandoned and work resumes locally with isolated remote CI. This supersedes CLOUD-CQL-ACCESS-PREFLIGHT-2026-11-18 and CLOUD-CQL-HANDOFF-START-2026-11-18 for the current task; no cloud setup or repeated sign-in is requested. The latest named cloud chat reports Core read restored, startup still failed without a task ID. Historical access failures below are retained. Full roadmap and shared-cluster/deployment stand-down remain intact.
 
+## COSMIC-M20-TPT-DEFINITION-2026-11-25 - Decide what table-per-type inheritance means on document/graph stores
+
+Status: OPEN (2026-11-25). COSMIC checklist row M20 (Docs/WIP/COSMIC ORM/CQL_PARITY_CHECKLIST.md) says a document/graph TPT equivalent "needs a faithful definition first". M19 (discriminator, one record per entity) is done on MongoDB, SQLite and Neo4j. M21 depends on this decision too.
+
+Choose one:
+1. Split storage: each inheritance level's declared properties live in their own record (collection/table/label per level), joined by the entity id on read and written in one unit of work.
+2. Treat M20 as satisfied by M19 (one record per entity) and mark it equivalent rather than separately built.
+
+Reply with 1 or 2. The claim is released on the claims branch until then.
+
 ## GITHUB-ACTIONS-RUNNER-CAPACITY-2026-11-25
 
 Status: open, 25 November 2026. GitHub Actions in NextGenSoftwareUK/OASIS runs only 2-3 jobs at a time while 40-130 runs queue, so CI-verified items (native-storage suites, the provider TestHarness gate, CQL/COSMIC checks) wait hours. Agents now batch pushes and avoid new runs while more than about 20 are queued, which slows verification further.
