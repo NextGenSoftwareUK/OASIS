@@ -18,6 +18,8 @@ on:
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.PouchDBOASIS/**'
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS/**'
       - 'Providers/Other/NextGenSoftware.OASIS.API.Providers.DaprOASIS/**'
+      - 'Providers/Other/NextGenSoftware.OASIS.API.Providers.GUNOASIS/**'
+      - 'Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.GUNOASIS.IntegrationTests/**'
       - 'Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.DaprOASIS.IntegrationTests/**'
       - 'Providers/Social/NextGenSoftware.OASIS.API.Providers.NostrOASIS/**'
       - 'Providers/*/TestProjects/*/*NativeStorageConformanceTests.cs'
@@ -33,7 +35,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        provider: [CouchDB, Couchbase, ArangoDB, SurrealDB, ClickHouse, InfluxDB, Chroma, PgVector, ArcadeDB, QuestDB, PouchDB, NATSJetStream, Nostr, Dapr]
+        provider: [CouchDB, Couchbase, ArangoDB, SurrealDB, ClickHouse, InfluxDB, Chroma, PgVector, ArcadeDB, QuestDB, PouchDB, NATSJetStream, Nostr, Dapr, GUN]
     defaults:
       run:
         working-directory: OASIS
@@ -68,8 +70,10 @@ jobs:
           fixture="$(mktemp -d "$RUNNER_TEMP/oasis-native.XXXXXXXX")"
           password="$(openssl rand -hex 16)"
           container=""
+          relays=""
           cleanup() {
             status=$?
+            for pid in $relays; do kill -TERM "$pid" 2>/dev/null || true; wait "$pid" 2>/dev/null || true; done
             if [[ -n "$container" ]]; then
               for c in $container; do
                 if (( status != 0 )); then docker logs --tail 40 "$c" || true; fi
@@ -145,6 +149,14 @@ jobs:
                 ./daprd --app-id oasis-native --resources-path /components --dapr-grpc-port 15001 --dapr-http-port 13500 --metrics-port 19090)"
               container="$container $sidecar"
               wait_for "curl -fsS -H 'dapr-api-token: $password' http://127.0.0.1:13500/v1.0/healthz" ;;
+            GUN)
+              # Two disposable loopback relays (one per storage mode) with radisk persistence in the fixture directory.
+              relay_dir="$PWD/Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.GUNOASIS.IntegrationTests/relay"
+              npm ci --prefix "$relay_dir" --no-audit --no-fund
+              node "$relay_dir/relay.cjs" 18766 "$fixture/radisk-async" & relays="$relays $!"
+              node "$relay_dir/relay.cjs" 18767 "$fixture/radisk-sync" & relays="$relays $!"
+              wait_for "curl -fsS -o /dev/null http://127.0.0.1:18766/gun.js && curl -fsS -o /dev/null http://127.0.0.1:18767/gun.js"
+              export OASIS_GUN_ASYNC_RELAY=http://127.0.0.1:18766 OASIS_GUN_SYNC_RELAY=http://127.0.0.1:18767 ;;
             Couchbase)
               container="$(docker run -d -p 127.0.0.1:8091-8097:8091-8097 -p 127.0.0.1:11210:11210 -p 127.0.0.1:11280:11280 couchbase/server:community-7.6.2)"
               wait_for "curl -fsS http://127.0.0.1:8091/ui/index.html"
