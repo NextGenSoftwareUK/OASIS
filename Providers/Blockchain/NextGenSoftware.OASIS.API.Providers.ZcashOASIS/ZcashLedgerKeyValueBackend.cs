@@ -37,6 +37,7 @@ internal sealed class ZcashLedgerKeyValueBackend : IKeyValueBackend, IDisposable
     private const long ZatoshisPerZec = 100_000_000;
     private const long MarginalFee = 5_000; // ZIP-317
     private const long DustThreshold = 5_460;
+    private const long CoinbaseMaturity = 100;
 
     private readonly HttpClient _rpc;
     private readonly HttpClient _kubo;
@@ -273,6 +274,9 @@ internal sealed class ZcashLedgerKeyValueBackend : IKeyValueBackend, IDisposable
             var unspent = await RpcAsync("listunspent", new JsonArray(0, 9_999_999, new JsonArray(_address)), cancellationToken);
             var candidate = unspent.EnumerateArray()
                 .Where(item => item.TryGetProperty("spendable", out var spendable) && spendable.GetBoolean())
+                // Consensus forbids spending coinbase before COINBASE_MATURITY (100) confirmations.
+                .Where(item => !(item.TryGetProperty("generated", out var generated) && generated.GetBoolean()) ||
+                    (item.TryGetProperty("confirmations", out var depth) && depth.GetInt64() >= CoinbaseMaturity))
                 .OrderByDescending(item => ToZatoshis(item.GetProperty("amount")))
                 .Select(item => (Txid: item.GetProperty("txid").GetString()!, Vout: item.GetProperty("vout").GetInt32(),
                     Amount: ToZatoshis(item.GetProperty("amount"))))
