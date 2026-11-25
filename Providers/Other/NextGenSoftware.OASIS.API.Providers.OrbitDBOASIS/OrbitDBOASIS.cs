@@ -37,7 +37,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS
         {
             if (encryptionKey == null || encryptionKey.Length != 32)
                 throw new ArgumentException("OrbitDB storage requires an explicit 32-byte record encryption key.", nameof(encryptionKey));
-            return new PrivateKeyValueBackend(new OrbitDbServiceKeyValueBackend(serviceUrl, serviceToken), encryptionKey, compress: true);
+            return new PrivateKeyValueBackend(new StorageServiceKeyValueBackend(serviceUrl, serviceToken, "OrbitDB storage service", "/orbitdb/"), encryptionKey, compress: true);
         }
     }
 }

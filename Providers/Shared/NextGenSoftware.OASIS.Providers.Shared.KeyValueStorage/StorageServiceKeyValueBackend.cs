@@ -8,21 +8,31 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
-namespace NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS;
+namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
-/// <summary>Key-value operations against the OrbitDB storage service (see StorageService/storage-service.mjs).</summary>
-internal sealed class OrbitDbServiceKeyValueBackend : IKeyValueBackend
+/// <summary>
+/// Key-value operations against a repository storage service: a co-located process that owns a backend which has no
+/// network API of its own (OrbitDB, Scuttlebutt). Contract, served on loopback with a bearer token:
+/// GET health → {"address":...}; GET kv?key=K → 200 value / 404; PUT kv?key=K → {"hash":entry};
+/// DELETE kv?key=K → {"hash":entry|null} (null only when the key did not exist); GET keys?prefix=P → [keys].
+/// </summary>
+public sealed class StorageServiceKeyValueBackend : IKeyValueBackend
 {
     private readonly HttpClient _http;
+    private readonly string _service;
+    private readonly string _addressPrefix;
 
-    public OrbitDbServiceKeyValueBackend(string serviceUrl, string serviceToken)
+    /// <param name="service">Name used in errors, e.g. "OrbitDB storage service".</param>
+    /// <param name="addressPrefix">Required prefix of the address the service reports from /health.</param>
+    public StorageServiceKeyValueBackend(string serviceUrl, string serviceToken, string service, string addressPrefix)
     {
+        _service = string.IsNullOrWhiteSpace(service) ? throw new ArgumentException("A service name is required.", nameof(service)) : service;
+        _addressPrefix = string.IsNullOrEmpty(addressPrefix) ? throw new ArgumentException("An address prefix is required.", nameof(addressPrefix)) : addressPrefix;
         if (!Uri.TryCreate(serviceUrl?.TrimEnd('/') + "/", UriKind.Absolute, out var baseUri) || baseUri.Scheme is not ("http" or "https"))
-            throw new ArgumentException("An OrbitDB storage service URL (http or https) is required.", nameof(serviceUrl));
+            throw new ArgumentException($"A {service} URL (http or https) is required.", nameof(serviceUrl));
         if (string.IsNullOrWhiteSpace(serviceToken))
-            throw new ArgumentException("The OrbitDB storage service token is required.", nameof(serviceToken));
+            throw new ArgumentException($"The {service} token is required.", nameof(serviceToken));
         _http = new HttpClient { BaseAddress = baseUri, Timeout = TimeSpan.FromSeconds(60) };
         _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", serviceToken);
     }
@@ -34,8 +44,8 @@ internal sealed class OrbitDbServiceKeyValueBackend : IKeyValueBackend
         using var response = await _http.GetAsync("health", cancellationToken);
         await EnsureSuccessAsync(response, "report its health");
         using var health = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
-        if (!health.RootElement.TryGetProperty("address", out var address) || address.GetString()?.StartsWith("/orbitdb/", StringComparison.Ordinal) != true)
-            throw new InvalidDataException("The OrbitDB storage service did not report an OrbitDB database address.");
+        if (!health.RootElement.TryGetProperty("address", out var address) || address.GetString()?.StartsWith(_addressPrefix, StringComparison.Ordinal) != true)
+            throw new InvalidDataException($"The {_service} did not report a database address.");
     }
 
     public async Task<string> GetAsync(string key, CancellationToken cancellationToken = default)
@@ -70,24 +80,24 @@ internal sealed class OrbitDbServiceKeyValueBackend : IKeyValueBackend
         using var response = await _http.GetAsync("keys?prefix=" + Uri.EscapeDataString(prefix), cancellationToken);
         await EnsureSuccessAsync(response, "list keys");
         return JsonSerializer.Deserialize<List<string>>(await response.Content.ReadAsStringAsync(cancellationToken))
-            ?? throw new InvalidDataException("The OrbitDB storage service returned no key list.");
+            ?? throw new InvalidDataException($"The {_service} returned no key list.");
     }
 
-    // A null hash is only valid for deleting a key that did not exist (no oplog entry is written).
-    private static async Task RequireEntryHashAsync(HttpResponseMessage response, string key, bool allowNone, CancellationToken cancellationToken)
+    // A null hash is only valid for deleting a key that did not exist (no log entry is written).
+    private async Task RequireEntryHashAsync(HttpResponseMessage response, string key, bool allowNone, CancellationToken cancellationToken)
     {
         using var ack = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
         if (!ack.RootElement.TryGetProperty("hash", out var hash))
-            throw new IOException($"The OrbitDB storage service did not acknowledge '{key}'.");
+            throw new IOException($"The {_service} did not acknowledge '{key}'.");
         if (hash.ValueKind == JsonValueKind.Null && allowNone) return;
         if (hash.ValueKind != JsonValueKind.String || string.IsNullOrEmpty(hash.GetString()))
-            throw new IOException($"The OrbitDB storage service returned no oplog entry for '{key}'.");
+            throw new IOException($"The {_service} returned no log entry for '{key}'.");
     }
 
-    private static async Task EnsureSuccessAsync(HttpResponseMessage response, string operation)
+    private async Task EnsureSuccessAsync(HttpResponseMessage response, string operation)
     {
         if (response.IsSuccessStatusCode) return;
         var body = await response.Content.ReadAsStringAsync();
-        throw new IOException($"The OrbitDB storage service failed to {operation}: {(int)response.StatusCode} {body[..Math.Min(body.Length, 300)]}");
+        throw new IOException($"The {_service} failed to {operation}: {(int)response.StatusCode} {body[..Math.Min(body.Length, 300)]}");
     }
 }
