@@ -155,7 +155,9 @@ Done (91 pass the native core-storage-v2 suite 52/52 against their real backend;
 
 Partly done, with open items:
 - Turso: managed Turso and hosted WEB4 activation are still open.
-- HoloOASIS.Edge: the shared suite and cross-agent replication are still open.
+- HoloOASIS.Edge: cross-agent replication on a live conductor is still open. The shared core-storage suite does not apply
+  (2026-11-25): HoloOASIS.Edge and EdgeSQLiteOASIS are Edge Runtime replication/sync components, not storage providers;
+  their unit tests run in `edge-runtime-validation.yml`.
 - HoloOASIS.Unity: the Android conductor device lifecycle is still open.
 - Algorand: chain reads and payments pass; durable storage is still open.
 
