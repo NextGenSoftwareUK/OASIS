@@ -1,5 +1,7 @@
 # QuestDB public demo qualification
 
+Progress (25 Nov 2026, cloud-cql-C): the never-merged symbol adapter is ported to Development 25a128c2aa and reads the read-only public demo (`dataset: questdb-demo-trades`). WEB4 tests pass. Live acceptance is pending Railway enrollment: see [enrollment handoff](CLOUD_CQL_C_ENROLLMENT_HANDOFF_2026-11-25.md).
+
 Updated2November2026. Native/CQL/hosted/browser acceptance not yet run.
 
 ## Contract and free access
