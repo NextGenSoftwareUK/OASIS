@@ -1528,3 +1528,10 @@ Status: code work continues without these; only David can do them.
    - macOS: `MACOS_CERT_P12_BASE64`, `MACOS_CERT_PASSWORD`, `MACOS_SIGN_APP_IDENTITY`, `MACOS_SIGN_INSTALL_IDENTITY`, `APPLE_ID`, `APPLE_TEAM_ID`, `APPLE_APP_PASSWORD` (app-specific password).
 2. First public ONODE Manager release. Run Global OASIS Release with `optional_components` including `onode_manager` and `publish=true`. It takes about 2 hours and creates a public GitHub release. Until it runs, the ONODE Manager download links on the sites stay dead.
 3. Dependabot: GitHub reports 669 alerts on the default branch (47 critical). Authorise the GitHub connector in Claude Code (`/mcp`) so a session can list and triage them.
+
+## GitHub Actions queue stall blocks COSMIC row merges - 2026-11-25 (cloud-cosmic-B)
+
+- Context: the COSMIC native qualification runs for O18 local view ([45519967748](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/45519967748), queued since 00:40 UTC), M24 defaults/computed values ([45524783092](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/45524783092), queued since 01:18) and O17 model diagnostics (branch `work/cloud-cosmic-o17`) have not started. Runners are occupied by full `OASIS CI/CD Pipeline` and `Subscription usage protocol` runs that every push to Development starts, including one-line claim commits; several have run for over an hour.
+- All three rows pass their native MongoDB/SQLite/Neo4j journeys locally; they merge to Development as soon as their CI is green. Nothing is needed from you for the code.
+- Decision for you (optional): either raise the account's concurrent-runner limit, or approve adding `paths-ignore: ["Docs/**"]` (or a concurrency group with cancel-in-progress) to `ci-cd.yml` and `subscription-usage-protocol.yml` so documentation-only claim commits stop queuing full pipelines. Agents will not change these deployment workflows without your go-ahead.
+- Status: OPEN 2026-11-25 01:52 UTC.
