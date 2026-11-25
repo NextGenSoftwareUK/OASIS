@@ -1766,3 +1766,17 @@ Status: decided by David, 24 November 2026; engineering in progress (no further 
 - Context: OracleObjectStorageOASIS can only be tested against Oracle Cloud (OCI) Object Storage; there is no local OCI emulator. OracleDB (the priority Oracle provider) already passes on its own.
 - Steps: in an OCI tenancy (Always Free is enough) create a bucket `oasis-ci` in one region and an API signing key for a user limited to that bucket; secrets `OCI_CI_TENANCY_OCID`, `OCI_CI_USER_OCID`, `OCI_CI_FINGERPRINT`, `OCI_CI_PRIVATE_KEY`, `OCI_CI_REGION`, `OCI_CI_NAMESPACE`, `OCI_CI_BUCKET`.
 - Status: OPEN 2026-11-25. Claim marked BLOCKED.
+
+## GELATO-RELAY-API-KEY-2026-11-25 (open, 2026-11-25)
+
+Context: GelatoNetworkOASIS reads Gelato relay data. Its default host `relay.gelato.network` now serves an expired TLS
+certificate, the legacy keyless hosts (`relay.gelato.digital`, `api.gelato.digital`) no longer resolve, and Gelato's current
+relayer API (`https://api.gelato.cloud/rpc`) requires an `X-API-Key` from the Gelato App.
+
+What David needs to do:
+1. Create a Gelato account at https://app.gelato.cloud and generate a Relay API key (free tier).
+2. Store it as the GitHub Actions secret `GELATO_API_KEY` (never in source).
+
+Why: without a key, GelatoNetworkOASIS cannot activate, so its capability-v1 probe cannot run. The provider code moves to the
+current API either way; only the live probe waits on the key.
+Status: open. Owner of the follow-up: testharness-build-fix session (work/tracker-capability-probes).
