@@ -272,7 +272,7 @@ internal sealed class ZcashLedgerKeyValueBackend : IKeyValueBackend, IDisposable
         try
         {
             var unspent = await RpcAsync("listunspent", new JsonArray(1, 9_999_999, new JsonArray(_address)), cancellationToken);
-            var candidate = unspent.EnumerateArray()
+            var candidates = unspent.EnumerateArray()
                 .Where(item => item.TryGetProperty("spendable", out var spendable) && spendable.GetBoolean())
                 // Consensus forbids spending coinbase before COINBASE_MATURITY (100) confirmations.
                 .Where(item => !(item.TryGetProperty("generated", out var generated) && generated.GetBoolean()) ||
@@ -282,7 +282,15 @@ internal sealed class ZcashLedgerKeyValueBackend : IKeyValueBackend, IDisposable
                     Amount: ToZatoshis(item.GetProperty("amount")),
                     ScriptPubKey: item.GetProperty("scriptPubKey").GetString()!,
                     AmountText: item.GetProperty("amount").GetRawText()))
-                .FirstOrDefault();
+                .ToArray();
+            // The wallet's list can trail the node's UTXO set (it may still list a coin a commitment has spent), so
+            // the UTXO set, including the mempool, decides which listed coin is actually spendable.
+            (string Txid, int Vout, long Amount, string ScriptPubKey, string AmountText) candidate = default;
+            foreach (var listed in candidates)
+            {
+                var coin = await RpcAsync("gettxout", new JsonArray(listed.Txid, listed.Vout, true), cancellationToken);
+                if (coin.ValueKind == JsonValueKind.Object) { candidate = listed; break; }
+            }
             var fee = Zip317Fee(inputCount: 1, outputScriptLengths: [P2pkhScriptLength, 2 + payload.Length]);
             if (candidate.Txid == null || candidate.Amount - fee < DustThreshold)
                 throw new InvalidOperationException("The Zcash storage address has no spendable balance to pay for the commitment.");
