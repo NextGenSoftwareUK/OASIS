@@ -429,6 +429,21 @@ public sealed partial class CqlV1Web4NativeTests
                 .Select(row=>CosmicQueryMetadata.Value<int>(row,"score")*CosmicQueryMetadata.Value<int>(row,"score")),"Non-linear arithmetic is refused.");
         }
         checks++;
+        // A14 futures: deferred queries run together, in order, each with its own native access-bound result.
+        using(var futures=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            var named=futures.Future(futures.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>row.Id==keep.Id).Select(row=>row.Name));
+            var counted=futures.Future(futures.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>row.Id==keep.Id||row.Id==Guid.Empty));
+            Assert.IsFalse(named.IsError,named.Message);Assert.IsFalse(counted.IsError,counted.Message);
+            Assert.IsFalse(named.Result.IsExecuted);Assert.AreEqual("COSMIC_FUTURE_NOT_EXECUTED",named.Result.Result.ErrorCode);
+            var executed=await futures.ExecuteFuturesAsync();
+            Assert.IsFalse(executed.IsError,executed.Message);Assert.AreEqual(2,executed.Result);
+            Assert.IsFalse(named.Result.Result.IsError,named.Result.Result.Message);
+            Assert.AreEqual((await Stored(keep.Id)).Single().Name,named.Result.Result.Result.Single());
+            Assert.AreEqual(1,counted.Result.Result.Result.Count);
+            Assert.AreEqual(0,(await futures.ExecuteFuturesAsync()).Result,"Executed futures are not run twice.");
+        }
+        checks++;
         // M29 seed data: idempotent insert of fixed-identity rows in one unit of work.
         Holon[] Seed()=>new[]{
             new Holon{Id=seedIds[0],Name="seed-one",CreatedByAvatarId=actor,IsActive=true,IsPublic=false},
@@ -445,7 +460,7 @@ public sealed partial class CqlV1Web4NativeTests
         }
         Assert.AreEqual(2,(await Stored(seedIds)).Count);checks++;
         return new NativeFixtureJourneyProof(checks,4,new Dictionary<string,bool>{
-            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true,["notificationTrackingVerified"]=true,["collectionMembershipVerified"]=true,["stringTransformsVerified"]=true,["compiledQueryVerified"]=true,["asOfHistoryVerified"]=true,["setCollectionVerified"]=true,["generatedValuesVerified"]=true,["readOnlyViewsVerified"]=true,["graphMergeVerified"]=true,["multiBranchCaseVerified"]=true,["fullTextVerified"]=true,["entitySplittingVerified"]=true,["int32ArithmeticVerified"]=true});
+            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true,["notificationTrackingVerified"]=true,["collectionMembershipVerified"]=true,["stringTransformsVerified"]=true,["compiledQueryVerified"]=true,["asOfHistoryVerified"]=true,["setCollectionVerified"]=true,["generatedValuesVerified"]=true,["readOnlyViewsVerified"]=true,["graphMergeVerified"]=true,["multiBranchCaseVerified"]=true,["fullTextVerified"]=true,["entitySplittingVerified"]=true,["int32ArithmeticVerified"]=true,["futuresVerified"]=true});
     }
 
     public sealed class SetModelHolon : Holon
