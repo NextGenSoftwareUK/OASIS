@@ -1,46 +1,45 @@
+using System;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Providers.CeramicOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.CeramicOASIS.UnitTests
 {
-    /// <summary>
-    /// Provider metadata checks. These run with no backend - they assert the provider
-    /// identifies itself correctly and starts deactivated.
-    /// </summary>
+    /// <summary>Provider identity and constructor validation; no storage service or Ceramic node is needed.</summary>
     [TestClass]
     public class CeramicOASISProviderTests
     {
-        private CeramicOASIS _provider = null!;
-
-        [TestInitialize]
-        public void Setup() => _provider = CeramicOASISTestFactory.Create();
+        private static CeramicOASIS Create() => new("http://127.0.0.1:18931", "token", new byte[32]);
 
         [TestMethod]
-        public void ProviderType_ShouldBeSet()
-            => Assert.AreNotEqual(ProviderType.None, _provider.ProviderType.Value);
-
-        [TestMethod]
-        public void ProviderName_ShouldNotBeEmpty()
-            => Assert.IsFalse(string.IsNullOrWhiteSpace(_provider.ProviderName));
-
-        [TestMethod]
-        public void ProviderDescription_ShouldNotBeEmpty()
-            => Assert.IsFalse(string.IsNullOrWhiteSpace(_provider.ProviderDescription));
-
-        [TestMethod]
-        public void IsProviderActivated_ShouldBeFalseInitially()
-            => Assert.IsFalse(_provider.IsProviderActivated);
-
-        [TestMethod]
-        public void ProviderCategory_ShouldBeSet()
-            => Assert.IsNotNull(_provider.ProviderCategory);
-
-        [TestCleanup]
-        public void Cleanup()
+        public void Constructor_ShouldInitializeProviderIdentity()
         {
-            if (_provider != null && _provider.IsProviderActivated)
-                _provider.DeActivateProvider();
+            var provider = Create();
+            Assert.AreEqual("CeramicOASIS", provider.ProviderName);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(provider.ProviderDescription));
+            Assert.AreEqual(ProviderType.CeramicOASIS, provider.ProviderType.Value);
+            Assert.AreEqual(ProviderCategory.StorageAndNetwork, provider.ProviderCategory.Value);
+            Assert.IsFalse(provider.IsProviderActivated);
+        }
+
+        [TestMethod]
+        public void Constructor_RequiresA32ByteEncryptionKey()
+            => Assert.ThrowsException<ArgumentException>(() => new CeramicOASIS("http://127.0.0.1:18931", "token", new byte[16]));
+
+        [TestMethod]
+        public void Constructor_RequiresTheServiceToken()
+            => Assert.ThrowsException<ArgumentException>(() => new CeramicOASIS("http://127.0.0.1:18931", "", new byte[32]));
+
+        [TestMethod]
+        public void Constructor_RequiresAnHttpServiceUrl()
+            => Assert.ThrowsException<ArgumentException>(() => new CeramicOASIS("ftp://127.0.0.1:18931", "token", new byte[32]));
+
+        [TestMethod]
+        public async Task Activation_FailsExplicitlyWhenTheServiceIsUnreachable()
+        {
+            var result = await new CeramicOASIS("http://127.0.0.1:1", "token", new byte[32]).ActivateProviderAsync();
+            Assert.IsTrue(result.IsError);
+            Assert.IsFalse(result.Result);
         }
     }
 }
