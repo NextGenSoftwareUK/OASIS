@@ -245,6 +245,11 @@ public sealed class EnsOffchainPublicNameSource : KeyValueStorageProviderBase, I
             return row;
         }
 
+        public async Task VerifyAsync(CancellationToken cancellationToken = default)
+        {
+            foreach (var name in Keys) await Client.ReadAsync(name, cancellationToken);
+        }
+
         public async Task<string> GetAsync(string key, CancellationToken cancellationToken = default)
         {
             if (!records.TryGetValue(key, out var name)) return null!;
