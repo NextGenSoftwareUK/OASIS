@@ -80,9 +80,9 @@ jobs:
           trap cleanup EXIT
           echo '{"port":8008,"diskSettings":{"storageRootDirectory":"'"$disk"'"}}' > "$fixture/reader.json"
           echo '{"port":4000,"serverName":"127.0.0.1:4000","driver":"disk","readURL":"http://127.0.0.1:8008/","diskSettings":{"storageRootDirectory":"'"$disk"'"},"proofsConfig":{"proofsRequired":0},"requireCorrectHubUrl":false}' > "$fixture/hub.json"
-          (cd ../gaia/reader && CONFIG_PATH="$fixture/reader.json" node lib/index.js > "$fixture/reader.log" 2>&1) &
+          (cd ../gaia/reader && CONFIG_PATH="$fixture/reader.json" node --experimental-specifier-resolution=node lib/index.js > "$fixture/reader.log" 2>&1) &
           reader_pid=$!
-          (cd ../gaia/hub && CONFIG_PATH="$fixture/hub.json" node lib/index.js > "$fixture/hub.log" 2>&1) &
+          (cd ../gaia/hub && CONFIG_PATH="$fixture/hub.json" node --experimental-specifier-resolution=node lib/index.js > "$fixture/hub.log" 2>&1) &
           hub_pid=$!
           for attempt in $(seq 1 60); do
             if curl -fsS http://127.0.0.1:4000/hub_info >/dev/null 2>&1 && curl -sS -o /dev/null http://127.0.0.1:8008/ 2>/dev/null; then break; fi
