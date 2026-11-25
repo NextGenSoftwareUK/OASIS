@@ -51,6 +51,13 @@ public sealed class AlgorandNativeStorageConformanceTests
                 ("detail", async () => (await provider.LoadAvatarDetailAsync(report.OwnerId)).Message),
                 ("holon", async () => (await provider.LoadHolonAsync(report.RootId, loadChildren: false)).Message),
                 ("all", async () => (await provider.LoadAllHolonsAsync(loadChildren: false)).Message),
+                ("graph", async () =>
+                {
+                    var parent = new NextGenSoftware.OASIS.API.Core.Holons.Holon { Id = Guid.NewGuid(), Name = "probe", CreatedByAvatarId = report.OwnerId };
+                    parent.Children.Add(new NextGenSoftware.OASIS.API.Core.Holons.Holon { Id = Guid.NewGuid(), Name = "probe-child", CreatedByAvatarId = report.OwnerId });
+                    var saved = await provider.SaveHolonAsync(parent, continueOnError: false);
+                    return $"error={saved.IsError} saved={saved.IsSaved} count={saved.SavedCount} {saved.Message} {saved.Exception}";
+                }),
             };
             foreach (var (name, probe) in probes)
             {

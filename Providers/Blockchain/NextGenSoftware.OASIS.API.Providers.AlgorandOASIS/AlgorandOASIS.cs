@@ -264,13 +264,13 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
         // ─── Avatar: Save / Delete ────────────────────────────────────────────────
 
         public override Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
-            => SaveStoredRecordAsync<Avatar, IAvatar>(avatar, avatar is { Version: > 0 } ? avatar.Version - 1 : 0, "avatar");
+            => SaveStoredRecordAsync<Avatar, IAvatar>(avatar, ProposedPredecessor(avatar), "avatar");
 
         public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar) => SaveAvatarAsync(avatar).Result;
 
         public override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
             => SaveStoredRecordAsync<AvatarDetail, IAvatarDetail>(avatarDetail,
-                avatarDetail is { Version: > 0 } ? avatarDetail.Version - 1 : 0, "avatar-detail");
+                ProposedPredecessor(avatarDetail), "avatar-detail");
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail) =>
             SaveAvatarDetailAsync(avatarDetail).Result;

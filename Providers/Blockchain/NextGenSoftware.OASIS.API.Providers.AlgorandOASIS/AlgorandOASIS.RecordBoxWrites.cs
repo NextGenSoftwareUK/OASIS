@@ -41,7 +41,7 @@ public partial class AlgorandOASIS
         try
         {
             // HolonManager stamps the proposed revision before invoking the provider.
-            saved = await SaveStoredHolonAsync(holon, Math.Max(0, holon.Version - 1)).ConfigureAwait(false);
+            saved = await SaveStoredHolonAsync(holon, ProposedPredecessor(holon)).ConfigureAwait(false);
         }
         finally
         {
@@ -105,6 +105,16 @@ public partial class AlgorandOASIS
         CancellationToken cancellationToken = default)
         => await SaveStoredRecordAsync<Holon, IHolon>(holon, expectedVersion, "holon", cancellationToken).ConfigureAwait(false);
 
+    /// <summary>Publish after whatever revision is current: the caller makes no predecessor claim.</summary>
+    private const int CurrentPredecessor = -1;
+
+    /// <summary>
+    /// A stamped proposal (Version N, as HolonManager writes it) must follow revision N-1 exactly; an unversioned
+    /// record (Version 0) makes no predecessor claim and is published as the next revision after the current one.
+    /// </summary>
+    private static int ProposedPredecessor(IHolonBase record) =>
+        record is { Version: > 0 } ? record.Version - 1 : CurrentPredecessor;
+
     private async Task<OASISResult<TContract>> SaveStoredRecordAsync<TRecord, TContract>(TContract holon, int expectedVersion,
         string kind, CancellationToken cancellationToken = default)
         where TRecord : class, TContract
@@ -158,7 +168,7 @@ public partial class AlgorandOASIS
         where TContract : class, IHolonBase
     {
         ArgumentNullException.ThrowIfNull(holon);
-        ArgumentOutOfRangeException.ThrowIfNegative(expectedVersion);
+        ArgumentOutOfRangeException.ThrowIfLessThan(expectedVersion, CurrentPredecessor);
         ArgumentOutOfRangeException.ThrowIfNegative(holon.Version);
         if (holon.Id == Guid.Empty)
             throw new ArgumentException("The proposed record must have a stable OASIS ID.", nameof(holon));
@@ -175,9 +185,12 @@ public partial class AlgorandOASIS
         using var codec = new EncryptedRecordCodec(settings.StorageKey, compress: kind != "holon");
         var current = head == null ? null : (await ReadStoredRecordAsync<TRecord>(settings, id, key,
             head, codec, kind, token).ConfigureAwait(false)).Record;
-        if ((current?.Version ?? 0) != expectedVersion)
+        var claimsPredecessor = expectedVersion != CurrentPredecessor;
+        if (!claimsPredecessor)
+            expectedVersion = current?.Version ?? 0;
+        else if ((current?.Version ?? 0) != expectedVersion)
             throw new InvalidOperationException("The requested Algorand predecessor version is no longer current.");
-        if (kind != "holon" && proposal.PreviousVersionId != (current?.VersionId ?? Guid.Empty))
+        if (claimsPredecessor && kind != "holon" && proposal.PreviousVersionId != (current?.VersionId ?? Guid.Empty))
             throw new InvalidOperationException("The proposed Algorand avatar record does not reference the current predecessor.");
         var version = checked(expectedVersion + 1);
         if (proposal.VersionId == Guid.Empty || proposal.Version != version || proposal.VersionId == current?.VersionId)
