@@ -55,3 +55,17 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | LensOASIS live public CQL source (anonymous rpc.lens.xyz finalized balance reads, Lens Chain 232) | CQL sandbox (WEB4) | cloud: cloud-cql-C | work/cloud-cql-lens | 2026-11-25 01:13 | IN PROGRESS |
 | AppwriteOASIS native storage (self-hosted Appwrite in Docker) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-appwrite | 2026-11-25 01:20 | IN PROGRESS |
 | TablelandOASIS native storage (@tableland/local validator + Hardhat) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-tableland | 2026-11-25 01:20 | IN PROGRESS |
+| COSMIC O17 model validation and diagnostics | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-o17 | 2026-11-25 01:22 | IN PROGRESS |
+| Nile native storage (hosted only) | HyperDrive providers | cloud: cloud-hyperdrive-A | n/a | 2026-11-25 01:30 | BLOCKED: see ACTIONS-FOR-DAVID (hosted-only providers) |
+| CloudflareD1 native storage (hosted only) | HyperDrive providers | cloud: cloud-hyperdrive-A | n/a | 2026-11-25 01:30 | BLOCKED: see ACTIONS-FOR-DAVID (hosted-only providers) |
+| NetlifyBlobs native storage (hosted only) | HyperDrive providers | cloud: cloud-hyperdrive-A | n/a | 2026-11-25 01:30 | BLOCKED: see ACTIONS-FOR-DAVID (hosted-only providers) |
+| MotherDuck native storage (hosted only) | HyperDrive providers | cloud: cloud-hyperdrive-A | n/a | 2026-11-25 01:30 | BLOCKED: see ACTIONS-FOR-DAVID (hosted-only providers) |
+| Cloudinary native storage (hosted only) | HyperDrive providers | cloud: cloud-hyperdrive-A | n/a | 2026-11-25 01:30 | BLOCKED: see ACTIONS-FOR-DAVID (hosted-only providers) |
+| DenoDeploy native storage (hosted only) | HyperDrive providers | cloud: cloud-hyperdrive-A | n/a | 2026-11-25 01:30 | BLOCKED: see ACTIONS-FOR-DAVID (hosted-only providers) |
+| FlyIO native storage (hosted only) | HyperDrive providers | cloud: cloud-hyperdrive-A | n/a | 2026-11-25 01:30 | BLOCKED: see ACTIONS-FOR-DAVID (hosted-only providers) |
+| Neo4jOASIS.Aura native storage (hosted only) | HyperDrive providers | cloud: cloud-hyperdrive-A | n/a | 2026-11-25 01:30 | BLOCKED: see ACTIONS-FOR-DAVID (hosted-only providers) |
+| LanceDB native storage (hosted only) | HyperDrive providers | cloud: cloud-hyperdrive-A | n/a | 2026-11-25 01:30 | BLOCKED: see ACTIONS-FOR-DAVID (hosted-only providers) |
+| Fauna native storage (hosted only) | HyperDrive providers | cloud: cloud-hyperdrive-A | n/a | 2026-11-25 01:30 | BLOCKED: see ACTIONS-FOR-DAVID (hosted-only providers) |
+| VercelKV native storage (hosted only) | HyperDrive providers | cloud: cloud-hyperdrive-A | n/a | 2026-11-25 01:30 | BLOCKED: see ACTIONS-FOR-DAVID (hosted-only providers) |
+| Polybase native storage (hosted only) | HyperDrive providers | cloud: cloud-hyperdrive-A | n/a | 2026-11-25 01:30 | BLOCKED: see ACTIONS-FOR-DAVID (hosted-only providers) |
+| PineconeOASIS native storage (Pinecone Local container) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-pinecone | 2026-11-25 01:30 | IN PROGRESS |
