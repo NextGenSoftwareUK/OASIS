@@ -279,7 +279,9 @@ internal sealed class ZcashLedgerKeyValueBackend : IKeyValueBackend, IDisposable
                     (item.TryGetProperty("confirmations", out var depth) && depth.GetInt64() >= CoinbaseMaturity))
                 .OrderByDescending(item => ToZatoshis(item.GetProperty("amount")))
                 .Select(item => (Txid: item.GetProperty("txid").GetString()!, Vout: item.GetProperty("vout").GetInt32(),
-                    Amount: ToZatoshis(item.GetProperty("amount"))))
+                    Amount: ToZatoshis(item.GetProperty("amount")),
+                    ScriptPubKey: item.GetProperty("scriptPubKey").GetString()!,
+                    AmountText: item.GetProperty("amount").GetRawText()))
                 .FirstOrDefault();
             var fee = Zip317Fee(inputCount: 1, outputScriptLengths: [P2pkhScriptLength, 2 + payload.Length]);
             if (candidate.Txid == null || candidate.Amount - fee < DustThreshold)
@@ -292,7 +294,16 @@ internal sealed class ZcashLedgerKeyValueBackend : IKeyValueBackend, IDisposable
             var outputs = new JsonObject { [_address] = JsonValue.Create(FromZatoshis(candidate.Amount - fee)) };
             var changeOnly = (await RpcAsync("createrawtransaction", new JsonArray(inputs, outputs), cancellationToken)).GetString()!;
             var unsigned = ZcashTransparentBundle.AppendNullDataOutput(changeOnly, Convert.FromHexString(script));
-            var signed = await RpcAsync("signrawtransaction", new JsonArray(unsigned), cancellationToken);
+            // NU5 (v5) signatures commit to every input's amount and script, so name the spent output explicitly
+            // instead of relying on the node's view of a coin that may be change still settling from the last commitment.
+            var previous = new JsonArray(new JsonObject
+            {
+                ["txid"] = candidate.Txid,
+                ["vout"] = candidate.Vout,
+                ["scriptPubKey"] = candidate.ScriptPubKey,
+                ["amount"] = JsonValue.Create(decimal.Parse(candidate.AmountText, NumberStyles.Float, CultureInfo.InvariantCulture))
+            });
+            var signed = await RpcAsync("signrawtransaction", new JsonArray(unsigned, previous), cancellationToken);
             if (!signed.GetProperty("complete").GetBoolean())
                 throw new InvalidOperationException("The zcashd wallet could not sign the Zcash storage commitment.");
             var hex = signed.GetProperty("hex").GetString()!;
