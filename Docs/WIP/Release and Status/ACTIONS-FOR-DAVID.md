@@ -2,6 +2,16 @@
 
 2026-11-18 — CLOUD ACTIONS SUPERSEDED / DEFERRED BY DAVID: cloud migration is abandoned and work resumes locally with isolated remote CI. This supersedes CLOUD-CQL-ACCESS-PREFLIGHT-2026-11-18 and CLOUD-CQL-HANDOFF-START-2026-11-18 for the current task; no cloud setup or repeated sign-in is requested. The latest named cloud chat reports Core read restored, startup still failed without a task ID. Historical access failures below are retained. Full roadmap and shared-cluster/deployment stand-down remain intact.
 
+## GITHUB-ACTIONS-RUNNER-CAPACITY-2026-11-25
+
+Status: open, 25 November 2026. GitHub Actions in NextGenSoftwareUK/OASIS runs only 2-3 jobs at a time while 40-130 runs queue, so CI-verified items (native-storage suites, the provider TestHarness gate, CQL/COSMIC checks) wait hours. Agents now batch pushes and avoid new runs while more than about 20 are queued, which slows verification further.
+
+What only you can do (GitHub organisation settings, may cost money):
+- Check Settings > Billing and plans for NextGenSoftwareUK: Actions minutes used vs included, and the Actions spending limit. Exhausted minutes or a zero spending limit throttle private-repo jobs.
+- Choose one: raise the spending limit or plan concurrency, add larger or self-hosted runners, or tell agents to run heavy suites only on workflow_dispatch.
+
+Unblocks: every queued native-storage suite (currently Zcash) and all other sessions' CI gates.
+
 ## CLOUD-CQL-ACCESS-PREFLIGHT-2026-11-18
 
 Status: blocked, 18 November 2026. Current runtime is Windows C:/Source/OASIS2, not a verified cloud checkout; no persistent-goal tool is exposed. GitHub connector reads OASIS/Web4Site, but private OASIS-API-Core returns 404. Connector write to this existing feature branch returns 403 Resource not accessible by integration. Native git access failed with getaddrinfo thread error. These are access/tooling limits; no credentials requested.
