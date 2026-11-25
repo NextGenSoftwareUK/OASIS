@@ -1689,3 +1689,10 @@ Status: decided by David, 24 November 2026; engineering in progress (no further 
   - `ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Managers/STARNET/OAPP System/RuntimeManager.LOST_METHODS_REVIEW.cs`
   - `ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Managers/STARNET/STARNET System/STARNETManagerBase.LOST_METHODS_REVIEW.cs`
 - Decision needed: reply "delete them" to have them removed, or name any method you want restored first. The audit found no genuine losses beyond WalletManager, which was already restored.
+
+## WRLD 3D is gone: decide the WRLD3D provider and check the Our World map
+
+- Open 2026-11-25. wrld3d.com no longer serves WRLD: the home page, developer page and wrld.js docs return unrelated gambling spam, and docs.wrld3d.com redirects there. WRLD never offered a server-side API (maps were drawn client-side by wrld.js and its Unity and mobile SDKs).
+- Done by engineering: WRLD3DOASIS no longer reports success for map operations; each returns false with the reason in `LastError`. The Web4Site homepage no longer loads WRLD's logo from wrld3d.com (Web4Site main 065b4ee).
+- Decision 1: keep WRLD3DOASIS as an unavailable provider, or remove it (project, solution entries, `MapProviderType.WRLD3D`, NuGet listing). Reply "remove WRLD3D" or "keep".
+- Decision 2: the Our World Unity project ships WRLD streaming resources (`Assets/StreamingAssets/WrldResources/`), so its in-app map probably depends on WRLD's servers. Please open Our World and check whether the map still loads. If it does not, choose a replacement renderer for Unity (Mapbox Maps SDK for Unity, Google Maps 3D, or Cesium for Unity) and engineering will migrate it. Mapbox already has a working OASIS provider (MapboxOASIS) to pair with its Unity SDK.

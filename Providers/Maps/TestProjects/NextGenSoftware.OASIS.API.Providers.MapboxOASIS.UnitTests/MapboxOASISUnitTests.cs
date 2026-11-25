@@ -1,6 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Contracts.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Contracts.Enums;
 
 namespace NextGenSoftware.OASIS.API.Providers.MapboxOASIS.UnitTests;
 
