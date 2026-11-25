@@ -1564,9 +1564,24 @@ Billing from OpenRouter's reported per-call cost would close it and open up the 
 - Decision needed: may the CQL sessions add small demo database services to the Railway **development** environment only (one service per provider, using Railway's own templates where they exist, for example Redis and PostgreSQL), seeded with the same three public teaching records each provider already uses in CI?
   - If yes: create a project token scoped to the development environment and store it as the GitHub Actions secret `RAILWAY_DEV_DEMO_TOKEN`, not in Git or chat. The sessions then add each service, seed it, set its `CQL_*` variable and verify that its presets return 3 and 2 records.
   - If no: these providers stay CI-verified only and are not shown live.
+  - Nothing has been created or changed yet. This entry only asks for approval.
+  - Cost: yes, this adds Railway cost. Railway bills usage around the clock, even for idle services. Published rates checked 25 Nov 2026 ([railway.com/pricing](https://railway.com/pricing), [docs](https://docs.railway.com/reference/pricing/plans)): RAM $10 per GB-month, CPU $20 per vCPU-month, volume storage $0.15 per GB-month, egress $0.05 per GB. Memory held while idle is most of the cost. These estimates are for an idle demo with three records each, not measured:
+
+    | Group | Providers | Idle memory each | Rough cost each |
+    | --- | --- | --- | --- |
+    | Light | Redis, Valkey, KeyDB, Dragonfly, Garnet, Memcached, PostgreSQL, TimescaleDB, CouchDB, Meilisearch, Typesense, Qdrant, Chroma, SurrealDB, PocketBase, InfluxDB | 50-200 MB | about $1-3 a month |
+    | Medium | ArangoDB, RavenDB, CockroachDB, SQL Server | 300-800 MB | about $4-9 a month |
+    | Heavy (JVM or multi-process) | Cassandra, ScyllaDB, Elasticsearch, OpenSearch, Solr, Couchbase, Milvus | 1-2 GB | about $11-25 a month |
+
+    All of them together: roughly $150-300 a month, most of it from the heavy group. The light group alone: roughly $25-50 a month.
+  - Ways to keep it small:
+    1. Recommended first batch: only the light group (16 services, about $25-50 a month). It covers most of the list.
+    2. Railway's serverless (sleep when idle) setting cuts idle cost a lot. The first query after a sleep waits while the database wakes, so the sandbox looks slow or briefly unavailable for that provider.
+    3. Share one service where the adapter allows it, for example one PostgreSQL for the PostgreSQL, TimescaleDB and pgvector demos, as separate databases.
+    4. Leave the heavy group CI-verified only. They already pass in CI.
 - Keyed indexer APIs (free tiers are enough, read-only): Alchemy, QuickNode, Ankr, Covalent (GoldRush), Moralis, Dune, Zapper, Tenderly, Goldsky and Nansen. Each needs one read-only key. Save each key on the Railway development WEB4 service as `CQL_<PROVIDER>_PUBLIC_READER_KEY`, for example `CQL_ALCHEMY_PUBLIC_READER_KEY`. These are lower priority than the demo databases.
 - GOMap routing origin: WEB4 deliberately refuses the public OSRM demo servers (`router.project-osrm.org`, `routing.openstreetmap.de`), because their usage policies forbid this use. Choose one option: (a) a small OSRM container on Railway development with the Berlin extract (fits the same demo-database approval above), or (b) a hosted routing API account. Then set `CQL_GOMAP_ROUTE_QUERY_SOURCE_ORIGIN` and `CQL_GOMAP_ROUTE_QUERY_SOURCE_OWNER`.
-- Retirement decision (same question as Fauna, Vercel KV and Polybase above): BasechainOASIS and LoomOASIS target Loom Network's Basechain, which has been wound down. Either retire them from the matrix or keep them as historical code.
+- Retirement decision (same question as Fauna, Vercel KV and Polybase above): BasechainOASIS and LoomOASIS target Loom Network's Basechain sidechain. **Not verified:** this comes from background knowledge that Loom stopped developing Basechain years ago and that the network may be shut down or unmaintained. Nobody has probed its RPC (`basechain.dappchains.com`) or found an official notice. Polybase is also unconfirmed (its testnet was reported unreachable). Fauna (hosted FaunaDB, shutdown announced in 2025) and Vercel KV (retired, stores moved to Upstash, which UpstashOASIS covers) match public announcements. On request, a CQL session will send one read-only request to the Basechain and Polybase endpoints and look for official notices before you decide. Options: retire them from the matrix, or keep them as historical code.
 - Reason: without these, the providers above cannot return real records in the live sandbox. Everything that needs no account is being done meanwhile.
 - Status: OPEN 2026-11-25.
 
