@@ -1,10 +1,15 @@
 ## Progress
 
-Maintained by cloud session cloud-cosmic-B (claims in `Docs/WIP/Release and Status/WORK-CLAIMS.md`).
+Maintained by cloud session cloud-cosmic-B.
 
 | Date (UTC) | Row | Status | Evidence |
 |---|---|---|---|
-| 2026-11-25 | O18 local view | Implemented; native 3/3 local pass; CI pending | Core 58cb81d2, branch work/cloud-cosmic-o18 |
+| 2026-11-25 | M24 defaults/computed values | Implemented; native 3/3 local pass; CI pending | Core 9096b411, branch work/cloud-cosmic-m24 |
+| 2026-11-25 | O18 local view | Implemented; CI run 45519967748 | branch work/cloud-cosmic-o18 |
+
+Maintained by cloud session cloud-cosmic-B (claims in `Docs/WIP/Release and Status/WORK-CLAIMS.md`).
+
+
 
 2026-11-23 04:36 UTC — SHARED FLUENT CONSTRAINTS NATIVE ACCEPTED. Run45111894147/job137485902365 passed all three real MongoDB/SQLite/Neo4j journeys on source6eff6800/Core23cb662e. Required/length/decimal precision and scale are enforced on the authorized owned snapshot after callbacks, remain active when session lifecycle is replaced, reject writes without changing revision, preserve immutable builder snapshots, and permit valid mapped save/read. The inherited-property identity bug is fixed by declared module/token/type identity. Strict five-entry 3,275-byte artifact14789489871 was inspected in RAM (SHAf29ad57a1566d40a000f7d910d58923a720b4e62e3146ed2cb2f77f63a83189c); three TRX cases passed, actual WEB4 compiled, owned fixtures removed, zero shared database calls. No schema-generation/DB-constraint/full M03 or full M11 parity claim. This Core is feature-only; Development remains aa257/Core854. Retain accepted cohorts; prepare the next cohesive feature batch before another normal deployment.
 
@@ -378,7 +383,7 @@ older chronological roadmap is supporting history, not the source of green statu
 | M21 | Inheritance: table-per-concrete-type equivalent | ❌ | ❌ | ❌ | Not started; depends on M19 (per-concrete-type collections/labels plus union queries over them). |
 | M22 | Entity/table splitting and multiple mappings of one class | ❌ | ❌ | ❌ | Not started. Needs a model contract that maps one CLR class onto several stored records (or several classes onto one) with atomic writes — the unit of work (S02) supplies the atomicity; the mapping layer does not exist. |
 | M23 | Keyless entities / read-only views / subselect mappings | ❌ | ❌ | ❌ | Not started. Keyless/read-only view entities need a model-declared query source; read-only mappings (M18) and DTO projections exist but not keyless entity sets. |
-| M24 | Database defaults, computed and generated properties | ❌ | ❌ | ❌ | Not started. Generated GUID keys (M07) and audit fields are store/manager-assigned; model-declared defaults and computed columns need a returned-value ownership contract per provider. |
+| M24 | Database defaults, computed and generated properties | 🟡 | 🟡 | 🟡 | Implemented (cloud-cosmic-B, Core 9096b411): fluent `HasDefaultValue(value)` (insert, when CLR default), `HasValueGeneratedOnAdd(entity=>value)` (insert generator) and `HasComputedValue(entity=>value)` (recomputed every save, caller value replaced). Applied by the manager to the authorized private write snapshot (both owned batch and mixed unit-of-work paths) before model validation, so constraints still apply and acknowledged values publish back to the caller. Insert vs update is decided by the authority's accepted revision. Types are checked at model build; Id is excluded; a failing generator refuses the whole write. Native journey `NativeModelDefaultsGeneratorsAndComputedValuesPersist` passed 3/3 (MongoDB/SQLite/Neo4j, 8 checks) locally; CI `qualify-cosmic-generated-values-native.yml` pending. Store-side SQL DEFAULT/computed column DDL is not used: document/graph stores have no equivalent, so values are produced by the model on every write path. |
 | M25 | Indexes, unique indexes and constraint management | ❌ | ❌ | ❌ | Not started for user models. Unique enforcement exists (M10); declaring and managing native secondary indexes from the model is not built. |
 | M26 | Schema migrations: diff, ordered up/down and data preservation | ❌ | ❌ | ❌ | Deferred by owner priority (breadth first). Needs a model snapshot diff and ordered up/down steps per store; provider schema upgrades exist but are not user-model migrations. |
 | M27 | Migration scripts/bundles and deployment history | ❌ | ❌ | ❌ | Deferred by owner priority; depends on M26. |
