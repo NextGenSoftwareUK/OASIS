@@ -1760,3 +1760,9 @@ Status: decided by David, 24 November 2026; engineering in progress (no further 
 - Context: PLANOASIS calls `https://api.plan.network/avatars/{id}` and similar REST paths, but its README is the generic template and no API documentation or self-hostable server could be found, so the native storage suite cannot be run. Details: `Docs/WIP/HyperDrive-Providers/PLAN_LOOM_CLASSIFICATION_2026-11-25.md`.
 - Decision: either (a) point engineering at PLAN's API documentation and a dedicated test account (secret `PLAN_CI_API_KEY` if it uses one), or (b) retire PLANOASIS from the provider matrix. Engineering's recommendation is (b) unless PLAN is a live service you rely on.
 - Status: OPEN 2026-11-25. Claim marked BLOCKED.
+
+## Oracle Object Storage test bucket (cloud-hyperdrive-A, 2026-11-25)
+
+- Context: OracleObjectStorageOASIS can only be tested against Oracle Cloud (OCI) Object Storage; there is no local OCI emulator. OracleDB (the priority Oracle provider) already passes on its own.
+- Steps: in an OCI tenancy (Always Free is enough) create a bucket `oasis-ci` in one region and an API signing key for a user limited to that bucket; secrets `OCI_CI_TENANCY_OCID`, `OCI_CI_USER_OCID`, `OCI_CI_FINGERPRINT`, `OCI_CI_PRIVATE_KEY`, `OCI_CI_REGION`, `OCI_CI_NAMESPACE`, `OCI_CI_BUCKET`.
+- Status: OPEN 2026-11-25. Claim marked BLOCKED.
