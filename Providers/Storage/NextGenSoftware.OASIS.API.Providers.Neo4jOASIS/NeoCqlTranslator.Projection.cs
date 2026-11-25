@@ -27,6 +27,27 @@ internal sealed partial class NeoCqlTranslator
             return (utcSource.State,"CASE WHEN ("+utcSource.State+")=2 THEN "+
                 NeoCqlUtcDateParts.Value(column.Function,"datetime("+utcSource.Value+")")+" ELSE null END");
         }
+        if (column.Function == CosmicProjectionFunction.Int32Affine)
+        {
+            if(column.Path.ValueType != typeof(int) || column.ValueType != typeof(int) || !column.Int32Multiplier.HasValue || !column.Int32Offset.HasValue)
+                throw new System.NotSupportedException("Native Int32 arithmetic requires an exact Int32 path and captured coefficients.");
+            var arithmeticSource=TranslateProjectionPath(column.Path);
+            var computed="(("+arithmeticSource.Value+")*"+Bind((long)column.Int32Multiplier.Value)+"+"+Bind((long)column.Int32Offset.Value)+")";
+            // Cypher integer division and remainder truncate toward zero, matching C#.
+            if(column.Int32Divisor.HasValue)computed="("+computed+(column.Int32IsModulo?" % ":" / ")+Bind((long)column.Int32Divisor.Value)+")";
+            return ("CASE WHEN ("+arithmeticSource.State+")=2 AND ("+computed+"<-2147483648 OR "+computed+">2147483647) THEN 3 ELSE ("+arithmeticSource.State+") END",
+                "CASE WHEN ("+arithmeticSource.State+")=2 AND "+computed+">=-2147483648 AND "+computed+"<=2147483647 THEN "+computed+" ELSE null END");
+        }
+        if (column.Function == CosmicProjectionFunction.TextToInt32Case)
+        {
+            if(column.Path.ValueType != typeof(string) || column.ValueType != typeof(int)
+                || column.Int32Cases == null || column.Int32Cases.Count == 0 || !column.Int32Replacement.HasValue)
+                throw new System.NotSupportedException("Native text-to-Int32 CASE requires an exact String path and captured literal branches.");
+            var numericSource=TranslateProjectionPath(column.Path);
+            var numericBranches=string.Concat(System.Linq.Enumerable.Select(column.Int32Cases,entry=>" WHEN "+Bind(entry.Key)+" THEN "+Bind((long)entry.Value)));
+            return ("CASE WHEN ("+numericSource.State+")=2 THEN 2 ELSE 3 END",
+                "CASE WHEN ("+numericSource.State+")=2 THEN CASE ("+numericSource.Value+")"+numericBranches+" ELSE "+Bind((long)column.Int32Replacement.Value)+" END ELSE NULL END");
+        }
         if (column.Function == CosmicProjectionFunction.TextValueCase)
         {
             if(column.Path.ValueType != typeof(string) || column.ValueType != typeof(string)
