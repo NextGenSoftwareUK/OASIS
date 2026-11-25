@@ -117,7 +117,7 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | COSMIC M25 model-declared indexes and constraint management | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-m25 | 2026-11-25 09:10 | RELEASED 09:25: SQLite (json_each EXISTS) and MongoDB ($expr/$getField) metadata predicates cannot use native indexes; M25 needs index-aware compiler paths in all three stores first (performance work, deferred by breadth-first policy) |
 | COSMIC A14 future/multi-query execution | COSMIC ORM | local_fa02a367 child COSMIC session | work/cosmic-cql-ton-public | 2026-11-25 | IN PROGRESS |
 | EdgeSQLiteOASIS native storage (shared core-storage suite, local SQLite file) | Storage providers | local: HyperDrive provider programme (hyperdrive session) | work/hyperdrive-triad | 2026-11-25 21:00 | DONE: not a storage provider (Edge sync journal); HoloOASIS.Edge likewise; matrix corrected (commit 17c1598e, in next Development batch) |
-| UrbitOASIS native storage (local fake ship) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-urbit | 2026-11-25 21:20 | IN PROGRESS |
+| UrbitOASIS native storage (local fake ship) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-urbit | 2026-11-25 21:20 | DONE daa8d616 (popular-providers run 45704685480 green) |
 | TelegramOASIS native storage (needs a bot token) | HyperDrive providers | cloud: cloud-hyperdrive-A | n/a | 2026-11-25 21:20 | BLOCKED: see ACTIONS-FOR-DAVID (bot and pinning accounts) |
 | DiscordOASIS native storage (needs a bot token) | HyperDrive providers | cloud: cloud-hyperdrive-A | n/a | 2026-11-25 21:20 | BLOCKED: see ACTIONS-FOR-DAVID (bot and pinning accounts) |
 | PinataOASIS native storage (hosted pinning) | HyperDrive providers | cloud: cloud-hyperdrive-A | n/a | 2026-11-25 21:20 | BLOCKED: see ACTIONS-FOR-DAVID (bot and pinning accounts) |
@@ -128,3 +128,5 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | MidenOASIS native storage (local miden-node via @miden-sdk/miden-sdk worker) | HyperDrive providers | local: testharness-build-fix | work/miden-native-storage | 2026-11-25 | IN PROGRESS |
 | Meilisearch, OpenSearch, Solr, Weaviate native storage: wire the existing (never-run) suites into popular-providers-native-storage.yml | HyperDrive providers | local: HyperDrive provider programme | work/blockstack-gaia | 2026-11-25 22:55 | IN PROGRESS |
 | COSMIC A13 join-fetch strategy and per-query split/join switch | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-a13 | 2026-11-25 22:00 | IN PROGRESS |
+| ONION-Protocol (OnionOASIS) native storage (local Tor onion service) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-onion | 2026-11-25 22:05 | IN PROGRESS |
+| HoloOASIS.Desktop native storage (local Holochain conductor) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-holo-desktop | 2026-11-25 22:05 | IN PROGRESS |
