@@ -1248,12 +1248,21 @@ jobs:
           "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI.UnitTests/NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.csproj"
         )
 
+        # Run every project even when one fails, so a single failure cannot
+        # hide the results of the projects after it; fail the step at the end.
+        failed=()
         for project in "${test_projects[@]}"; do
-          dotnet test "$project" \
+          if ! dotnet test "$project" \
             --configuration Release \
             --collect:"XPlat Code Coverage" \
-            --results-directory ./coverage
+            --results-directory ./coverage; then
+            failed+=("$project")
+          fi
         done
+        if [ ${#failed[@]} -gt 0 ]; then
+          printf '::error::Tests failed in %s\n' "${failed[@]}"
+          exit 1
+        fi
     
     - name: Generate coverage report
       working-directory: OASIS
