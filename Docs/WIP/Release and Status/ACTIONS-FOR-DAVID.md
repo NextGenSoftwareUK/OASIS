@@ -1754,3 +1754,9 @@ Status: decided by David, 24 November 2026; engineering in progress (no further 
   - Pinata: create a free Pinata account and a scoped API key (pinning + unpinning) for a test group; secret `PINATA_CI_JWT`.
 - Note: Telegram and Discord message history is not a durable keyed store. Engineering will first check whether either can meet the suite's contract within platform rules, and will classify a provider as non-storage rather than force it, as was done for Farcaster.
 - Status: OPEN 2026-11-25. Claims marked BLOCKED on the claims branch.
+
+## PLANOASIS: what is the PLAN backend? (cloud-hyperdrive-A, 2026-11-25)
+
+- Context: PLANOASIS calls `https://api.plan.network/avatars/{id}` and similar REST paths, but its README is the generic template and no API documentation or self-hostable server could be found, so the native storage suite cannot be run. Details: `Docs/WIP/HyperDrive-Providers/PLAN_LOOM_CLASSIFICATION_2026-11-25.md`.
+- Decision: either (a) point engineering at PLAN's API documentation and a dedicated test account (secret `PLAN_CI_API_KEY` if it uses one), or (b) retire PLANOASIS from the provider matrix. Engineering's recommendation is (b) unless PLAN is a live service you rely on.
+- Status: OPEN 2026-11-25. Claim marked BLOCKED.
