@@ -22,7 +22,7 @@ OPORTAL, the ONODE popup and billing UI are now owned by a different session. CQ
 - Next 3: Ceramic signed commits (DID), BlockStack Gaia auth tokens, Aztec/Miden real storage designs.
 - Blockers: ACTIONS-FOR-DAVID I1 and the hosted-account providers.
 
-## Progress (cloud-hyperdrive-A, updated 2026-11-25 22:40 UTC)
+## Progress (cloud-hyperdrive-A, updated 2026-11-25 23:10 UTC)
 
 Done in CI (native core-storage suite 26/26, sync + async, against real backends):
 - TelosOASIS and SEEDSOASIS: storage through the EOSIO (Antelope) implementation; `antelope-family-native-storage.yml`, run 45518765561.
@@ -38,10 +38,11 @@ Done in CI (native core-storage suite 26/26, sync + async, against real backends
   durability check; popular-providers run 45704685480.
 - RadixOASIS: OasisKeyValueStore Scrypto blueprint on a single-validator Babylon localnet, writes acknowledged on
   CommittedSuccess, node-restart check; popular-providers run 45709199011.
+- OnionOASIS: Tor SOCKS5 transport over the repository storage-service contract, tested on a loopback-only private
+  Tor network; popular-providers run 45711682481.
 
 EclipseOASIS: done by the hyperdrive-triad session (f2717b1b); the duplicate `work/cloud-hd-eclipse` branch is not merged.
-Passing locally, CI pending: OnionOASIS (Tor-routed storage on a loopback private Tor network), HoloOASIS.Desktop (same conductor
-as canonical HoloOASIS, holo-desktop-provider-build.yml storage mode) and SignProtocolOASIS (attestations on the real SP contract).
+Passing locally, CI pending: HoloOASIS.Desktop (same conductor as canonical HoloOASIS; first CI run failed, being fixed) and SignProtocolOASIS (attestations on the real SP contract).
 
 Classified non-storage: LoomOASIS (PLAN_LOOM_CLASSIFICATION_2026-11-25.md) and FarcasterOASIS (no keyed, durable app-data message type; see FARCASTER_STORAGE_CLASSIFICATION_2026-11-25.md).
 
@@ -164,7 +165,9 @@ Done (91 pass the native core-storage-v2 suite 52/52 against their real backend;
 
 Partly done, with open items:
 - Turso: managed Turso and hosted WEB4 activation are still open.
-- HoloOASIS.Edge: the shared suite and cross-agent replication are still open.
+- HoloOASIS.Edge: cross-agent replication on a live conductor is still open. The shared core-storage suite does not apply
+  (2026-11-25): HoloOASIS.Edge and EdgeSQLiteOASIS are Edge Runtime replication/sync components, not storage providers;
+  their unit tests run in `edge-runtime-validation.yml`.
 - HoloOASIS.Unity: the Android conductor device lifecycle is still open.
 - Algorand: done 2026-11-25. Passes the shared suite 26/26 in both modes against its native record-box application on a disposable LocalNet (`.github/workflows/algorand-native-storage.yml`). Fixes: detail lookups by username/email read the stored detail record; holon graphs are saved (children were refused); batch saves acknowledge counts; Import and owner export work on enrolled records; metadata queries select from the decrypted records instead of public Indexer fields; an unversioned save publishes the next revision instead of failing the predecessor check. The suite needs the application funded for its box storage (fixture `OASIS_ALGORAND_RECORD_APP_FUNDING`).
 

@@ -12,8 +12,8 @@
     <Version>2.0.1</Version>
     <Title>OASIS ONION Protocol Provider</Title>
     <Product>OASIS ONION Protocol Provider</Product>
-    <Summary>ONION Protocol OASIS Provider — integrates the OASIS API with the ONION (Open Network Infrastructure for Omniverse Nodes) privacy and routing protocol.</Summary>
-    <Description>ONION Protocol OASIS Provider — integrates the OASIS API with the ONION (Open Network Infrastructure for Omniverse Nodes) privacy and routing protocol.</Description>
+    <Summary>Onion OASIS Provider — stores encrypted OASIS records in an OASIS storage service published as a Tor onion service, reached only through a Tor SOCKS5 proxy.</Summary>
+    <Description>Onion OASIS Provider — stores encrypted OASIS records in an OASIS storage service published as a Tor onion service, reached only through a Tor SOCKS5 proxy.</Description>
     <Authors>David Ellams (NextGen Software Ltd)</Authors>
     <Company>NextGen Software Ltd</Company>
     <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
@@ -34,7 +34,7 @@
 - Multiple bug fixes.</PackageReleaseNotes>
   </PropertyGroup>
 <ItemGroup>
-    <ProjectReference Include="..\..\..\..\NextGenSoftware-Libraries\NextGenSoftware.WebSocket\NextGenSoftware.WebSocket.csproj" />
+    <ProjectReference Include="..\..\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" />
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" Condition="Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
     <PackageReference Include="NextGenSoftware.OASIS.API.Core" Version="2.0.0" Condition="!Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
