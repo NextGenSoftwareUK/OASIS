@@ -1449,7 +1449,7 @@ If any is wrong, a corrected catalogue needs a new version string (`web6-model-c
 
 ### G3. Security advisories in shared packages
 
-**Status:** partly resolved, agent-owned, updated 25 November 2026. AutoMapper is fixed on `Development`: the provider projects no longer reference it and ONODE WebAPI uses 16.3.0. The transitive `Microsoft.AspNetCore.WebUtilities` advisory (GHSA-x33c-w48q-qrgc, patched in 8.0.34 / 10.0.15) has not been re-checked. Nothing is needed from you.
+**Status:** resolved, agent-owned, 25 November 2026. AutoMapper is fixed on `Development` (provider projects no longer reference it; ONODE WebAPI uses 16.3.0). `dotnet list package --vulnerable --include-transitive` on a clean `Development` checkout reports no vulnerable packages for WEB6 WebAPI or ONODE WebAPI, so the `Microsoft.AspNetCore.WebUtilities` advisory no longer applies. Nothing is needed from you.
 
 ---
 
