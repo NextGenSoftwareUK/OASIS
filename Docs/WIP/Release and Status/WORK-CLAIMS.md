@@ -73,3 +73,5 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | Live CQL for self-hostable DB providers and keyed indexer APIs (needs Railway dev demo DBs / free keys) | CQL sandbox (WEB4) | cloud: cloud-cql-C | n/a | 2026-11-25 01:28 | BLOCKED: see ACTIONS-FOR-DAVID (Live CQL sandbox: demo databases and indexer keys) |
 | ONODE Manager hardening, Manager tests and setup error reporting | ONODE/ONODEManager | local: ONODE Manager improvement loop | ONODEManager main/Development | 2026-11-25 01:31 | IN PROGRESS |
 | Auto-bump submodule pointers on Development so Solution Integrity stops failing on drift (WEB6, API.Core, STAR ODK so far) | CI | local: HyperDrive Client session | work/submodule-autobump | 2026-11-25 02:40 | IN PROGRESS |
+| CeramicOASIS native storage (ceramic-one local node) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-ceramic | 2026-11-25 01:50 | IN PROGRESS |
+| CelestiaOASIS native storage (local Celestia devnet) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-celestia | 2026-11-25 01:50 | IN PROGRESS |
