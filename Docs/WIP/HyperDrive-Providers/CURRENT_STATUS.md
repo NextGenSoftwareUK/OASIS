@@ -121,6 +121,8 @@ Done (91 pass the native core-storage-v2 suite 52/52 against their real backend;
   no row DELETE; PouchDB never checked write status and turned every read error into "not found"; Berachain and Sei had
   no chain identity, which the EVM base requires for signing, so their writes failed on every network; PgVector and
   ArcadeDB were missing ProviderName/Description.
+- TON: the shared suite now runs too (2026-11-25): 26/26 in both modes against the shipping TONOASIS on a disposable local TVM sandbox running the compiled TonHolonStore (`.github/workflows/ton-native-storage.yml`). It was listed as done from its HyperDrive routing qualification only.
+- Web3CoreOASIS is the EVM contract client, not a storage provider; the matrix no longer lists it as pending.
 - NATS JetStream passes in the CI matrix (new integration-test project). Neo4jOASIS2 is a thin subclass of Neo4jOASIS (same
   driver and record implementation), so the Neo4jOASIS run covers it.
 - XRPL now has real storage and passes 26/26 in both modes against rippled standalone + Kubo
