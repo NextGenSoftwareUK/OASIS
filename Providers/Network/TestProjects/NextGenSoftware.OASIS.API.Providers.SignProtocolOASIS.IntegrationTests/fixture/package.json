@@ -1,0 +1,15 @@
+{
+  "name": "oasis-sign-protocol-native-fixture",
+  "private": true,
+  "description": "Disposable local Hardhat chain with the pinned Sign Protocol (SP) contracts for the SignProtocolOASIS native storage suite.",
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@openzeppelin/contracts": "5.0.1",
+    "@openzeppelin/contracts-upgradeable": "5.0.1",
+    "ethers": "6.15.0",
+    "hardhat": "2.26.3",
+    "solc": "0.8.26"
+  }
+}
