@@ -1,3 +1,4 @@
+using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Providers.MatrixOASIS;
@@ -14,7 +15,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MatrixOASIS.UnitTests
         private MatrixOASIS _provider = null!;
 
         [TestInitialize]
-        public void Setup() => _provider = MatrixOASISTestFactory.Create();
+        public void Setup() => _provider = new MatrixOASIS("http://127.0.0.1:8008", "token", "!room:oasis.test", new byte[32]);
 
         [TestMethod]
         public void ProviderType_ShouldBeSet()
@@ -35,6 +36,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MatrixOASIS.UnitTests
         [TestMethod]
         public void ProviderCategory_ShouldBeSet()
             => Assert.IsNotNull(_provider.ProviderCategory);
+
+        [TestMethod]
+        public void Constructor_RequiresA32ByteEncryptionKey()
+            => Assert.ThrowsException<ArgumentException>(() => new MatrixOASIS("http://127.0.0.1:8008", "token", "!room:oasis.test", new byte[16]));
+
+        [TestMethod]
+        public void Constructor_RequiresARoomId()
+            => Assert.ThrowsException<ArgumentException>(() => new MatrixOASIS("http://127.0.0.1:8008", "token", "#alias:oasis.test", new byte[32]));
 
         [TestCleanup]
         public void Cleanup()
