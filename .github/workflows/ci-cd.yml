@@ -1210,6 +1210,10 @@ jobs:
       working-directory: OASIS/Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS
       run: npm ci --ignore-scripts --no-audit --no-fund
 
+    - name: Install Polkadot SDK bridge for Polkadot unit tests
+      working-directory: OASIS/Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/SdkBridge
+      run: npm ci --ignore-scripts --no-audit --no-fund
+
     - name: Run tests with coverage
       working-directory: OASIS
       run: |
@@ -1252,6 +1256,8 @@ jobs:
           "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.CloudflareOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.CloudflareOASIS.UnitTests.csproj"
           "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.AptosOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.AptosOASIS.UnitTests.csproj"
           "ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.Tests/NextGenSoftware.OASIS.API.ONODE.WebAPI.Tests.csproj"
+          "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests.csproj"
+          "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.UnitTests.csproj"
           "ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.Core.UnitTests/NextGenSoftware.OASIS.API.ONODE.Core.Tests/NextGenSoftware.OASIS.API.ONODE.Core.Tests.csproj"
           "ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.csproj"
           "STAR ODK/NextGenSoftware.OASIS.STAR.UnitTests/NextGenSoftware.OASIS.STAR.UnitTests.csproj"
@@ -1267,6 +1273,7 @@ jobs:
         for project in "${test_projects[@]}"; do
           if ! dotnet test "$project" \
             --configuration Release \
+            --filter 'Category!=LiveService&TestCategory!=LiveService' \
             --collect:"XPlat Code Coverage" \
             --results-directory ./coverage; then
             failed+=("$project")
