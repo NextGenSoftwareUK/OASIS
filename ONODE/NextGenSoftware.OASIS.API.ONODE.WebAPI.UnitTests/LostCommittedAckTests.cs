@@ -20,9 +20,9 @@ using IoFile=System.IO.File;
 
 public sealed partial class ReplicaBaselineRepairCommandTests
 {
-    [NativeFact] public Task LostCommitAckMongoAuthority()=>LostCommittedAck(ProviderType.MongoDBOASIS);
-    [NativeFact] public Task LostCommitAckSqliteAuthority()=>LostCommittedAck(ProviderType.SQLLiteDBOASIS);
-    [NativeFact] public Task LostCommitAckNeoAuthority()=>LostCommittedAck(ProviderType.Neo4jOASIS);
+    [Trait("Category", "LiveService")][NativeFact] public Task LostCommitAckMongoAuthority()=>LostCommittedAck(ProviderType.MongoDBOASIS);
+    [Trait("Category", "LiveService")][NativeFact] public Task LostCommitAckSqliteAuthority()=>LostCommittedAck(ProviderType.SQLLiteDBOASIS);
+    [Trait("Category", "LiveService")][NativeFact] public Task LostCommitAckNeoAuthority()=>LostCommittedAck(ProviderType.Neo4jOASIS);
 
     public class NativeAckLossProxy : DispatchProxy,IConditionalHolonWriteRecoveryStorageProvider,IAtomicHolonReplicationStorageProvider
     {
