@@ -33,7 +33,9 @@ public abstract class EvmPublicAccountMetadataSource : KeyValueStorageProviderBa
     protected enum BlockHashWireFormat { CanonicalLowercase, MixedCase }
     // This is an immutable provider descriptor, never a request option or a
     // fallback after an unsupported finalized read. Existing profiles keep their policy.
-    protected enum ReadBlockPolicy { Finalized, LatestCanonicalAtRead }
+    // ConfirmationDepth is for chains whose nodes have no finalized tag and document
+    // finality as a number of confirmations (Rootstock): read at head - depth.
+    protected enum ReadBlockPolicy { Finalized, LatestCanonicalAtRead, ConfirmationDepth }
     protected enum GenesisIdentityKind { EthereumBlockHash, FilecoinTipsetCid }
     protected sealed record Network(PType Provider, string Name, string ChainId, string GenesisHash,
         string AddressMetadata, string RpcPath = "/",
@@ -43,6 +45,11 @@ public abstract class EvmPublicAccountMetadataSource : KeyValueStorageProviderBa
         public ReadBlockPolicy ReadPolicy { get; init; } = ReadBlockPolicy.Finalized;
         public GenesisIdentityKind GenesisIdentity { get; init; } = GenesisIdentityKind.EthereumBlockHash;
         public string NativeGenesisCid { get; init; }
+        /// <summary>Confirmations below the head for <see cref="ReadBlockPolicy.ConfirmationDepth"/>.</summary>
+        public int Confirmations { get; init; }
+        /// <summary>Whether the node accepts EIP-1898 requireCanonical. When it does not
+        /// (Rootstock answers -32603), canonicality is proven by the post-read height fence.</summary>
+        public bool SupportsRequireCanonical { get; init; } = true;
     }
     private readonly AccountsBackend accounts;
     private bool disposed;
@@ -233,6 +240,7 @@ public abstract class EvmPublicAccountMetadataSource : KeyValueStorageProviderBa
         public string Commitment => Identity.ReadPolicy switch {
             ReadBlockPolicy.Finalized => "finalized",
             ReadBlockPolicy.LatestCanonicalAtRead => "latest-canonical-at-read",
+            ReadBlockPolicy.ConfirmationDepth => "confirmed-" + Identity.Confirmations,
             _ => throw new InvalidDataException("Unknown native block-read policy.")
         };
         public string Prefix => Identity.Name.ToLowerInvariant() + "-public-metadata/";
@@ -310,11 +318,23 @@ public abstract class EvmPublicAccountMetadataSource : KeyValueStorageProviderBa
                 default:
                     throw new InvalidDataException("Unknown native genesis identity policy.");
             }
-            var tag = Identity.ReadPolicy switch {
-                ReadBlockPolicy.Finalized => "finalized",
-                ReadBlockPolicy.LatestCanonicalAtRead => "latest",
-                _ => throw new InvalidDataException("Unknown native block-read policy.")
-            };
+            string tag;
+            switch (Identity.ReadPolicy)
+            {
+                case ReadBlockPolicy.Finalized: tag = "finalized"; break;
+                case ReadBlockPolicy.LatestCanonicalAtRead: tag = "latest"; break;
+                case ReadBlockPolicy.ConfirmationDepth:
+                    if (Identity.Confirmations <= 0)
+                        throw new InvalidDataException("Confirmation-depth profiles require a positive depth.");
+                    var head = BigInteger.Parse(Quantity((await RpcAsync("eth_blockNumber",
+                        Array.Empty<object>(), token)).GetString()), CultureInfo.InvariantCulture);
+                    if (head < Identity.Confirmations)
+                        throw new InvalidDataException("Chain head is below the configured confirmation depth.");
+                    var target = (head - Identity.Confirmations).ToString("x", CultureInfo.InvariantCulture).TrimStart('0');
+                    tag = "0x" + (target.Length == 0 ? "0" : target);
+                    break;
+                default: throw new InvalidDataException("Unknown native block-read policy.");
+            }
             var finalized = await RpcAsync("eth_getBlockByNumber", new object[] { tag, false }, token);
             var hash = Hash(finalized.GetProperty("hash"), Identity.BlockHashes);
             var number = Quantity(finalized.GetProperty("number").GetString());
@@ -324,7 +344,8 @@ public abstract class EvmPublicAccountMetadataSource : KeyValueStorageProviderBa
                 // Every selected address is read from the same explicitly selected canonical
                 // block. Unknown/unsupported block semantics fail, never fall back.
                 var balance = await RpcAsync("eth_getBalance", new object[] {
-                    key, new { blockHash = hash, requireCanonical = true } }, token);
+                    key, Identity.SupportsRequireCanonical
+                        ? new { blockHash = hash, requireCanonical = true } : (object)new { blockHash = hash } }, token);
                 var fields = new Dictionary<string, object> {
                     ["name"] = Identity.Name + " address " + key,
                     ["description"] = "Public " + Commitment + " " + Identity.Name + " address balance; no wallet or transactions.",
@@ -339,7 +360,7 @@ public abstract class EvmPublicAccountMetadataSource : KeyValueStorageProviderBa
                 row.CreatedByAvatarId = owner; row.IsPublic = true; row.IsActive = true; row.Children = Array.Empty<IHolon>();
                 row.ProviderUniqueStorageKey[Identity.Provider] = key; rows.Add(row);
             }
-            if (Identity.ReadPolicy == ReadBlockPolicy.LatestCanonicalAtRead)
+            if (Identity.ReadPolicy != ReadBlockPolicy.Finalized || !Identity.SupportsRequireCanonical)
             {
                 // The selected head can advance or reorganize. All balances used
                 // EIP-1898 requireCanonical; additionally fence publication against
