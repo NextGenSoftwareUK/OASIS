@@ -127,3 +127,4 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | COSMIC Q30 DateOnly/TimeOnly/DateTimeOffset/TimeSpan translation | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-q30 | 2026-11-25 21:30 | IN PROGRESS |
 | MidenOASIS native storage (local miden-node via @miden-sdk/miden-sdk worker) | HyperDrive providers | local: testharness-build-fix | work/miden-native-storage | 2026-11-25 | IN PROGRESS |
 | Meilisearch, OpenSearch, Solr, Weaviate native storage: wire the existing (never-run) suites into popular-providers-native-storage.yml | HyperDrive providers | local: HyperDrive provider programme | work/blockstack-gaia | 2026-11-25 22:55 | IN PROGRESS |
+| COSMIC A13 join-fetch strategy and per-query split/join switch | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-a13 | 2026-11-25 22:00 | IN PROGRESS |
