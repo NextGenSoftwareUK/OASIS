@@ -6383,7 +6383,7 @@
       "name": "Gardens",
       "item": [
         {
-          "name": "History  [GET /history]",
+          "name": "History  [GET /api/gardens/history]",
           "request": {
             "method": "GET",
             "header": [
@@ -6396,11 +6396,11 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "url": "{{web4BaseUrl}}/history"
+            "url": "{{web4BaseUrl}}/api/gardens/history"
           }
         },
         {
-          "name": "Locations  [GET /locations]",
+          "name": "Locations  [GET /api/gardens/locations]",
           "request": {
             "method": "GET",
             "header": [
@@ -6413,11 +6413,11 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "url": "{{web4BaseUrl}}/locations"
+            "url": "{{web4BaseUrl}}/api/gardens/locations"
           }
         },
         {
-          "name": "Nearby  [GET /nearby]",
+          "name": "Nearby  [GET /api/gardens/nearby]",
           "request": {
             "method": "GET",
             "header": [
@@ -6430,11 +6430,11 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "url": "{{web4BaseUrl}}/nearby"
+            "url": "{{web4BaseUrl}}/api/gardens/nearby"
           }
         },
         {
-          "name": "Plant  [POST /plant]",
+          "name": "Plant  [POST /api/gardens/plant]",
           "request": {
             "method": "POST",
             "header": [
@@ -6451,7 +6451,7 @@
                 "value": "{{$guid}}"
               }
             ],
-            "url": "{{web4BaseUrl}}/plant",
+            "url": "{{web4BaseUrl}}/api/gardens/plant",
             "body": {
               "mode": "raw",
               "raw": "{}",
@@ -6464,7 +6464,7 @@
           }
         },
         {
-          "name": "Refill  [POST /refill]",
+          "name": "Refill  [POST /api/gardens/refill]",
           "request": {
             "method": "POST",
             "header": [
@@ -6481,7 +6481,7 @@
                 "value": "{{$guid}}"
               }
             ],
-            "url": "{{web4BaseUrl}}/refill",
+            "url": "{{web4BaseUrl}}/api/gardens/refill",
             "body": {
               "mode": "raw",
               "raw": "{}",
@@ -6494,7 +6494,7 @@
           }
         },
         {
-          "name": "Species  [GET /species]",
+          "name": "Species  [GET /api/gardens/species]",
           "request": {
             "method": "GET",
             "header": [
@@ -6507,11 +6507,11 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "url": "{{web4BaseUrl}}/species"
+            "url": "{{web4BaseUrl}}/api/gardens/species"
           }
         },
         {
-          "name": "Wallet  [GET /wallet]",
+          "name": "Wallet  [GET /api/gardens/wallet]",
           "request": {
             "method": "GET",
             "header": [
@@ -6524,11 +6524,11 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "url": "{{web4BaseUrl}}/wallet"
+            "url": "{{web4BaseUrl}}/api/gardens/wallet"
           }
         },
         {
-          "name": "Care  [POST /{id:guid}/care]",
+          "name": "Care  [POST /api/gardens/{id:guid}/care]",
           "request": {
             "method": "POST",
             "header": [
@@ -6545,7 +6545,7 @@
                 "value": "{{$guid}}"
               }
             ],
-            "url": "{{web4BaseUrl}}/{{id}}/care",
+            "url": "{{web4BaseUrl}}/api/gardens/{{id}}/care",
             "body": {
               "mode": "raw",
               "raw": "{}",
@@ -6558,7 +6558,7 @@
           }
         },
         {
-          "name": "Leave  [POST /{id:guid}/leave]",
+          "name": "Leave  [POST /api/gardens/{id:guid}/leave]",
           "request": {
             "method": "POST",
             "header": [
@@ -6575,7 +6575,7 @@
                 "value": "{{$guid}}"
               }
             ],
-            "url": "{{web4BaseUrl}}/{{id}}/leave",
+            "url": "{{web4BaseUrl}}/api/gardens/{{id}}/leave",
             "body": {
               "mode": "raw",
               "raw": "{}",
@@ -6588,7 +6588,7 @@
           }
         },
         {
-          "name": "Thank You  [POST /{id:guid}/thank-you]",
+          "name": "Thank You  [POST /api/gardens/{id:guid}/thank-you]",
           "request": {
             "method": "POST",
             "header": [
@@ -6605,7 +6605,7 @@
                 "value": "{{$guid}}"
               }
             ],
-            "url": "{{web4BaseUrl}}/{{id}}/thank-you",
+            "url": "{{web4BaseUrl}}/api/gardens/{{id}}/thank-you",
             "body": {
               "mode": "raw",
               "raw": "{}",
@@ -6618,7 +6618,7 @@
           }
         },
         {
-          "name": "Visit  [POST /{id:guid}/visit]",
+          "name": "Visit  [POST /api/gardens/{id:guid}/visit]",
           "request": {
             "method": "POST",
             "header": [
@@ -6635,7 +6635,7 @@
                 "value": "{{$guid}}"
               }
             ],
-            "url": "{{web4BaseUrl}}/{{id}}/visit",
+            "url": "{{web4BaseUrl}}/api/gardens/{{id}}/visit",
             "body": {
               "mode": "raw",
               "raw": "{}",
@@ -11577,7 +11577,7 @@
       "name": "Map Routes",
       "item": [
         {
-          "name": "Create  [POST /]",
+          "name": "Create  [POST /api/map/routes]",
           "request": {
             "method": "POST",
             "header": [
@@ -11594,7 +11594,7 @@
                 "value": "{{$guid}}"
               }
             ],
-            "url": "{{web4BaseUrl}}/",
+            "url": "{{web4BaseUrl}}/api/map/routes",
             "body": {
               "mode": "raw",
               "raw": "{}",
@@ -11607,7 +11607,7 @@
           }
         },
         {
-          "name": "List  [GET /]",
+          "name": "List  [GET /api/map/routes]",
           "request": {
             "method": "GET",
             "header": [
@@ -11620,11 +11620,11 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "url": "{{web4BaseUrl}}/"
+            "url": "{{web4BaseUrl}}/api/map/routes"
           }
         },
         {
-          "name": "Get  [GET /{id:guid}]",
+          "name": "Get  [GET /api/map/routes/{id:guid}]",
           "request": {
             "method": "GET",
             "header": [
@@ -11637,11 +11637,11 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "url": "{{web4BaseUrl}}/{{id}}"
+            "url": "{{web4BaseUrl}}/api/map/routes/{{id}}"
           }
         },
         {
-          "name": "Update Access  [PUT /{id:guid}/access]",
+          "name": "Update Access  [PUT /api/map/routes/{id:guid}/access]",
           "request": {
             "method": "PUT",
             "header": [
@@ -11658,7 +11658,7 @@
                 "value": "{{$guid}}"
               }
             ],
-            "url": "{{web4BaseUrl}}/{{id}}/access",
+            "url": "{{web4BaseUrl}}/api/map/routes/{{id}}/access",
             "body": {
               "mode": "raw",
               "raw": "{}",
@@ -15133,7 +15133,7 @@
       "name": "Places",
       "item": [
         {
-          "name": "Nearby  [GET /nearby]",
+          "name": "Nearby  [GET /api/places/nearby]",
           "request": {
             "method": "GET",
             "header": [
@@ -15146,11 +15146,11 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "url": "{{web4BaseUrl}}/nearby"
+            "url": "{{web4BaseUrl}}/api/places/nearby"
           }
         },
         {
-          "name": "Observe  [POST /observe]",
+          "name": "Observe  [POST /api/places/observe]",
           "request": {
             "method": "POST",
             "header": [
@@ -15167,7 +15167,7 @@
                 "value": "{{$guid}}"
               }
             ],
-            "url": "{{web4BaseUrl}}/observe",
+            "url": "{{web4BaseUrl}}/api/places/observe",
             "body": {
               "mode": "raw",
               "raw": "{}",
@@ -15180,7 +15180,7 @@
           }
         },
         {
-          "name": "Presence  [GET /presence]",
+          "name": "Presence  [GET /api/places/presence]",
           "request": {
             "method": "GET",
             "header": [
@@ -15193,11 +15193,11 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "url": "{{web4BaseUrl}}/presence"
+            "url": "{{web4BaseUrl}}/api/places/presence"
           }
         },
         {
-          "name": "Visits  [GET /visits]",
+          "name": "Visits  [GET /api/places/visits]",
           "request": {
             "method": "GET",
             "header": [
@@ -15210,7 +15210,7 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "url": "{{web4BaseUrl}}/visits"
+            "url": "{{web4BaseUrl}}/api/places/visits"
           }
         }
       ]
