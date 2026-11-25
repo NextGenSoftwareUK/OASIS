@@ -84,7 +84,7 @@ Last updated 31 October 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (mer
 | 10 | COSMIC/CQL: decide follow-up Default-routing fix publication; hosted Azure/Oracle remain deferred | F |
 | 12 | **Post-release 2026-11-24: production SQLite replication held (BINDING_MISMATCH), WEB9 fix to release, test records left on prod/dev** | POST-RELEASE-2026-11-24 |
 | 11 | **WEB6 model catalogue v6: review prices, then approve the push** (OpenRouter list import, media prices, 6 new text models) | G |
-| 12 | HyperDrive on dev: Neo4j to SQLite baseline repair at sequence 14 — **approved 25 November**, handed to the CQL sandbox session to run | I |
+| 12 | **HyperDrive on dev: confirm the Neo4j to SQLite baseline repair at sequence 14** in the CQL sandbox session (explained there) | I |
 | 13 | **Railway dev: add one DNA key so IPFS keeps its catalogue across restarts** (`IPFSOASIS.CatalogueRootPointerPath`) | I |
 
 ---
@@ -1624,8 +1624,8 @@ Status: decided by David, 24 November 2026; engineering in progress (no further 
 
 ### I1. Approve a baseline repair for Neo4j to SQLite at sequence 14
 
-- Status: approved by David on 25 November 2026 ("Sure its fine"); handed to the CQL sandbox session, which ran the
-  earlier Mongo to SQLite repairs, to execute once. Originally reported 24 November 2026 by the CQL/WEB4 session from the live dev WEB4 logs
+- Status: awaiting David's confirmation in the CQL sandbox session, 25 November 2026. David replied "Sure its fine"
+  before it had been explained; it is a one-shot write to hosted dev data, so it runs only after he confirms there. Originally reported 24 November 2026 by the CQL/WEB4 session from the live dev WEB4 logs
   (`railway logs -e dev -s 5123199a-43c4-4439-9921-e10e2aec7841`).
 - What: `Replication Neo4jOASIS -> hyperdrive-target:SQLLiteDBOASIS blocked at sequence 14, operation
   b64bce63-3aeb-40c0-b3b2-b75675a87023: COSMIC_REPLICA_LINEAGE_CONFLICT`. This is a new hold and is not the protected
