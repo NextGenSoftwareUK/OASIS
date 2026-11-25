@@ -1134,6 +1134,8 @@ Power recovery verified on 11 November UTC: battery 21% and charging (Win32_Batt
 
 ### WEB6 Ask your data Development demo entitlement · 13 November
 
+25 November update (CQL sandbox session): still open, and now the only blocker for the sandbox's Ask Your Data tab. The tab's code is finished on Web4Site `work/cosmic-cql`. A live call to `dev.api.web6.oasisomniverse.one/v1/complete` with a demo session returns `WEB6_FREE_ROUTE_UNAVAILABLE` ("No zero-price completion route is configured"). What David needs to do is configure one free inference route in Development WEB6's saved DNA: a Gemini free-tier API key, an OpenRouter key (with a free model), or an Ollama endpoint and model. That unblocks the Ask Your Data demo for every visitor.
+
 23 November runtime update: selected startup configuration-presence flags on the running Development WEB6 source4b8d3923 show no dedicated Gemini Free key, no OpenRouter credential and no Ollama endpoint/model. No secrets were printed, model requests made or settings changed. The existing permanent-Free-route action remains deferred/pending; no new login, entitlement grant or repeated owner request. Engineering continues native query delivery independently.
 
 
@@ -1484,3 +1486,24 @@ Links: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44675640513
 - Weaviate (for example Weaviate Cloud): create a cluster with an `OasisHolon` collection and a read-only API key, seeded the same way. Set `CQL_WEAVIATE_QUERY_ORIGIN`, `CQL_WEAVIATE_QUERY_READER_API_KEY` and `CQL_WEAVIATE_QUERY_PROBE_ID` in the same places.
 - The hosted tests also read a small JSON manifest of the seeded IDs, from `COSMIC_INFLUXDB_HOSTED_CQL_SOURCE` and `COSMIC_WEAVIATE_HOSTED_CQL_SOURCE`. Engineering writes that manifest once the sources exist.
 - Never put the tokens in Git or chat.
+
+## Promote the cleaned WEB4 sandbox page to the public site
+
+- Open 2026-11-25. The public sandbox at https://web4.oasisomniverse.one/web4-sandbox.html still shows 49 "local demo" steps that tell visitors to run `pwsh -File Scripts/TestHosts/*.ps1` from `C:/Source/OASIS-cosmic`. Visitors cannot run those, and PowerShell is no longer used. Every provider those steps mention now runs live in the hosted CQL Playground.
+- Fixed on the Web4Site branch `work/cosmic-cql` in commit 6930aff. The same branch now also has f301621: 'Prepare my sample records' gives the built-in MongoDB, SQLite and Neo4j presets real rows for a new demo visitor (they returned zero rows before), verified against the live dev API. And 3099bf0: the 47 'Open local query' links that point at 127.0.0.1 are hidden for public visitors (they still show when the page is opened locally), and changed scripts get new cache-busting versions. Only the launcher command lines were removed: provider descriptions, the C# walkthrough links and the page anchors are kept, and the site's tests pass (two test files need Node 21+ for `JSON.rawJSON`; this laptop has Node 18).
+- What David needs to do: approve promoting `work/cosmic-cql` to the public site (Web4Site `main`). That branch is 343 commits ahead of `main` (and `main` has 1 commit the branch lacks), so promoting it ships all the CQL playground work since mid-November, so review the Vercel preview of `work/cosmic-cql` before approving.
+- What it unblocks: the public sandbox page stops showing internal instructions.
+
+## Stop docs-only pushes from redeploying WEB4-WEB10 (Railway Watch Paths)
+
+- Open 2026-11-25. Every push to `Development` rebuilds the dev WEB4-WEB10 services, even when only docs change. The new WORK-CLAIMS rule makes every session push `claim:` commits to Development: 11 of about 22 commits in the last two hours were docs-only claims, and 7 WEB4 dev deploys were queued at once. The sandbox keeps restarting, live checks can't find a stable window, and builds pile up.
+- What David needs to do: in the Railway dashboard, for each dev service WEB4-WEB10 (Settings, then Build, then Watch Paths), add patterns so changes that touch only docs never deploy, for example `**` plus the exclusions `!Docs/**`, `!**/*.md` and `!.github/**`. The same setting can be applied to production too.
+- Why David: this changes Railway service settings, which agents must not change on their own.
+- What it unblocks: claims, status and doc updates stop restarting the live sandbox; real code changes still deploy as before.
+
+## GitHub Actions has stalled: 100+ runs queued, one running
+
+- Open 2026-11-25 (about 02:50 UTC). In the OASIS repo, 100+ workflow runs are queued and only one is running: 61 queued from Development pushes, plus every session's branches. CI jobs queued an hour ago have not started. The organisation is on GitHub's Free plan, so the private-repo Actions minutes are probably used up or a spending limit has been hit. Agents cannot check this: it needs the org admin billing scope.
+- What David needs to do: open GitHub, NextGenSoftwareUK organisation, Settings, then Billing and plans (Actions usage and spending limit). Either raise the spending limit or upgrade the plan, or decide that sessions must run less CI. Optionally, cancel the stale queued Development runs so the newest ones run first.
+- Why David: billing and plan changes are his decision.
+- What it unblocks: every session's CI checks (COSMIC ORM rows, HyperDrive providers, the CQL sandbox fixes). Right now no verified batch can reach Development.

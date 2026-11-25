@@ -1,10 +1,12 @@
 # COSMIC / CQL status (plain English)
 
-Updated 24 November 2026. Checked against the LIVE dev sandbox API `https://dev.api.web4.oasisomniverse.one` (`/api/data/query-cql`), signed in as a sandbox visitor, running every preset in the provider catalogue.
+Updated 25 November 2026. Checked against the LIVE dev sandbox API `https://dev.api.web4.oasisomniverse.one` (`/api/data/query-cql`), signed in as a sandbox visitor, running every preset in the provider catalogue.
 
 ## Headline
 
-- **102 providers return real records** for their full and filtered presets in the live sandbox (plus MongoDB, SQLite and Neo4j, which take your own data rather than presets).
+- **107 providers are in the live catalogue; 208 of 208 plain presets returned real records** in the 24 November sweep (plus MongoDB, SQLite and Neo4j, which use your own data).
+- **Private paired (MongoDB + provider federation) presets:** 129 of 208 passed in a first sweep. The failures came from a test token expiring and from WEB4 redeploying mid-run, not from providers; failures re-run individually pass (Optimism, Linea and Scroll included). A clean full re-run is waiting for the Railway deploy queue to clear.
+- **Checked in a real browser:** the CQL Playground returns HoloOASIS's three records.
 - **14 of 15 priority providers are live.** Only TRON is blocked (needs a TronGrid key from David).
 - All of this runs through the real provider classes (`*OASIS.Cql.cs`), not ONODE adapters.
 
@@ -60,6 +62,14 @@ Checklist: 64 of 181 rows are still open, down from 107 this morning. Each remai
 
 Also: WEB4 did not compile, because the avatar-password JSON filter from cee7dc1d was never committed (its file name matched the repo's `*secret*` ignore rule). Development fixed this in b66e3d4e, and this branch now uses that fix.
 
+## Sandbox page fixes waiting to go public
+
+All on Web4Site branch `work/cosmic-cql`; promoting it to the public site needs David's approval (ACTIONS-FOR-DAVID):
+
+- 6930aff removes 49 laptop-only `pwsh` launcher steps from the public page.
+- f301621 adds "Prepare my sample records", so the built-in MongoDB, SQLite and Neo4j presets return rows for a new visitor (before, they returned none). Verified against the live dev API.
+- 3099bf0 hides 47 `127.0.0.1` local-demo links for public visitors and bumps the changed scripts' cache versions.
+
 ## Calling the API yourself
 
 1. `POST /api/sandbox/session` with `{}` returns a visitor `jwtToken`.
@@ -68,7 +78,9 @@ Also: WEB4 did not compile, because the avatar-password JSON filter from cee7dc1
 
 ## Still open (not done, not claimed)
 
-- HoloOASIS: cold-start reliability, private-data copies and live HyperDrive writes. The public read works.
+- HoloOASIS: a startup now logs each phase. On 24 November the cell was ready 98s after boot (96s of it the Holochain network join), inside the 480s budget. Live HyperDrive writes to HoloOASIS belong to the HyperDrive session.
+- Ask Your Data: the tab is built, but WEB6 dev has no free model route for demo visitors (`WEB6_FREE_ROUTE_UNAVAILABLE`). It needs a key from David (ACTIONS-FOR-DAVID).
+- Docs-only pushes redeploy WEB4-WEB10 (7 deploys queued at once on 25 November). Fixing it needs Railway Watch Paths set by David (ACTIONS-FOR-DAVID).
 - Providers whose own public APIs are down at startup (e.g. Chainflip HTTP 525, Blockscout timing out above 15s per address on 24 Nov) show as unavailable until the next restart or an operator recovery call.
 - TRON: needs a TronGrid API key from David (see ACTIONS-FOR-DAVID.md).
 - Remaining EF/NHibernate rows: see CQL_PARITY_CHECKLIST.md. General (non-preset) queries and writes on chain providers: see the archive.
