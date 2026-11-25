@@ -1484,3 +1484,10 @@ Links: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44675640513
 - Weaviate (for example Weaviate Cloud): create a cluster with an `OasisHolon` collection and a read-only API key, seeded the same way. Set `CQL_WEAVIATE_QUERY_ORIGIN`, `CQL_WEAVIATE_QUERY_READER_API_KEY` and `CQL_WEAVIATE_QUERY_PROBE_ID` in the same places.
 - The hosted tests also read a small JSON manifest of the seeded IDs, from `COSMIC_INFLUXDB_HOSTED_CQL_SOURCE` and `COSMIC_WEAVIATE_HOSTED_CQL_SOURCE`. Engineering writes that manifest once the sources exist.
 - Never put the tokens in Git or chat.
+
+## Cloud session `cloud-hyperdrive-A` cannot push to GitHub (2026-11-25)
+
+- Context: the HyperDrive provider loop must push claims to Development and run CI. In this cloud session both `git push` and the GitHub MCP write calls return 403 ("Resource not accessible by integration"). Reads work.
+- Steps: connect or reconnect GitHub at https://claude.ai/connect-github, and install the Claude GitHub App on NextGenSoftwareUK/OASIS (or ask an org owner): https://github.com/apps/claude/installations/select_target. Then start a new session with the repo selected.
+- Reason: without push there are no claims and no CI runs, so no provider can be marked done.
+- Status: OPEN. Local claim commit for TelosOASIS native storage (4f6f7e75) exists only in this container.
