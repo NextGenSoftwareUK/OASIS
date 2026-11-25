@@ -1696,3 +1696,9 @@ Status: decided by David, 24 November 2026; engineering in progress (no further 
 - Done by engineering: WRLD3DOASIS no longer reports success for map operations; each returns false with the reason in `LastError`. The Web4Site homepage no longer loads WRLD's logo from wrld3d.com (Web4Site main 065b4ee).
 - Decision 1: keep WRLD3DOASIS as an unavailable provider, or remove it (project, solution entries, `MapProviderType.WRLD3D`, NuGet listing). Reply "remove WRLD3D" or "keep".
 - Decision 2: the Our World Unity project ships WRLD streaming resources (`Assets/StreamingAssets/WrldResources/`), so its in-app map probably depends on WRLD's servers. Please open Our World and check whether the map still loads. If it does not, choose a replacement renderer for Unity (Mapbox Maps SDK for Unity, Google Maps 3D, or Cesium for Unity) and engineering will migrate it. Mapbox already has a working OASIS provider (MapboxOASIS) to pair with its Unity SDK.
+
+## Published ONODE.Core 2.0.1 NuGet package cannot be restored
+
+- Open 2026-11-25. `NextGenSoftware.OASIS.API.ONODE.Core` 2.0.1 on nuget.org depends on `Ipfs.Http.Client` >= 0.42, which does not exist on nuget.org (the newest there is 0.33.0). Any project that falls back to the package (for example a checkout without the ONODE.Core submodule, or an external NuGet consumer) fails restore with NU1102.
+- The source is already fixed: IPFSOASIS now packs the local Ipfs.Http.Client DLL privately instead of declaring it as a NuGet dependency. Only the published package is stale.
+- Decision needed: approve publishing a new ONODE.Core version (and the IPFSOASIS package) through the normal NuGet release, so the fixed dependency graph reaches nuget.org. Existing versions are not changed or republished.
