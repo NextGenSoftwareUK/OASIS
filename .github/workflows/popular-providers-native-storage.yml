@@ -43,6 +43,8 @@ on:
       - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CeramicOASIS.IntegrationTests/**'
       - 'Providers/Social/NextGenSoftware.OASIS.API.Providers.BlueSkyOASIS/**'
       - 'Providers/Social/TestProjects/NextGenSoftware.OASIS.API.Providers.BlueSkyOASIS.IntegrationTests/**'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.FilecoinOASIS/**'
+      - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.FilecoinOASIS.IntegrationTests/**'
       - 'Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.DaprOASIS.IntegrationTests/**'
       - 'Providers/Social/NextGenSoftware.OASIS.API.Providers.NostrOASIS/**'
       - 'Providers/*/TestProjects/*/*NativeStorageConformanceTests.cs'
@@ -58,7 +60,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        provider: [CouchDB, Couchbase, ArangoDB, SurrealDB, ClickHouse, InfluxDB, Chroma, PgVector, ArcadeDB, QuestDB, PouchDB, NATSJetStream, Nostr, Dapr, GUN, Marqo, Pinot, Matrix, OrbitDB, Arweave, Scuttlebutt, Appwrite, Pinecone, Tableland, Celestia, Ceramic, BlueSky]
+        provider: [CouchDB, Couchbase, ArangoDB, SurrealDB, ClickHouse, InfluxDB, Chroma, PgVector, ArcadeDB, QuestDB, PouchDB, NATSJetStream, Nostr, Dapr, GUN, Marqo, Pinot, Matrix, OrbitDB, Arweave, Scuttlebutt, Appwrite, Pinecone, Tableland, Celestia, Ceramic, BlueSky, Filecoin]
     defaults:
       run:
         working-directory: OASIS
@@ -294,6 +296,13 @@ jobs:
             BlueSky)
               # Postgres + local PLC directory + official PDS (pinned by digest); creates oasis-async.test / oasis-sync.test.
               container="$(Providers/Social/TestProjects/NextGenSoftware.OASIS.API.Providers.BlueSkyOASIS.IntegrationTests/start-pds-fixture.sh "$password")" ;;
+            Filecoin)
+              # Local Lotus FEVM devnet (chain 31415926) with the Web3CoreOASIS contracts deployed; proof params in a named volume.
+              export OASIS_FILECOIN_PROOF_PARAMS=oasis-filecoin-proof-params
+              Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.FilecoinOASIS.IntegrationTests/Fixture/start-lotus-devnet.sh "$fixture" \
+                || { container="$(cat "$fixture/container" 2>/dev/null || true)"; exit 1; }
+              container="$(cat "$fixture/container")"
+              source "$fixture/settings.env" ;;
             Couchbase)
               container="$(docker run -d -p 127.0.0.1:8091-8097:8091-8097 -p 127.0.0.1:11210:11210 -p 127.0.0.1:11280:11280 couchbase/server:community-7.6.2)"
               wait_for "curl -fsS http://127.0.0.1:8091/ui/index.html"

@@ -2,7 +2,7 @@ name: EVM native storage
 
 on:
   push:
-    branches: [work/hyperdrive-triad]
+    branches: [work/hyperdrive-triad, 'work/cloud-hd-filecoin']
     paths:
       - '.github/workflows/evm-native-storage.yml'
       - 'Scripts/TestHosts/run-local-evm-storage-conformance.cjs'
