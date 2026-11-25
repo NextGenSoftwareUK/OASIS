@@ -82,6 +82,7 @@ Last updated 31 October 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (mer
 | 7 | Older items: phone tests, WSL disk, Vercel branch check, oasisweb4 site decision, iOS runtime script, Git LFS budget, upstream Holochain PRs | D |
 | 11 | Messaging programme: review and push the `work/oasis-messaging` branches (parent, API.Core, STAR ODK, 7 npm repos), publish the npm packages, physical-device Bluetooth tests, HerzApp/Our World wiring decisions | G |
 | 10 | COSMIC/CQL: decide follow-up Default-routing fix publication; hosted Azure/Oracle remain deferred | F |
+| 12 | **Post-release 2026-11-24: production SQLite replication held (BINDING_MISMATCH), WEB9 fix to release, test records left on prod/dev** | POST-RELEASE-2026-11-24 |
 | 11 | **WEB6 model catalogue v6: review prices, then approve the push** (OpenRouter list import, media prices, 6 new text models) | G |
 
 ---
@@ -1491,3 +1492,91 @@ Links: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44675640513
 - Steps: connect or reconnect GitHub at https://claude.ai/connect-github, and install the Claude GitHub App on NextGenSoftwareUK/OASIS (or ask an org owner): https://github.com/apps/claude/installations/select_target. Then start a new session with the repo selected.
 - Reason: without push there are no claims and no CI runs, so no provider can be marked done.
 - Status: DONE 2026-11-25. GitHub reconnected; claim and this entry pushed to Development (b025d919).
+
+## Hosted-only providers: accounts needed for native storage tests (cloud-hyperdrive-A, 2026-11-25)
+
+- Context: these providers have no self-hostable backend, so their native storage suite (26/26 sync + async) can only run against a real hosted account. Each needs a dedicated, empty test project/database that CI may fill and clear. Never reuse a production database. Put the values in GitHub Actions secrets (names below), never in Git or chat.
+- Steps, one account each (free tiers are enough):
+  - Nile (thenile.dev): create a database `oasis-ci`, create a database user; secret `NILE_CI_CONNECTION_STRING`.
+  - Cloudflare D1: create a D1 database `oasis-ci`; an API token with D1 edit on that account; secrets `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_D1_DATABASE_ID`, `CLOUDFLARE_D1_TOKEN`.
+  - Netlify Blobs: create a site `oasis-ci`, a personal access token; secrets `NETLIFY_SITE_ID`, `NETLIFY_BLOBS_TOKEN`.
+  - MotherDuck: create database `oasis_ci`, an access token; secret `MOTHERDUCK_CI_TOKEN`.
+  - Cloudinary: create a product environment `oasis-ci`; secrets `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`.
+  - Deno Deploy (KV): create a project `oasis-ci` with a KV database, an access token; secrets `DENO_DEPLOY_PROJECT`, `DENO_DEPLOY_TOKEN`.
+  - Fly.io: create an app `oasis-ci` with the storage the FlyIOOASIS provider uses (Postgres/LiteFS per its README), a deploy token; secrets `FLY_CI_APP`, `FLY_CI_TOKEN`.
+  - Neo4j Aura: create a free AuraDB instance `oasis-ci`; secrets `NEO4J_AURA_CI_URI`, `NEO4J_AURA_CI_USER`, `NEO4J_AURA_CI_PASSWORD`. (Neo4jOASIS itself already passes on a local Neo4j; Aura only adds the hosted path.)
+  - LanceDB Cloud: create a project and API key; secrets `LANCEDB_CLOUD_URI`, `LANCEDB_CLOUD_API_KEY`.
+- Decision needed, services that appear to be discontinued: Fauna (FaunaDB shut down in 2025), Vercel KV (sunset; existing stores moved to Upstash, which UpstashOASIS already covers) and Polybase (testnet no longer reachable; please confirm). Options: (a) mark FaunaOASIS, VercelKVOASIS and PolybaseOASIS as retired and remove them from the provider matrix, or (b) keep them as historical code with no test target. Engineering's recommendation is (a).
+- Reason: without these, these providers cannot be marked done; every self-hostable provider is being done meanwhile.
+- Status: OPEN 2026-11-25. Claims marked BLOCKED in WORK-CLAIMS.md.
+
+## Live CQL sandbox: demo databases and indexer keys (cloud-cql-C, 2026-11-25)
+
+- Context: about 40 self-hostable database providers already have CQL adapters with local or CI proof, for example Redis, Valkey, KeyDB, Dragonfly, Garnet, PostgreSQL, TimescaleDB, CockroachDB, SQL Server, Cassandra, ScyllaDB, Elasticsearch, OpenSearch, Solr, Meilisearch, Typesense, Qdrant, Weaviate, Milvus, Chroma, CouchDB, Couchbase, ArangoDB, SurrealDB, RavenDB, InfluxDB and Memcached. They are not live in the dev sandbox only because Development WEB4 has no running instance of them to read. The public chains are mostly done, and the remaining keyless public sources are being added by the cloud sessions (Rootstock, Story, Lens, QuestDB on 25 Nov).
+- Decision needed: may the CQL sessions add small demo database services to the Railway **development** environment only (one service per provider, using Railway's own templates where they exist, for example Redis and PostgreSQL), seeded with the same three public teaching records each provider already uses in CI?
+  - If yes: create a project token scoped to the development environment and store it as the GitHub Actions secret `RAILWAY_DEV_DEMO_TOKEN`, not in Git or chat. The sessions then add each service, seed it, set its `CQL_*` variable and verify that its presets return 3 and 2 records.
+  - If no: these providers stay CI-verified only and are not shown live.
+- Keyed indexer APIs (free tiers are enough, read-only): Alchemy, QuickNode, Ankr, Covalent (GoldRush), Moralis, Dune, Zapper, Tenderly, Goldsky and Nansen. Each needs one read-only key. Save each key on the Railway development WEB4 service as `CQL_<PROVIDER>_PUBLIC_READER_KEY`, for example `CQL_ALCHEMY_PUBLIC_READER_KEY`. These are lower priority than the demo databases.
+- Reason: without these, the providers above cannot return real records in the live sandbox. Everything that needs no account is being done meanwhile.
+- Status: OPEN 2026-11-25.
+
+## ONODE Manager release, signing and alerts - 2026-11-25
+
+Status: code work continues without these; only David can do them.
+
+1. Code signing (optional; unsigned builds still ship). Add these GitHub Actions secrets to NextGenSoftwareUK/OASIS. `release-onode-manager.yml` signs automatically once they exist:
+   - Windows: `WINDOWS_CERT_PFX_BASE64` (base64 of the .pfx) and `WINDOWS_CERT_PASSWORD`.
+   - macOS: `MACOS_CERT_P12_BASE64`, `MACOS_CERT_PASSWORD`, `MACOS_SIGN_APP_IDENTITY`, `MACOS_SIGN_INSTALL_IDENTITY`, `APPLE_ID`, `APPLE_TEAM_ID`, `APPLE_APP_PASSWORD` (app-specific password).
+2. First public ONODE Manager release. Run Global OASIS Release with `optional_components` including `onode_manager` and `publish=true`. It takes about 2 hours and creates a public GitHub release. Until it runs, the ONODE Manager download links on the sites stay dead.
+3. Dependabot: GitHub reports 669 alerts on the default branch (47 critical). Authorise the GitHub connector in Claude Code (`/mcp`) so a session can list and triage them.
+
+## GitHub Actions queue stall blocks COSMIC row merges - 2026-11-25 (cloud-cosmic-B)
+
+- Context: the COSMIC native qualification runs for O18 local view ([45519967748](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/45519967748), queued since 00:40 UTC), M24 defaults/computed values ([45524783092](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/45524783092), queued since 01:18) and O17 model diagnostics (branch `work/cloud-cosmic-o17`) have not started. Runners are occupied by full `OASIS CI/CD Pipeline` and `Subscription usage protocol` runs that every push to Development starts, including one-line claim commits; several have run for over an hour.
+- All three rows pass their native MongoDB/SQLite/Neo4j journeys locally; they merge to Development as soon as their CI is green. Nothing is needed from you for the code.
+- Decision for you (optional): either raise the account's concurrent-runner limit, or approve adding `paths-ignore: ["Docs/**"]` (or a concurrency group with cancel-in-progress) to `ci-cd.yml` and `subscription-usage-protocol.yml` so documentation-only claim commits stop queuing full pipelines. Agents will not change these deployment workflows without your go-ahead.
+- Status: OPEN 2026-11-25 01:52 UTC.
+
+## Ceramic test node image: approve a community build or build from source (cloud-hyperdrive-A, 2026-11-25)
+
+- Context: CeramicOASIS now passes the native storage suite against a real ceramic-one 0.58.0 node. The official image `public.ecr.aws/r5b3e0r5/3box/ceramic-one` no longer exists (the registry answers NAME_UNKNOWN), so the CI fixture uses the community build `docker.io/dclimate/ceramic-one:0.58.0`, pinned by digest (see `Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CeramicOASIS.IntegrationTests/start-ceramic-fixture.sh`). It runs only in CI, against throwaway data.
+- Decision: (a) accept the pinned community image for CI tests, or (b) build ceramic-one from the upstream rust-ceramic source in CI (slower, adds a Rust toolchain step). Engineering's recommendation is (a), keeping the digest pin.
+- Status: OPEN 2026-11-25. Option (a) is in use until you decide.
+
+## POST-RELEASE-2026-11-24
+
+Production runs OASIS master cfea33eae2c (PR #518) on WEB4-WEB10.
+
+What passed:
+- Health: WEB4 /api/Health and authenticated avatar, HyperDrive and subscription calls; WEB6 a2a network calls; WEB7 symbiosis (real lookup); WEB8 mesh nodes; WEB5 (api.starnet) health. All 200 or a correct domain error.
+- CQL: query-cql and query-cql/scalar return without errors on MongoDBOASIS, SQLLiteDBOASIS and Neo4jOASIS.
+
+1. WEB9 refused every bearer (ACCESS_SESSION_AUTHORITY_NOT_ADMITTED).
+   Cause: WEB9 booted OASIS only when PREPARED_STORAGE_ADMISSION_JSON was set. Fixed on Development in e9b0c22fd18 (boots the same way as WEB6-WEB8).
+   Your step: promote to master and redeploy WEB9 production. Then check GET https://api.web9.oasisomniverse.one/v1/singularity/status with a sandbox bearer.
+
+2. Production SQLite replication is still held. Route hyperdrive-target-v2:SQLLiteDBOASIS:...AB2C2, seq 2, operation 41844155-6e4a-4c17-bc09-46d03a4a61c3.
+   - It was held with STORAGE_BINDING_INVALID. The shipped /app/OASISSQLLiteDB.db is now gone, as confirmed in the container.
+   - It was re-armed once with --cosmic-rearm-held-head: operator a5e52d14-7e82-43b4-8f21-0a53529246b6, request /data/COSMIC/ReplicaRearm/prod-seq2.json. The result was success, and a Rearm audit record is on the row.
+   - The retry (attempt 2) failed with COSMIC_REPLICA_STORAGE_BINDING_MISMATCH: "The native receiver does not match the enrolled storage identity." Seq 4-20 (9 entries) are Pending behind it.
+   - MISMATCH is deliberately not re-armable, and --cosmic-repair-baseline covers only lineage conflicts. No supported tool releases it. Do not re-arm again.
+   - Needs a code investigation: the route's enrolled target fingerprint versus the /data/OASISSQLLiteDB.db CosmicReplicationStoreIdentity row.
+   - Dev is separate and unchanged: v2 ...4982 is held at 543 (AUTHORIZATION_DENIED, 333 behind), and v1 SQLite is held at 535 (LINEAGE_CONFLICT). The dev current route ...2461 is drained.
+
+3. Test records are still on production and dev, because the sandbox sweep is broken.
+   - The production log says, on every 15-minute sweep: "Listing MongoDBOASIS holons of <avatar> failed: Mongo holon collection read failed", then "removed 0 demo avatars and 0 holons; 6 kept for retry".
+   - The read is MongoDBOASIS.ReadHolonCollectionGraphAsync. Its exception is swallowed, so the cause needs a reproduction.
+   - Production leftovers:
+     - demo holons 61b08937-ea30-6ed0-ed21-9642411c8b76 (Espresso), 16074723-5dbe-a6a2-e71d-6d1860e5e393 (Flat White) and b2b542d7-f855-89a4-2421-468bcf14666c (Tea), owner 7e2a53a2
+     - probe holons ed6b2550-eace-3f0e-d20e-abad408680df, 11eec3b0-b947-b0f5-c62b-ef67af11a7dc, e0efb380-7470-9afa-11a4-ec68697080ad and 950cf30a-bcfb-c18d-b77f-3ae4fec2dbb5
+     - sandbox avatars from this session: a9ca5a2e-dd6a-4def-98ef-d33e7cae60e0 and d0745e8f-8df3-4e0e-8fce-3690f53ff416. They own no holons.
+   - Dev leftover: probe holon 4c15ba78-ff19-5a49-89d4-5c78abf8d6c6.
+   - Owner sessions have expired, and avatar delete needs admin rights. Direct database deletes would leave their replication obligations (some are in the held queue above) inconsistent, so nothing was force-deleted.
+   - Once the sweep is fixed, it removes them by itself. Then confirm in Mongo that the IDs above are absent.
+
+## ONET: two decisions before the last protocol items (2026-11-24)
+
+Status: decided by David, 24 November 2026; engineering in progress (no further owner action). Plan: [ONET_STORAGE_AND_HOLONET_PLAN_2026-11.md](../ONET/ONET_STORAGE_AND_HOLONET_PLAN_2026-11.md).
+
+1. Message encryption (audit item #24): **encrypt, with a coordinated upgrade.** ONET application frames move to version 2 (encrypted for the target node and signed). Older nodes stop exchanging messages with upgraded ones, so every ONET node (Railway WEB4 and any self-hosted ONODEs) must be on the same release.
+2. Holochain-carried ONET traffic (plan item 8): **build the `onet` zome now.** It is a coordinator-only module in the OASIS hApp (DNA hash unchanged).

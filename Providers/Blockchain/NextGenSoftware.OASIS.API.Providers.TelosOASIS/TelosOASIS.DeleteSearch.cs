@@ -41,106 +41,16 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
     public partial class TelosOASIS
     {
         public override OASISResult<IHolon> DeleteHolon(Guid id)
-        {
-            return DeleteHolonAsync(id).Result;
-        }
+            => _eosioOASIS.DeleteHolon(id);
 
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
-        {
-            return await _eosioOASIS.DeleteHolonAsync(id);
-#pragma warning disable CS0162
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                // Load holon first to return it
-                var holonResult = await LoadHolonAsync(id);
-                if (holonResult.IsError || holonResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Holon not found: {id}");
-                    return result;
-                }
-
-                // Send delete transaction to Telos smart contract
-                var deleteUrl = $"{TELOS_API_BASE_URL}/v1/chain/push_transaction";
-                var deleteData = new
-                {
-                    actions = new[]
-                    {
-                        new
-                        {
-                            account = "orgs.seeds",
-                            name = "deleteholon",
-                            authorization = new[]
-                            {
-                                new { actor = "orgs.seeds", permission = "active" }
-                            },
-                            data = new
-                            {
-                                id = id.ToString()
-                            }
-                        }
-                    }
-                };
-
-                var content = new StringContent(JsonSerializer.Serialize(deleteData), Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync(deleteUrl, content);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    result.Result = holonResult.Result;
-                    result.IsError = false;
-                    result.Message = $"Holon {id} deleted from Telos blockchain successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to delete holon from Telos blockchain: {response.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error deleting holon from Telos: {ex.Message}", ex);
-            }
-            return result;
-#pragma warning restore CS0162
-        }
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
+            => _eosioOASIS.DeleteHolonAsync(id);
 
         public override OASISResult<IHolon> DeleteHolon(string providerKey)
-        {
-            return DeleteHolonAsync(providerKey).Result;
-        }
+            => _eosioOASIS.DeleteHolon(providerKey);
 
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
-        {
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                // Load holon by provider key first
-                var holonResult = await LoadHolonAsync(providerKey);
-                if (holonResult.IsError || holonResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Holon not found: {providerKey}");
-                    return result;
-                }
-
-                // Delegate to DeleteHolonAsync(Guid)
-                return await DeleteHolonAsync(holonResult.Result.Id);
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error deleting holon by provider key from Telos: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
+            => _eosioOASIS.DeleteHolonAsync(providerKey);
 
         public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
         {
