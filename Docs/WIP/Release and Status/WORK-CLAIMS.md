@@ -35,10 +35,10 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | Web4Site CQL Playground: remove stale pwsh / C:/Source/OASIS-cosmic local-demo instructions | CQL sandbox (Web4Site repo) | local: CQL sandbox (cql-sandbox session) | Web4Site work/cosmic-cql | 2026-11-25 00:40 | IN PROGRESS |
 | CI build gate for all provider TestHarness projects (stop harness rot) | CI / Providers/TestProjects | local: testharness-build-fix | work/testharness-ci-gate | 2026-11-25 00:50 | IN PROGRESS |
 | COSMIC O15 as-of history reads | COSMIC ORM | local: COSMIC ORM roadmap (work/cosmic-cql-ton-public session) | work/cosmic-cql-ton-public | 2026-11-25 00:35 | IN PROGRESS |
-| TelosOASIS native storage (reuse EOSIO Antelope fixture) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-telos | 2026-11-25 01:10 | IN PROGRESS |
+| TelosOASIS native storage (reuse EOSIO Antelope fixture) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-telos | 2026-11-25 01:10 | DONE 48add53f (antelope-family-native-storage.yml run 45518765561 green) |
 | CQL startup head-of-line blocking: a slow HoloOASIS activation keeps IPFS/NEAR/Neo4j/Polkadot/Polygon/SOLID/Solana/TON NOT_READY on live dev (serial canonical lane) | CQL sandbox (WEB4) | cloud: cloud-cql-C | work/cloud-cql-activation-lane | 2026-11-25 00:38 | IN PROGRESS |
 | COSMIC O18 EF6 databinding/local-view integration | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-o18 | 2026-11-25 02:00 | IN PROGRESS |
-| SEEDSOASIS native storage (Antelope fixture) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-seeds | 2026-11-25 00:35 | IN PROGRESS |
+| SEEDSOASIS native storage (Antelope fixture) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-seeds | 2026-11-25 00:35 | DONE 48add53f (antelope-family-native-storage.yml run 45518765561 green) |
 | DaprOASIS native storage (daprd sidecar + Redis state store) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-dapr | 2026-11-25 00:40 | IN PROGRESS |
 | ZcashOASIS native storage (regtest zcashd + Kubo, Bitcoin pattern) | HyperDrive providers | local: testharness-build-fix | work/zcash-native-storage | 2026-11-25 02:20 | IN PROGRESS |
 | COSMIC A15 set (HashSet) owned collections | COSMIC ORM | local: COSMIC ORM roadmap (work/cosmic-cql-ton-public session) | work/cosmic-cql-ton-public | 2026-11-25 02:10 | IN PROGRESS |
