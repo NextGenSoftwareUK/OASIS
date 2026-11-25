@@ -140,3 +140,4 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | OracleObjectStorageOASIS native storage (hosted OCI only) | HyperDrive providers | cloud: cloud-hyperdrive-A | n/a | 2026-11-25 22:20 | BLOCKED: see ACTIONS-FOR-DAVID (Oracle Object Storage test bucket) |
 | GOMapOASIS onto Shared.Maps MapProviderBase (remove duplicated geo/OSRM/Nominatim/models) | Map providers | local: maps/interop session | work/gomap-shared-maps | 2026-11-25 | IN PROGRESS |
 | FlowOASIS native storage (Cadence OasisKv contract on the local Flow emulator, Node FCL bridge) | HyperDrive providers | local: HyperDrive provider programme | work/blockstack-gaia | 2026-11-25 23:40 | IN PROGRESS |
+| Capability-v1 read probes for cross-chain trackers: Axelar, Hyperlane, LayerZeroV2, deBridge, Chainflip | HyperDrive providers (non-storage) | local: testharness-build-fix | work/tracker-capability-probes | 2026-11-25 | IN PROGRESS |
