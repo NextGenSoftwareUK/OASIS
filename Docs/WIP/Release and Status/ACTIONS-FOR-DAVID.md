@@ -1668,3 +1668,14 @@ Status: decided by David, 24 November 2026; engineering in progress (no further 
   2. Keep the legacy behaviour everywhere. A05 is then marked as not applicable, documenting that `ParentHolon` assignment is a write.
 - Reason: either choice changes what a save writes, which affects STAR/ODK celestial graphs, so it is your call.
 - Status: OPEN 2026-11-25 08:40 UTC. The claim in WORK-CLAIMS.md is marked BLOCKED; other rows continue.
+
+## Approve deleting the six LOST_METHODS_REVIEW files
+
+- Open 2026-11-25. These files hold commented-out methods from the file-split audit, each annotated with a verdict (almost all "superseded"). They compile to nothing but clutter the code base:
+  - `Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Repositories/AvatarRepository.LOST_METHODS_REVIEW.cs`
+  - `ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Managers/NFTManager.LOST_METHODS_REVIEW.cs`
+  - `ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Managers/STARNET/OAPP System/OAPPManager.LOST_METHODS_REVIEW.cs`
+  - `ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Managers/STARNET/OAPP System/OAPPTemplateManager.LOST_METHODS_REVIEW.cs`
+  - `ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Managers/STARNET/OAPP System/RuntimeManager.LOST_METHODS_REVIEW.cs`
+  - `ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Managers/STARNET/STARNET System/STARNETManagerBase.LOST_METHODS_REVIEW.cs`
+- Decision needed: reply "delete them" to have them removed, or name any method you want restored first. The audit found no genuine losses beyond WalletManager, which was already restored.
