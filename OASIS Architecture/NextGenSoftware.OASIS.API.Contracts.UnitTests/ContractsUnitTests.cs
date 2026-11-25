@@ -1,5 +1,4 @@
-﻿using NextGenSoftware.OASIS.API.Contracts.DataModels;
-using NextGenSoftware.OASIS.API.Contracts.Enums;
+﻿using NextGenSoftware.OASIS.API.Contracts.Enums;
 using NextGenSoftware.OASIS.API.Contracts.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.Contracts.UnitTests;
@@ -7,140 +6,108 @@ namespace NextGenSoftware.OASIS.API.Contracts.UnitTests;
 public class DataModelsTests
 {
     [Fact]
-    public void BoundingBox_ShouldInitializeCorrectly()
+    public void Geolocation_TwoArgumentConstructor_IsLatitudeThenLongitude()
     {
-        // Arrange
-        var minLat = 40.0;
-        var minLng = -74.0;
-        var maxLat = 41.0;
-        var maxLng = -73.0;
+        var location = new Geolocation(51.5, -0.12);
 
-        // Act
-        var boundingBox = new BoundingBox
-        {
-            MinLatitude = minLat,
-            MinLongitude = minLng,
-            MaxLatitude = maxLat,
-            MaxLongitude = maxLng
-        };
-
-        // Assert
-        Assert.Equal(minLat, boundingBox.MinLatitude);
-        Assert.Equal(minLng, boundingBox.MinLongitude);
-        Assert.Equal(maxLat, boundingBox.MaxLatitude);
-        Assert.Equal(maxLng, boundingBox.MaxLongitude);
+        Assert.Equal(51.5, location.Latitude);
+        Assert.Equal(-0.12, location.Longitude);
     }
 
     [Fact]
-    public void Geolocation_ShouldInitializeCorrectly()
+    public void Geolocation_LongitudeFirstConstructor_SwapsArguments()
     {
-        // Arrange
-        var latitude = 40.7128;
-        var longitude = -74.0060;
-        var accuracy = 10.5;
+        var location = new Geolocation(-0.12, 51.5, isLongitudeFirst: true);
 
-        // Act
-        var geolocation = new Geolocation
-        {
-            Latitude = latitude,
-            Longitude = longitude,
-            Accuracy = accuracy
-        };
-
-        // Assert
-        Assert.Equal(latitude, geolocation.Latitude);
-        Assert.Equal(longitude, geolocation.Longitude);
-        Assert.Equal(accuracy, geolocation.Accuracy);
+        Assert.Equal(51.5, location.Latitude);
+        Assert.Equal(-0.12, location.Longitude);
     }
 
     [Fact]
-    public void ForwardGeocodingResponse_ShouldInitializeCorrectly()
+    public void Geolocation_ToString_IsLongitudeCommaLatitudeInInvariantCulture()
     {
-        // Arrange
-        var query = "New York, NY";
-        var results = new List<Geolocation>
+        var previous = System.Globalization.CultureInfo.CurrentCulture;
+        try
         {
-            new Geolocation { Latitude = 40.7128, Longitude = -74.0060 }
-        };
-
-        // Act
-        var response = new ForwardGeocodingResponse
+            System.Globalization.CultureInfo.CurrentCulture = new System.Globalization.CultureInfo("de-DE");
+            Assert.Equal("-0.12,51.5", new Geolocation(51.5, -0.12).ToString());
+        }
+        finally
         {
-            Query = query,
-            Results = results
-        };
+            System.Globalization.CultureInfo.CurrentCulture = previous;
+        }
+    }
 
-        // Assert
-        Assert.Equal(query, response.Query);
-        Assert.Equal(results, response.Results);
-        Assert.Single(response.Results);
+    [Fact]
+    public void Geolocation_GetBoundingBox_SurroundsThePoint()
+    {
+        var centre = new Geolocation(40.0, -74.0);
+
+        var box = centre.GetBoundingBox(10);
+
+        Assert.True(box.MinPoint.Latitude < centre.Latitude && centre.Latitude < box.MaxPoint.Latitude);
+        Assert.True(box.MinPoint.Longitude < centre.Longitude && centre.Longitude < box.MaxPoint.Longitude);
+        // 10 km is roughly 0.09 degrees of latitude.
+        Assert.InRange(box.MaxPoint.Latitude - centre.Latitude, 0.08, 0.10);
+        Assert.Equal(centre.Latitude - box.MinPoint.Latitude, box.MaxPoint.Latitude - centre.Latitude, 6);
+    }
+
+    [Fact]
+    public void BoundingBox_ToString_JoinsMinAndMaxPoints()
+    {
+        var box = new BoundingBox { MinPoint = new Geolocation(1, 2), MaxPoint = new Geolocation(3, 4) };
+
+        Assert.Equal("2,1,4,3", box.ToString());
+    }
+
+    [Fact]
+    public void ForwardGeocodingResponse_ConstructorSetsSuccessAndData()
+    {
+        var data = new List<string> { "a" };
+
+        var response = new ForwardGeocodingResponse<string>(true, data);
+
+        Assert.True(response.Success);
+        Assert.Same(data, response.Data);
+    }
+
+    [Fact]
+    public void RoutingCoordinate_RejectsOutOfRangeValues()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => new RoutingCoordinate(91, 0));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new RoutingCoordinate(0, -181));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new RoutingCoordinate(double.NaN, 0));
+    }
+
+    [Fact]
+    public void RoutingRoute_RequiresAtLeastTwoPointsAndNonNegativeDistance()
+    {
+        var a = new RoutingCoordinate(0, 0);
+        var b = new RoutingCoordinate(1, 1);
+
+        Assert.Throws<ArgumentException>(() => new RoutingRoute(10, new[] { a }));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new RoutingRoute(-1, new[] { a, b }));
+
+        var route = new RoutingRoute(10, new[] { a, b });
+        Assert.Equal(10, route.DistanceMeters);
+        Assert.Equal(2, route.Points.Count);
     }
 }
 
 public class EnumsTests
 {
     [Fact]
-    public void MapProviderType_ShouldHaveExpectedValues()
+    public void MapProviderType_HasExpectedProviders()
     {
-        // Assert
-        Assert.Equal(0, (int)MapProviderType.GoogleMaps);
-        Assert.Equal(1, (int)MapProviderType.OpenStreetMap);
-        Assert.Equal(2, (int)MapProviderType.Mapbox);
-        Assert.Equal(3, (int)MapProviderType.Here);
+        Assert.True(Enum.IsDefined(MapProviderType.MapBox));
+        Assert.True(Enum.IsDefined(MapProviderType.GoogleMaps));
+        Assert.True(Enum.IsDefined(MapProviderType.HEREMaps));
+        Assert.True(Enum.IsDefined(MapProviderType.MapLibre));
     }
 
     [Fact]
-    public void RoutingType_ShouldHaveExpectedValues()
+    public void RoutingType_HasWalkingDrivingCycling()
     {
-        // Assert
-        Assert.Equal(0, (int)RoutingType.Driving);
-        Assert.Equal(1, (int)RoutingType.Walking);
-        Assert.Equal(2, (int)RoutingType.Cycling);
-        Assert.Equal(3, (int)RoutingType.Transit);
-    }
-}
-
-public class InterfacesTests
-{
-    [Fact]
-    public void IRequest_ShouldBeInterface()
-    {
-        // Assert
-        Assert.True(typeof(IRequest).IsInterface);
-    }
-
-    [Fact]
-    public void IBatchRequest_ShouldBeInterface()
-    {
-        // Assert
-        Assert.True(typeof(IBatchRequest).IsInterface);
-    }
-
-    [Fact]
-    public void IOASISMapProvider_ShouldBeInterface()
-    {
-        // Assert
-        Assert.True(typeof(IOASISMapProvider).IsInterface);
-    }
-
-    [Fact]
-    public void IDirectionsAPIProvider_ShouldBeInterface()
-    {
-        // Assert
-        Assert.True(typeof(IDirectionsAPIProvider).IsInterface);
-    }
-
-    [Fact]
-    public void IForwardGeocodingProvider_ShouldBeInterface()
-    {
-        // Assert
-        Assert.True(typeof(IForwardGeocodingProvider).IsInterface);
-    }
-
-    [Fact]
-    public void IPointOfInterest_ShouldBeInterface()
-    {
-        // Assert
-        Assert.True(typeof(IPointOfInterest).IsInterface);
+        Assert.Equal(new[] { RoutingType.Walking, RoutingType.Driving, RoutingType.Cycling }, Enum.GetValues<RoutingType>());
     }
 }

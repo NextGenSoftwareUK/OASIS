@@ -18,4 +18,8 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Managers\NextGenSoftware.OASIS.API.Managers.csproj" />
+  </ItemGroup>
+
 </Project>
