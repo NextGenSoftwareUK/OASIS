@@ -339,6 +339,41 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.ThrowsException<ArgumentException>(()=>CosmicQueryFullText.ParseTerms("brown-fox"));
         }
         checks++;
+        // M22 entity splitting: Bio/Age live in their own child record, written and loaded with the root.
+        var splitModel=new CosmicModelBuilder();
+        splitModel.Entity<SplitProfileHolon>().SplitInto("profile",row=>row.Bio,row=>row.Age);
+        var splitBuilt=splitModel.Build();Assert.IsFalse(splitBuilt.IsError,splitBuilt.Message);
+        var profile=new SplitProfileHolon{Id=Guid.NewGuid(),Name="split-root",CreatedByAvatarId=actor,IsActive=true,IsPublic=false,Bio="first",Age=41};
+        var partId=splitBuilt.Result.SplitParts(typeof(SplitProfileHolon)).Single().PartId(profile.Id);
+        owned.Add(profile.Id);owned.Add(partId);
+        using(var splitWriter=CosmicSession.Create(manager,adapter,access,splitBuilt.Result).Result)
+        {
+            Assert.IsFalse(splitWriter.Add(profile).IsError);
+            var saved=await splitWriter.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));Assert.IsFalse(saved.IsError,saved.ErrorCode+": "+saved.Message);
+        }
+        async Task<SplitProfileHolon> LoadSplit()
+        {
+            using var reader=CosmicSession.Create(manager,adapter,access,splitBuilt.Result).Result;
+            var rows=await reader.Linq<SplitProfileHolon>().Result.Where(row=>row.Id==profile.Id).ToCosmicListAsync();
+            Assert.IsFalse(rows.IsError,rows.ErrorCode+": "+rows.Message);return rows.Result.Single();
+        }
+        var firstLoad=await LoadSplit();Assert.AreEqual("first",firstLoad.Bio);Assert.AreEqual(41,firstLoad.Age);
+        var partRow=(await Stored(partId)).Single();Assert.AreEqual(profile.Id,partRow.ParentHolonId,"The part is a child record of its root.");
+        using(var splitEditor=CosmicSession.Create(manager,adapter,access,splitBuilt.Result).Result)
+        {
+            var loaded=(await splitEditor.Linq<SplitProfileHolon>().Result.Where(row=>row.Id==profile.Id).ToCosmicListAsync()).Result.Single();
+            loaded.Bio="second";
+            var edited=await splitEditor.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));Assert.IsFalse(edited.IsError,edited.ErrorCode+": "+edited.Message);
+        }
+        Assert.AreEqual("second",(await LoadSplit()).Bio,"A split property change is saved in its part.");
+        using(var splitDeleter=CosmicSession.Create(manager,adapter,access,splitBuilt.Result).Result)
+        {
+            var loaded=(await splitDeleter.Linq<SplitProfileHolon>().Result.Where(row=>row.Id==profile.Id).ToCosmicListAsync()).Result.Single();
+            Assert.IsFalse(splitDeleter.Remove(loaded,softDelete:false).IsError);
+            var deleted=await splitDeleter.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));Assert.IsFalse(deleted.IsError,deleted.ErrorCode+": "+deleted.Message);
+        }
+        Assert.AreEqual(0,(await Stored(partId)).Count,"Deleting the root deletes its part in the same unit of work.");
+        checks++;
         // M29 seed data: idempotent insert of fixed-identity rows in one unit of work.
         Holon[] Seed()=>new[]{
             new Holon{Id=seedIds[0],Name="seed-one",CreatedByAvatarId=actor,IsActive=true,IsPublic=false},
@@ -355,7 +390,7 @@ public sealed partial class CqlV1Web4NativeTests
         }
         Assert.AreEqual(2,(await Stored(seedIds)).Count);checks++;
         return new NativeFixtureJourneyProof(checks,4,new Dictionary<string,bool>{
-            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true,["notificationTrackingVerified"]=true,["collectionMembershipVerified"]=true,["stringTransformsVerified"]=true,["compiledQueryVerified"]=true,["asOfHistoryVerified"]=true,["setCollectionVerified"]=true,["generatedValuesVerified"]=true,["readOnlyViewsVerified"]=true,["graphMergeVerified"]=true,["multiBranchCaseVerified"]=true,["fullTextVerified"]=true});
+            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true,["notificationTrackingVerified"]=true,["collectionMembershipVerified"]=true,["stringTransformsVerified"]=true,["compiledQueryVerified"]=true,["asOfHistoryVerified"]=true,["setCollectionVerified"]=true,["generatedValuesVerified"]=true,["readOnlyViewsVerified"]=true,["graphMergeVerified"]=true,["multiBranchCaseVerified"]=true,["fullTextVerified"]=true,["entitySplittingVerified"]=true});
     }
 
     public sealed class SetModelHolon : Holon

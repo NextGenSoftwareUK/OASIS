@@ -91,8 +91,8 @@ jobs:
           assert c.get('passed')=='3' and c.get('total')=='3', 'All three native journeys must pass'
           for store in ('MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS'):
               e=json.load(open(f'TestResults/Neo4jCurrent/{store}-mixed-unit-of-work-native.json'))
-              assert e['provider']==store and e['checks']==21, store
-              for name in ('mixedCommitVerified','staleUpdateAbortsDeletionVerified','saveFailedCallbackVerified','cancellationVerified','asyncStreamingVerified','seedDataVerified','dateArithmeticVerified','notificationTrackingVerified','collectionMembershipVerified','stringTransformsVerified','compiledQueryVerified','asOfHistoryVerified','setCollectionVerified','generatedValuesVerified','readOnlyViewsVerified','graphMergeVerified','multiBranchCaseVerified','fullTextVerified'):
+              assert e['provider']==store and e['checks']==22, store
+              for name in ('mixedCommitVerified','staleUpdateAbortsDeletionVerified','saveFailedCallbackVerified','cancellationVerified','asyncStreamingVerified','seedDataVerified','dateArithmeticVerified','notificationTrackingVerified','collectionMembershipVerified','stringTransformsVerified','compiledQueryVerified','asOfHistoryVerified','setCollectionVerified','generatedValuesVerified','readOnlyViewsVerified','graphMergeVerified','multiBranchCaseVerified','fullTextVerified','entitySplittingVerified'):
                   assert e['evidence'][name] is True, (store,name)
           PY
           dotnet build ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI -m:2 -nr:false -p:UseSharedCompilation=false
