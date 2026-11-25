@@ -61,6 +61,20 @@ internal sealed class PinotKeyValueBackend : IKeyValueBackend, IDisposable
                 ["tenants"] = new JsonObject(), ["metadata"] = new JsonObject()
             };
             await PostControllerAsync("tables", table, cancellationToken);
+            // Table creation is asynchronous: the broker serves the table once its routing resource is built.
+            var deadline = DateTime.UtcNow + WriteDeadline;
+            while (true)
+            {
+                try
+                {
+                    using var ready = await QueryAsync($"SELECT COUNT(*) FROM {_table}", cancellationToken);
+                    return;
+                }
+                catch (IOException cause) when (cause.Message.Contains("BrokerResourceMissingError", StringComparison.Ordinal) && DateTime.UtcNow < deadline)
+                {
+                    await Task.Delay(500, cancellationToken);
+                }
+            }
         }
         using var rows = await QueryAsync($"SELECT COUNT(*) FROM {_table}", cancellationToken);
     }
