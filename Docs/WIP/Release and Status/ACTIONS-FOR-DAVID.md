@@ -103,7 +103,7 @@ Last updated 31 October 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (mer
 | 11 | Messaging programme: review and push the `work/oasis-messaging` branches (parent, API.Core, STAR ODK, 7 npm repos), publish the npm packages, physical-device Bluetooth tests, HerzApp/Our World wiring decisions | G |
 | 10 | COSMIC/CQL: decide follow-up Default-routing fix publication; hosted Azure/Oracle remain deferred | F |
 | 12 | **Post-release 2026-11-24: production SQLite replication held (BINDING_MISMATCH), WEB9 fix to release, test records left on prod/dev** | POST-RELEASE-2026-11-24 |
-| 11 | **WEB6 model catalogue: review the estimated prices; decide OpenRouter billing (G2)** (v7 live on Development; OpenRouter prices move hourly) | G |
+| 11 | **WEB6 model catalogue: review the estimated prices (G1)** (v8 live on Development; G2 OpenRouter billing decided and implemented) | G |
 | 12 | HyperDrive on dev: Neo4j to SQLite hold at sequence 14 — repair ran once and was refused (no write); **decision pending**: the same holon reaches SQLite from both Mongo and Neo4j | I |
 | 13 | **Railway dev: add one DNA key so IPFS keeps its catalogue across restarts** (`IPFSOASIS.CatalogueRootPointerPath`) | I |
 
@@ -1453,13 +1453,13 @@ If any is wrong, a corrected catalogue needs a new version string (`web6-model-c
 
 **Verified:** the full WEB6 unit suite passes, 191/191 including the 11 catalogue invariant tests, on a clean checkout of OASIS `Development` (WEB6 `add09f4`, Core `a9fe1ec`), 25 November 2026.
 
-### G2. Decide whether OpenRouter should bill from OpenRouter's reported cost
+### G2. OpenRouter billing from reported cost
 
-**Status:** open decision, updated 25 November 2026. Today every billed model needs a fixed price and each request holds back its worst case up front, so tiered and router models (`openrouter/auto`, per-request fees) stay unavailable.
+**Status:** decided and implemented 25 November 2026 (you said "whatever you recommend"). Nothing more is needed from you.
 
-New evidence: OpenRouter's fixed prices do not stay fixed. `qwen/qwen3.5-9b` input went 0.17 -> 0.10 -> 0.17 USD per million within hours on 25 November, as OpenRouter switched upstream providers. Between re-imports WEB6 therefore bills some OpenRouter models below or above cost. The new weekly `WEB6 OpenRouter price drift` workflow fails when a model is retired or priced below cost, but re-importing only narrows the gap.
+What changed: every OpenRouter call now sends the catalogue rate as `max_price`, so OpenRouter never routes to an upstream dearer than the price the request reserved for, and asks for `usage.cost`. The receipt bills the cost OpenRouter reports for that call (`CostSource = openrouter-reported-cost`). A missing cost, or one above the cap, is refused for reconciliation; it is never repriced from the catalogue. Other providers keep the contracted catalogue rate. Effect: WEB6 can no longer bill an OpenRouter call below cost, and price drops are passed on. A model whose upstream price rose above the catalogue rate fails at OpenRouter until the next re-import, which the weekly drift workflow flags.
 
-Billing from OpenRouter's reported per-call cost would close it and open up the router models. It needs a per-call spending cap (the hold) and a change to how billing settles. Please decide: keep fixed prices plus weekly re-imports, or bill OpenRouter from reported cost.
+Still not enabled: router models such as `openrouter/auto` and per-request fees, because the hold is still sized from a fixed catalogue rate.
 
 ### G3. Security advisories in shared packages
 
