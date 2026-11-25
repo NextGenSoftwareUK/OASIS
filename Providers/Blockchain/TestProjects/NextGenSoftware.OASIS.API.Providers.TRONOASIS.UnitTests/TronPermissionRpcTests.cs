@@ -425,9 +425,16 @@ public class TronPermissionRpcTests
     [Theory]
     [InlineData("valid")] [InlineData("foreign-account")] [InlineData("wrong-genesis")]
     [InlineData("wrong-solidity")] [InlineData("empty-account")] [InlineData("unavailable")]
+    public async Task LoaderUsesActualGrpcAndRejectsMismatchedAuthority(string mode) => await RunPermissionLoader(mode);
+
+    // The prepared modes also persist usage to the owned MongoDB replica set.
+    [SubscriptionMongoTheory]
+    [Trait("Category", "LiveService")]
     [InlineData("prepared")]
     [InlineData("prepared-denied")]
-    public async Task LoaderUsesActualGrpcAndRejectsMismatchedAuthority(string mode)
+    public async Task LoaderUsesActualGrpcAndPersistsPreparedUsage(string mode) => await RunPermissionLoader(mode);
+
+    private static async Task RunPermissionLoader(string mode)
     {
         var expected=new string('a',64);var served=ByteString.CopyFrom(Convert.FromHexString(mode=="wrong-genesis"||mode=="wrong-solidity"?new string('b',64):expected));
         var solid=new SolidNode(served,mode=="foreign-account",mode=="empty-account",mode=="unavailable",mode=="prepared-denied");

@@ -17,7 +17,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 
 public class TronPreparedStorageTests
 {
-    [Theory]
+    [SubscriptionMongoTheory]
+    [Trait("Category", "LiveService")]
     [InlineData(false)] [InlineData(true)]
     [InlineData(false,true)]
     [InlineData(false,false,true,false)] [InlineData(true,false,true,false)]

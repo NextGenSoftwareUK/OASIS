@@ -1206,6 +1206,10 @@ jobs:
     - name: Install ReportGenerator
       run: dotnet tool install -g dotnet-reportgenerator-globaltool
     
+    - name: Install Web3Core Solidity compiler for TRON codegen tests
+      working-directory: OASIS/Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS
+      run: npm ci --ignore-scripts --no-audit --no-fund
+
     - name: Run tests with coverage
       working-directory: OASIS
       run: |
@@ -1234,6 +1238,7 @@ jobs:
           "Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.PLANOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.PLANOASIS.UnitTests.csproj"
           "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BaseOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.BaseOASIS.UnitTests.csproj"
           "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.AvalancheOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.AvalancheOASIS.UnitTests.csproj"
+          "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests.csproj"
           "ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.Core.UnitTests/NextGenSoftware.OASIS.API.ONODE.Core.Tests/NextGenSoftware.OASIS.API.ONODE.Core.Tests.csproj"
           "ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.csproj"
           "STAR ODK/NextGenSoftware.OASIS.STAR.UnitTests/NextGenSoftware.OASIS.STAR.UnitTests.csproj"
