@@ -5,7 +5,7 @@ Updated 25 November 2026. Checked against the LIVE dev sandbox API `https://dev.
 ## Headline
 
 - **107 providers are in the live catalogue; 208 of 208 plain presets returned real records** in the 24 November sweep (plus MongoDB, SQLite and Neo4j, which use your own data).
-- **Private paired (MongoDB + provider federation) presets:** 129 of 208 passed in a first sweep. The failures came from a test token expiring and from WEB4 redeploying mid-run, not from providers; failures re-run individually pass (Optimism, Linea and Scroll included). A clean full re-run is waiting for the Railway deploy queue to clear.
+- **Private paired (MongoDB + provider federation) presets: 208 of 208 pass** in the clean full sweep on 25 November, alongside 208 of 208 plain presets, with no failures.
 - **Checked in a real browser:** the CQL Playground returns HoloOASIS's three records.
 - **14 of 15 priority providers are live.** Only TRON is blocked (needs a TronGrid key from David).
 - All of this runs through the real provider classes (`*OASIS.Cql.cs`), not ONODE adapters.
