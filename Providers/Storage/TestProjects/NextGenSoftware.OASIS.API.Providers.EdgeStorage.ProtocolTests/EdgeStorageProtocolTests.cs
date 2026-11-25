@@ -314,6 +314,15 @@ namespace NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests
         }
 
         public Task DeleteAsync(string store, string key, CancellationToken ct) { lock (_state) _state.Remove(key); return Task.CompletedTask; }
+        public Task<bool> TryDeleteAsync(string store, string key, string etag, CancellationToken ct)
+        {
+            lock (_state)
+            {
+                if (!_state.TryGetValue(key, out var s) || s.Version.ToString() != etag) { Conflicts++; return Task.FromResult(false); }
+                _state.Remove(key);
+                return Task.FromResult(true);
+            }
+        }
         public Task<bool> HealthyAsync(CancellationToken ct) => Task.FromResult(true);
         public int Count { get { lock (_state) return _state.Count; } }
     }
