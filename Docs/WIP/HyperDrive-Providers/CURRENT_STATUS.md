@@ -160,6 +160,7 @@ Done (91 pass the native core-storage-v2 suite 52/52 against their real backend;
 Partly done, with open items:
 - Turso: managed Turso and hosted WEB4 activation are still open.
 - HoloOASIS.Edge: the shared suite and cross-agent replication are still open.
+- HoloOASIS.Desktop: done 2026-11-25. The Desktop adapter is a thin subclass of canonical HoloOASIS (same storage code and zome calls), and now runs the shared suite itself: 26/26 in both modes on a Holochain 0.7.1 conductor (`HoloOASISDesktopNativeStorageConformanceTests`, run by the `storage` mode of `.github/workflows/holo-desktop-provider-build.yml` next to canonical HoloOASIS). No provider change was needed. The two suites share one conductor and one agent, so they now run serially: a concurrent hApp install by both failed on the conductor with "head moved".
 - HoloOASIS.Unity: the Android conductor device lifecycle is still open.
 - Algorand: done 2026-11-25. Passes the shared suite 26/26 in both modes against its native record-box application on a disposable LocalNet (`.github/workflows/algorand-native-storage.yml`). Fixes: detail lookups by username/email read the stored detail record; holon graphs are saved (children were refused); batch saves acknowledge counts; Import and owner export work on enrolled records; metadata queries select from the decrypted records instead of public Indexer fields; an unversioned save publishes the next revision instead of failing the predecessor check. The suite needs the application funded for its box storage (fixture `OASIS_ALGORAND_RECORD_APP_FUNDING`).
 

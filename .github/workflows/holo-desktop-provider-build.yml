@@ -12,6 +12,7 @@ on:
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/Holochain Objects/HcHolon.cs'
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/OASIS_hAPP/**'
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop/**'
+      - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/**'
   workflow_dispatch:
     inputs:
       verification:
@@ -106,6 +107,7 @@ jobs:
             'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop/HoloOASIS.cs'
             'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop/README.md'
             'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/HoloOASISIntegrationTests.cs'
+            'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/HoloOASISDesktopNativeStorageConformanceTests.cs'
             'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests.csproj'
           )
           $routingBase = '0ca6397b2fce3f2d9db4535c878936d2817ef9f6'
@@ -207,10 +209,12 @@ jobs:
             $message = $_.Exception.Message.Replace('%', '%25').Replace("`r", '%0D').Replace("`n", '%0A')
             Write-Output "::error title=HoloOASIS fixture::$message"
             foreach ($mode in @('async', 'sync')) {
-              $checkpoint = Join-Path $artifact "holo-$mode.json"
-              if (Test-Path -LiteralPath $checkpoint -PathType Leaf) {
-                $state = Get-Content -LiteralPath $checkpoint -Raw | ConvertFrom-Json
-                Write-Output "::error title=HoloOASIS $mode checkpoint::$($state.CurrentCase), $(@($state.Passed).Count) checks passed"
+              foreach ($entry in @(@('HoloOASIS', "holo-$mode.json"), @('HoloOASIS.Desktop', "holo-desktop/$mode.json"))) {
+                $checkpoint = Join-Path $artifact $entry[1]
+                if (Test-Path -LiteralPath $checkpoint -PathType Leaf) {
+                  $state = Get-Content -LiteralPath $checkpoint -Raw | ConvertFrom-Json
+                  Write-Output "::error title=$($entry[0]) $mode checkpoint::$($state.CurrentCase), $(@($state.Passed).Count) checks passed"
+                }
               }
             }
             $report = Join-Path $artifact 'holo-desktop-native.trx'
