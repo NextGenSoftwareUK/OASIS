@@ -27,6 +27,55 @@ internal sealed partial class NeoCqlTranslator
             return (utcSource.State,"CASE WHEN ("+utcSource.State+")=2 THEN "+
                 NeoCqlUtcDateParts.Value(column.Function,"datetime("+utcSource.Value+")")+" ELSE null END");
         }
+        if (column.Function == CosmicProjectionFunction.Int64Affine)
+        {
+            if(column.Path.ValueType != typeof(long) || column.ValueType != typeof(long) || !column.Int64Multiplier.HasValue || !column.Int64Offset.HasValue)
+                throw new System.NotSupportedException("Native Int64 arithmetic requires an exact Int64 path and captured coefficients.");
+            var longSource=TranslateProjectionPath(column.Path);
+            // Cypher integers are 64-bit and overflow raises a native error, so a result is never wrapped.
+            return (longSource.State,"CASE WHEN ("+longSource.State+")=2 THEN (("+longSource.Value+")*"+Bind(column.Int64Multiplier.Value)+"+"+Bind(column.Int64Offset.Value)+") ELSE null END");
+        }
+        if (column.Function == CosmicProjectionFunction.DoubleAffine)
+        {
+            if(column.Path.ValueType != typeof(double) || column.ValueType != typeof(double) || !column.DoubleMultiplier.HasValue || !column.DoubleOffset.HasValue)
+                throw new System.NotSupportedException("Native Double arithmetic requires an exact Double path and captured coefficients.");
+            var doubleSource=TranslateProjectionPath(column.Path);
+            var doubleComputed="((toFloat("+doubleSource.Value+"))*"+Bind(column.DoubleMultiplier.Value)+"+"+Bind(column.DoubleOffset.Value)+")";
+            var finite="coalesce(abs("+doubleComputed+") <= 1.7976931348623157e308,false)";
+            return ("CASE WHEN ("+doubleSource.State+")=2 AND NOT "+finite+" THEN 3 ELSE ("+doubleSource.State+") END",
+                "CASE WHEN ("+doubleSource.State+")=2 AND "+finite+" THEN "+doubleComputed+" ELSE null END");
+        }
+        if (column.Function == CosmicProjectionFunction.Int32Affine)
+        {
+            if(column.Path.ValueType != typeof(int) || column.ValueType != typeof(int) || !column.Int32Multiplier.HasValue || !column.Int32Offset.HasValue)
+                throw new System.NotSupportedException("Native Int32 arithmetic requires an exact Int32 path and captured coefficients.");
+            var arithmeticSource=TranslateProjectionPath(column.Path);
+            var computed="(("+arithmeticSource.Value+")*"+Bind((long)column.Int32Multiplier.Value)+"+"+Bind((long)column.Int32Offset.Value)+")";
+            // Cypher integer division and remainder truncate toward zero, matching C#.
+            if(column.Int32Divisor.HasValue)computed="("+computed+(column.Int32IsModulo?" % ":" / ")+Bind((long)column.Int32Divisor.Value)+")";
+            return ("CASE WHEN ("+arithmeticSource.State+")=2 AND ("+computed+"<-2147483648 OR "+computed+">2147483647) THEN 3 ELSE ("+arithmeticSource.State+") END",
+                "CASE WHEN ("+arithmeticSource.State+")=2 AND "+computed+">=-2147483648 AND "+computed+"<=2147483647 THEN "+computed+" ELSE null END");
+        }
+        if (column.Function == CosmicProjectionFunction.TextToInt32Case)
+        {
+            if(column.Path.ValueType != typeof(string) || column.ValueType != typeof(int)
+                || column.Int32Cases == null || column.Int32Cases.Count == 0 || !column.Int32Replacement.HasValue)
+                throw new System.NotSupportedException("Native text-to-Int32 CASE requires an exact String path and captured literal branches.");
+            var numericSource=TranslateProjectionPath(column.Path);
+            var numericBranches=string.Concat(System.Linq.Enumerable.Select(column.Int32Cases,entry=>" WHEN "+Bind(entry.Key)+" THEN "+Bind((long)entry.Value)));
+            return ("CASE WHEN ("+numericSource.State+")=2 THEN 2 ELSE 3 END",
+                "CASE WHEN ("+numericSource.State+")=2 THEN CASE ("+numericSource.Value+")"+numericBranches+" ELSE "+Bind((long)column.Int32Replacement.Value)+" END ELSE NULL END");
+        }
+        if (column.Function == CosmicProjectionFunction.TextValueCase)
+        {
+            if(column.Path.ValueType != typeof(string) || column.ValueType != typeof(string)
+                || column.TextCases == null || column.TextCases.Count == 0 || column.WhenFalse == null)
+                throw new System.NotSupportedException("Native multi-branch text CASE requires an exact String path and captured literal branches.");
+            var caseSource=TranslateProjectionPath(column.Path);
+            var branches=string.Concat(System.Linq.Enumerable.Select(column.TextCases,entry=>" WHEN "+Bind(entry.Key)+" THEN "+Bind(entry.Value)));
+            return ("CASE WHEN ("+caseSource.State+")=2 THEN 2 ELSE 3 END",
+                "CASE WHEN ("+caseSource.State+")=2 THEN CASE ("+caseSource.Value+")"+branches+" ELSE "+Bind(column.WhenFalse)+" END ELSE NULL END");
+        }
         if (column.Function == CosmicProjectionFunction.BooleanTextCase)
         {
             if(column.Path.ValueType != typeof(bool) || column.ValueType != typeof(string)

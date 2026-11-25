@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -244,225 +244,33 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
 
 
 
-        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IAvatar>>
-            {
-                Result = new List<IAvatar>(),
-                IsError = false
-            };
-            return await Task.FromResult(result);
-        }
+        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0) { await Task.CompletedTask; return NoRecordStore<IEnumerable<IAvatar>>(); }
 
-        public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0) => LoadAllAvatarsAsync(version).Result;
+        public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0) => NoRecordStore<IEnumerable<IAvatar>>();
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0)
-        {
-            var result = new OASISResult<IAvatar>();
-            try
-            {
-                await EnsureActivatedAsync(result);
-                if (result.IsError) return result;
+        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0) { await Task.CompletedTask; return NoRecordStore<IAvatar>(); }
 
-                // Load avatar from Aztec (stored as holon)
-                var holon = await LoadHolonAsync(Id);
-                if (holon.IsError || holon.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Avatar not found");
-                    return result;
-                }
+        public override OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0) => NoRecordStore<IAvatar>();
 
-                // Convert holon to avatar
-                if (holon.Result is IAvatar avatar)
-                {
-                    result.Result = avatar;
-                }
-                else
-                {
-                    result.Result = ConvertHolonToAvatar(holon.Result);
-                }
-                result.IsError = false;
-                result.Message = "Avatar loaded successfully from Aztec";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
-            }
-            return result;
-        }
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0) { await Task.CompletedTask; return NoRecordStore<IAvatar>(); }
 
-        public override OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0) => LoadAvatarAsync(Id, version).Result;
+        public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0) => NoRecordStore<IAvatar>();
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
-        {
-            var result = new OASISResult<IAvatar>();
-            try
-            {
-                await EnsureActivatedAsync(result);
-                if (result.IsError) return result;
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0) { await Task.CompletedTask; return NoRecordStore<IAvatar>(); }
 
-                // Load avatar by Aztec address (provider key)
-                var holon = await LoadHolonAsync(providerKey);
-                if (holon.IsError || holon.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Avatar not found");
-                    return result;
-                }
+        public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0) => NoRecordStore<IAvatar>();
 
-                // Convert holon to avatar
-                if (holon.Result is IAvatar avatar)
-                {
-                    result.Result = avatar;
-                }
-                else
-                {
-                    result.Result = ConvertHolonToAvatar(holon.Result);
-                }
-                result.IsError = false;
-                result.Message = "Avatar loaded successfully from Aztec by provider key";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
-            }
-            return result;
-        }
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0) { await Task.CompletedTask; return NoRecordStore<IAvatar>(); }
 
-        public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0) => LoadAvatarByProviderKeyAsync(providerKey, version).Result;
+        public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0) => NoRecordStore<IAvatar>();
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
-        {
-            var result = new OASISResult<IAvatar>();
-            try
-            {
-                await EnsureActivatedAsync(result);
-                if (result.IsError) return result;
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0) { await Task.CompletedTask; return NoRecordStore<IAvatarDetail>(); }
 
-                // Load avatar by searching for holon with username in metadata
-                var holonsResult = await LoadHolonsByMetaDataAsync("Username", avatarUsername, HolonType.Avatar);
-                if (holonsResult.IsError || holonsResult.Result == null || !holonsResult.Result.Any())
-                {
-                    OASISErrorHandling.HandleError(ref result, "Avatar not found by username");
-                    return result;
-                }
+        public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) => NoRecordStore<IAvatarDetail>();
 
-                var holon = holonsResult.Result.First();
-                if (holon is IAvatar avatar)
-                {
-                    result.Result = avatar;
-                }
-                else
-                {
-                    result.Result = ConvertHolonToAvatar(holon);
-                }
-                result.IsError = false;
-                result.Message = "Avatar loaded successfully from Aztec by username";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
-            }
-            return result;
-        }
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0) { await Task.CompletedTask; return NoRecordStore<IAvatarDetail>(); }
 
-        public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0) => LoadAvatarByUsernameAsync(avatarUsername, version).Result;
-
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
-        {
-            var result = new OASISResult<IAvatar>();
-            try
-            {
-                await EnsureActivatedAsync(result);
-                if (result.IsError) return result;
-
-                // Load avatar by searching for holon with email in metadata
-                var holonsResult = await LoadHolonsByMetaDataAsync("Email", avatarEmail, HolonType.Avatar);
-                if (holonsResult.IsError || holonsResult.Result == null || !holonsResult.Result.Any())
-                {
-                    OASISErrorHandling.HandleError(ref result, "Avatar not found by email");
-                    return result;
-                }
-
-                var holon = holonsResult.Result.First();
-                if (holon is IAvatar avatar)
-                {
-                    result.Result = avatar;
-                }
-                else
-                {
-                    result.Result = ConvertHolonToAvatar(holon);
-                }
-                result.IsError = false;
-                result.Message = "Avatar loaded successfully from Aztec by email";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
-            }
-            return result;
-        }
-
-        public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0) => LoadAvatarByEmailAsync(avatarEmail, version).Result;
-
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
-        {
-            var result = new OASISResult<IAvatarDetail>();
-            try
-            {
-                await EnsureActivatedAsync(result);
-                if (result.IsError) return result;
-
-                // Load avatar detail as separate object (holon with HolonType.AvatarDetail)
-                var holonResult = await LoadHolonAsync($"avatar-detail:{id}");
-                if (holonResult.IsError || holonResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Avatar detail not found");
-                    return result;
-                }
-
-                var avatarDetail = ConvertHolonToAvatarDetail(holonResult.Result);
-                result.Result = avatarDetail;
-                result.IsError = false;
-                result.Message = "Avatar detail loaded successfully from Aztec";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
-            }
-            return result;
-        }
-
-        public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) => LoadAvatarDetailAsync(id, version).Result;
-
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
-        {
-            var result = new OASISResult<IAvatarDetail>();
-            try
-            {
-                await EnsureActivatedAsync(result);
-                if (result.IsError) return result;
-
-                // Load avatar detail as separate object (HolonType.AvatarDetail)
-                var holonsResult = await LoadHolonsByMetaDataAsync("Email", avatarEmail, HolonType.AvatarDetail);
-                if (holonsResult.IsError || holonsResult.Result == null || !holonsResult.Result.Any())
-                {
-                    OASISErrorHandling.HandleError(ref result, "Avatar detail not found by email");
-                    return result;
-                }
-
-                var avatarDetail = ConvertHolonToAvatarDetail(holonsResult.Result.First());
-                result.Result = avatarDetail;
-                result.IsError = false;
-                result.Message = "Avatar detail loaded successfully from Aztec by email";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
-            }
-            return result;
-        }
-
-        public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0) => LoadAvatarDetailByEmailAsync(avatarEmail, version).Result;
+        public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0) => NoRecordStore<IAvatarDetail>();
 
     }
 }

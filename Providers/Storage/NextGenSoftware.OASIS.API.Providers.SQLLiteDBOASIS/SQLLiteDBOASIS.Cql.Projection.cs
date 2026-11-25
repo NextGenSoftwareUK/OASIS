@@ -13,7 +13,7 @@ public partial class SQLLiteDBOASIS : ICosmicQueryEntityProjectionStorageProvide
 {
     public static CosmicProjectionCapabilities CqlProjectionCapabilities { get; } = new CosmicProjectionCapabilities(
         SqliteCqlContract.Fields.Values.Select(field => new CosmicProjectionFieldCapability(field.Name, field.ValueType)).ToArray(),
-        SqliteCqlContract.MetadataTypes.Keys.ToArray()).WithFunctions(CosmicProjectionFunction.Utf16Length,CosmicProjectionFunction.TextCoalesce,CosmicProjectionFunction.BooleanTextCase,CosmicProjectionFunction.Int32Coalesce,CosmicProjectionFunction.UtcYear,CosmicProjectionFunction.UtcMonth,CosmicProjectionFunction.UtcDay,CosmicProjectionFunction.UtcDayOfYear,CosmicProjectionFunction.UtcHour,CosmicProjectionFunction.UtcMinute,CosmicProjectionFunction.UtcSecond);
+        SqliteCqlContract.MetadataTypes.Keys.ToArray()).WithFunctions(CosmicProjectionFunction.Utf16Length,CosmicProjectionFunction.TextCoalesce,CosmicProjectionFunction.BooleanTextCase,CosmicProjectionFunction.Int32Coalesce,CosmicProjectionFunction.UtcYear,CosmicProjectionFunction.UtcMonth,CosmicProjectionFunction.UtcDay,CosmicProjectionFunction.UtcDayOfYear,CosmicProjectionFunction.UtcHour,CosmicProjectionFunction.UtcMinute,CosmicProjectionFunction.UtcSecond,CosmicProjectionFunction.TextValueCase,CosmicProjectionFunction.Int32Affine,CosmicProjectionFunction.TextToInt32Case,CosmicProjectionFunction.DoubleAffine,CosmicProjectionFunction.Int64Affine);
     public CosmicProjectionCapabilities ProjectionCapabilities => CqlProjectionCapabilities;
 
     public bool SupportsEntityProjection => true;

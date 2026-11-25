@@ -2,11 +2,12 @@
 // Secrets arrive only on stdin and are never echoed. Network calls pin the chain id first.
 import { readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
-import { Account, RpcProvider, num } from 'starknet';
+import { Account, CallData, RpcProvider, byteArray, num } from 'starknet';
 import { accountAddress, keysFromMnemonic, keysFromPrivateKey, newMnemonic, normalizeFelt, validateChainId, validateEndpoint, validateIndex } from './account.mjs';
 
-const OPERATIONS = ['createAccount', 'restoreAccount', 'deriveFromPrivateKey', 'verifyAccountClass', 'accountStatus', 'estimateDeployFee', 'deployAccount'];
-const NETWORK = ['verifyAccountClass', 'accountStatus', 'estimateDeployFee', 'deployAccount'];
+const OPERATIONS = ['createAccount', 'restoreAccount', 'deriveFromPrivateKey', 'verifyAccountClass', 'accountStatus', 'estimateDeployFee', 'deployAccount', 'kvPut', 'kvRemove', 'kvGet', 'kvKeys'];
+const NETWORK = ['verifyAccountClass', 'accountStatus', 'estimateDeployFee', 'deployAccount', 'kvPut', 'kvRemove', 'kvGet', 'kvKeys'];
+const KV = ['kvPut', 'kvRemove', 'kvGet', 'kvKeys'];
 
 /** The class must be an account whose constructor takes exactly one felt public key (OpenZeppelin account shape). */
 export function assertAccountClass(contractClass) {
@@ -55,6 +56,8 @@ export async function run(request, connect = endpoint => new RpcProvider({ nodeU
     }
   }
 
+  if (KV.includes(op)) return await keyValue(provider, request);
+
   const classHash = normalizeFelt(request.classHash, 'classHash');
   assertAccountClass(await provider.getClassByHash(classHash));
   if (op === 'verifyAccountClass') return { classHash, valid: true };
@@ -91,6 +94,42 @@ export async function run(request, connect = endpoint => new RpcProvider({ nodeU
     error.transactionHash ??= transactionHash;
     throw error;
   }
+}
+
+/**
+ * OASIS record index on the OasisKv contract. Writes are executed by the caller's own account and acknowledged only when
+ * the receipt reports SUCCEEDED; reads are calls scoped to the owner address.
+ */
+async function keyValue(provider, request) {
+  const contractAddress = normalizeFelt(request.contract, 'contract');
+  const key = request.key === undefined ? undefined : normalizeFelt(request.key, 'key');
+  if (request.operation === 'kvGet' || request.operation === 'kvKeys') {
+    const owner = normalizeFelt(request.owner, 'owner');
+    if (request.operation === 'kvKeys') {
+      const felts = await provider.callContract({ contractAddress, entrypoint: 'keys', calldata: CallData.compile({ owner }) });
+      return { keys: felts.slice(1).map(value => num.toHex(value)) };
+    }
+    const felts = await provider.callContract({ contractAddress, entrypoint: 'get', calldata: CallData.compile({ owner, key }) });
+    const count = Number(BigInt(felts[0]));
+    const value = byteArray.stringFromByteArray({ data: felts.slice(1, 1 + count), pending_word: felts[1 + count], pending_word_len: felts[2 + count] });
+    return { value };
+  }
+  const classHash = normalizeFelt(request.classHash, 'classHash');
+  const keys = keysFromPrivateKey(request.privateKey);
+  const address = accountAddress(keys.publicKey, classHash);
+  const account = new Account({ provider, address, signer: keys.privateKey });
+  const calldata = request.operation === 'kvPut'
+    ? CallData.compile({ key, value: byteArray.byteArrayFromString(String(request.value)) })
+    : CallData.compile({ key });
+  const { transaction_hash: transactionHash } = await account.execute({ contractAddress, entrypoint: request.operation === 'kvPut' ? 'put' : 'remove', calldata });
+  const receipt = await provider.waitForTransaction(transactionHash, { retryInterval: 500 });
+  const execution = receipt.execution_status ?? receipt.value?.execution_status;
+  if (execution !== 'SUCCEEDED') {
+    const failure = new Error(`OASIS key-value transaction ${transactionHash} did not succeed (${execution}).`);
+    failure.transactionHash = transactionHash;
+    throw failure;
+  }
+  return { owner: address, transactionHash };
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {

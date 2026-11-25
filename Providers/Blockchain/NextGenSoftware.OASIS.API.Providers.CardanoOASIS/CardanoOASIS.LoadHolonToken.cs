@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -38,397 +38,19 @@ namespace NextGenSoftware.OASIS.API.Providers.CardanoOASIS
 {
     public partial class CardanoOASIS
     {
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var response = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Cardano provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
 
-                // Implement async loading all holons from Cardano blockchain
-                response.Result = new List<IHolon>();
-                response.IsError = false;
-                response.Message = "All holons loaded successfully";
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading all holons: {ex.Message}");
-            }
-            return response;
-        }
 
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var response = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Cardano provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
 
-                // Implement loading holons for parent from Cardano blockchain
-                response.Result = new List<IHolon>();
-                response.IsError = false;
-                response.Message = "Holons for parent loaded successfully";
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading holons for parent: {ex.Message}");
-            }
-            return response;
-        }
 
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var response = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Cardano provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
 
-                // Implement loading holons for parent from Cardano blockchain
-                response.Result = new List<IHolon>();
-                response.IsError = false;
-                response.Message = "Holons for parent loaded successfully";
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading holons for parent: {ex.Message}");
-            }
-            return response;
-        }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var response = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Cardano provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
 
-                // Implement async loading holons for parent from Cardano blockchain
-                response.Result = new List<IHolon>();
-                response.IsError = false;
-                response.Message = "Holons for parent loaded successfully";
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading holons for parent: {ex.Message}");
-            }
-            return response;
-        }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var response = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Cardano provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
 
-                // Implement async loading holons for parent from Cardano blockchain
-                response.Result = new List<IHolon>();
-                response.IsError = false;
-                response.Message = "Holons for parent loaded successfully";
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading holons for parent: {ex.Message}");
-            }
-            return response;
-        }
 
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var response = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Cardano provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
 
-                // Implement loading holons by metadata from Cardano blockchain
-                response.Result = new List<IHolon>();
-                response.IsError = false;
-                response.Message = "Holons by metadata loaded successfully";
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading holons by metadata: {ex.Message}");
-            }
-            return response;
-        }
 
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var response = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Cardano provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
 
-                // Implement loading holons by metadata from Cardano blockchain
-                response.Result = new List<IHolon>();
-                response.IsError = false;
-                response.Message = "Holons by metadata loaded successfully";
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading holons by metadata: {ex.Message}");
-            }
-            return response;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var response = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Cardano provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Implement async loading holons by metadata from Cardano blockchain
-                response.Result = new List<IHolon>();
-                response.IsError = false;
-                response.Message = "Holons by metadata loaded successfully";
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading holons by metadata: {ex.Message}");
-            }
-            return response;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var response = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Cardano provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Implement async loading holons by metadata from Cardano blockchain
-                response.Result = new List<IHolon>();
-                response.IsError = false;
-                response.Message = "Holons by metadata loaded successfully";
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading holons by metadata: {ex.Message}");
-            }
-            return response;
-        }
-
-        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        {
-            var response = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Cardano provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Implement saving holons to Cardano blockchain
-                response.Result = holons;
-                response.IsError = false;
-                response.Message = "Holons saved successfully";
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error saving holons: {ex.Message}");
-            }
-            return response;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        {
-            var response = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Cardano provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Implement async saving holons to Cardano blockchain
-                response.Result = holons;
-                response.IsError = false;
-                response.Message = "Holons saved successfully";
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error saving holons: {ex.Message}");
-            }
-            return response;
-        }
-
-        public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string email, int version = 0)
-        {
-            var response = new OASISResult<IAvatarDetail>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Cardano provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Implement loading avatar detail by email from Cardano blockchain
-                response.Result = null;
-                response.IsError = false;
-                response.Message = "Avatar detail loaded successfully";
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading avatar detail by email: {ex.Message}");
-            }
-            return response;
-        }
-
-        public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string username, int version = 0)
-        {
-            var response = new OASISResult<IAvatarDetail>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Cardano provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Implement loading avatar detail by username from Cardano blockchain
-                response.Result = null;
-                response.IsError = false;
-                response.Message = "Avatar detail loaded successfully";
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading avatar detail by username: {ex.Message}");
-            }
-            return response;
-        }
-
-        public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
-        {
-            var response = new OASISResult<IEnumerable<IAvatarDetail>>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Cardano provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Implement loading all avatar details from Cardano blockchain
-                response.Result = new List<IAvatarDetail>();
-                response.IsError = false;
-                response.Message = "All avatar details loaded successfully";
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading all avatar details: {ex.Message}");
-            }
-            return response;
-        }
 
 
 
@@ -603,17 +225,17 @@ namespace NextGenSoftware.OASIS.API.Providers.CardanoOASIS
         try
         {
 
-            // Generate Cardano Ed25519 key pair using Chaos.NaCl
+            // Generate Cardano Ed25519 key pair using BouncyCastle Ed25519
             var seedBytes = new byte[32];
             using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
             {
                 rng.GetBytes(seedBytes);
             }
 
-            // Derive Ed25519 keypair from seed using Chaos.NaCl
+            // Derive Ed25519 keypair from seed using BouncyCastle Ed25519
             byte[] publicKeyBytes = new byte[32];
             byte[] privateKeyBytes = new byte[64];
-            Chaos.NaCl.Ed25519.KeyPairFromSeed(publicKeyBytes, privateKeyBytes, seedBytes);
+            CardanoEd25519Signer.KeyPairFromSeed(publicKeyBytes, privateKeyBytes, seedBytes);
 
             var privateKey = Convert.ToBase64String(privateKeyBytes);
             var publicKey = Convert.ToBase64String(publicKeyBytes);
@@ -649,7 +271,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CardanoOASIS
             // Derive Ed25519 keypair from seed
             byte[] publicKeyBytes = new byte[32];
             byte[] privateKeyBytes = new byte[64];
-            Chaos.NaCl.Ed25519.KeyPairFromSeed(publicKeyBytes, privateKeyBytes, seedBytes);
+            CardanoEd25519Signer.KeyPairFromSeed(publicKeyBytes, privateKeyBytes, seedBytes);
 
             var publicKey = Convert.ToBase64String(publicKeyBytes);
             var privateKey = Convert.ToBase64String(privateKeyBytes);

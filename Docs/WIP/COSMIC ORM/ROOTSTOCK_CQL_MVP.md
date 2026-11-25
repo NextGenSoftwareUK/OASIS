@@ -1,5 +1,7 @@
 # Rootstock V2 CQL MVP — native and Mongo-paired verified
 
+Progress (25 Nov 2026, cloud-cql-C): live public source code merged to Development 24688f3a (confirmation-depth reads at head - 100; Rootstock rejects `finalized` and `requireCanonical`). Controlled CQL tests 4/4 pass. Waiting on Railway enrollment by the local CQL sandbox session: see [enrollment handoff](CLOUD_CQL_C_ENROLLMENT_HANDOFF_2026-11-25.md).
+
 Updated 29 October 2026. The green inventory row certifies only the local EVM/shipping-factory scope below.
 
 ## Root causes and fixes

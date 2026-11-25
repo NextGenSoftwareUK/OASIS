@@ -16,4 +16,13 @@
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.EclipseOASIS\NextGenSoftware.OASIS.API.Providers.EclipseOASIS.csproj" />
     <ProjectReference Include="..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
   </ItemGroup>
+  <ItemGroup Condition="'$(NativeStorageConformance)' == 'true'">
+    <Compile Remove="**/*.cs" />
+    <Compile Include="EclipseNativeStorageConformanceTests.cs" />
+    <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" />
+    <PackageReference Include="Solnet.Wallet" Version="6.1.0" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(NativeStorageConformance)' != 'true'">
+    <Compile Remove="EclipseNativeStorageConformanceTests.cs" />
+  </ItemGroup>
 </Project>

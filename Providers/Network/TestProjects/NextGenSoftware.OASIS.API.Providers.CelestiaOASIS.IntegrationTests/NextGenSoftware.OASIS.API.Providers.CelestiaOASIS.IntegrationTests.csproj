@@ -16,4 +16,15 @@
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.CelestiaOASIS\NextGenSoftware.OASIS.API.Providers.CelestiaOASIS.csproj" />
     <ProjectReference Include="..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="fixture/start-celestia.sh" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(NativeStorageConformance)' == 'true'">
+    <Compile Remove="**/*.cs" />
+    <Compile Include="CelestiaNativeStorageConformanceTests.cs" />
+    <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(NativeStorageConformance)' != 'true'">
+    <Compile Remove="CelestiaNativeStorageConformanceTests.cs" />
+  </ItemGroup>
 </Project>

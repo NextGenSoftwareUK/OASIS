@@ -1,46 +1,55 @@
+using System.Security.Cryptography;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Providers.CelestiaOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.CelestiaOASIS.UnitTests
 {
-    /// <summary>
-    /// Provider metadata checks. These run with no backend - they assert the provider
-    /// identifies itself correctly and starts deactivated.
-    /// </summary>
+    /// <summary>Provider identity and configuration validation. Construction never contacts the node.</summary>
     [TestClass]
     public class CelestiaOASISProviderTests
     {
-        private CelestiaOASIS _provider = null!;
+        private const string Namespace = "6f617369732d756e6974"; // "oasis-unit"
 
-        [TestInitialize]
-        public void Setup() => _provider = CelestiaOASISTestFactory.Create();
-
-        [TestMethod]
-        public void ProviderType_ShouldBeSet()
-            => Assert.AreNotEqual(ProviderType.None, _provider.ProviderType.Value);
+        private static CelestiaOASIS Create() => new("http://127.0.0.1:1", "token", Namespace, 1, RandomNumberGenerator.GetBytes(32));
 
         [TestMethod]
-        public void ProviderName_ShouldNotBeEmpty()
-            => Assert.IsFalse(string.IsNullOrWhiteSpace(_provider.ProviderName));
-
-        [TestMethod]
-        public void ProviderDescription_ShouldNotBeEmpty()
-            => Assert.IsFalse(string.IsNullOrWhiteSpace(_provider.ProviderDescription));
-
-        [TestMethod]
-        public void IsProviderActivated_ShouldBeFalseInitially()
-            => Assert.IsFalse(_provider.IsProviderActivated);
-
-        [TestMethod]
-        public void ProviderCategory_ShouldBeSet()
-            => Assert.IsNotNull(_provider.ProviderCategory);
-
-        [TestCleanup]
-        public void Cleanup()
+        public void ProviderIdentifiesAsCelestiaAndStartsDeactivated()
         {
-            if (_provider != null && _provider.IsProviderActivated)
-                _provider.DeActivateProvider();
+            using var provider = Create();
+            Assert.AreEqual(ProviderType.CelestiaOASIS, provider.ProviderType.Value);
+            Assert.AreEqual("CelestiaOASIS", provider.ProviderName);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(provider.ProviderDescription));
+            Assert.AreEqual(ProviderCategory.StorageAndNetwork, provider.ProviderCategory.Value);
+            Assert.IsFalse(provider.IsProviderActivated);
+        }
+
+        [TestMethod]
+        public void StorageConfigurationIsRequired()
+        {
+            var key = RandomNumberGenerator.GetBytes(32);
+            Assert.ThrowsException<ArgumentException>(() => new CelestiaOASIS("", "token", Namespace, 1, key));
+            Assert.ThrowsException<ArgumentException>(() => new CelestiaOASIS("http://127.0.0.1:1", "", Namespace, 1, key));
+            Assert.ThrowsException<ArgumentException>(() => new CelestiaOASIS("http://127.0.0.1:1", "token", "00", 1, key));
+            Assert.ThrowsException<ArgumentOutOfRangeException>(() => new CelestiaOASIS("http://127.0.0.1:1", "token", Namespace, 0, key));
+            Assert.ThrowsException<ArgumentException>(() => new CelestiaOASIS("http://127.0.0.1:1", "token", Namespace, 1, new byte[16]));
+        }
+
+        [TestMethod]
+        public async Task UnreachableNodeFailsActivation()
+        {
+            using var provider = Create();
+            var result = await provider.ActivateProviderAsync();
+            Assert.IsTrue(result.IsError);
+            Assert.IsFalse(provider.IsProviderActivated);
+        }
+
+        [TestMethod]
+        public void NamespaceIsVersionZeroWithTenByteId()
+        {
+            var ns = CelestiaBlobKeyValueBackend.NamespaceBytes(Namespace);
+            Assert.AreEqual(29, ns.Length);
+            Assert.IsTrue(ns.Take(19).All(b => b == 0));
+            CollectionAssert.AreEqual(Convert.FromHexString(Namespace), ns[19..]);
         }
     }
 }

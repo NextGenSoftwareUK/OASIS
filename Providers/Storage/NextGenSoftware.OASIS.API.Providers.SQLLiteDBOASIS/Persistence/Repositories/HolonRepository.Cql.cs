@@ -522,6 +522,32 @@ public partial class HolonRepository
                     throw new NotSupportedException("SQLite CQL string length path is unsupported.");
                 return StringLength(CanonicalColumn(lengthField.Name), length);
             }
+            if (predicate is CosmicQueryFullText fullText)
+            {
+                string Words(string operand) => "(" + string.Join(" AND ", fullText.Terms.Select(term =>
+                    SqliteCqlReadBudget.FullTextWordFunction + "(" + operand + "," + Bind(term) + ") = 1")) + ")";
+                if (fullText.Path.IsMetadata)
+                    return MetadataPredicate(fullText.Path.Segments, alias => "(" + alias + ".type = 'text' AND " + Words(alias + ".value") + ")");
+                if (fullText.Path.Segments.Count != 1 || !SqliteCqlContract.Fields.TryGetValue(fullText.Path.Segments[0], out var fullTextField)
+                    || fullTextField.ValueType != typeof(string))
+                    throw new NotSupportedException("SQLite CQL full-text path is unsupported.");
+                var fullTextColumn = CanonicalColumn(fullTextField.Name);
+                return "(typeof(" + fullTextColumn + ") = 'text' AND " + Words(fullTextColumn) + ")";
+            }
+            if (predicate is CosmicQueryStringTransform transform)
+            {
+                string Transformed(string operand) => transform.Kind == CosmicQueryStringTransformKind.Replace
+                    ? "replace(" + operand + "," + Bind(transform.First) + "," + Bind(transform.Second) + ")"
+                    : "trim(" + operand + "," + Bind(transform.First) + ")";
+                string Test(string operand) => "(" + Transformed(operand) + (transform.Equal ? " = " : " <> ") + Bind(transform.Value) + ")";
+                if (transform.Path.IsMetadata)
+                    return MetadataPredicate(transform.Path.Segments, alias => "(" + alias + ".type = 'text' AND " + Test(alias + ".value") + ")");
+                if (transform.Path.Segments.Count != 1 || !SqliteCqlContract.Fields.TryGetValue(transform.Path.Segments[0], out var transformField)
+                    || transformField.ValueType != typeof(string))
+                    throw new NotSupportedException("SQLite CQL string transform path is unsupported.");
+                var transformColumn = CanonicalColumn(transformField.Name);
+                return "(typeof(" + transformColumn + ") = 'text' AND " + Test(transformColumn) + ")";
+            }
             if (predicate is CosmicQueryStringMatch match)
             {
                 if (match.Path.IsMetadata)

@@ -19,11 +19,11 @@ ROOT = Path(__file__).resolve().parents[1]
 CONTROLLERS = ROOT / "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers"
 TARGET = ROOT / "Docs/Devs/API Documentation/WEB4 OASIS API/WEB4-Full-API.postman_collection.json"
 
-HTTP = re.compile(r"\[\s*Http(Get|Post|Put|Delete|Patch)\s*(?:\(\s*(?:template\s*:\s*)?@?\"([^\"]*)\"[^)]*\))?\s*\]")
-ROUTE = re.compile(r"\[\s*Route\s*\(\s*@?\"([^\"]*)\"\s*\)\s*\]")
+HTTP = re.compile(r"[\[,]\s*Http(Get|Post|Put|Delete|Patch)\s*(?:\(\s*(?:template\s*:\s*)?@?\"([^\"]*)\"[^)]*\))?\s*(?=[\],])")
+ROUTE = re.compile(r"[\[,]\s*Route\s*\(\s*@?\"([^\"]*)\"\s*\)\s*(?=[\],])")
 CLASS = re.compile(r"\bclass\s+(\w+?)Controller\b")
 METHOD_NAME = re.compile(r"\b(?:public|protected|internal)\s+(?:virtual\s+|override\s+|static\s+|async\s+)*[\w<>\[\],.? ]+?\s+(\w+)\s*\(")
-ANON = re.compile(r"\[\s*AllowAnonymous\s*\]")
+ANON = re.compile(r"[\[,]\s*AllowAnonymous\s*(?=[\],])")
 PARAM = re.compile(r"\{(\w+)(?::[^}]*)?\??\}")
 
 

@@ -1,0 +1,32 @@
+name: WEB6 OpenRouter price drift
+
+# Fails when the WEB6 model catalogue no longer matches OpenRouter's published list: models OpenRouter
+# retired (calls to them would fail), changed prices (WEB6 would bill a stale price) or new billable models.
+# Writes nothing. To fix, re-import with a new catalogue version (WEB6/docs/MODEL_CATALOGUE.md).
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: web6-openrouter-drift
+  cancel-in-progress: true
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: Development
+          submodules: false
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - name: Fetch the pinned WEB6 submodule only
+        run: git submodule update --init --depth 1 WEB6
+      - name: Compare the catalogue with OpenRouter's list
+        working-directory: WEB6
+        run: python3 Scripts/import_openrouter_models.py --check

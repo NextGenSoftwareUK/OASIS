@@ -1,5 +1,5 @@
 import Arweave from "arweave";
-import { queryTransactionIds } from "./query.mjs";
+import { queryTransactionIds, queryTaggedTransactions } from "./query.mjs";
 
 const chunks = [];
 for await (const chunk of process.stdin) chunks.push(chunk);
@@ -40,8 +40,19 @@ try {
       const response = await arweave.transactions.post(transaction);
       if (response.status !== 200 && response.status !== 202)
         throw new Error(`Arweave rejected transaction ${transaction.id}: HTTP ${response.status} ${JSON.stringify(response.data)}`);
-      if (input.mineAfterPost)
-        await arweave.api.get("mine");
+      if (input.mineAfterPost) {
+        const mined = await arweave.api.get("mine");
+        if (mined.status !== 200) throw new Error(`Arweave gateway did not mine transaction ${transaction.id}: HTTP ${mined.status}`);
+        // The acknowledgement is only published once the mined transaction is visible to owner-pinned discovery.
+        const owner = await arweave.wallets.jwkToAddress(wallet);
+        const visible = await arweave.api.post("graphql", {
+          query: "query($ids: [ID!], $owners: [String!]) { transactions(ids: $ids, owners: $owners) { edges { node { id } } } }",
+          variables: { ids: [transaction.id], owners: [owner] }
+        });
+        if (visible.status !== 200 || visible.data?.data?.transactions?.edges?.length !== 1 ||
+            visible.data.data.transactions.edges[0].node?.id !== transaction.id)
+          throw new Error(`Mined Arweave transaction ${transaction.id} is not visible to owner-pinned discovery.`);
+      }
       write({ ok: true, id: transaction.id, status: response.status });
       break;
     }
@@ -55,6 +66,13 @@ try {
       const owner = await arweave.wallets.jwkToAddress(input.wallet);
       const ids = await queryTransactionIds(arweave.api, input.tags ?? {}, owner);
       write({ ok: true, ids });
+      break;
+    }
+    case "queryOwnedTagged": {
+      if (!input.wallet) throw new Error("Configured wallet required for owner-pinned query.");
+      const owner = await arweave.wallets.jwkToAddress(input.wallet);
+      const transactions = await queryTaggedTransactions(arweave.api, input.tags ?? {}, owner);
+      write({ ok: true, transactions });
       break;
     }
     case "query": {

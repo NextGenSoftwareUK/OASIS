@@ -56,6 +56,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DaprOASIS
         Task SaveAsync(string store, string key, string value, CancellationToken ct);
         Task<bool> TrySaveAsync(string store, string key, string value, string etag, CancellationToken ct);
         Task DeleteAsync(string store, string key, CancellationToken ct);
+        Task<bool> TryDeleteAsync(string store, string key, string etag, CancellationToken ct);
         Task<bool> HealthyAsync(CancellationToken ct);
     }
 
@@ -84,7 +85,16 @@ namespace NextGenSoftware.OASIS.API.Providers.DaprOASIS
         public Task DeleteAsync(string store, string key, CancellationToken ct)
             => _client.DeleteStateAsync(store, key, new StateOptions { Consistency = ConsistencyMode.Strong }, cancellationToken: ct);
 
-        public Task<bool> HealthyAsync(CancellationToken ct) => _client.CheckHealthAsync(ct);
+        public Task<bool> TryDeleteAsync(string store, string key, string etag, CancellationToken ct)
+            => _client.TryDeleteStateAsync(store, key, etag, Strong, cancellationToken: ct);
+
+        // CheckHealthAsync probes the sidecar's HTTP port (DAPR_HTTP_ENDPOINT, default 3500), which this provider never
+        // configures; every storage call uses gRPC. Probe the same gRPC channel the storage calls use instead.
+        public async Task<bool> HealthyAsync(CancellationToken ct)
+        {
+            var metadata = await _client.GetMetadataAsync(ct);
+            return metadata != null && !string.IsNullOrEmpty(metadata.Id);
+        }
     }
 
     /// <summary>
@@ -165,6 +175,12 @@ namespace NextGenSoftware.OASIS.API.Providers.DaprOASIS
                 var (json, etag) = await _api.GetAsync(_store, IndexKey(directory), ct);
                 var keys = json == null ? new SortedSet<string>(StringComparer.Ordinal) : new SortedSet<string>(JsonSerializer.Deserialize<List<string>>(json), StringComparer.Ordinal);
                 if (!change(keys)) return;
+                // An emptied index is removed rather than kept as "[]", so per-parent directories do not accumulate.
+                if (keys.Count == 0 && json != null)
+                {
+                    if (await _api.TryDeleteAsync(_store, IndexKey(directory), etag, ct)) return;
+                    continue;
+                }
                 if (await _api.TrySaveAsync(_store, IndexKey(directory), JsonSerializer.Serialize(keys.ToList()), json == null ? null : etag, ct)) return;
             }
             throw new DaprException($"Could not update the Dapr key index for '{directory}' after {MaxConflictRetries} concurrent attempts.");
