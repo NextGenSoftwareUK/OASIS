@@ -2,7 +2,7 @@ name: EVM native storage
 
 on:
   push:
-    branches: [work/hyperdrive-triad, 'work/cloud-hd-filecoin']
+    branches: [work/hyperdrive-triad, work/blockstack-gaia]
     paths:
       - '.github/workflows/evm-native-storage.yml'
       - 'Scripts/TestHosts/run-local-evm-storage-conformance.cjs'
@@ -10,6 +10,8 @@ on:
       - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests/**'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.FhenixOASIS/**'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BasechainOASIS/**'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.RoninOASIS/**'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ImmutableZkEVMOASIS/**'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SeiOASIS/**'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BerachainOASIS/**'
   workflow_dispatch:

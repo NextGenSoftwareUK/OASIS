@@ -27,6 +27,7 @@ public class EvmStorageConformanceTests
     [DataRow("MonadOASIS",false)] [DataRow("MonadOASIS",true)]
     [DataRow("RootstockOASIS",false)] [DataRow("RootstockOASIS",true)]
     [DataRow("SeiOASIS",false)] [DataRow("SeiOASIS",true)] [DataRow("FhenixOASIS",false)] [DataRow("FhenixOASIS",true)] [DataRow("BasechainOASIS",false)] [DataRow("BasechainOASIS",true)]
+    [DataRow("RoninOASIS",false)] [DataRow("RoninOASIS",true)] [DataRow("ImmutableZkEVMOASIS",false)] [DataRow("ImmutableZkEVMOASIS",true)]
     public async Task SharedStorageInterfaceAgainstConfiguredLocalEvm(string name,bool sync)
     {
         var root=new DirectoryInfo(AppContext.BaseDirectory);
@@ -70,6 +71,8 @@ public class EvmStorageConformanceTests
                 "SeiOASIS"=>new NextGenSoftware.OASIS.API.Providers.SeiOASIS.SeiOASIS(endpoint.AbsoluteUri,key,contract,chain),
                 "FhenixOASIS"=>new NextGenSoftware.OASIS.API.Providers.FhenixOASIS.FhenixOASIS(endpoint.AbsoluteUri,key,contract,chain),
                 "BasechainOASIS"=>new NextGenSoftware.OASIS.API.Providers.BasechainOASIS.BasechainOASIS(endpoint.AbsoluteUri,key,contract,chain),
+                "RoninOASIS"=>new NextGenSoftware.OASIS.API.Providers.RoninOASIS.RoninOASIS(endpoint.AbsoluteUri,key,contract,chain),
+                "ImmutableZkEVMOASIS"=>new NextGenSoftware.OASIS.API.Providers.ImmutableZkEVMOASIS.ImmutableZkEVMOASIS(endpoint.AbsoluteUri,key,contract,chain),
                 _=>(IOASISStorageProvider?)null
             } ?? (name=="EthereumOASIS"
                 ? EthereumProviderFactory.CreateForMode(new EthereumOASISProviderSettings{ConnectionString=endpoint.AbsoluteUri,ChainPrivateKey=key,ContractAddress=contract,ChainId=checked((long)chain)},HyperDriveModes.V2,null!)
