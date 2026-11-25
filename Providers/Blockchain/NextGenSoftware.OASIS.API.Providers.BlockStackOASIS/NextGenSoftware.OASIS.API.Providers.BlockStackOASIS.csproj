@@ -58,4 +58,7 @@
     <ProjectReference Include="../../Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" />
     <PackageReference Include="BouncyCastle.Cryptography" Version="2.7.0" Aliases="StacksCrypto" />
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="NextGenSoftware.OASIS.API.Providers.BlockStackOASIS.UnitTests" />
+  </ItemGroup>
 </Project>
