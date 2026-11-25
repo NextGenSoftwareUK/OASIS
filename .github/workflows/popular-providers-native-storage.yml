@@ -39,6 +39,8 @@ on:
       - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.CelestiaOASIS.IntegrationTests/**'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.CeramicOASIS/**'
       - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CeramicOASIS.IntegrationTests/**'
+      - 'Providers/Social/NextGenSoftware.OASIS.API.Providers.BlueSkyOASIS/**'
+      - 'Providers/Social/TestProjects/NextGenSoftware.OASIS.API.Providers.BlueSkyOASIS.IntegrationTests/**'
       - 'Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.DaprOASIS.IntegrationTests/**'
       - 'Providers/Social/NextGenSoftware.OASIS.API.Providers.NostrOASIS/**'
       - 'Providers/*/TestProjects/*/*NativeStorageConformanceTests.cs'
@@ -54,7 +56,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        provider: [CouchDB, Couchbase, ArangoDB, SurrealDB, ClickHouse, InfluxDB, Chroma, PgVector, ArcadeDB, QuestDB, PouchDB, NATSJetStream, Nostr, Dapr, GUN, Matrix, OrbitDB, Arweave, Scuttlebutt, Appwrite, Pinecone, Tableland, Celestia, Ceramic]
+        provider: [CouchDB, Couchbase, ArangoDB, SurrealDB, ClickHouse, InfluxDB, Chroma, PgVector, ArcadeDB, QuestDB, PouchDB, NATSJetStream, Nostr, Dapr, GUN, Matrix, OrbitDB, Arweave, Scuttlebutt, Appwrite, Pinecone, Tableland, Celestia, Ceramic, BlueSky]
     defaults:
       run:
         working-directory: OASIS
@@ -281,6 +283,9 @@ jobs:
             Ceramic)
               # ceramic-one 0.58.0 (digest-pinned community build; see ACTIONS-FOR-DAVID) plus one storage service per mode.
               source "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CeramicOASIS.IntegrationTests/start-ceramic-fixture.sh" ;;
+            BlueSky)
+              # Postgres + local PLC directory + official PDS (pinned by digest); creates oasis-async.test / oasis-sync.test.
+              container="$(Providers/Social/TestProjects/NextGenSoftware.OASIS.API.Providers.BlueSkyOASIS.IntegrationTests/start-pds-fixture.sh "$password")" ;;
             Couchbase)
               container="$(docker run -d -p 127.0.0.1:8091-8097:8091-8097 -p 127.0.0.1:11210:11210 -p 127.0.0.1:11280:11280 couchbase/server:community-7.6.2)"
               wait_for "curl -fsS http://127.0.0.1:8091/ui/index.html"
