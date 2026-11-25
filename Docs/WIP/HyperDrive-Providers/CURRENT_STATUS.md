@@ -22,7 +22,7 @@ OPORTAL, the ONODE popup and billing UI are now owned by a different session. CQ
 - Next 3: Ceramic signed commits (DID), BlockStack Gaia auth tokens, Aztec/Miden real storage designs.
 - Blockers: ACTIONS-FOR-DAVID I1 and the hosted-account providers.
 
-## Progress (cloud-hyperdrive-A, updated 2026-11-25 09:20 UTC)
+## Progress (cloud-hyperdrive-A, updated 2026-11-25 21:35 UTC)
 
 Done in CI (native core-storage suite 26/26, sync + async, against real backends):
 - TelosOASIS and SEEDSOASIS: storage through the EOSIO (Antelope) implementation; `antelope-family-native-storage.yml`, run 45518765561.
@@ -32,9 +32,13 @@ Done in CI (native core-storage suite 26/26, sync + async, against real backends
   TablelandOASIS (local validator + Hardhat), CelestiaOASIS (local devnet), CeramicOASIS (ceramic-one 0.58.0) and BlueSkyOASIS
   (self-hosted PDS + local PLC): all in `popular-providers-native-storage.yml` run 45535697095 (`work/cloud-hd-scuttlebutt`).
   OrbitDB and Scuttlebutt also pass a service-restart durability check in CI.
+- FilecoinOASIS: FEVM records through the shared Web3Core EVM base on a local Lotus devnet (chain 31415926); Web3Core gained
+  an opt-in `EstimateContractGas` (FEVM gas units). popular-providers run 45700279460; EVM regression suite run 45700279496.
 
 EclipseOASIS: done by the hyperdrive-triad session (f2717b1b); the duplicate `work/cloud-hd-eclipse` branch is not merged.
-In progress: FilecoinOASIS.
+Passing locally, CI pending: UrbitOASIS (offline fake ship, %oasis-kv Gall agent). In progress: RadixOASIS.
+
+Classified non-storage: FarcasterOASIS (no keyed, durable app-data message type; see FARCASTER_STORAGE_CLASSIFICATION_2026-11-25.md).
 
 Known gap: providers that delegate storage (Eclipse to Solana, Telos to EOSIO) stamp saved records with the inner
 provider's ProviderUniqueStorageKey type; routing by the outer type does not find them. Fix is to make the stamped type
