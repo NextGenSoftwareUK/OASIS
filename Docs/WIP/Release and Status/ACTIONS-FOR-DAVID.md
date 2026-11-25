@@ -1214,3 +1214,13 @@ Status: open, 24 November 2026. Everything else in the ONET plan is done and on 
 2. Holochain-carried ONET traffic (plan item 8). Needs a new `onet` zome in the OASIS hApp and a live-conductor test run. HoloNET mode already works over the signed ONET transport. Decide whether to schedule the zome work now or later.
 
 Reply with the choices and the work continues from the plan.
+
+## ONODE Manager release, signing and alerts - 2026-11-25
+
+Status: code work continues without these; only David can do them.
+
+1. Code signing (optional; unsigned builds still ship). Add these GitHub Actions secrets to NextGenSoftwareUK/OASIS. `release-onode-manager.yml` signs automatically once they exist:
+   - Windows: `WINDOWS_CERT_PFX_BASE64` (base64 of the .pfx) and `WINDOWS_CERT_PASSWORD`.
+   - macOS: `MACOS_CERT_P12_BASE64`, `MACOS_CERT_PASSWORD`, `MACOS_SIGN_APP_IDENTITY`, `MACOS_SIGN_INSTALL_IDENTITY`, `APPLE_ID`, `APPLE_TEAM_ID`, `APPLE_APP_PASSWORD` (app-specific password).
+2. First public ONODE Manager release. Run Global OASIS Release with `optional_components` including `onode_manager` and `publish=true`. It takes about 2 hours and creates a public GitHub release. Until it runs, the ONODE Manager download links on the sites stay dead.
+3. Dependabot: GitHub reports 669 alerts on the default branch (47 critical). Authorise the GitHub connector in Claude Code (`/mcp`) so a session can list and triage them.
