@@ -40,7 +40,7 @@ public class CqlQuestDbDemoDatasetTests
             Guid.NewGuid(), Symbols, dataset);
         var activation = await source.ActivateQuerySourceAsync(default);
         Assert.False(activation.IsError, activation.Message);
-        Assert.True(source.IsQuerySourceActivated);
+        Assert.True(source.IsProviderActivated);
         Assert.Equal(expected, Assert.Single(demo.Sql));
     }
 
