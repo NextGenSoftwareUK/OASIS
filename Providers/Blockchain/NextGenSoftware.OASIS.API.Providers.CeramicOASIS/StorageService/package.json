@@ -1,0 +1,18 @@
+{
+  "name": "oasis-ceramic-storage-service",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Loopback key-value storage service for CeramicOASIS: one signed Ceramic model instance document on a ceramic-one node.",
+  "type": "module",
+  "main": "storage-service.mjs",
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@ceramic-sdk/http-client": "0.12.0",
+    "@ceramic-sdk/identifiers": "0.12.0",
+    "@ceramic-sdk/model-client": "0.12.0",
+    "@ceramic-sdk/model-instance-client": "0.12.0",
+    "@didtools/key-did": "1.0.0"
+  }
+}
