@@ -1573,3 +1573,10 @@ What passed:
    - Dev leftover: probe holon 4c15ba78-ff19-5a49-89d4-5c78abf8d6c6.
    - Owner sessions have expired, and avatar delete needs admin rights. Direct database deletes would leave their replication obligations (some are in the held queue above) inconsistent, so nothing was force-deleted.
    - Once the sweep is fixed, it removes them by itself. Then confirm in Mongo that the IDs above are absent.
+
+## ONET: two decisions before the last protocol items (2026-11-24)
+
+Status: decided by David, 24 November 2026; engineering in progress (no further owner action). Plan: [ONET_STORAGE_AND_HOLONET_PLAN_2026-11.md](../ONET/ONET_STORAGE_AND_HOLONET_PLAN_2026-11.md).
+
+1. Message encryption (audit item #24): **encrypt, with a coordinated upgrade.** ONET application frames move to version 2 (encrypted for the target node and signed). Older nodes stop exchanging messages with upgraded ones, so every ONET node (Railway WEB4 and any self-hosted ONODEs) must be on the same release.
+2. Holochain-carried ONET traffic (plan item 8): **build the `onet` zome now.** It is a coordinator-only module in the OASIS hApp (DNA hash unchanged).
