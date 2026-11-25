@@ -92,4 +92,4 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | AztecOASIS / MidenOASIS / BlockStackOASIS fake-storage removal | HyperDrive providers | local: HyperDrive provider programme | work/hyperdrive-triad | 2026-11-25 06:11 | DONE 6961e8d6, 511b9b32 |
 | Dependabot runtime alerts in HashgraphOASIS SdkBridge (protobufjs 8.0.1, @grpc/grpc-js) | Security / Providers | local: WEB6 catalogue session | Development (direct, small) | 2026-11-25 | IN PROGRESS |
 | COSMIC O16 full-text search provider extension | COSMIC ORM | local_fa02a367 child COSMIC session | work/cosmic-cql-ton-public | 2026-11-25 | IN PROGRESS |
-| Dependabot alerts in Scripts/TestHosts/near-local (tar 6.2.1 via near-sandbox) | Security / Test hosts | local: WEB6 catalogue session | Development (direct, small) | 2026-11-25 | IN PROGRESS |
+| Dependabot alerts in Scripts/TestHosts/near-local (tar 6.2.1 via near-sandbox) | Security / Test hosts | local: WEB6 catalogue session | Development (direct, small) | 2026-11-25 | DONE e301bff (tar.x stream extraction verified on tar 7.5.23) |
