@@ -80,7 +80,7 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - **STARNET Web UI**: Comprehensive web interface and app store
 - **STAR CLI**: Command-line interface for developers
 - **OAPP Builder**: Drag-and-drop application builder
-- **DNA System**: STARNETHolon dependency management
+- **DNA System**: Smart Brick dependency management
 - **Core WEB4 APIs** (from oasisweb4.com): AVATAR, KARMA, DATA, WALLET, NFT, KEYS, SEARCH, STATS, HOLOCHAIN, IPFS
 - **ProviderManagement Refactor**: Registry, Selector, Switcher, Configurator, Facade, with `ProviderManagerNew` facade and legacy `ProviderManager` marked [Obsolete]
 - **Blockchain Providers**: Bitcoin, Ethereum, Solana, Polygon, Arbitrum, Avalanche, BNB Chain, Cardano, NEAR, Polkadot, Cosmos, Fantom, Optimism, Rootstock, TRON, Telos, Sui, Aptos, Elrond, Hashgraph, EOSIO, BlockStack, ChainLink, Moralis, Web3Core
@@ -114,7 +114,7 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - **STAR CLI**: Revolutionary Interoperable Low/No Code Generator for all metaverses, games, apps, and platforms
 - **Our World**: Groundbreaking AR geo-location game that encourages environmental stewardship and community service
 - **One World**: Benevolent MMORPG with optional VR, similar to Minecraft and Pax Dei with cross-platform asset sharing
-- **OASIS/STAR Cross-Platform Universal System**: Revolutionary interoperable universal system with universal STARNETHolon sharing
+- **OASIS/STAR Cross-Platform Universal System**: Revolutionary interoperable universal system with universal Smart Brick sharing
 - **HoloNET**: Revolutionary Holochain integration bringing P2P architecture to .NET and Unity ecosystems
 
 ### **OASIS Web4 Site & Plans**
@@ -187,12 +187,12 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - **Documentation**: [One World Documentation](ONE_WORLD_DOCUMENTATION.md) | [One World Whitepaper](ONE_WORLD_WHITEPAPER.md)
 
 ### **OASIS/STAR Cross-Platform Universal System**
-- **Features**: Universal STARNETHolon sharing, cross-OAPP compatibility, platform agnostic, engine independent
+- **Features**: Universal Smart Brick sharing, cross-OAPP compatibility, platform agnostic, engine independent
 - **Benefits**: Create once, use everywhere, cross-platform progression, unified OAPP experience
-- **Impact**: First truly interoperable universal system with universal STARNETHolon sharing
-- **Technical Innovation**: Universal STARNETHolon format, cross-platform sync, unified authentication
+- **Impact**: First truly interoperable universal system with universal Smart Brick sharing
+- **Technical Innovation**: Universal Smart Brick format, cross-platform sync, unified authentication
 - **Market Opportunity**: Revolutionary universal ecosystem, massive developer access, infinite use cases
-- **Competitive Advantage**: First truly interoperable universal system with universal STARNETHolon sharing across all industries
+- **Competitive Advantage**: First truly interoperable universal system with universal Smart Brick sharing across all industries
 
 ### **HoloNET - Revolutionary Holochain Integration**
 - **Features**: World-first .NET and Unity client for Holochain, HoloNET ORM with one-line commands
@@ -219,7 +219,7 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 ### **STAR CLI & DNA System**
 - **[STAR CLI Comprehensive Guide](./STAR_CLI_Comprehensive_Guide.md)** - Architecture hub (Light, templates, providers, automation)
 - **[STAR CLI Documentation](./STAR_CLI_DOCUMENTATION.md)** - Complete CLI reference
-- **[DNA System Guide](./DNA_SYSTEM_GUIDE.md)** - STARNETHolon dependency management
+- **[DNA System Guide](./DNA_SYSTEM_GUIDE.md)** - Smart Brick dependency management
 - **[Dependency Management Guide](./DEPENDENCY_MANAGEMENT_GUIDE.md)** - Advanced dependency management
 
 ## 🎮 **STARNET Web UI Documentation**
