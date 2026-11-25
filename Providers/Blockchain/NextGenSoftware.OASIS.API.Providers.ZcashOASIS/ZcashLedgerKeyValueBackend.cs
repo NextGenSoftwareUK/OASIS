@@ -271,7 +271,7 @@ internal sealed class ZcashLedgerKeyValueBackend : IKeyValueBackend, IDisposable
         await _submission.WaitAsync(cancellationToken);
         try
         {
-            var unspent = await RpcAsync("listunspent", new JsonArray(0, 9_999_999, new JsonArray(_address)), cancellationToken);
+            var unspent = await RpcAsync("listunspent", new JsonArray(1, 9_999_999, new JsonArray(_address)), cancellationToken);
             var candidate = unspent.EnumerateArray()
                 .Where(item => item.TryGetProperty("spendable", out var spendable) && spendable.GetBoolean())
                 // Consensus forbids spending coinbase before COINBASE_MATURITY (100) confirmations.

@@ -45,6 +45,12 @@ public sealed class ZcashNativeStorageConformanceTests
         {
             var probes = new (string, Func<Task<string>>)[]
             {
+                ("save", async () =>
+                {
+                    var probe = new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id = Guid.NewGuid(), Username = "probe-" + Guid.NewGuid().ToString("N"), Email = Guid.NewGuid().ToString("N") + "@example.invalid" };
+                    var saved = await provider.SaveAvatarAsync(probe);
+                    return $"error={saved.IsError} saved={saved.IsSaved} count={saved.SavedCount} {saved.Message} {saved.Exception}";
+                }),
                 ("activate", async () =>
                 {
                     var activation = await provider.ActivateProviderAsync();
