@@ -402,11 +402,11 @@ All commands are exposed over MCP stdio. Most return a JSON-serialized `OASISRes
 | `web5_geo_hotspot_load` | WEB5 STARNET: loads a single geo hotspot by its GUID id. |
 | `web5_geo_hotspot_load_all_for_avatar` | WEB5 STARNET: loads every geo hotspot published by or accessible to an avatar. |
 | `web5_geo_hotspot_search` | WEB5 STARNET: searches geo hotspots on STARNET by a free-text search term. |
-| `web5_holon_download` | WEB5 STARNET: downloads a STARNET holon by id and version to a local path. |
-| `web5_holon_download_and_install` | WEB5 STARNET: downloads and installs a STARNET holon in one step. fullInstallPath is the local installation directory. |
-| `web5_holon_load` | WEB5 STARNET: loads a single STARNET holon by its GUID id. |
-| `web5_holon_load_all_for_avatar` | WEB5 STARNET: loads every STARNET holon published by or accessible to an avatar. |
-| `web5_holon_search` | WEB5 STARNET: searches STARNET holons by a free-text search term. |
+| `web5_holon_download` | WEB5 STARNET: downloads a Smart Brick by id and version to a local path. |
+| `web5_holon_download_and_install` | WEB5 STARNET: downloads and installs a Smart Brick in one step. fullInstallPath is the local installation directory. |
+| `web5_holon_load` | WEB5 STARNET: loads a single Smart Brick by its GUID id. |
+| `web5_holon_load_all_for_avatar` | WEB5 STARNET: loads every Smart Brick published by or accessible to an avatar. |
+| `web5_holon_search` | WEB5 STARNET: searches Smart Bricks by a free-text search term. |
 | `web5_inventory_item_download` | WEB5 STARNET: downloads an inventory item definition from STARNET to a local path. |
 | `web5_inventory_item_load` | WEB5 STARNET: loads a single inventory item by its GUID id. |
 | `web5_inventory_item_load_all_for_avatar` | WEB5 STARNET: loads every inventory item owned by or accessible to an avatar. |

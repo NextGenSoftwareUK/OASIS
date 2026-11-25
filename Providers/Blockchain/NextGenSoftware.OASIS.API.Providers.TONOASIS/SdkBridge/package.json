@@ -11,5 +11,8 @@
   "devDependencies": {
     "@tact-lang/compiler": "1.6.13",
     "typescript": "5.9.3"
+  },
+  "overrides": {
+    "protobufjs": "^7.5.6"
   }
 }

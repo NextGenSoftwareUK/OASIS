@@ -20,5 +20,8 @@
         "ts-node": "^10.9.2",
         "typechain": "^8.3.2",
         "typescript": "^5.4.5"
+    },
+    "overrides": {
+        "undici": "^6.29.1"
     }
 }

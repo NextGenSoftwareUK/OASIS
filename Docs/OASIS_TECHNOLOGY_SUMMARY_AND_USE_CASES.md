@@ -9,7 +9,7 @@
 
 **As of July 2026**, the full WEB4–WEB6 stack is live in production:
 - **WEB4**: Universal data aggregation, 234 provider projects in the OASIS inventory, COSMIC ORM, HyperDrive routing for eligible storage providers, SSO Avatar, cross-chain NFTs, ONET P2P
-- **WEB5**: STAR ODK metaverse generator, STARNET holon graph, OAPPs, quests, missions, cross-world assets  
+- **WEB5**: STAR ODK metaverse generator, Smart Brick graph, OAPPs, quests, missions, cross-world assets  
 - **WEB6**: ONE API. EVERY AI. FAHRN multi-agent orchestration, 98 AI providers, Holonic BRAID memory, SkillOpt self-evolving skills, DID/VC identity, 508 MCP tools — **the AI intelligence layer is fully shipped and commercially live**
 - **WEB7**: Bio-signal symbiosis architecture complete, 7 MCP tools live, implementation in progress
 - **WEB8–WEB10**: Architecture defined, MCP tools live, long-horizon vision layers
@@ -45,7 +45,7 @@ OASIS solves the fundamental problem of internet fragmentation by providing:
 - **Core Innovation**: STAR ODK (Omniverse Interoperable Metaverse Low Code Generator)
 - **Key Features**:
   - Low-code/no-code metaverse development
-  - STARNETHolons management (universal linking system)
+  - Smart Bricks management (universal linking system)
   - Missions, Quests, and Chapters
   - Cross-chain NFTs and GeoNFTs
   - Celestial Bodies, Spaces, Zomes, and Holons
@@ -104,7 +104,7 @@ OASIS solves the fundamental problem of internet fragmentation by providing:
 - Collections and marketplace integration
 - Full interoperability across all blockchains
 
-### 4. STARNETHolons Linking System
+### 4. Smart Bricks Linking System
 - Any component can be linked to any other component
 - Universal relationship mapping
 - Graph-based data structure
@@ -266,7 +266,7 @@ OASIS solves the fundamental problem of internet fragmentation by providing:
 
 **OASIS Solution**:
 - STAR ODK for low-code metaverse creation
-- STARNETHolons linking system connects all metaverses
+- Smart Bricks linking system connects all metaverses
 - Universal avatar system (SSO Avatar)
 - Cross-metaverse asset portability
 - Shared economy and reputation (Karma)

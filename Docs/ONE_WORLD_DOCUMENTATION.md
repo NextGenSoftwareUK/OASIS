@@ -2,7 +2,7 @@
 
 ## 🌍 **One World - The Benevolent MMORPG**
 
-**One World** is the sister game to Our World - a groundbreaking MMORPG with optional VR that's similar to Minecraft and Pax Dei where you can build anything you can imagine, but with a benevolent focus. Built on the WEB4 OASIS API and WEB5 STAR API, it shares ALL STARNETHolons (OAPPs, Runtimes, Libraries, Templates, NFTs, GeoNFTs, GeoHotSpots, Quests, Missions, Chapters, InventoryItems, CelestialSpaces, CelestialBodies, Zomes, Holons, and all MetaDataDNA) with Our World and any other OAPPs built on the OASIS/STAR APIs.
+**One World** is the sister game to Our World - a groundbreaking MMORPG with optional VR that's similar to Minecraft and Pax Dei where you can build anything you can imagine, but with a benevolent focus. Built on the WEB4 OASIS API and WEB5 STAR API, it shares ALL Smart Bricks (OAPPs, Runtimes, Libraries, Templates, NFTs, GeoNFTs, GeoHotSpots, Quests, Missions, Chapters, InventoryItems, CelestialSpaces, CelestialBodies, Zomes, Holons, and all MetaDataDNA) with Our World and any other OAPPs built on the OASIS/STAR APIs.
 
 ## 🎯 **Mission & Vision**
 
@@ -54,17 +54,17 @@ A global virtual world where creativity, collaboration, and benevolence come tog
 
 ## 🌟 **Cross-Platform Asset Sharing**
 
-### **Universal STARNETHolon Sharing**
-- **ALL STARNETHolons**: Share OAPPs, Runtimes, Libraries, Templates, NFTs, GeoNFTs, GeoHotSpots, Quests, Missions, Chapters, InventoryItems, CelestialSpaces, CelestialBodies, Zomes, Holons, and all MetaDataDNA
-- **Cross-OAPP Compatibility**: STARNETHolons work in different OAPPs with different UIs
-- **Platform Agnostic**: STARNETHolons work seamlessly across web, mobile, desktop, and VR platforms
-- **Engine Independent**: Same STARNETHolons work in Unity, Unreal, JavaScript, and any other engine
+### **Universal Smart Brick Sharing**
+- **ALL Smart Bricks**: Share OAPPs, Runtimes, Libraries, Templates, NFTs, GeoNFTs, GeoHotSpots, Quests, Missions, Chapters, InventoryItems, CelestialSpaces, CelestialBodies, Zomes, Holons, and all MetaDataDNA
+- **Cross-OAPP Compatibility**: Smart Bricks work in different OAPPs with different UIs
+- **Platform Agnostic**: Smart Bricks work seamlessly across web, mobile, desktop, and VR platforms
+- **Engine Independent**: Same Smart Bricks work in Unity, Unreal, JavaScript, and any other engine
 
 ### **Unified OAPP Ecosystem**
-- **Create Once, Use Everywhere**: Build STARNETHolons once, use across all OASIS/STAR OAPPs
+- **Create Once, Use Everywhere**: Build Smart Bricks once, use across all OASIS/STAR OAPPs
 - **Cross-Platform Progression**: Your progress and achievements carry over between OAPPs
-- **Universal Inventory**: Items and STARNETHolons work across all OAPPs in the ecosystem
-- **Shared STARNETHolons**: Use the same STARNETHolons in different OAPPs with different experiences
+- **Universal Inventory**: Items and Smart Bricks work across all OAPPs in the ecosystem
+- **Shared Smart Bricks**: Use the same Smart Bricks in different OAPPs with different experiences
 
 ### **Infinite Use Cases**
 - **Games**: AR/VR Games, MMORPGs, Mobile Games
@@ -81,10 +81,10 @@ A global virtual world where creativity, collaboration, and benevolence come tog
 ### **OASIS API Backend**
 - **WEB4 OASIS API**: Universal backend supporting all OAPP types and platforms
 - **WEB5 STAR API**: Gamification layer that works across all platforms
-- **STARNETHolon Standardization**: Universal STARNETHolon format that works across all engines
+- **Smart Brick Standardization**: Universal Smart Brick format that works across all engines
 - **Cross-Platform Sync**: Real-time synchronization across all OAPPs and platforms
 - **Universal Authentication**: Single login works across all OAPPs in the ecosystem
-- **Shared Database**: All OAPPs share the same underlying data and STARNETHolons
+- **Shared Database**: All OAPPs share the same underlying data and Smart Bricks
 
 ### **Advanced VR Integration**
 - **Optional VR Support**: Immersive virtual reality experiences

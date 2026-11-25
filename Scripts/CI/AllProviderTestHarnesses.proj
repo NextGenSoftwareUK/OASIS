@@ -1,0 +1,20 @@
+<Project>
+  <!--
+    Builds every provider TestHarness console project so harnesses cannot silently rot when provider or Core APIs
+    change. Harnesses are discovered by convention (Providers/<Area>/TestProjects/*TestHarness/*.csproj), so a new
+    harness is covered without editing this file. Used by .github/workflows/provider-testharness-build.yml.
+  -->
+  <ItemGroup>
+    <Harness Include="$(MSBuildThisFileDirectory)../../Providers/*/TestProjects/*TestHarness/*.csproj" />
+  </ItemGroup>
+
+  <Target Name="Restore">
+    <MSBuild Projects="@(Harness)" Targets="Restore" Properties="MSBuildRestoreSessionId=$([System.Guid]::NewGuid())" BuildInParallel="true" />
+  </Target>
+
+  <Target Name="Build">
+    <Error Condition="'@(Harness)' == ''" Text="No provider TestHarness projects were found." />
+    <Message Importance="high" Text="Building @(Harness->Count()) provider TestHarness projects." />
+    <MSBuild Projects="@(Harness)" Targets="Build" BuildInParallel="true" />
+  </Target>
+</Project>

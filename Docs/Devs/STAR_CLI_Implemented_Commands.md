@@ -46,7 +46,7 @@ Every token below is a **real** `case` in `Program.cs`. Sub-behavior is summariz
 | `api` | Opens configured site; optional second token `oasis` (see code for URL). |
 | `oapp` | STARNET OAPP router; special cases `oapp publish`, `oapp template` (see §4). |
 | `happ` | Same overall shape as `oapp` (hApp), including `happ publish` (see §4). |
-| `runtime`, `lib`, `celestialspace`, `celestialbody`, `zome`, `holon`, `chapter`, `mission`, `quest` | Generic STARNET holon router (§5). |
+| `runtime`, `lib`, `celestialspace`, `celestialbody`, `zome`, `holon`, `chapter`, `mission`, `quest` | Generic Smart Brick router (§5). |
 | `game` | ONODE `GameManager` commands **or** STARNET `Game` holon router (§6). |
 | `nft` | NFT STARNET router + `nft collection` subtree (§7). |
 | `geonft` | GeoNFT STARNET router + `geonft collection` subtree (§7). |
@@ -86,7 +86,7 @@ Every token below is a **real** `case` in `Program.cs`. Sub-behavior is summariz
 
 ---
 
-## 5. Generic STARNET holon verbs
+## 5. Generic Smart Brick verbs
 
 For each holon namespace listed in §2 (and `oapp template`, `nft collection`, `geonft collection`), the CLI accepts the same **verb set** (exact spelling as typed by users — typically lowercase in argv):
 

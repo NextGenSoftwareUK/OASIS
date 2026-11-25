@@ -1,6 +1,8 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.Providers.TestSupport;
+using System.Text.Json;
 
 namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.IntegrationTests
 {
@@ -69,6 +71,33 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.IntegrationTests
 
             var deleted = await provider.DeleteHolonAsync(holon.Id);
             Assert.IsFalse(deleted.IsError, deleted.Message);
+        }
+
+        [TestMethod]
+        public async Task CoreStorageConformanceOnOfficialAntelope()
+        {
+            var mode = Environment.GetEnvironmentVariable("OASIS_ANTELOPE_STORAGE_MODE");
+            if (mode is not ("sync" or "async"))
+                Assert.Inconclusive("Select a storage mode on the disposable Antelope fixture.");
+            if (Environment.GetEnvironmentVariable("OASIS_ANTELOPE_LIFECYCLE_WRITES") != "1")
+                Assert.Inconclusive("Enable writes only for the dedicated disposable Antelope contract.");
+            Assert.AreEqual("http://127.0.0.1:18888", Environment.GetEnvironmentVariable("OASIS_ANTELOPE_ENDPOINT"));
+
+            TelosOASIS provider = CreateProvider();
+            var directory = Require("OASIS_TELOS_RESULTS");
+            Directory.CreateDirectory(directory);
+            var path = Path.Combine(directory, "core-storage.json");
+            Assert.IsFalse(File.Exists(path));
+            var report = await CoreStorageConformance.RunAsync(provider, nameof(TelosOASIS), "native",
+                mode == "sync", async checkpoint =>
+                {
+                    await File.WriteAllTextAsync(path + ".next", JsonSerializer.Serialize(checkpoint));
+                    File.Move(path + ".next", path, overwrite: true);
+                }, expectedDefaultDeletion: "absent");
+            Assert.IsTrue(report.Succeeded,
+                $"{report.CurrentCase}: {report.FailureType} {report.FailureContract}; {report.Passed.Count} checks passed.");
+            Assert.IsTrue(report.FixtureCleanupComplete);
+            Assert.AreEqual(CoreStorageConformance.ChecksPerMode, report.Passed.Count);
         }
 
         private static string Require(string name) =>

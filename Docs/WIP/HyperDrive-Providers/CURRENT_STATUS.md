@@ -8,6 +8,26 @@ Scope of this workstream: HyperDrive failover, replication and load balancing, p
 OPORTAL, the ONODE popup and billing UI are now owned by a different session. CQL/WEB4 sandbox work happens on
 `work/cosmic-cql-ton-public` in `C:\Source\OASIS2`.
 
+## Progress (cloud-hyperdrive-A, updated 2026-11-25 02:55 UTC)
+
+Done in CI (native core-storage suite 26/26, sync + async):
+- TelosOASIS and SEEDSOASIS: storage now goes through the EOSIO (Antelope) implementation; `antelope-family-native-storage.yml`, run 45518765561.
+- DaprOASIS: gRPC health probe, emptied key indexes removed; `popular-providers-native-storage.yml`, run 45519314086.
+- GUNOASIS: real GUN wire protocol, chunked node replies merged; run 45520161955.
+
+Passing 26/26 in both modes locally against real backends, waiting for CI (`work/cloud-hd-scuttlebutt` carries these in one `popular-providers-native-storage.yml` run):
+- MatrixOASIS (Synapse): records as encrypted room state events. Tests passed in run 45521345637; the job failed only removing Synapse-owned fixture files (fixed on the branch).
+- OrbitDBOASIS (@orbitdb/core 4 service): stable identity and address across restarts.
+- ArweaveOASIS (arlocal): owner-pinned, revisioned, encrypted records.
+- ScuttlebuttOASIS (ssb-db2 service): records in a signed feed.
+- AppwriteOASIS (self-hosted 1.7.4), PineconeOASIS (Pinecone Local), TablelandOASIS (local validator + Hardhat), CelestiaOASIS (local devnet), CeramicOASIS (ceramic-one 0.58.0).
+
+Also passing locally: BlueSkyOASIS (self-hosted PDS) and EclipseOASIS (delegates to SolanaOASIS; eclipse-native-storage.yml). In progress: FilecoinOASIS.
+
+Blocked on hosted accounts or a retire decision: see "Hosted-only providers" in `Docs/WIP/Release and Status/ACTIONS-FOR-DAVID.md`.
+
+CI capacity is the bottleneck: provider runs queue for over an hour behind Development pipelines.
+
 ## Branches
 
 This work is on `work/hyperdrive-triad`, which was cut from `origin/Development` (d1936908). The old GPT task branch

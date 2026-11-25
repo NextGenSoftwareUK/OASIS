@@ -1,6 +1,8 @@
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using Xunit;
+using System.Text.Json;
+using NextGenSoftware.OASIS.Providers.TestSupport;
 using TelosProvider = NextGenSoftware.OASIS.API.Providers.TelosOASIS.TelosOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.IntegrationTests;
@@ -68,6 +70,31 @@ public class SEEDSOASISIntegrationTests
         var activation = await provider.ActivateProviderAsync();
         Assert.True(activation.IsError || !activation.Result);
         Assert.False(provider.IsProviderActivated);
+    }
+
+    [Fact]
+    public async Task CoreStorageConformanceOnOfficialAntelope()
+    {
+        var mode = Require("OASIS_ANTELOPE_STORAGE_MODE");
+        Assert.Contains(mode, new[] { "sync", "async" });
+        Assert.Equal("1", Require("OASIS_ANTELOPE_LIFECYCLE_WRITES"));
+        Assert.Equal("http://127.0.0.1:18888", Require("OASIS_ANTELOPE_ENDPOINT"));
+
+        var provider = CreateProvider();
+        var directory = Require("OASIS_SEEDS_RESULTS");
+        Directory.CreateDirectory(directory);
+        var path = Path.Combine(directory, "core-storage.json");
+        Assert.False(File.Exists(path));
+        var report = await CoreStorageConformance.RunAsync(provider, nameof(SEEDSOASIS), "native",
+            mode == "sync", async checkpoint =>
+            {
+                await File.WriteAllTextAsync(path + ".next", JsonSerializer.Serialize(checkpoint));
+                File.Move(path + ".next", path, overwrite: true);
+            }, expectedDefaultDeletion: "absent");
+        Assert.True(report.Succeeded,
+            $"{report.CurrentCase}: {report.FailureType} {report.FailureContract}; {report.Passed.Count} checks passed.");
+        Assert.True(report.FixtureCleanupComplete);
+        Assert.Equal(CoreStorageConformance.ChecksPerMode, report.Passed.Count);
     }
 
     private static string Require(string name) =>

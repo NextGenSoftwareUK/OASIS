@@ -105,7 +105,13 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
         hederaPublicAccountConfiguration = configuration?["CQL_HEDERA_PUBLIC_SOURCE_JSON"];
     }
 
-    public bool HasIndependentActivation(ProviderType provider) => profiles.ContainsKey(provider);
+    // BootLoader registration mutates shared ProviderManager state, so only that
+    // step is serialized. Source-owned provisioning (the HoloOASIS conductor takes
+    // minutes on a cold start) and per-instance health checks run outside the lane,
+    // so one slow source cannot keep unrelated enrolled sources NOT_READY.
+    private readonly SemaphoreSlim bootLoaderRegistration = new(1, 1);
+
+    public bool HasIndependentActivation(ProviderType provider) => true;
 
     public IOASISProvider Find(ProviderType provider)
         => profiles.TryGetValue(provider, out var profile) ? profile.Storage
@@ -122,41 +128,46 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
             if (provider == ProviderType.HoloOASIS && provisionManagedHoloOasis != null)
                 await provisionManagedHoloOasis(cancellationToken);
 
-            var registration = provider == ProviderType.PolkadotOASIS && polkadotPublicHeaderConfiguration != null
-                ? await OASISBootLoader.OASISBootLoader.RegisterPolkadotPublicReaderAsync(polkadotPublicHeaderConfiguration)
-                : await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(provider,
-                    activateProviderIfOASISProviderBootTypeIsHot: false);
-            if (registration == null || registration.IsError || registration.Result == null)
-                throw new InvalidOperationException("CQL_SOURCE_REGISTRATION_FAILED");
-            storage = registration.Result;
-            if (storage is HoloOasisProvider holoOasis && holoOasis.QueryCapabilities == null
-                && holoOasisCatalogue?.CopyRecordIds() is { Length: > 0 } recordIds)
+            await bootLoaderRegistration.WaitAsync(cancellationToken);
+            try
             {
-                holoOasis.ConfigurePublicQuery(recordIds[0], recordIds.ToHashSet());
+                var registration = provider == ProviderType.PolkadotOASIS && polkadotPublicHeaderConfiguration != null
+                    ? await OASISBootLoader.OASISBootLoader.RegisterPolkadotPublicReaderAsync(polkadotPublicHeaderConfiguration)
+                    : await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(provider,
+                        activateProviderIfOASISProviderBootTypeIsHot: false);
+                if (registration == null || registration.IsError || registration.Result == null)
+                    throw new InvalidOperationException("CQL_SOURCE_REGISTRATION_FAILED");
+                storage = registration.Result;
+                if (storage is HoloOasisProvider holoOasis && holoOasis.QueryCapabilities == null
+                    && holoOasisCatalogue?.CopyRecordIds() is { Length: > 0 } recordIds)
+                {
+                    holoOasis.ConfigurePublicQuery(recordIds[0], recordIds.ToHashSet());
+                }
+                if (storage is SolanaProvider solana && solana.QueryCapabilities == null &&
+                    solanaPublicAccountConfiguration != null)
+                {
+                    solana.ConfigurePublicAccountQuery(solanaPublicAccountConfiguration);
+                }
+                if (storage is EthereumProvider ethereum && ethereumPublicAccountConfiguration != null)
+                    ethereum.ConfigurePublicAccountQuery(ethereumPublicAccountConfiguration);
+                if (storage is PolygonProvider polygon && polygonPublicAccountConfiguration != null)
+                    polygon.ConfigurePublicAccountQuery(polygonPublicAccountConfiguration);
+                if (storage is ArbitrumProvider arbitrum && arbitrumPublicAccountConfiguration != null)
+                    arbitrum.ConfigurePublicAccountQuery(arbitrumPublicAccountConfiguration);
+                if (storage is NearProvider near && nearPublicAccountConfiguration != null)
+                    near.ConfigurePublicAccountQuery(nearPublicAccountConfiguration);
+                if (storage is EosioProvider eosio && eosioPublicAccountConfiguration != null)
+                    eosio.ConfigurePublicAccountQuery(eosioPublicAccountConfiguration);
+                if (storage is CosmosProvider cosmos && cosmosPublicValidatorConfiguration != null)
+                    cosmos.ConfigurePublicValidatorQuery(cosmosPublicValidatorConfiguration);
+                if (storage is PolkadotProvider polkadot && polkadotPublicHeaderConfiguration != null)
+                    polkadot.ConfigurePublicHeaderQuery(polkadotPublicHeaderConfiguration);
+                if (storage is TonProvider ton && tonPublicHeaderConfiguration != null)
+                    ton.ConfigurePublicHeaderQuery(tonPublicHeaderConfiguration);
+                if (storage is HederaProvider hedera && hederaPublicAccountConfiguration != null)
+                    hedera.ConfigurePublicAccountQuery(hederaPublicAccountConfiguration);
             }
-            if (storage is SolanaProvider solana && solana.QueryCapabilities == null &&
-                solanaPublicAccountConfiguration != null)
-            {
-                solana.ConfigurePublicAccountQuery(solanaPublicAccountConfiguration);
-            }
-            if (storage is EthereumProvider ethereum && ethereumPublicAccountConfiguration != null)
-                ethereum.ConfigurePublicAccountQuery(ethereumPublicAccountConfiguration);
-            if (storage is PolygonProvider polygon && polygonPublicAccountConfiguration != null)
-                polygon.ConfigurePublicAccountQuery(polygonPublicAccountConfiguration);
-            if (storage is ArbitrumProvider arbitrum && arbitrumPublicAccountConfiguration != null)
-                arbitrum.ConfigurePublicAccountQuery(arbitrumPublicAccountConfiguration);
-            if (storage is NearProvider near && nearPublicAccountConfiguration != null)
-                near.ConfigurePublicAccountQuery(nearPublicAccountConfiguration);
-            if (storage is EosioProvider eosio && eosioPublicAccountConfiguration != null)
-                eosio.ConfigurePublicAccountQuery(eosioPublicAccountConfiguration);
-            if (storage is CosmosProvider cosmos && cosmosPublicValidatorConfiguration != null)
-                cosmos.ConfigurePublicValidatorQuery(cosmosPublicValidatorConfiguration);
-            if (storage is PolkadotProvider polkadot && polkadotPublicHeaderConfiguration != null)
-                polkadot.ConfigurePublicHeaderQuery(polkadotPublicHeaderConfiguration);
-            if (storage is TonProvider ton && tonPublicHeaderConfiguration != null)
-                ton.ConfigurePublicHeaderQuery(tonPublicHeaderConfiguration);
-            if (storage is HederaProvider hedera && hederaPublicAccountConfiguration != null)
-                hedera.ConfigurePublicAccountQuery(hederaPublicAccountConfiguration);
+            finally { bootLoaderRegistration.Release(); }
         }
         if (storage.ProviderType?.Value != provider || storage is not ICosmicQueryStorageProvider adapter
             || adapter.QueryProviderType != provider || adapter.QueryCapabilities == null
