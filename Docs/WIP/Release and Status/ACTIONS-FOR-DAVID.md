@@ -1766,3 +1766,23 @@ Status: decided by David, 24 November 2026; engineering in progress (no further 
 - Context: OracleObjectStorageOASIS can only be tested against Oracle Cloud (OCI) Object Storage; there is no local OCI emulator. OracleDB (the priority Oracle provider) already passes on its own.
 - Steps: in an OCI tenancy (Always Free is enough) create a bucket `oasis-ci` in one region and an API signing key for a user limited to that bucket; secrets `OCI_CI_TENANCY_OCID`, `OCI_CI_USER_OCID`, `OCI_CI_FINGERPRINT`, `OCI_CI_PRIVATE_KEY`, `OCI_CI_REGION`, `OCI_CI_NAMESPACE`, `OCI_CI_BUCKET`.
 - Status: OPEN 2026-11-25. Claim marked BLOCKED.
+
+## COSMIC M21 (table-per-concrete-type) blocked: single holon partition - 2026-11-25 (cloud-cosmic-B)
+
+- Context: M21 needs each concrete type in its own native partition (MongoDB collection, SQLite table, Neo4j label), with base-type queries running as native unions. Investigation only; no code was written.
+- Blocker: all three providers hard-code one holon partition:
+  - MongoDB: the "Holon" collection appears in 24 places, and the change-stream replication capture watches only that collection.
+  - SQLite: the Holon table appears in about 46 SQL references, plus the outbox and visibility schema.
+  - Neo4j: the :Holon label appears 35 times.
+  - Core: the save, delete, revision, receipt and HyperDrive replication contracts carry no partition.
+- Delivering M21 needs, in this order:
+  1. a partition hint in the Core write contracts and a new provider capability;
+  2. replication capture across all partitions;
+  3. partition-parameterised CQL builders, and set operators that union across partitions;
+  4. identity unique across partitions (a registry or a check inside the same transaction);
+  5. probing all partitions on load by Id and by parent, and a migration path for existing records.
+- Decision needed: settle M21's storage definition together with the open M20 (COSMIC-M20-TPT-DEFINITION) decision, then choose one:
+  1. fund the full multi-partition work above;
+  2. accept a Neo4j-only multi-label variant, with MongoDB and SQLite refusing TPC at model admission;
+  3. mark M21 not applicable for document and graph stores, where TPH (M19, merged) covers the use case.
+- Status: OPEN 2026-11-25 23:40 UTC. The claim on the claims branch is marked BLOCKED.
