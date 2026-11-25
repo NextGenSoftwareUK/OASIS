@@ -39,7 +39,7 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | COSMIC O15 as-of history reads | COSMIC ORM | local: COSMIC ORM roadmap (work/cosmic-cql-ton-public session) | work/cosmic-cql-ton-public | 2026-11-25 00:35 | IN PROGRESS |
 | TelosOASIS native storage (reuse EOSIO Antelope fixture) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-telos | 2026-11-25 01:10 | DONE 48add53f (antelope-family-native-storage.yml run 45518765561 green) |
 | CQL startup head-of-line blocking: a slow HoloOASIS activation keeps IPFS/NEAR/Neo4j/Polkadot/Polygon/SOLID/Solana/TON NOT_READY on live dev (serial canonical lane) | CQL sandbox (WEB4) | cloud: cloud-cql-C | work/cloud-cql-activation-lane | 2026-11-25 00:38 | DONE 24688f3a (CqlActivationLaneTests pass) |
-| COSMIC O18 EF6 databinding/local-view integration | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-o18 | 2026-11-25 02:00 | IN PROGRESS |
+| COSMIC O18 EF6 databinding/local-view integration | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-o18 | 2026-11-25 02:00 | DONE 2f96062 (Core) CI 45519967748 |
 | SEEDSOASIS native storage (Antelope fixture) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-seeds | 2026-11-25 00:35 | DONE 48add53f (antelope-family-native-storage.yml run 45518765561 green) |
 | DaprOASIS native storage (daprd sidecar + Redis state store) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-dapr | 2026-11-25 00:40 | DONE f688e203 (popular-providers-native-storage run 45519314086 green) |
 | ZcashOASIS native storage (regtest zcashd + Kubo, Bitcoin pattern) | HyperDrive providers | local: testharness-build-fix | work/zcash-native-storage | 2026-11-25 02:20 | IN PROGRESS |
@@ -49,7 +49,7 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | ElrondOASIS (MultiversX) native storage | HyperDrive providers | local: HyperDrive provider programme | work/hyperdrive-triad | 2026-11-25 00:46 | IN PROGRESS |
 | FhenixOASIS (EVM) native storage | HyperDrive providers | local: HyperDrive provider programme | work/hyperdrive-triad | 2026-11-25 00:46 | IN PROGRESS (evm-native-storage.yml) |
 | ArweaveOASIS native storage (arlocal) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-arweave | 2026-11-25 01:00 | IN PROGRESS |
-| COSMIC M24 model defaults, computed and generated properties | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-m24 | 2026-11-25 01:10 | IN PROGRESS |
+| COSMIC M24 model defaults, computed and generated properties | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-m24 | 2026-11-25 01:10 | DONE 2f96062 (Core) CI 45524783092 |
 | OrbitDBOASIS native storage (@orbitdb/core + Helia service) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-orbitdb | 2026-11-25 01:10 | IN PROGRESS |
 | RootstockOASIS live public CQL source (anonymous public-node.rsk.co balance reads, BNB pattern) | CQL sandbox (WEB4) | cloud: cloud-cql-C | work/cloud-cql-rootstock | 2026-11-25 01:04 | DONE (code) 24688f3a; live pending Railway enrollment by CQL sandbox session (CLOUD_CQL_C_ENROLLMENT_HANDOFF_2026-11-25.md) |
 | ScuttlebuttOASIS native storage (ssb-db2 feed service) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-scuttlebutt | 2026-11-25 01:25 | IN PROGRESS |
@@ -57,7 +57,7 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | LensOASIS live public CQL source (anonymous rpc.lens.xyz finalized balance reads, Lens Chain 232) | CQL sandbox (WEB4) | cloud: cloud-cql-C | work/cloud-cql-lens | 2026-11-25 01:13 | DONE (code) 4142d82b36; live pending Railway enrollment by CQL sandbox session (CLOUD_CQL_C_ENROLLMENT_HANDOFF_2026-11-25.md) |
 | AppwriteOASIS native storage (self-hosted Appwrite in Docker) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-appwrite | 2026-11-25 01:20 | IN PROGRESS |
 | TablelandOASIS native storage (@tableland/local validator + Hardhat) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-tableland | 2026-11-25 01:20 | IN PROGRESS |
-| COSMIC O17 model validation and diagnostics | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-o17 | 2026-11-25 01:22 | IN PROGRESS |
+| COSMIC O17 model validation and diagnostics | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-o17 | 2026-11-25 01:22 | DONE 2f96062 (Core) CI 45526770753 |
 | Nile native storage (hosted only) | HyperDrive providers | cloud: cloud-hyperdrive-A | n/a | 2026-11-25 01:30 | BLOCKED: see ACTIONS-FOR-DAVID (hosted-only providers) |
 | CloudflareD1 native storage (hosted only) | HyperDrive providers | cloud: cloud-hyperdrive-A | n/a | 2026-11-25 01:30 | BLOCKED: see ACTIONS-FOR-DAVID (hosted-only providers) |
 | NetlifyBlobs native storage (hosted only) | HyperDrive providers | cloud: cloud-hyperdrive-A | n/a | 2026-11-25 01:30 | BLOCKED: see ACTIONS-FOR-DAVID (hosted-only providers) |
@@ -77,7 +77,7 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | Auto-bump submodule pointers on Development so Solution Integrity stops failing on drift (WEB6, API.Core, STAR ODK so far) | CI | local: HyperDrive Client session | work/submodule-autobump | 2026-11-25 02:40 | IN PROGRESS |
 | CeramicOASIS native storage (ceramic-one local node) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-ceramic | 2026-11-25 01:50 | IN PROGRESS |
 | CelestiaOASIS native storage (local Celestia devnet) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-celestia | 2026-11-25 01:50 | IN PROGRESS |
-| COSMIC M19 inheritance discriminator (TPH) | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-m19 | 2026-11-25 01:58 | IN PROGRESS |
+| COSMIC M19 inheritance discriminator (TPH) | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-m19 | 2026-11-25 01:58 | DONE 2f96062 (Core) CI 45530746671 |
 | EclipseOASIS native storage (SVM: local solana-test-validator) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-eclipse | 2026-11-25 02:10 | IN PROGRESS |
 | BlueSkyOASIS native storage (self-hosted AT Protocol PDS) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-bluesky | 2026-11-25 02:10 | IN PROGRESS |
 | FilecoinOASIS native storage (local Lotus devnet) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-filecoin | 2026-11-25 02:10 | IN PROGRESS |

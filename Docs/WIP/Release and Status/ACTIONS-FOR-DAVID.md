@@ -1559,7 +1559,7 @@ Status: code work continues without these; only David can do them.
 - Context: the COSMIC native qualification runs for O18 local view ([45519967748](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/45519967748), queued since 00:40 UTC), M24 defaults/computed values ([45524783092](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/45524783092), queued since 01:18) and O17 model diagnostics (branch `work/cloud-cosmic-o17`) have not started. Runners are occupied by full `OASIS CI/CD Pipeline` and `Subscription usage protocol` runs that every push to Development starts, including one-line claim commits; several have run for over an hour.
 - All three rows pass their native MongoDB/SQLite/Neo4j journeys locally; they merge to Development as soon as their CI is green. Nothing is needed from you for the code.
 - Decision for you (optional): either raise the account's concurrent-runner limit, or approve adding `paths-ignore: ["Docs/**"]` (or a concurrency group with cancel-in-progress) to `ci-cd.yml` and `subscription-usage-protocol.yml` so documentation-only claim commits stop queuing full pipelines. Agents will not change these deployment workflows without your go-ahead.
-- Status: OPEN 2026-11-25 01:52 UTC.
+- Status: RESOLVED for these rows 2026-11-25 07:45 UTC: all four runs eventually ran and passed (O18 finished 02:20, M24 03:08, O17 03:15, M19 03:14; up to 1h40m queued) and were merged. The docs-only-push decision above remains open for you.
 
 ## Ceramic test node image: approve a community build or build from source (cloud-hyperdrive-A, 2026-11-25)
 
