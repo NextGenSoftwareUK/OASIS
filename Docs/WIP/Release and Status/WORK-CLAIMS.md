@@ -134,3 +134,5 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | RoninOASIS and ImmutableZkEVMOASIS: replace fake storage with Web3Core EVM storage; add to evm-native-storage suite | HyperDrive providers | local: HyperDrive provider programme | work/blockstack-gaia | 2026-11-25 23:10 | IN PROGRESS |
 | COSMIC Q47 correlated subqueries beyond child/descendant Exists | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-q47 | 2026-11-25 22:05 | IN PROGRESS |
 | COSMIC Q61 NHibernate Criteria/QueryOver compatibility | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-q61 | 2026-11-25 22:12 | IN PROGRESS |
+| LoomOASIS native storage | HyperDrive providers | cloud: cloud-hyperdrive-A | n/a | 2026-11-25 22:15 | CLASSIFIED non-storage (PLAN_LOOM_CLASSIFICATION_2026-11-25.md) |
+| PLANOASIS native storage | HyperDrive providers | cloud: cloud-hyperdrive-A | n/a | 2026-11-25 22:15 | BLOCKED: backend unknown, see ACTIONS-FOR-DAVID (PLANOASIS) |
