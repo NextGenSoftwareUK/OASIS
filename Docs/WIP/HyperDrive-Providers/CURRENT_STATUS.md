@@ -10,13 +10,14 @@ OPORTAL, the ONODE popup and billing UI are now owned by a different session. CQ
 
 ## Progress (local HyperDrive programme, updated 2026-11-25 03:00 UTC)
 
-- Done: 89 storage providers pass the native core-storage-v2 suite on their real backend (today: Cardano, Starknet,
+- Done: 92 storage providers pass the native core-storage-v2 suite on their real backend (today: Cardano, Starknet,
   Marqo, Druid, Pinot, Fhenix); the EVM suite now runs in CI (`evm-native-storage.yml`, 15 providers 30/30).
 - Fake storage removed (explicit errors instead of false success): Connext, ChainLink, Aztec, Miden; BlockStack's Gaia
   client now reports failures. Ten read-only chain adapters reclassified as non-storage.
 - Dev replication: the IPFS replication-source fault is fixed (durable catalogue root pointer); the Neo4j to SQLite hold
   at sequence 14 awaits David (ACTIONS-FOR-DAVID I1).
-- In progress: Elrond/MultiversX (`multiversx-native-storage.yml`), Basechain in the EVM suite, then the Development batch
+- Since then: Elrond/MultiversX, Basechain and Eclipse pass in CI; OpenZeppelin Defender, Wormhole, Stargate and Synapse are
+  non-storage. In progress: the Development batch
   merge with the Railway dev `OASIS_DNA_JSON` key `IPFSOASIS.CatalogueRootPointerPath=/data/IPFS/catalogue-root`.
 - Next 3: Ceramic signed commits (DID), BlockStack Gaia auth tokens, Aztec/Miden real storage designs.
 - Blockers: ACTIONS-FOR-DAVID I1 and the hosted-account providers.
@@ -78,7 +79,7 @@ Not yet covered:
 
 There are 234 shipping provider projects: 178 storage or specialised storage, 56 non-storage.
 
-Done (89 pass the native core-storage-v2 suite 52/52 against their real backend; ActivityPub passes capability-v1 5/5):
+Done (92 pass the native core-storage-v2 suite 52/52 against their real backend; ActivityPub passes capability-v1 5/5):
 
 - Every priority provider is done: HoloOASIS, Solana, MongoDB, SQLite, Neo4j, Supabase, SQL Server, Oracle (OracleDB),
   AWS, IPFS, NEAR, Cosmos, Azure (CosmosDB + Storage), Google Cloud, Polkadot, ActivityPub, SOLID, Polygon, Arbitrum,
