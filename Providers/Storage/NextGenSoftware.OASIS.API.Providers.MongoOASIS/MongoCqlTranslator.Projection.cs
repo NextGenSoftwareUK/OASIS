@@ -132,6 +132,21 @@ internal sealed partial class MongoCqlTranslator
             return SingleLet(utcName,ProjectionCell(column.Path,prefix+"utcSource"),new BsonDocument{
                 {"s",cell+".s"},{"v",Choose(Op("$eq",cell+".s",Literal(2)),UtcDatePartFromTicks(column.Function,ticks),Literal(BsonNull.Value))}});
         }
+        if (column.Function == CosmicProjectionFunction.Int32Affine)
+        {
+            if(column.Path.ValueType != typeof(int) || column.ValueType != typeof(int) || !column.Int32Multiplier.HasValue || !column.Int32Offset.HasValue)
+                throw new NotSupportedException("Native Int32 arithmetic requires an exact Int32 path and captured coefficients.");
+            var arithmeticName = prefix + "affine";
+            var cell = "$$" + arithmeticName;
+            // 64-bit arithmetic, then an explicit Int32 range check: overflow is an invalid cell.
+            var computed = Op("$add", Op("$multiply", new BsonDocument("$toLong", cell + ".v"), Literal((long)column.Int32Multiplier.Value)), Literal((long)column.Int32Offset.Value));
+            var present = Op("$eq", cell + ".s", Literal(2));
+            var inRange = Op("$and", Op("$gte", computed, Literal((long)int.MinValue)), Op("$lte", computed, Literal((long)int.MaxValue)));
+            return SingleLet(arithmeticName, ProjectionCell(column.Path, prefix + "source"), new BsonDocument {
+                {"s", Choose(present, Choose(inRange, Literal(2), Literal(3)), cell + ".s")},
+                {"v", Choose(Op("$and", present, inRange), new BsonDocument("$toInt", computed), BsonNull.Value)}
+            });
+        }
         if (column.Function == CosmicProjectionFunction.TextValueCase)
         {
             if(column.Path.ValueType != typeof(string) || column.ValueType != typeof(string)

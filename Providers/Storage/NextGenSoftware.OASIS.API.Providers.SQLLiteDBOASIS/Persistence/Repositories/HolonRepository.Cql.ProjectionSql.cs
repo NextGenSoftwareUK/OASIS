@@ -23,6 +23,15 @@ public partial class HolonRepository
                 return (utcSource.State,"CASE WHEN ("+utcSource.State+")=2 THEN "+
                     SqliteCqlUtcDateParts.Value(column.Function,utcSource.Value)+" ELSE NULL END");
             }
+            if (column.Function == CosmicProjectionFunction.Int32Affine)
+            {
+                if(column.Path.ValueType != typeof(int) || column.ValueType != typeof(int) || !column.Int32Multiplier.HasValue || !column.Int32Offset.HasValue)
+                    throw new NotSupportedException("Native Int32 arithmetic requires an exact Int32 path and captured coefficients.");
+                var arithmeticSource=ProjectionOperand(column.Path,prefix,comparable);
+                var computed="(("+arithmeticSource.Value+")*"+Bind((long)column.Int32Multiplier.Value)+"+"+Bind((long)column.Int32Offset.Value)+")";
+                return ("CASE WHEN ("+arithmeticSource.State+")=2 AND "+computed+" NOT BETWEEN -2147483648 AND 2147483647 THEN 3 ELSE ("+arithmeticSource.State+") END",
+                    "CASE WHEN ("+arithmeticSource.State+")=2 AND "+computed+" BETWEEN -2147483648 AND 2147483647 THEN "+computed+" ELSE NULL END");
+            }
             if (column.Function == CosmicProjectionFunction.TextValueCase)
             {
                 if(column.Path.ValueType != typeof(string) || column.ValueType != typeof(string)

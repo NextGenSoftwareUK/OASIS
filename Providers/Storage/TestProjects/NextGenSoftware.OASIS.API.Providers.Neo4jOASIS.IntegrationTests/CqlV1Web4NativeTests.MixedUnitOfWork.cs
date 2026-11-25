@@ -374,6 +374,24 @@ public sealed partial class CqlV1Web4NativeTests
         }
         Assert.AreEqual(0,(await Stored(partId)).Count,"Deleting the root deletes its part in the same unit of work.");
         checks++;
+        // Q36 Int32 arithmetic projection: x*3-1 computed natively; Int32 overflow is an error, never a wrapped value.
+        using(var math=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            var small=New("math-small");small.MetaData=new Dictionary<string,object>{{"score",7}};
+            var huge=New("math-huge");huge.MetaData=new Dictionary<string,object>{{"score",int.MaxValue}};
+            foreach(var row in new[]{small,huge})Assert.IsFalse(math.Add(row).IsError);
+            Assert.IsFalse((await math.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()))).IsError);
+            var computed=await math.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>row.Id==small.Id)
+                .Select(row=>new{row.Name,Score=CosmicQueryMetadata.Value<int>(row,"score")*3-1,Shifted=(CosmicQueryMetadata.Value<int>(row,"score")+2)*2}).ToCosmicListAsync();
+            Assert.IsFalse(computed.IsError,computed.ErrorCode+": "+computed.Message);
+            Assert.AreEqual(20,computed.Result.Single().Score);Assert.AreEqual(18,computed.Result.Single().Shifted);
+            var overflow=await math.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>row.Id==huge.Id)
+                .Select(row=>CosmicQueryMetadata.Value<int>(row,"score")*2).ToCosmicListAsync();
+            Assert.IsTrue(overflow.IsError,"An Int32 overflow must not wrap.");
+            Assert.ThrowsException<CosmicLinqException>(()=>math.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result
+                .Select(row=>CosmicQueryMetadata.Value<int>(row,"score")*CosmicQueryMetadata.Value<int>(row,"score")),"Non-linear arithmetic is refused.");
+        }
+        checks++;
         // M29 seed data: idempotent insert of fixed-identity rows in one unit of work.
         Holon[] Seed()=>new[]{
             new Holon{Id=seedIds[0],Name="seed-one",CreatedByAvatarId=actor,IsActive=true,IsPublic=false},
@@ -390,7 +408,7 @@ public sealed partial class CqlV1Web4NativeTests
         }
         Assert.AreEqual(2,(await Stored(seedIds)).Count);checks++;
         return new NativeFixtureJourneyProof(checks,4,new Dictionary<string,bool>{
-            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true,["notificationTrackingVerified"]=true,["collectionMembershipVerified"]=true,["stringTransformsVerified"]=true,["compiledQueryVerified"]=true,["asOfHistoryVerified"]=true,["setCollectionVerified"]=true,["generatedValuesVerified"]=true,["readOnlyViewsVerified"]=true,["graphMergeVerified"]=true,["multiBranchCaseVerified"]=true,["fullTextVerified"]=true,["entitySplittingVerified"]=true});
+            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true,["notificationTrackingVerified"]=true,["collectionMembershipVerified"]=true,["stringTransformsVerified"]=true,["compiledQueryVerified"]=true,["asOfHistoryVerified"]=true,["setCollectionVerified"]=true,["generatedValuesVerified"]=true,["readOnlyViewsVerified"]=true,["graphMergeVerified"]=true,["multiBranchCaseVerified"]=true,["fullTextVerified"]=true,["entitySplittingVerified"]=true,["int32ArithmeticVerified"]=true});
     }
 
     public sealed class SetModelHolon : Holon
