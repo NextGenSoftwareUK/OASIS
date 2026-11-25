@@ -274,13 +274,10 @@ Suggested order: the 9 OASIS Architecture projects first (pure unit tests, no li
 
 ## Progress (PR 529)
 
-Wired into the coverage job and passing locally: Contracts, Managers, Edge.Messaging, Edge.NearbySync, HyperDrive.Migration (61 tests); BNBChain, SOLID, HoloOASIS.Edge, ThreeFold, HoloOASIS.Unity, Scuttlebutt, EdgeSQLite (508 tests).
+Wired into the coverage job and passing locally: Contracts, Managers, Edge.Messaging, Edge.NearbySync, HyperDrive.Migration (61 tests); BNBChain, SOLID, HoloOASIS.Edge, ThreeFold, HoloOASIS.Unity, Scuttlebutt, EdgeSQLite (508 tests); Elrond, ChainLink, BlockStack (152 tests, stale assertions updated to the providers' deliberate errors).
 
 Tried and broken (next to fix):
 - TRONOASIS.UnitTests: many runtime failures (prepared storage/outbox, permission RPC, codegen)
-- ElrondOASIS.UnitTests: 2 failing (Activate/DeActivateProviderAsync)
-- ChainLinkOASIS.UnitTests: 1 failing (LoadOnChainNFTData)
-- BlockStackOASIS.UnitTests: 1 failing (LoadAllAvatars_ShouldReturnEmptySet)
 - FantomOASIS.UnitTests: does not compile (Assert.Equal on EnumValue)
 - BaseOASIS.UnitTests, AvalancheOASIS.UnitTests: do not compile (const BigInteger, constructor signature drift)
 - SEEDSOASIS.UnitTests: does not compile (constructor now needs TelosOASIS)

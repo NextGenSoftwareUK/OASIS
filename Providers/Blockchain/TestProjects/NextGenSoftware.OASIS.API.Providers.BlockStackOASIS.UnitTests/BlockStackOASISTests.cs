@@ -37,12 +37,14 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS.UnitTests
         }
 
         [Fact]
-        public async Task LoadAllAvatars_ShouldReturnEmptySet()
+        public async Task LoadAllAvatars_IsRefusedBecauseGaiaHasNoListing()
         {
             var provider = new BlockStackOASIS();
             var res = await provider.LoadAllAvatarsAsync();
-            Assert.False(res.IsError);
-            Assert.NotNull(res.Result);
+            // Gaia hubs cannot enumerate users, so listing all avatars must fail
+            // with guidance rather than return a misleading empty set.
+            Assert.True(res.IsError);
+            Assert.Contains("no user listing", res.Message);
         }
     }
 }
