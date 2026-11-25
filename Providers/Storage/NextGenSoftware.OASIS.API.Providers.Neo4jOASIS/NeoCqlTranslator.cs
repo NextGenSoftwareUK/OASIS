@@ -165,6 +165,11 @@ internal sealed partial class NeoCqlTranslator
                 }
                 else fieldTest = Total(left.Value + Symbol(fields.Operator) + right.Value);
                 return Total(leftValid + " AND " + rightValid + " AND (" + fieldTest + ")");
+            case CosmicQueryFullText fullText:
+                var words = Operand(fullText.Path);
+                // O16: Java regex full match; each term is a whole word of letter/digit runs, case-insensitive.
+                return Total(words.Guard + " AND " + string.Join(" AND ", fullText.Terms.Select(term =>
+                    words.Value + " =~ " + Bind("(?isu)(?:.*[^\\p{L}\\p{Nd}])?" + term + "(?:[^\\p{L}\\p{Nd}].*)?"))));
             case CosmicQueryStringTransform transform:
                 var source = Operand(transform.Path);
                 var changed = transform.Kind == CosmicQueryStringTransformKind.Replace

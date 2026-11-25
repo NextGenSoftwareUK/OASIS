@@ -356,6 +356,13 @@ internal sealed partial class MongoCqlTranslator
             });
             case CosmicQueryStringLength length: return At(length.Path, value =>
                 Utf16LengthComparison(value, length.Operator, length.Value));
+            case CosmicQueryFullText fullText: return At(fullText.Path, value =>
+            {
+                // O16: each term is a whole word (letters/digits runs), case-insensitive, matched natively.
+                var words = new BsonArray(fullText.Terms.Select(term => (BsonValue)new BsonDocument("$regexMatch", new BsonDocument {
+                    { "input", value }, { "regex", Literal("(?:^|[^\\p{L}\\p{Nd}])" + term + "(?:[^\\p{L}\\p{Nd}]|$)") }, { "options", Literal("i") } })));
+                return Op("$cond", Op("$eq", Type(value), Literal("string")), new BsonDocument("$and", words), Literal(false));
+            });
             case CosmicQueryStringTransform transform: return At(transform.Path, value =>
             {
                 BsonValue changed = transform.Kind == CosmicQueryStringTransformKind.Replace

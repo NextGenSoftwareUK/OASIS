@@ -314,6 +314,26 @@ public sealed partial class CqlV1Web4NativeTests
                 .Select(row=>row.Name=="a"?"A":row.Description=="b"?"B":"C"),"Branches over different paths are refused.");
         }
         checks++;
+        // O16 full-text: every term is a whole word (letters/digits), case-insensitive, natively evaluated.
+        using(var text=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            var match=New("ft-match");match.MetaData=new Dictionary<string,object>{{"body","The Quick brown-fox jumps"}};
+            var partial=New("ft-partial");partial.MetaData=new Dictionary<string,object>{{"body","quickly brownish fox"}};
+            foreach(var row in new[]{match,partial})Assert.IsFalse(text.Add(row).IsError);
+            Assert.IsFalse((await text.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()))).IsError);
+            var both=new[]{match.Id,partial.Id};
+            async Task<Guid[]> Search(string terms)
+            {
+                var rows=await text.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>both.Contains(row.Id))
+                    .Where(row=>CosmicQueryText.Matches(CosmicQueryMetadata.Value<string>(row,"body"),terms)).ToCosmicListAsync();
+                Assert.IsFalse(rows.IsError,rows.ErrorCode+": "+rows.Message);return rows.Result.Select(row=>row.Id).OrderBy(id=>id).ToArray();
+            }
+            CollectionAssert.AreEqual(new[]{match.Id},await Search("quick BROWN"),"Whole words only, case-insensitive.");
+            CollectionAssert.AreEqual(new[]{match.Id,partial.Id}.OrderBy(id=>id).ToArray(),await Search("fox"));
+            Assert.AreEqual(0,(await Search("quic")).Length,"A word prefix is not a match.");
+            Assert.ThrowsException<ArgumentException>(()=>CosmicQueryFullText.ParseTerms("brown-fox"));
+        }
+        checks++;
         // M29 seed data: idempotent insert of fixed-identity rows in one unit of work.
         Holon[] Seed()=>new[]{
             new Holon{Id=seedIds[0],Name="seed-one",CreatedByAvatarId=actor,IsActive=true,IsPublic=false},
@@ -330,7 +350,7 @@ public sealed partial class CqlV1Web4NativeTests
         }
         Assert.AreEqual(2,(await Stored(seedIds)).Count);checks++;
         return new NativeFixtureJourneyProof(checks,4,new Dictionary<string,bool>{
-            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true,["notificationTrackingVerified"]=true,["collectionMembershipVerified"]=true,["stringTransformsVerified"]=true,["compiledQueryVerified"]=true,["asOfHistoryVerified"]=true,["setCollectionVerified"]=true,["generatedValuesVerified"]=true,["readOnlyViewsVerified"]=true,["graphMergeVerified"]=true,["multiBranchCaseVerified"]=true});
+            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true,["notificationTrackingVerified"]=true,["collectionMembershipVerified"]=true,["stringTransformsVerified"]=true,["compiledQueryVerified"]=true,["asOfHistoryVerified"]=true,["setCollectionVerified"]=true,["generatedValuesVerified"]=true,["readOnlyViewsVerified"]=true,["graphMergeVerified"]=true,["multiBranchCaseVerified"]=true,["fullTextVerified"]=true});
     }
 
     public sealed class SetModelHolon : Holon
