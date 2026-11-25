@@ -1491,3 +1491,20 @@ Links: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44675640513
 - Steps: connect or reconnect GitHub at https://claude.ai/connect-github, and install the Claude GitHub App on NextGenSoftwareUK/OASIS (or ask an org owner): https://github.com/apps/claude/installations/select_target. Then start a new session with the repo selected.
 - Reason: without push there are no claims and no CI runs, so no provider can be marked done.
 - Status: DONE 2026-11-25. GitHub reconnected; claim and this entry pushed to Development (b025d919).
+
+## Hosted-only providers: accounts needed for native storage tests (cloud-hyperdrive-A, 2026-11-25)
+
+- Context: these providers have no self-hostable backend, so their native storage suite (26/26 sync + async) can only run against a real hosted account. Each needs a dedicated, empty test project/database that CI may fill and clear. Never reuse a production database. Put the values in GitHub Actions secrets (names below), never in Git or chat.
+- Steps, one account each (free tiers are enough):
+  - Nile (thenile.dev): create a database `oasis-ci`, create a database user; secret `NILE_CI_CONNECTION_STRING`.
+  - Cloudflare D1: create a D1 database `oasis-ci`; an API token with D1 edit on that account; secrets `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_D1_DATABASE_ID`, `CLOUDFLARE_D1_TOKEN`.
+  - Netlify Blobs: create a site `oasis-ci`, a personal access token; secrets `NETLIFY_SITE_ID`, `NETLIFY_BLOBS_TOKEN`.
+  - MotherDuck: create database `oasis_ci`, an access token; secret `MOTHERDUCK_CI_TOKEN`.
+  - Cloudinary: create a product environment `oasis-ci`; secrets `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`.
+  - Deno Deploy (KV): create a project `oasis-ci` with a KV database, an access token; secrets `DENO_DEPLOY_PROJECT`, `DENO_DEPLOY_TOKEN`.
+  - Fly.io: create an app `oasis-ci` with the storage the FlyIOOASIS provider uses (Postgres/LiteFS per its README), a deploy token; secrets `FLY_CI_APP`, `FLY_CI_TOKEN`.
+  - Neo4j Aura: create a free AuraDB instance `oasis-ci`; secrets `NEO4J_AURA_CI_URI`, `NEO4J_AURA_CI_USER`, `NEO4J_AURA_CI_PASSWORD`. (Neo4jOASIS itself already passes on a local Neo4j; Aura only adds the hosted path.)
+  - LanceDB Cloud: create a project and API key; secrets `LANCEDB_CLOUD_URI`, `LANCEDB_CLOUD_API_KEY`.
+- Decision needed, services that appear to be discontinued: Fauna (FaunaDB shut down in 2025), Vercel KV (sunset; existing stores moved to Upstash, which UpstashOASIS already covers) and Polybase (testnet no longer reachable; please confirm). Options: (a) mark FaunaOASIS, VercelKVOASIS and PolybaseOASIS as retired and remove them from the provider matrix, or (b) keep them as historical code with no test target. Engineering's recommendation is (a).
+- Reason: without these, these providers cannot be marked done; every self-hostable provider is being done meanwhile.
+- Status: OPEN 2026-11-25. Claims marked BLOCKED in WORK-CLAIMS.md.
