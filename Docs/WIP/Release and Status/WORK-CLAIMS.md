@@ -131,3 +131,4 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | ONION-Protocol (OnionOASIS) native storage (local Tor onion service) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-onion | 2026-11-25 22:05 | IN PROGRESS |
 | HoloOASIS.Desktop native storage (local Holochain conductor) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-holo-desktop | 2026-11-25 22:05 | IN PROGRESS |
 | COSMIC Q56 user-defined function translation registry | COSMIC ORM | local_fa02a367 child COSMIC session | work/cosmic-cql-ton-public | 2026-11-25 | IN PROGRESS |
+| RoninOASIS and ImmutableZkEVMOASIS: replace fake storage with Web3Core EVM storage; add to evm-native-storage suite | HyperDrive providers | local: HyperDrive provider programme | work/blockstack-gaia | 2026-11-25 23:10 | IN PROGRESS |
