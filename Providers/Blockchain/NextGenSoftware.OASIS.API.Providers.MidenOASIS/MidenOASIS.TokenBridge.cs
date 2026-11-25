@@ -396,8 +396,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
             }
         }
 
-
-
         public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
         {
             var result = new OASISResult<IEnumerable<IAvatar>>();
@@ -491,10 +489,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
             }
             return result;
         }
-
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NoRecordStore<IEnumerable<IHolon>>();
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) { await Task.CompletedTask; return NoRecordStore<IEnumerable<IHolon>>(); }
 
         /// <summary>
         /// Convert holon to avatar
