@@ -238,11 +238,13 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.IsFalse(hasB.IsError,hasB.ErrorCode+": "+hasB.Message);Assert.AreEqual(1,hasB.Result.Count);
         }
         checks++;
-        // M24 default and computed values are applied at SaveChanges and stored natively.
-        using(var gen=CosmicSession.Create(manager,adapter,access).Result)
+        // M24 model-declared default and computed values are applied on write and stored natively.
+        var genModel=new CosmicModelBuilder();
+        genModel.Entity<Holon>().Property(row=>row.Description).HasDefaultValue("default-description");
+        genModel.Entity<Holon>().Property(row=>row.CustomKey).HasComputedValue(row=>(row.Name??"").ToUpperInvariant());
+        var genBuilt=genModel.Build();Assert.IsFalse(genBuilt.IsError,genBuilt.Message);
+        using(var gen=CosmicSession.Create(manager,adapter,access,genBuilt.Result).Result)
         {
-            Assert.IsFalse(gen.HasDefaultValue<Holon,string>(row=>row.Description,"default-description").IsError);
-            Assert.IsFalse(gen.HasComputedValue<Holon,string>(row=>row.CustomKey,row=>(row.Name??"").ToUpperInvariant()).IsError);
             var plain=New("gen-plain");var given=New("gen-given");given.Description="explicit";
             foreach(var row in new[]{plain,given})Assert.IsFalse(gen.Add(row).IsError);
             var genSaved=await gen.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));Assert.IsFalse(genSaved.IsError,genSaved.ErrorCode+": "+genSaved.Message);
@@ -254,18 +256,21 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.AreEqual("GEN-RENAMED",(await Stored(plain.Id)).Single().CustomKey,"Computed values follow every save.");
         }
         checks++;
-        // M23 read-only views: named query, rows never tracked, so never saved.
-        using(var viewSession=CosmicSession.Create(manager,adapter,access).Result)
+        // M23 keyless view declared in the model: composed natively, rows untracked and unsavable.
+        var viewId=keep.Id;
+        var viewModel=new CosmicModelBuilder();
+        viewModel.KeylessEntity<KeptHolonView>().ToQuery<Holon>(set=>set.Where(row=>row.Id==viewId).Select(row=>new KeptHolonView{Name=row.Name}));
+        var viewBuilt=viewModel.Build();Assert.IsFalse(viewBuilt.IsError,viewBuilt.Message);
+        using(var viewSession=CosmicSession.Create(manager,adapter,access,viewBuilt.Result).Result)
         {
-            var viewId=keep.Id;
-            Assert.IsFalse(viewSession.HasView<Holon>("kept",root=>root.Where(row=>row.Id==viewId)).IsError);
-            var viewRows=await viewSession.QueryViewAsync<Holon>("kept");
+            var view=viewSession.View<KeptHolonView>();Assert.IsFalse(view.IsError,view.ErrorCode+": "+view.Message);
+            var viewRows=await view.Result.ToCosmicListAsync();
             Assert.IsFalse(viewRows.IsError,viewRows.ErrorCode+": "+viewRows.Message);
-            Assert.AreEqual(1,viewRows.Result.Count);
-            Assert.AreEqual(CosmicEntityState.Detached,viewSession.State(viewRows.Result[0]).Result,"View rows are not tracked.");
-            Assert.AreEqual(0,viewSession.Statistics.EntityCount);
-            Assert.IsTrue((await viewSession.QueryViewAsync<Holon>("missing")).IsError);
+            Assert.AreEqual(1,viewRows.Result.Count);Assert.AreEqual(keep.Name,viewRows.Result[0].Name);
+            Assert.AreEqual(0,viewSession.Statistics.EntityCount,"View rows are not tracked.");
         }
+        using(var undeclared=CosmicSession.Create(manager,adapter,access).Result)
+            Assert.AreEqual("COSMIC_VIEW_NOT_DECLARED",undeclared.View<KeptHolonView>().ErrorCode);
         checks++;
         // S07 graph merge: a disconnected parent with an edited child and a new child merges atomically.
         {
