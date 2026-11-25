@@ -8,7 +8,7 @@
     <Product>WEB4 OASIS API Filecoin OASIS Provider</Product>
     <Title>WEB4 OASIS API Filecoin OASIS Provider</Title>
     <Summary>Filecoin blockchain OASIS Provider — decentralised storage network. https://oasisomniverse.one</Summary>
-    <Description>Connects the OASIS to the Filecoin decentralised storage network via the Lotus JSON-RPC API (Glif.io public endpoint). Maps Filecoin addresses to OASIS Avatars and storage deals/CIDs to OASIS Holons. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
+    <Description>Stores OASIS Avatars and Holons on the Filecoin EVM (FEVM) through the shared Web3CoreOASIS storage contract, using signed transactions over the Lotus Ethereum JSON-RPC (Glif.io public endpoint by default). Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
     <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
     <PackageIcon>OASIS.jpg</PackageIcon>
     <Authors>David Ellams (NextGen World Ltd)</Authors>
