@@ -23,6 +23,17 @@ public partial class HolonRepository
                 return (utcSource.State,"CASE WHEN ("+utcSource.State+")=2 THEN "+
                     SqliteCqlUtcDateParts.Value(column.Function,utcSource.Value)+" ELSE NULL END");
             }
+            if (column.Function == CosmicProjectionFunction.Int64Affine)
+            {
+                if(column.Path.ValueType != typeof(long) || column.ValueType != typeof(long) || !column.Int64Multiplier.HasValue || !column.Int64Offset.HasValue)
+                    throw new NotSupportedException("Native Int64 arithmetic requires an exact Int64 path and captured coefficients.");
+                var longSource=ProjectionOperand(column.Path,prefix,comparable);
+                var longComputed="(("+longSource.Value+")*"+Bind(column.Int64Multiplier.Value)+"+"+Bind(column.Int64Offset.Value)+")";
+                // SQLite turns integer overflow into REAL; only an INTEGER result is a valid Int64 cell.
+                var integral="typeof("+longComputed+")='integer'";
+                return ("CASE WHEN ("+longSource.State+")=2 AND NOT "+integral+" THEN 3 ELSE ("+longSource.State+") END",
+                    "CASE WHEN ("+longSource.State+")=2 AND "+integral+" THEN "+longComputed+" ELSE NULL END");
+            }
             if (column.Function == CosmicProjectionFunction.DoubleAffine)
             {
                 if(column.Path.ValueType != typeof(double) || column.ValueType != typeof(double) || !column.DoubleMultiplier.HasValue || !column.DoubleOffset.HasValue)
