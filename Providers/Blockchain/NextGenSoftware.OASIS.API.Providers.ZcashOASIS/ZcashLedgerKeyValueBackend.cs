@@ -311,7 +311,21 @@ internal sealed class ZcashLedgerKeyValueBackend : IKeyValueBackend, IDisposable
             if (!decoded.GetProperty("vout").EnumerateArray().Any(output =>
                     string.Equals(output.GetProperty("scriptPubKey").GetProperty("hex").GetString(), script, StringComparison.OrdinalIgnoreCase)))
                 throw new InvalidDataException("The signed Zcash transaction does not carry the storage commitment.");
-            var txid = (await RpcAsync("sendrawtransaction", new JsonArray(hex), cancellationToken)).GetString()!;
+            string txid;
+            try
+            {
+                txid = (await RpcAsync("sendrawtransaction", new JsonArray(hex), cancellationToken)).GetString()!;
+            }
+            catch (InvalidOperationException rejected)
+            {
+                // Say exactly which coin was spent and what the node now knows about it, so a rejection is diagnosable.
+                var coin = await RpcRawResultAsync("gettxout", new JsonArray(candidate.Txid, candidate.Vout, true), cancellationToken);
+                var spentInputs = string.Join(", ", decoded.GetProperty("vin").EnumerateArray()
+                    .Select(input => $"{input.GetProperty("txid").GetString()}:{input.GetProperty("vout").GetInt32()}"));
+                throw new InvalidOperationException(
+                    $"{rejected.Message} Selected {candidate.Txid}:{candidate.Vout} ({candidate.AmountText} ZEC); " +
+                    $"gettxout={coin}; signed inputs={spentInputs}.", rejected);
+            }
             await WaitForConfirmationAsync(txid, cancellationToken);
         }
         finally { _submission.Release(); }
@@ -357,6 +371,13 @@ internal sealed class ZcashLedgerKeyValueBackend : IKeyValueBackend, IDisposable
         (long)decimal.Round(decimal.Parse(amount.GetRawText(), NumberStyles.Float, CultureInfo.InvariantCulture) * ZatoshisPerZec);
 
     private static decimal FromZatoshis(long zatoshis) => zatoshis / (decimal)ZatoshisPerZec;
+
+    /// <summary>The raw JSON result of an RPC call (for diagnostics; a null result is reported as "null").</summary>
+    private async Task<string> RpcRawResultAsync(string method, JsonArray parameters, CancellationToken cancellationToken)
+    {
+        try { return (await RpcAsync(method, parameters, cancellationToken)).GetRawText(); }
+        catch (Exception error) { return "unavailable (" + error.Message + ")"; }
+    }
 
     private async Task<JsonElement> RpcAsync(string method, JsonArray parameters, CancellationToken cancellationToken)
     {
