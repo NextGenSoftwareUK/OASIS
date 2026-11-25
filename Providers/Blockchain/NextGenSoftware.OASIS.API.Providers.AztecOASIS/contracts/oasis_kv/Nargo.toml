@@ -1,0 +1,8 @@
+[package]
+name = "oasis_kv"
+authors = ["NextGen Software"]
+compiler_version = ">=0.25.0"
+type = "contract"
+
+[dependencies]
+aztec = { git = "https://github.com/AztecProtocol/aztec-nr/", tag = "v5.3.0", directory = "aztec" }
