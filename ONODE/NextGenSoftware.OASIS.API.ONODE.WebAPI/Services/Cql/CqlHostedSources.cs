@@ -79,8 +79,8 @@ public sealed class CqlHostedSources : BackgroundService
         var started = Stopwatch.GetTimestamp();
         const int maximumConcurrentReaders = 3;
         var ordered = activationStates.Keys.OrderBy(type => type.ToString(), StringComparer.Ordinal).ToArray();
-        // Only registered, independently owned profiles may use the parallel
-        // lane. Shared BootLoader registrations still run in a single sequence.
+        // Sources whose registry serializes its own shared BootLoader step use the
+        // bounded parallel lane; any other registry keeps the single sequence.
         var independent = ordered.Where(registry.HasIndependentActivation).ToHashSet();
         var options = new ParallelOptions
         {
