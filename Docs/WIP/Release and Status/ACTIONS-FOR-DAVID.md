@@ -1661,3 +1661,13 @@ Status: decided by David, 24 November 2026; engineering in progress (no further 
 - After: the next deploy picks it up; the first IPFS write upgrades the old catalogue and the replication-source error
   stops. Tell the agent when it is saved and it will verify in the dev logs.
 - Unblocks: IPFS as a HyperDrive replication source on dev. Staging/production need the same key when promoted.
+
+## COSMIC A05 decision: should `ParentHolon` keep driving persisted parent ids? - 2026-11-25 (cloud-cosmic-B)
+
+- Context: checklist row A05 still needs EF-style inverse reference fix-up (a tracked child's `ParentHolon` pointing at its tracked parent instance). It was implemented and tested in cloud-cosmic-B, then withdrawn before pushing.
+- Blocker: the save path (`OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/HolonManager/HolonManager-Private.Helpers.cs`, around line 594) treats a non-null `ParentHolon` as authoritative. It overwrites `ParentHolonId` from it, and as a "fail-safe/fallback" copies the parent's celestial ids (ParentStarId, ParentPlanetId, ParentMultiverseId and others) into the child. With fix-up on, re-parenting by `ParentHolonId` was silently undone on all three stores, and saving a child could change its stored celestial ids. Bypassing this inside the COSMIC session would be a parallel path, which the root-cause policy forbids.
+- Decision needed (pick one):
+  1. COSMIC sessions treat `ParentHolonId` as the persisted truth and `ParentHolon` as a non-persisted navigation. The legacy derivation stays for non-COSMIC STAR/ODK callers only. A05 then ships with fix-up. Recommended.
+  2. Keep the legacy behaviour everywhere. A05 is then marked as not applicable, documenting that `ParentHolon` assignment is a write.
+- Reason: either choice changes what a save writes, which affects STAR/ODK celestial graphs, so it is your call.
+- Status: OPEN 2026-11-25 08:40 UTC. The claim in WORK-CLAIMS.md is marked BLOCKED; other rows continue.
