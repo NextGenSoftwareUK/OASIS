@@ -1,0 +1,77 @@
+name: Bump submodules on Development
+
+# Solution Integrity requires Development to pin every submodule at that submodule's
+# Development tip (Scripts/check_submodule_branches.py). Submodule repos move on their own,
+# so the pin falls behind and Solution Integrity goes red until someone bumps it by hand.
+# This moves pointers forward (only when the pin is an ancestor of the tip) and keeps the
+# Railway pins matching, in one commit.
+on:
+  schedule:
+    - cron: '17,47 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: bump-submodules-development
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # Reads the private submodule repos' branch tips through the GitHub API.
+      GH_TOKEN: ${{ secrets.PRIVATE_SUBMODULE_PAT || secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: Development
+          # Same PAT as sync-railway-pins: passes branch protection and starts the follow-up CI.
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT || secrets.GITHUB_TOKEN }}
+          submodules: false
+
+      - name: Bump behind submodules
+        id: bump
+        run: |
+          set +e
+          python3 Scripts/bump_submodules_to_branch.py Development
+          code=$?
+          set -e
+          # 1 = a pin is off its branch and needs a person; still commit any safe bumps.
+          if [ "$code" -eq 2 ]; then echo "Could not read a submodule remote" >&2; exit 1; fi
+          if git diff --cached --quiet; then echo "changed=false" >> "$GITHUB_OUTPUT"; else echo "changed=true" >> "$GITHUB_OUTPUT"; fi
+          echo "needs_person=$([ "$code" -eq 1 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+      - name: Commit and push
+        if: steps.bump.outputs.changed == 'true'
+        run: |
+          git config user.name "submodule-bump"
+          git config user.email "submodule-bump@users.noreply.github.com"
+          commit_bump() {
+            paths=$(git diff --cached --name-only | paste -sd, - | sed 's/,/, /g')
+            git commit -q -m "chore(submodules): bump ${paths} to their Development tips"
+            python3 Scripts/sync_railway_dependency_manifest.py
+            git add Docker/oasis-dependency-versions.env
+            git diff --cached --quiet || git commit -q -m "chore(railway): sync dependency pins to the bumped submodules"
+            python3 Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          }
+          commit_bump
+          # Developers and agents push to this branch directly: rebase-free retry on a race.
+          for attempt in 1 2 3 4 5; do
+            if git push origin HEAD:Development; then exit 0; fi
+            git fetch -q origin Development
+            git reset -q --hard origin/Development
+            python3 Scripts/bump_submodules_to_branch.py Development || true
+            git diff --cached --quiet && exit 0
+            commit_bump
+          done
+          echo "Could not push the submodule bump after 5 attempts" >&2
+          exit 1
+
+      - name: Report pins that need a person
+        if: steps.bump.outputs.needs_person == 'true'
+        run: |
+          echo "::error::A submodule pin is not on its Development branch; see the log above. Fix it by hand."
+          exit 1
