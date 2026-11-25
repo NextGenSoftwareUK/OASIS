@@ -1,4 +1,4 @@
-﻿using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Providers.RadixOASIS;
 using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Entities;
 using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Oracle;
@@ -61,6 +61,7 @@ internal static class Program
         
         RadixOASIS radixOASIS = new(TestData.HostUri, TestData.NetworkId, TestData.AccountAddress, TestData.PrivateKey);
         
+        // Activation proves core storage, which this Stokenet bridge configuration does not set up; see localnet-storage.
         WriteInfo("Activating Radix provider...");
         var activateResult = await radixOASIS.ActivateProviderAsync();
         
@@ -401,8 +402,70 @@ internal static class Program
     /// <summary>
     /// Run all tests
     /// </summary>
+    /// <summary>
+    /// Core storage on a local Babylon network (start one with the IntegrationTests fixture/start-radix-fixture.sh):
+    /// a fresh faucet-funded key publishes the OASIS package, instantiates its own OasisKeyValueStore, then saves, loads
+    /// and deletes an avatar and a holon through the provider. Needs OASIS_RADIX_CORE_API, OASIS_RADIX_ENGINE_STATE_API
+    /// and OASIS_RADIX_PACKAGE_DIR. Run with: dotnet run -- localnet-storage
+    /// </summary>
+    private static async Task Run_TestLocalnetStorage()
+    {
+        WriteInfo("=== Testing core storage on a local Radix network ===");
+        string Env(string name) => Environment.GetEnvironmentVariable(name) ?? throw new InvalidOperationException(name + " is required.");
+        var privateKey = Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32)).ToLowerInvariant();
+        string component;
+        using (var ledger = new RadixLedgerClient(new Uri(Env("OASIS_RADIX_CORE_API")), new Uri(Env("OASIS_RADIX_ENGINE_STATE_API")), 240, "localnet", privateKey))
+        {
+            await ledger.FundFromFaucetAsync();
+            WriteSuccess($"Funded {ledger.AccountAddress} from the localnet faucet");
+            var package = await ledger.PublishPackageAsync(
+                await File.ReadAllBytesAsync(Path.Combine(Env("OASIS_RADIX_PACKAGE_DIR"), "oasis_storage.wasm")),
+                await File.ReadAllBytesAsync(Path.Combine(Env("OASIS_RADIX_PACKAGE_DIR"), "oasis_storage.rpd")));
+            component = await ledger.InstantiateKeyValueStoreAsync(package);
+            WriteSuccess($"Published {package}; store {component}");
+        }
+
+        using var radixOASIS = new RadixOASIS(new RadixOASISConfig
+        {
+            NetworkId = 240,
+            NetworkName = "localnet",
+            CoreApiUri = Env("OASIS_RADIX_CORE_API"),
+            EngineStateApiUri = Env("OASIS_RADIX_ENGINE_STATE_API"),
+            PrivateKey = privateKey,
+            KeyValueStoreComponentAddress = component,
+            StorageEncryptionKey = Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32)).ToLowerInvariant()
+        });
+        var activated = await radixOASIS.ActivateProviderAsync();
+        if (activated.IsError) { WriteError(activated.Message); Environment.ExitCode = 1; return; }
+
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var avatar = new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id = Guid.NewGuid(), Username = "radix-" + suffix, Email = $"radix-{suffix}@example.invalid" };
+        var holon = new NextGenSoftware.OASIS.API.Core.Holons.Holon { Id = Guid.NewGuid(), Name = "holon-" + suffix };
+        var checks = new (string Name, Func<Task<bool>> Run)[]
+        {
+            ("save avatar", async () => !(await radixOASIS.SaveAvatarAsync(avatar)).IsError),
+            ("load avatar by username", async () => (await radixOASIS.LoadAvatarByUsernameAsync(avatar.Username)).Result?.Id == avatar.Id),
+            ("save holon", async () => !(await radixOASIS.SaveHolonAsync(holon)).IsError),
+            ("load holon", async () => (await radixOASIS.LoadHolonAsync(holon.Id)).Result?.Name == holon.Name),
+            ("delete holon", async () => !(await radixOASIS.DeleteHolonAsync(holon.Id)).IsError && (await radixOASIS.LoadHolonAsync(holon.Id)).IsError),
+            ("delete avatar", async () => !(await radixOASIS.DeleteAvatarAsync(avatar.Id, softDelete: false)).IsError)
+        };
+        foreach (var check in checks)
+        {
+            if (await check.Run()) WriteSuccess(check.Name);
+            else { WriteError(check.Name); Environment.ExitCode = 1; }
+        }
+        await radixOASIS.DeActivateProviderAsync();
+    }
+
     private static async Task Main(string[] args)
     {
+        if (args.Length > 0 && args[0] == "localnet-storage")
+        {
+            await Run_TestLocalnetStorage();
+            return;
+        }
+
         WriteInfo("=== Starting RadixOASIS Test Harness ===");
         WriteInfo($"Host URI: {TestData.HostUri}");
         WriteInfo($"Network ID: {TestData.NetworkId}");
