@@ -134,7 +134,7 @@ internal sealed class ZcashLedgerKeyValueBackend : IKeyValueBackend, IDisposable
     private static string KeyHash(string key) => Convert.ToHexString(KeyHashBytes(key));
 
     /// <summary>CIDv1, raw codec, sha2-256 multihash, base32 multibase: the CID Kubo assigns a single raw block.</summary>
-    private static string RawCid(byte[] sha256)
+    internal static string RawCid(byte[] sha256)
     {
         byte[] bytes = [0x01, 0x55, 0x12, 0x20, .. sha256];
         const string alphabet = "abcdefghijklmnopqrstuvwxyz234567";
@@ -217,7 +217,7 @@ internal sealed class ZcashLedgerKeyValueBackend : IKeyValueBackend, IDisposable
     }
 
     /// <summary>Extracts the pushed bytes of <c>OP_RETURN &lt;push&gt;</c>.</summary>
-    private static byte[] NullDataPayload(byte[] script)
+    internal static byte[] NullDataPayload(byte[] script)
     {
         if (script.Length < 2 || script[0] != 0x6a) return null;
         int length, offset;
