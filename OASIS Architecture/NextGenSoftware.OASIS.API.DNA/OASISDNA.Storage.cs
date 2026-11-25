@@ -260,6 +260,12 @@ namespace NextGenSoftware.OASIS.API.DNA
     public class IPFSOASISSettings : ProviderSettingsBase
     {
         public string LookUpIPFSAddress { get; set; }
+        /// <summary>Durable file that holds the current catalogue root CID. When set, it is authoritative over
+        /// <see cref="LookUpIPFSAddress"/> (which then only seeds a store whose pointer file does not exist yet) and every
+        /// catalogue publication writes it atomically. Set it on hosts whose DNA file is regenerated at boot (Railway writes
+        /// OASIS_DNA_JSON to /app/OASIS_DNA.json on every start), e.g. /data/IPFS/catalogue-root. Empty keeps the root in the
+        /// DNA file, which must then be durable.</summary>
+        public string CatalogueRootPointerPath { get; set; }
         /// <summary>Explicitly enroll bounded CID membership over the configured authenticated catalogue.</summary>
         public bool EnableCqlCidKeySets { get; set; }
         /// <summary>Comma-separated /ipfs/&lt;cid&gt; or /ipns/&lt;name&gt; directories native data import may read.</summary>

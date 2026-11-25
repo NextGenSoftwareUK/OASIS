@@ -8,21 +8,35 @@ Scope of this workstream: HyperDrive failover, replication and load balancing, p
 OPORTAL, the ONODE popup and billing UI are now owned by a different session. CQL/WEB4 sandbox work happens on
 `work/cosmic-cql-ton-public` in `C:\Source\OASIS2`.
 
-## Progress (cloud-hyperdrive-A, updated 2026-11-25 02:15 UTC)
+## Progress (local HyperDrive programme, updated 2026-11-25 03:00 UTC)
+
+- Done: 92 storage providers pass the native core-storage-v2 suite on their real backend (today: Cardano, Starknet,
+  Marqo, Druid, Pinot, Fhenix); the EVM suite now runs in CI (`evm-native-storage.yml`, 15 providers 30/30).
+- Fake storage removed (explicit errors instead of false success): Connext, ChainLink, Aztec, Miden; BlockStack's Gaia
+  client now reports failures. Ten read-only chain adapters reclassified as non-storage.
+- Dev replication: the IPFS replication-source fault is fixed (durable catalogue root pointer); the Neo4j to SQLite hold
+  at sequence 14 awaits David (ACTIONS-FOR-DAVID I1).
+- Since then: Elrond/MultiversX, Basechain and Eclipse pass in CI; OpenZeppelin Defender, Wormhole, Stargate and Synapse are
+  non-storage. In progress: the Development batch
+  merge with the Railway dev `OASIS_DNA_JSON` key `IPFSOASIS.CatalogueRootPointerPath=/data/IPFS/catalogue-root`.
+- Next 3: Ceramic signed commits (DID), BlockStack Gaia auth tokens, Aztec/Miden real storage designs.
+- Blockers: ACTIONS-FOR-DAVID I1 and the hosted-account providers.
+
+## Progress (cloud-hyperdrive-A, updated 2026-11-25 02:55 UTC)
 
 Done in CI (native core-storage suite 26/26, sync + async):
 - TelosOASIS and SEEDSOASIS: storage now goes through the EOSIO (Antelope) implementation; `antelope-family-native-storage.yml`, run 45518765561.
 - DaprOASIS: gRPC health probe, emptied key indexes removed; `popular-providers-native-storage.yml`, run 45519314086.
+- GUNOASIS: real GUN wire protocol, chunked node replies merged; run 45520161955.
 
 Passing 26/26 in both modes locally against real backends, waiting for CI (`work/cloud-hd-scuttlebutt` carries these in one `popular-providers-native-storage.yml` run):
-- GUNOASIS (GUN relay): rebuilt on the real GUN wire protocol; chunked node replies merged.
-- MatrixOASIS (Synapse): records as encrypted room state events.
+- MatrixOASIS (Synapse): records as encrypted room state events. Tests passed in run 45521345637; the job failed only removing Synapse-owned fixture files (fixed on the branch).
 - OrbitDBOASIS (@orbitdb/core 4 service): stable identity and address across restarts.
 - ArweaveOASIS (arlocal): owner-pinned, revisioned, encrypted records.
 - ScuttlebuttOASIS (ssb-db2 service): records in a signed feed.
 - AppwriteOASIS (self-hosted 1.7.4), PineconeOASIS (Pinecone Local), TablelandOASIS (local validator + Hardhat), CelestiaOASIS (local devnet), CeramicOASIS (ceramic-one 0.58.0).
 
-In progress (subagents): EclipseOASIS, BlueSkyOASIS, FilecoinOASIS.
+Also passing locally: BlueSkyOASIS (self-hosted PDS) and EclipseOASIS (delegates to SolanaOASIS; eclipse-native-storage.yml). In progress: FilecoinOASIS.
 
 Blocked on hosted accounts or a retire decision: see "Hosted-only providers" in `Docs/WIP/Release and Status/ACTIONS-FOR-DAVID.md`.
 
@@ -67,17 +81,19 @@ Not yet covered:
 
 There are 234 shipping provider projects: 178 storage or specialised storage, 56 non-storage.
 
-Done (89 pass the native core-storage-v2 suite 52/52 against their real backend; ActivityPub passes capability-v1 5/5):
+Done (92 pass the native core-storage-v2 suite 52/52 against their real backend; ActivityPub passes capability-v1 5/5):
 
 - Every priority provider is done: HoloOASIS, Solana, MongoDB, SQLite, Neo4j, Supabase, SQL Server, Oracle (OracleDB),
   AWS, IPFS, NEAR, Cosmos, Azure (CosmosDB + Storage), Google Cloud, Polkadot, ActivityPub, SOLID, Polygon, Arbitrum,
   TRON, EOSIO, TON and Hedera (Hashgraph).
 - On 2026-11-23 the source of all 23 priority providers was scanned for `NotImplementedException`, TODO stubs, placeholders
   and mocks. Every hit was commented-out legacy code or an explanatory comment. No shipping path is a stub.
-- Others (Neon and Convex are not priority providers and take their normal place in popularity order): Neon, Convex, Ethereum, Avalanche, BNB Chain, Sui, AWS S3, Cloudflare, DynamoDB, Firebase, PocketBase, Turso, Upstash,
-  ThreeFold, Cassandra, CockroachDB, Dragonfly, DuckDB, Elasticsearch, Garnet, KeyDB, LocalFile, Meilisearch, Memcached,
-  Milvus, MinIO, OpenSearch, PlanetScale, PostgreSQL, Qdrant, RavenDB, Redis, ScyllaDB, Solr, TimescaleDB, Typesense,
-  ValKey, Weaviate.
+- Others (Neon and Convex are not priority providers and take their normal place in popularity order): Neon, Convex, Ethereum, Avalanche, BNB Chain, Sui, AWS S3, Cloudflare, DynamoDB, Turso, Upstash,
+  ThreeFold, Cassandra, CockroachDB, Dragonfly, DuckDB, Elasticsearch, Garnet, KeyDB, LocalFile, Memcached,
+  Milvus, MinIO, PlanetScale, PostgreSQL, Qdrant, RavenDB, Redis, ScyllaDB, TimescaleDB, Typesense, ValKey.
+- Correction (2026-11-25): Firebase, PocketBase, Meilisearch, OpenSearch, Solr and Weaviate were listed here in error.
+  Their evidence is verified CQL, WEB4 cutover or demo runs (e.g. 6fbc64f3 Meilisearch, e54973c3 OpenSearch, a8548dfb
+  Solr, cead58e3 Firebase, 9adc67d5 PocketBase), not the shared core-storage suite; they are back in the queue.
 - Added on 2026-11-24, all 26/26 checks in both sync and async modes against real servers in CI
   (`.github/workflows/popular-providers-native-storage.yml`): CouchDB, Couchbase, ArangoDB, SurrealDB, ClickHouse,
   InfluxDB, Chroma and PgVector. On a local Hardhat chain (`Scripts/TestHosts/run-local-evm-storage-conformance.cjs`):
@@ -119,6 +135,19 @@ Done (89 pass the native core-storage-v2 suite 52/52 against their real backend;
   write, BIP-340 signature verification on every read, and empty-content tombstones plus NIP-09 deletions. Signing moved
   from a BigInteger reference implementation to the constant-time NBitcoin.Secp256k1 port.
 
+- Cardano now has real storage and passes 26/26 in both modes against a Yaci DevKit devnet (yaci-store
+  Blockfrost-compatible API) + Kubo (`.github/workflows/cardano-native-storage.yml`). Each put/delete is a CBOR
+  transaction (Shelley body, Ed25519 vkey witness, fee from the size-dependent protocol parameters) whose metadata under
+  label 1967 commits the key with its encrypted Kubo envelope's CID and SHA-256 (`CardanoTransactionCodec.cs`,
+  `CardanoLedgerKeyValueBackend.cs`). The old provider built transactions as JSON, which Cardano never accepts. Key
+  derivation moved off a sibling Chaos.NaCl project reference that only resolved on one machine. yaci-store omits
+  `tx_index`, so ordering uses block height and refuses ambiguous same-block order.
+- Starknet now has real storage and passes 26/26 in both modes against starknet-devnet 0.11 + Kubo
+  (`.github/workflows/starknet-native-storage.yml`). The repo now holds the Cairo contract (`contracts/src/lib.cairo`,
+  OasisKv: per-owner key -> commitment, Scarb 2.21.0); the storage account writes commitments to encrypted Kubo
+  envelopes and every write must report SUCCEEDED. The old provider called a `create_holon` entry point that was never
+  in the repo.
+
 Partly done, with open items:
 - Turso: managed Turso and hosted WEB4 activation are still open.
 - HoloOASIS.Edge: the shared suite and cross-agent replication are still open.
@@ -129,10 +158,11 @@ Next, breadth first, in order of popularity (shared suite not yet run):
 1. Pinecone, LanceDB (Cloud), Zilliz: hosted vector stores, need accounts
 2. Appwrite, Fauna, Xata, Nile, CloudflareD1, VercelKV, NetlifyBlobs, Tigris (hosted; need accounts, see ACTIONS-FOR-DAVID)
 3. BigQuery, Snowflake, Redshift, Databricks, MotherDuck (hosted analytics; need accounts)
-   Druid, Pinot and Marqo are implemented but heavy (Pinot/Druid ingest one segment or task per row); queued after the chains.
-4. The remaining non-EVM chains need real storage implementations, not fixes:
-   - Cardano: transactions are built as JSON objects, but Cardano only accepts CBOR-encoded signed transactions.
-   - Starknet: holon save falls back to HolonManager and calls a Cairo `create_holon` entry point that is not in the repo.
+   Marqo (one no-model index, lexical prefix listing), Druid and Pinot (append-only rows, newest per key wins, each
+   write waits until the broker serves it) now pass 26/26 in both modes.
+4. The remaining non-EVM chains with no storage run (Algorand storage, Elrond, Aztec, Miden and the bridge/oracle
+   adapters) need real implementations; bridge/oracle adapters (Axelar, LayerZero, Chainlink, Hyperlane, deBridge,
+   Connext, Chainflip, Gelato) are being classified as non-storage first.
 
 Blocked: nothing new is blocked. Hosted-account blockers are already tracked in `Docs/WIP/Release and Status/ACTIONS-FOR-DAVID.md`.
 

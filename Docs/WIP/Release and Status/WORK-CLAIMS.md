@@ -44,7 +44,7 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | DaprOASIS native storage (daprd sidecar + Redis state store) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-dapr | 2026-11-25 00:40 | DONE f688e203 (popular-providers-native-storage run 45519314086 green) |
 | ZcashOASIS native storage (regtest zcashd + Kubo, Bitcoin pattern) | HyperDrive providers | local: testharness-build-fix | work/zcash-native-storage | 2026-11-25 02:20 | IN PROGRESS |
 | COSMIC A15 set (HashSet) owned collections | COSMIC ORM | local: COSMIC ORM roadmap (work/cosmic-cql-ton-public session) | work/cosmic-cql-ton-public | 2026-11-25 02:10 | IN PROGRESS |
-| GUNOASIS native storage (GUN relay) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-gun | 2026-11-25 00:45 | IN PROGRESS |
+| GUNOASIS native storage (GUN relay) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-gun | 2026-11-25 00:45 | DONE a4391671 (popular-providers-native-storage run 45520161955 green) |
 | MatrixOASIS native storage (Synapse, room state events) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-matrix | 2026-11-25 00:50 | IN PROGRESS |
 | ElrondOASIS (MultiversX) native storage | HyperDrive providers | local: HyperDrive provider programme | work/hyperdrive-triad | 2026-11-25 00:46 | IN PROGRESS |
 | FhenixOASIS (EVM) native storage | HyperDrive providers | local: HyperDrive provider programme | work/hyperdrive-triad | 2026-11-25 00:46 | IN PROGRESS (evm-native-storage.yml) |
@@ -83,3 +83,5 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | FilecoinOASIS native storage (local Lotus devnet) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-filecoin | 2026-11-25 02:10 | IN PROGRESS |
 | Dependabot dev-tooling alerts: Web3CoreOASIS undici (Hardhat) and TONOASIS SdkBridge protobufjs | Security / Providers | local: WEB6 catalogue session | Development (direct, small) | 2026-11-25 03:00 | DONE (Web3Core: 148 contracts compile, 45 Hardhat tests pass; TON: Tact output identical) |
 | ENSOffchainOASIS live public CQL source (anonymous api.web3.bio ENS name profiles) | CQL sandbox (WEB4) | cloud: cloud-cql-C | work/cloud-cql-ensoffchain | 2026-11-25 02:45 | IN PROGRESS |
+| COSMIC M23 keyless entities / read-only views | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-m23 | 2026-11-25 02:25 | IN PROGRESS |
+| Dependabot runtime alerts in Docker/PouchDbRuntime (qs, body-parser, path-to-regexp, uuid via express 4.21.2) | Security / Docker runtime | local: WEB6 catalogue session | Development (direct, small) | 2026-11-25 04:00 | IN PROGRESS |

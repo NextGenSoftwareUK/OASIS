@@ -34,6 +34,16 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
 {
     public partial class AztecOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISBlockchainStorageProvider, IOASISNETProvider, IOASISSmartContractProvider
     {
+        /// <summary>Aztec stores private state in Noir contract notes reached through a PXE (JSON-RPC); there is no OASIS record
+        /// store yet. The storage members used a REST API (/api/holons) that no Aztec node serves and reported success on null
+        /// results, so they now fail explicitly until a Noir storage contract exists.</summary>
+        private static OASISResult<T> NoRecordStore<T>()
+        {
+            var result = new OASISResult<T>();
+            OASISErrorHandling.HandleError(ref result, "AztecOASIS has no OASIS record store yet; Aztec storage requires a Noir storage contract reached through a PXE.");
+            return result;
+        }
+
         private readonly AztecAPIClient _apiClient;
         private readonly string _apiBaseUrl;
         private readonly string _apiKey;

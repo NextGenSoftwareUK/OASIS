@@ -34,6 +34,16 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
 {
     public partial class MidenOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISBlockchainStorageProvider, IOASISNETProvider, IOASISSmartContractProvider
     {
+        /// <summary>Miden nodes speak gRPC and keep state in account storage and notes; there is no OASIS record store yet.
+        /// The storage members saved through private notes but loaded and deleted through a REST API (/api/holons) that no
+        /// Miden node serves, so no round trip could succeed; they now fail explicitly until a Miden storage design exists.</summary>
+        private static OASISResult<T> NoRecordStore<T>()
+        {
+            var result = new OASISResult<T>();
+            OASISErrorHandling.HandleError(ref result, "MidenOASIS has no OASIS record store yet; Miden storage requires account storage or notes over the node's gRPC API.");
+            return result;
+        }
+
         private readonly MidenAPIClient _apiClient;
         private readonly string _apiBaseUrl;
         private readonly string _apiKey;

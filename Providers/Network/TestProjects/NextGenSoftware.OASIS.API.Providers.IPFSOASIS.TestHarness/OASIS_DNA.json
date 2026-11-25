@@ -140,7 +140,8 @@
       },
       "IPFSOASIS": {
         "ConnectionString": "http://localhost:5001",
-        "LookUpIPFSAddress": ""
+        "LookUpIPFSAddress": "",
+        "CatalogueRootPointerPath": ""
       }
     }
   }
