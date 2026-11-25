@@ -1711,3 +1711,13 @@ Status: decided by David, 24 November 2026; engineering in progress (no further 
 
 - Open 2026-11-25. `C:\Users\David\.nuget\packages\microsoft.aspnetcore.mvc.testing\10.0.0` is half-deleted and its `Microsoft.AspNetCore.Mvc.Testing.Tasks.dll` is locked by a running build server, so restores that need it fail with "Access denied". Sessions currently work around it with a private `NUGET_PACKAGES` folder and `-nodeReuse:false`.
 - Fix (briefly interrupts other sessions' builds): when no release build is running, run `dotnet build-server shutdown`, delete that `10.0.0` folder, then restore any project once to re-download it. Reply "repair the NuGet cache" and Claude will do it.
+
+## Bot and pinning accounts for Telegram, Discord and Pinata native storage tests (cloud-hyperdrive-A, 2026-11-25)
+
+- Context: these three providers can only be tested against the real hosted services. Each needs a dedicated test account or bot that CI may fill and clear. Put values in GitHub Actions secrets, never in Git or chat.
+- Steps:
+  - Telegram: create a bot with @BotFather and a private test channel with the bot as admin; secrets `TELEGRAM_CI_BOT_TOKEN`, `TELEGRAM_CI_CHAT_ID`.
+  - Discord: create an application and bot in the Discord developer portal, invite it to a private test server with a dedicated channel (send/read/manage messages); secrets `DISCORD_CI_BOT_TOKEN`, `DISCORD_CI_CHANNEL_ID`.
+  - Pinata: create a free Pinata account and a scoped API key (pinning + unpinning) for a test group; secret `PINATA_CI_JWT`.
+- Note: Telegram and Discord message history is not a durable keyed store. Engineering will first check whether either can meet the suite's contract within platform rules, and will classify a provider as non-storage rather than force it, as was done for Farcaster.
+- Status: OPEN 2026-11-25. Claims marked BLOCKED on the claims branch.
