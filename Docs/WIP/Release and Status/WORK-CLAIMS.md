@@ -121,3 +121,4 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | TelegramOASIS native storage (needs a bot token) | HyperDrive providers | cloud: cloud-hyperdrive-A | n/a | 2026-11-25 21:20 | BLOCKED: see ACTIONS-FOR-DAVID (bot and pinning accounts) |
 | DiscordOASIS native storage (needs a bot token) | HyperDrive providers | cloud: cloud-hyperdrive-A | n/a | 2026-11-25 21:20 | BLOCKED: see ACTIONS-FOR-DAVID (bot and pinning accounts) |
 | PinataOASIS native storage (hosted pinning) | HyperDrive providers | cloud: cloud-hyperdrive-A | n/a | 2026-11-25 21:20 | BLOCKED: see ACTIONS-FOR-DAVID (bot and pinning accounts) |
+| PocketBaseOASIS native storage (local PocketBase binary in CI) | HyperDrive providers | local: HyperDrive provider programme | work/hyperdrive-triad | 2026-11-25 21:15 | IN PROGRESS |
