@@ -279,7 +279,8 @@ Wired into the coverage job and passing locally: Contracts, Managers, Edge.Messa
 Batch 2, passing as they were and wired in: MongoDB (647), SQLLiteDB (229), EdgeStorage.ProtocolTests (229), DynamoDB (678), AzureStorage (109), OracleDB (481), Arweave (67), Radix (67), CouchDB (41), ClickHouse (53), Cloudflare (27), Aptos (55).
 
 Batch 2, tried and broken (next to fix):
-- Failing tests: SOLANA (14), NEAR (14), CosmosBlockChain (6), Arbitrum (22)
+- Failing tests: SOLANA (14), NEAR (14), Arbitrum (22)
+- CosmosBlockChain: 3 tests need the owned Mongo replica set (now LiveService); 3 need the CosmJS bridge installed in the test output and Node 22+ (CosmJS requires an ES module; Node 18 fails). The coverage job now sets up Node from NODE_VERSION and installs the bridge. Verified in CI only, since this machine has Node 18.
 - GoogleCloud: 2 tests read real GCS buckets named by OASIS_GCS_PUBLIC_SOURCE; now tagged LiveService. Wired in (510).
 - Polkadot: needed the SdkBridge npm packages; the coverage job now installs them. Wired in (393).
 - The coverage job now filters out LiveService tests (xUnit trait Category, MSTest TestCategory).

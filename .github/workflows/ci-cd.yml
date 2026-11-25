@@ -1206,6 +1206,17 @@ jobs:
     - name: Install ReportGenerator
       run: dotnet tool install -g dotnet-reportgenerator-globaltool
     
+    - name: Setup Node.js for SDK bridges
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: Install Cosmos SDK bridge into the Cosmos unit test output
+      working-directory: OASIS
+      run: |
+        dotnet build "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests.csproj" --configuration Release
+        npm ci --prefix "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests/bin/Release/net10.0/CosmosSdkBridge" --no-audit --no-fund
+
     - name: Install Web3Core Solidity compiler for TRON codegen tests
       working-directory: OASIS/Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS
       run: npm ci --ignore-scripts --no-audit --no-fund
@@ -1258,6 +1269,7 @@ jobs:
           "ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.Tests/NextGenSoftware.OASIS.API.ONODE.WebAPI.Tests.csproj"
           "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests.csproj"
           "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.UnitTests.csproj"
+          "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests.csproj"
           "ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.Core.UnitTests/NextGenSoftware.OASIS.API.ONODE.Core.Tests/NextGenSoftware.OASIS.API.ONODE.Core.Tests.csproj"
           "ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.csproj"
           "STAR ODK/NextGenSoftware.OASIS.STAR.UnitTests/NextGenSoftware.OASIS.STAR.UnitTests.csproj"

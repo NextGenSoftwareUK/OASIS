@@ -244,6 +244,8 @@ public class CosmosPreparationTests
         }finally{Environment.SetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE",previous);}
     }
     [DataTestMethod]
+    // Needs the owned MongoDB replica set (SUBSCRIPTION_TEST_MONGODB_URI).
+    [TestCategory("LiveService")]
     [DataRow(false)] [DataRow(true)]
     [DataRow(false,true)]
     public async Task RealOfflineSignedDocumentVerifiesThroughCSharp(bool attemptBudget,bool aggregateBudget=false)
