@@ -45,6 +45,11 @@ public sealed class ZcashNativeStorageConformanceTests
         {
             var probes = new (string, Func<Task<string>>)[]
             {
+                ("activate", async () =>
+                {
+                    var activation = await provider.ActivateProviderAsync();
+                    return $"error={activation.IsError} result={activation.Result} {activation.Message} {activation.Exception}";
+                }),
                 ("avatar", async () => (await provider.LoadAvatarAsync(report.OwnerId)).Message),
                 ("detail", async () => (await provider.LoadAvatarDetailAsync(report.OwnerId)).Message),
                 ("holon", async () => (await provider.LoadHolonAsync(report.RootId, loadChildren: false)).Message),
