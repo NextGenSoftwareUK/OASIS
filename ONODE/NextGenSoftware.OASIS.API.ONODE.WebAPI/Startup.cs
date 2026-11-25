@@ -702,6 +702,9 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             if (Configuration["CQL_QUESTDB_SYMBOL_SOURCE_JSON"] is string questDbSymbols)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.QuestDBOASIS.QuestDbSymbolQuerySource.FromJson(questDbSymbols)));
+            if (Configuration["CQL_ENSOFFCHAIN_PUBLIC_SOURCE_JSON"] is string ensOffchainPublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.ENSOffchainOASIS.EnsOffchainPublicNameSource.FromJson(ensOffchainPublicSource)));
             if (Configuration["CQL_ROOTSTOCK_PUBLIC_SOURCE_JSON"] is string rootstockPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.RootstockOASIS.RootstockPublicAccountMetadataSource.FromJson(rootstockPublicSource)));
