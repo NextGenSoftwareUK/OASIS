@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -44,133 +44,15 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
 {
     public partial class ChainLinkOASIS
     {
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
-        {
-            return ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
-        }
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0) => NoRecordStore<IEnumerable<IHolon>>();
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0) { await Task.CompletedTask; return NoRecordStore<IEnumerable<IHolon>>(); }
 
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
-                    return result;
-                }
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0) => NoRecordStore<IEnumerable<IHolon>>();
 
-                // Export all data for specific avatar by email from ChainLink blockchain
-                var exportRequest = new
-                {
-                    avatarEmail = avatarEmailAddress,
-                    version = version,
-                    includeDeleted = false
-                };
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) { await Task.CompletedTask; return NoRecordStore<IEnumerable<IHolon>>(); }
 
-                var jsonContent = JsonSerializer.Serialize(exportRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-                var exportResponse = await _httpClient.PostAsync("/api/v1/export/avatar/email", content);
-                if (exportResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await exportResponse.Content.ReadAsStringAsync();
-                    var exportData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    var holons = new List<IHolon>();
-                    // Parse export data and populate holons list
-                    if (exportData.TryGetProperty("holons", out var holonsArray))
-                    {
-                        foreach (var holonElement in holonsArray.EnumerateArray())
-                        {
-                            var holon = JsonSerializer.Deserialize<Holon>(holonElement.GetRawText());
-                            holons.Add(holon);
-                        }
-                    }
-
-                    result.Result = holons;
-                    result.IsError = false;
-                    result.Message = "Avatar data export completed successfully from ChainLink blockchain";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to export avatar data from ChainLink blockchain: {exportResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data from ChainLink blockchain: {ex.Message}", ex);
-            }
-
-            return result;
-        }
-
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
-        {
-            return ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).Result;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
-                    return result;
-                }
-
-                // Export all data from ChainLink blockchain
-                var exportRequest = new
-                {
-                    version = version,
-                    includeDeleted = false
-                };
-
-                var jsonContent = JsonSerializer.Serialize(exportRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-                var exportResponse = await _httpClient.PostAsync("/api/v1/export", content);
-                if (exportResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await exportResponse.Content.ReadAsStringAsync();
-                    var exportData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    var holons = new List<IHolon>();
-                    // Parse export data and populate holons list
-                    if (exportData.TryGetProperty("holons", out var holonsArray))
-                    {
-                        foreach (var holonElement in holonsArray.EnumerateArray())
-                        {
-                            var holon = JsonSerializer.Deserialize<Holon>(holonElement.GetRawText());
-                            holons.Add(holon);
-                        }
-                    }
-
-                    result.Result = holons;
-                    result.IsError = false;
-                    result.Message = "All data export completed successfully from ChainLink blockchain";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to export all data from ChainLink blockchain: {exportResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error exporting all data from ChainLink blockchain: {ex.Message}", ex);
-            }
-
-            return result;
-        }
-
-        public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
-        {
-            return ExportAllAsync(version).Result;
-        }
+        public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => NoRecordStore<IEnumerable<IHolon>>();
 
 
 

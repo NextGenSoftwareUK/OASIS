@@ -84,6 +84,8 @@ Last updated 31 October 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (mer
 | 10 | COSMIC/CQL: decide follow-up Default-routing fix publication; hosted Azure/Oracle remain deferred | F |
 | 12 | **Post-release 2026-11-24: production SQLite replication held (BINDING_MISMATCH), WEB9 fix to release, test records left on prod/dev** | POST-RELEASE-2026-11-24 |
 | 11 | **WEB6 model catalogue v6: review prices, then approve the push** (OpenRouter list import, media prices, 6 new text models) | G |
+| 12 | HyperDrive on dev: Neo4j to SQLite baseline repair at sequence 14 — **approved 25 November**, handed to the CQL sandbox session to run | I |
+| 13 | **Railway dev: add one DNA key so IPFS keeps its catalogue across restarts** (`IPFSOASIS.CatalogueRootPointerPath`) | I |
 
 ---
 
@@ -1602,3 +1604,58 @@ Status: decided by David, 24 November 2026; engineering in progress (no further 
 
 1. Message encryption (audit item #24): **encrypt, with a coordinated upgrade.** ONET application frames move to version 2 (encrypted for the target node and signed). Older nodes stop exchanging messages with upgraded ones, so every ONET node (Railway WEB4 and any self-hosted ONODEs) must be on the same release.
 2. Holochain-carried ONET traffic (plan item 8): **build the `onet` zome now.** It is a coordinator-only module in the OASIS hApp (DNA hash unchanged).
+
+### POST-RELEASE-2026-11-24: update 2026-11-25
+- Sandbox sweep: root cause found and fixed in PR #527 (CI running).
+  - V2 HolonManager.LoadAllHolons dropped the avatar, so the sweep listed the whole Mongo Holon collection. Production has 18 legacy duplicate-HolonId groups (259 extra docs, June/July 2026), which that read rejects as ambiguous.
+  - Fix: Core 1aa5cb4b (on Core Development) plus a native owner filter in Mongo, with a real-Mongo regression test.
+  - Your decision: the 259 legacy duplicate documents need a reviewed data repair. Nothing was deleted.
+- BINDING_MISMATCH: root cause found.
+  - The 2026-11-23 process enrolled route ...AB2C2 against /app/OASISSQLLiteDB.db: endpoint fingerprint 4171877D... (that is sha("sqlite-file-v1:/app/OASISSQLLiteDB.db")), store bfcf03a6-dbe4-408b-b3d7-97a733e5e229.
+  - That image-shipped file and the identity it created disappeared on redeploy. The live store is /data/OASISSQLLiteDB.db, identity 93d05201-d755-4e9a-a24d-be34e269af7c.
+  - Current boot uses the DNA path /data, and no SQLite enrollments have happened since 2026-11-23, so new writes are not affected.
+  - All 10 stuck obligations (seq 2-20) belong to the 2026-11-23 demo and probe test holons, which are due for deletion anyway.
+  - Your decision: an obligation whose enrolled target store no longer exists can never be delivered as enrolled. Releasing it needs a new reviewed tool, either to retarget it to the successor store (re-binding plus normal or baseline delivery) or to retire it with recorded evidence that the target is gone. Both change the "never reset or skip" rule, so I did not build one without your choice.
+- The production release (promotion PR and Railway deploy of WEB9 + sweep fixes) is waiting for your go-ahead.
+
+## Part I — HyperDrive replication on dev (24 November 2026)
+
+### I1. Approve a baseline repair for Neo4j to SQLite at sequence 14
+
+- Status: approved by David on 25 November 2026 ("Sure its fine"); handed to the CQL sandbox session, which ran the
+  earlier Mongo to SQLite repairs, to execute once. Originally reported 24 November 2026 by the CQL/WEB4 session from the live dev WEB4 logs
+  (`railway logs -e dev -s 5123199a-43c4-4439-9921-e10e2aec7841`).
+- What: `Replication Neo4jOASIS -> hyperdrive-target:SQLLiteDBOASIS blocked at sequence 14, operation
+  b64bce63-3aeb-40c0-b3b2-b75675a87023: COSMIC_REPLICA_LINEAGE_CONFLICT`. This is a new hold and is not the protected
+  Mongo to SQLite 535/543 holds, which stay untouched.
+- Why: this is the designed outcome when a source holon already had versions before the route was enrolled. The SQLite
+  target never received the earlier versions, so normal delivery must refuse version N without its predecessor. No data
+  is lost; the delivery is held, not dropped. The fix is the reviewed initial-baseline repair, which writes to the hosted
+  SQLite target, so it needs your approval. The Neo4j to SQLite route is supported by the deployed repair command
+  (`ReplicaBaselineRepairCommand`, Development).
+- Steps: reply "approve the Neo4j to SQLite baseline repair for sequence 14" and the agent prepares the reviewed request
+  (read-only source and target inspection first), shows you the exact holon, version and digests, and runs
+  `dotnet NextGenSoftware.OASIS.API.ONODE.WebAPI.dll --cosmic-repair-baseline /data/COSMIC/ReplicaRepair/<request>.json`
+  in the dev WEB4 service once. Procedure and safety rules: `Docs/WIP/COSMIC ORM/REPLICA_BASELINE_AND_RECOVERY.md`.
+- Unblocks: the Neo4j to SQLite route on dev (later operations on that route queue behind the hold).
+- Not needed from you: the second fault in the same report, `Replication source binding IPFSOASIS unavailable` ("The
+  IPFS catalogue has no persisted storage identity"), is an engineering bug, fixed on `work/hyperdrive-triad`. The
+  catalogue root pointer lived in the DNA file, which the Railway entrypoint rewrites from `OASIS_DNA_JSON` on every
+  boot, so each restart rolled IPFS back to the legacy v1 catalogue (`QmXZ6Sh7...`). The new
+  `IPFSOASIS.CatalogueRootPointerPath` DNA setting keeps the root on the `/data` volume; the agent sets it in Railway's
+  `OASIS_DNA_JSON` when the fix is deployed.
+
+### I2. Add the IPFS catalogue pointer key to Railway dev
+
+- Status: open, 25 November 2026.
+- What: in Railway, project OASIS, environment **dev**, service WEB4 (`5123199a-43c4-4439-9921-e10e2aec7841`), edit the
+  variable `OASIS_DNA_JSON`. In `OASIS` → `StorageProviders` → `IPFSOASIS`, add
+  `"CatalogueRootPointerPath": "/data/IPFS/catalogue-root"` next to `LookUpIPFSAddress`. Change nothing else.
+- Why: the entrypoint rewrites the DNA file from `OASIS_DNA_JSON` on every boot, so IPFS forgot its current catalogue on
+  each restart and replication failed with "The IPFS catalogue has no persisted storage identity". The code fix (now on
+  Development, commit 8ebfa79c) keeps the catalogue root in this file on the `/data` volume. The agent could not set it:
+  the 31.6K-character value is too long for a Windows command line, and Railway's API refuses the CLI login token from a
+  script.
+- After: the next deploy picks it up; the first IPFS write upgrades the old catalogue and the replication-source error
+  stops. Tell the agent when it is saved and it will verify in the dev logs.
+- Unblocks: IPFS as a HyperDrive replication source on dev. Staging/production need the same key when promoted.

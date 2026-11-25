@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,361 +34,45 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
 {
     public partial class AztecOASIS
     {
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                await EnsureActivatedAsync(result);
-                if (result.IsError) return result;
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) { await Task.CompletedTask; return NoRecordStore<IEnumerable<IHolon>>(); }
 
-                // For Aztec, we would query all holons from the blockchain
-                // This is a simplified implementation - in production would query Aztec for all holon transactions
-                // For now, return empty list as Aztec doesn't have a direct "get all" method
-                // In production, would:
-                // 1. Query Aztec for all transactions with holon metadata
-                // 2. Decrypt private notes
-                // 3. Deserialize holon data
-                // 4. Filter by type if needed
-                
-                result.Result = new List<IHolon>();
-                result.IsError = false;
-                result.Message = "LoadAllHolons: Aztec requires querying blockchain transactions (simplified implementation)";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
-            }
-            return result;
-        }
+        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NoRecordStore<IEnumerable<IHolon>>();
 
-        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) { await Task.CompletedTask; return NoRecordStore<IHolon>(); }
 
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        {
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                await EnsureActivatedAsync(result);
-                if (result.IsError) return result;
+        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => NoRecordStore<IHolon>();
 
-                result.Result = await _aztecRepository.SaveHolonAsync(holon);
-                result.IsError = false;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
-            }
-            return result;
-        }
+        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) { await Task.CompletedTask; return NoRecordStore<IEnumerable<IHolon>>(); }
 
-        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
+        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => NoRecordStore<IEnumerable<IHolon>>();
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        {
-            var saved = new List<IHolon>();
-            foreach (var holon in holons)
-            {
-                var saveResult = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
-                if (saveResult.IsError && !continueOnError)
-                {
-                    var errorResult = new OASISResult<IEnumerable<IHolon>>();
-                    errorResult.IsError = true;
-                    errorResult.Message = saveResult.Message;
-                    return errorResult;
-                }
-                if (!saveResult.IsError && saveResult.Result != null)
-                {
-                    saved.Add(saveResult.Result);
-                }
-            }
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id) { await Task.CompletedTask; return NoRecordStore<IHolon>(); }
 
-            return new OASISResult<IEnumerable<IHolon>>(saved);
-        }
+        public override OASISResult<IHolon> DeleteHolon(Guid id) => NoRecordStore<IHolon>();
 
-        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey) { await Task.CompletedTask; return NoRecordStore<IHolon>(); }
 
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
-        {
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                await EnsureActivatedAsync(result);
-                if (result.IsError) return result;
+        public override OASISResult<IHolon> DeleteHolon(string providerKey) => NoRecordStore<IHolon>();
 
-                // Load holon first
-                var holonResult = await LoadHolonAsync(id);
-                if (holonResult.IsError || holonResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Holon not found");
-                    return result;
-                }
+        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons) { await Task.CompletedTask; return NoRecordStore<bool>(); }
 
-                // For Aztec, deletion would involve marking the holon as deleted in metadata
-                // and creating a new transaction indicating deletion
-                // For now, mark as deleted in metadata
-                holonResult.Result.MetaData = holonResult.Result.MetaData ?? new Dictionary<string, object>();
-                holonResult.Result.MetaData["Deleted"] = true;
-                holonResult.Result.MetaData["DeletedDate"] = DateTime.UtcNow.ToString("o");
+        public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => NoRecordStore<bool>();
 
-                // Save updated holon
-                var saveResult = await SaveHolonAsync(holonResult.Result);
-                if (saveResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, saveResult.Message);
-                    return result;
-                }
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0) { await Task.CompletedTask; return NoRecordStore<IEnumerable<IHolon>>(); }
 
-                result.Result = saveResult.Result;
-                result.IsError = false;
-                result.Message = "Holon marked as deleted in Aztec";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
-            }
-            return result;
-        }
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0) => NoRecordStore<IEnumerable<IHolon>>();
 
-        public override OASISResult<IHolon> DeleteHolon(Guid id) => DeleteHolonAsync(id).Result;
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0) { await Task.CompletedTask; return NoRecordStore<IEnumerable<IHolon>>(); }
 
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
-        {
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                await EnsureActivatedAsync(result);
-                if (result.IsError) return result;
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0) => NoRecordStore<IEnumerable<IHolon>>();
 
-                // Load holon by provider key first
-                var holonResult = await LoadHolonAsync(providerKey);
-                if (holonResult.IsError || holonResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Holon not found by provider key");
-                    return result;
-                }
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0) { await Task.CompletedTask; return NoRecordStore<IEnumerable<IHolon>>(); }
 
-                // Mark as deleted
-                holonResult.Result.MetaData = holonResult.Result.MetaData ?? new Dictionary<string, object>();
-                holonResult.Result.MetaData["Deleted"] = true;
-                holonResult.Result.MetaData["DeletedDate"] = DateTime.UtcNow.ToString("o");
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0) => NoRecordStore<IEnumerable<IHolon>>();
 
-                // Save updated holon
-                var saveResult = await SaveHolonAsync(holonResult.Result);
-                if (saveResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, saveResult.Message);
-                    return result;
-                }
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) { await Task.CompletedTask; return NoRecordStore<IEnumerable<IHolon>>(); }
 
-                result.Result = saveResult.Result;
-                result.IsError = false;
-                result.Message = "Holon marked as deleted in Aztec by provider key";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
-            }
-            return result;
-        }
-
-        public override OASISResult<IHolon> DeleteHolon(string providerKey) => DeleteHolonAsync(providerKey).Result;
-
-        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
-        {
-            var result = new OASISResult<bool>();
-            try
-            {
-                await EnsureActivatedAsync(result);
-                if (result.IsError) return result;
-
-                if (holons == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Holons collection is null");
-                    return result;
-                }
-
-                // Save all holons
-                var saveResult = await SaveHolonsAsync(holons);
-                if (saveResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, saveResult.Message);
-                    return result;
-                }
-
-                result.Result = true;
-                result.IsError = false;
-                result.Message = $"Imported {saveResult.Result?.Count() ?? 0} holons to Aztec";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
-            }
-            return result;
-        }
-
-        public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).Result;
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                await EnsureActivatedAsync(result);
-                if (result.IsError) return result;
-
-                // Load avatar
-                var avatarResult = await LoadAvatarAsync(avatarId, version);
-                if (avatarResult.IsError || avatarResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Avatar not found");
-                    return result;
-                }
-
-                // Load all holons for this avatar (as parent)
-                var holonsResult = await LoadHolonsForParentAsync(avatarId);
-                if (holonsResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, holonsResult.Message);
-                    return result;
-                }
-
-                // Combine avatar and holons
-                var allData = new List<IHolon> { avatarResult.Result as IHolon };
-                if (holonsResult.Result != null)
-                {
-                    allData.AddRange(holonsResult.Result);
-                }
-
-                result.Result = allData;
-                result.IsError = false;
-                result.Message = $"Exported {allData.Count} holons for avatar";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
-            }
-            return result;
-        }
-
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0) => ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                await EnsureActivatedAsync(result);
-                if (result.IsError) return result;
-
-                // Load avatar by username
-                var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername, version);
-                if (avatarResult.IsError || avatarResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Avatar not found by username");
-                    return result;
-                }
-
-                // Load all holons for this avatar
-                var holonsResult = await LoadHolonsForParentAsync(avatarResult.Result.Id);
-                if (holonsResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, holonsResult.Message);
-                    return result;
-                }
-
-                // Combine avatar and holons
-                var allData = new List<IHolon> { avatarResult.Result as IHolon };
-                if (holonsResult.Result != null)
-                {
-                    allData.AddRange(holonsResult.Result);
-                }
-
-                result.Result = allData;
-                result.IsError = false;
-                result.Message = $"Exported {allData.Count} holons for avatar by username";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
-            }
-            return result;
-        }
-
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0) => ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                await EnsureActivatedAsync(result);
-                if (result.IsError) return result;
-
-                // Load avatar by email
-                var avatarResult = await LoadAvatarByEmailAsync(avatarEmailAddress, version);
-                if (avatarResult.IsError || avatarResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Avatar not found by email");
-                    return result;
-                }
-
-                // Load all holons for this avatar
-                var holonsResult = await LoadHolonsForParentAsync(avatarResult.Result.Id);
-                if (holonsResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, holonsResult.Message);
-                    return result;
-                }
-
-                // Combine avatar and holons
-                var allData = new List<IHolon> { avatarResult.Result as IHolon };
-                if (holonsResult.Result != null)
-                {
-                    allData.AddRange(holonsResult.Result);
-                }
-
-                result.Result = allData;
-                result.IsError = false;
-                result.Message = $"Exported {allData.Count} holons for avatar by email";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
-            }
-            return result;
-        }
-
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0) => ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).Result;
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                await EnsureActivatedAsync(result);
-                if (result.IsError) return result;
-
-                // Load all holons
-                var holonsResult = await LoadAllHolonsAsync(HolonType.All, version: version);
-                if (holonsResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, holonsResult.Message);
-                    return result;
-                }
-
-                result.Result = holonsResult.Result ?? new List<IHolon>();
-                result.IsError = false;
-                result.Message = $"Exported {result.Result.Count()} holons from Aztec";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
-            }
-            return result;
-        }
-
-        public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).Result;
+        public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => NoRecordStore<IEnumerable<IHolon>>();
 
 
 

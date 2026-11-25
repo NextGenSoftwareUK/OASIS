@@ -44,5 +44,10 @@
 
   <ItemGroup>
     <ProjectReference Include="../../Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" />
+    <ProjectReference Include="../NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.csproj" />
+    <PackageReference Include="Nethereum.HdWallet" Version="7.0.0" />
+    <PackageReference Include="Nethereum.RPC" Version="7.0.0" />
+    <PackageReference Include="Nethereum.Signer" Version="7.0.0" />
+    <PackageReference Include="Nethereum.Web3" Version="7.0.0" />
   </ItemGroup>
 </Project>

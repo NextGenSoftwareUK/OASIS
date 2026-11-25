@@ -1,0 +1,51 @@
+name: IPFS catalogue unit tests
+
+on:
+  push:
+    branches: [work/hyperdrive-triad, Development]
+    paths:
+      - '.github/workflows/ipfs-catalogue-unit.yml'
+      - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.IPFSOASIS/**'
+      - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.CatalogueTests/**'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.API.DNA/OASISDNA.Storage.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  catalogue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: OASIS
+          submodules: true
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - name: Read the recorded dependency revisions
+        id: dependency
+        working-directory: OASIS
+        run: grep -E '^(LIBRARIES_COMMIT|HOLOCHAIN_COMMIT)=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependency.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependency.outputs.HOLOCHAIN_COMMIT }}
+          path: holochain-client-csharp
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Catalogue root pointer and acknowledged publication (controlled transport, no IPFS daemon)
+        working-directory: OASIS
+        run: |
+          dotnet test Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.CatalogueTests \
+            -m:2 -nr:false -p:UseSharedCompilation=false --logger "console;verbosity=normal"
