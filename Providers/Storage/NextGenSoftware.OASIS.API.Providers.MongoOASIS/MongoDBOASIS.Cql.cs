@@ -10,7 +10,7 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 
-public partial class MongoDBOASIS:ICosmicQueryStorageProvider
+public partial class MongoDBOASIS:ICosmicQueryStorageProvider,ICosmicJoinFetchStorageProvider
 {
     public static CosmicQueryCapabilities CqlCapabilities=>MongoCqlContract.Capabilities;
     Core.Enums.ProviderType ICosmicQueryStorageProvider.QueryProviderType=>Core.Enums.ProviderType.MongoDBOASIS;
@@ -22,7 +22,7 @@ public partial class MongoDBOASIS:ICosmicQueryStorageProvider
 
     private async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCqlRowsAsync<T>(CosmicQueryPlan<T> plan,
         int maximumResults, CancellationToken cancellationToken, CosmicEntityCompositionPlan<T> composition=null,CosmicSetQueryPlan<T> set=null,
-        Action<MongoCqlCommand> explain=null) where T:IHolon
+        Action<MongoCqlCommand> explain=null,MongoCqlJoinFetch joinFetch=null) where T:IHolon
     {
         try
         {
@@ -49,6 +49,14 @@ public partial class MongoDBOASIS:ICosmicQueryStorageProvider
                 : composition != null ? translator.CompileEntityComposition(composition, maximumResults)
                 : plan.PostWindowPredicate != null ? translator.CompilePostWindowElement(plan, maximumResults)
                 : translator.CompileExecution(plan.Query,maximumResults,plan.TailIndex);
+            if(joinFetch!=null)
+            {
+                // Join fetch extends this one root compiler with one correlated $lookup stage.
+                if(set!=null || composition!=null || plan.PostWindowPredicate!=null || plan.TailIndex.HasValue || plan.Query.GraphOptions!=null)
+                    throw new NotSupportedException("MongoDB join fetch requires a plain root window.");
+                command=joinFetch.Compile(translator,command);
+                joinFetch.Command=MongoDB.Bson.BsonExtensionMethods.ToJson(new MongoDB.Bson.BsonArray(command.Pipeline));
+            }
             if(explain!=null){explain(command);return new OASISResult<IReadOnlyList<IHolon>>(Array.Empty<IHolon>()){IsLoaded=true};}
             if(!IsProviderActivated||_holonRepository is not HolonRepository repository)
                 return CqlFailure("CQL_PROVIDER_NOT_READY","Activate MongoDB before native CQL execution.");
@@ -58,7 +66,7 @@ public partial class MongoDBOASIS:ICosmicQueryStorageProvider
                 graph.IsLoaded=!graph.IsError;
                 return graph;
             }
-            var rows=await repository.ExecuteNativeCqlAsync(command,maximumResults,cancellationToken).ConfigureAwait(false);
+            var rows=await repository.ExecuteNativeCqlAsync(command,joinFetch==null?maximumResults:maximumResults+1,cancellationToken,joinFetch).ConfigureAwait(false);
             return new OASISResult<IReadOnlyList<IHolon>>(rows){IsLoaded=true};
         }
         catch(System.IO.InvalidDataException cause){return CqlFailure("CQL_DATA_INVALID",cause.Message,cause);}
@@ -70,6 +78,29 @@ public partial class MongoDBOASIS:ICosmicQueryStorageProvider
         catch(MongoExecutionTimeoutException cause){return CqlFailure("CQL_QUERY_TIMEOUT","MongoDB exceeded the native query deadline.",cause);}
         catch(Exception cause){return CqlFailure("CQL_QUERY_FAILED","MongoDB CQL execution failed.",cause);}
     }
+    /// <summary>A13 join fetch: the admitted root pipeline plus one correlated $lookup, executed as ONE aggregate command.</summary>
+    public async Task<OASISResult<CosmicJoinFetchPacket>> ExecuteCosmicJoinFetchAsync<TRoot,TChild>(CosmicJoinFetchPlan<TRoot,TChild> plan,
+        CancellationToken cancellationToken=default) where TRoot:IHolon where TChild:IHolon
+    {
+        if(plan?.Roots==null || plan.Children==null)
+            return new OASISResult<CosmicJoinFetchPacket>{IsError=true,ErrorCount=1,ErrorCode="CQL_PLAN_INVALID",Message="An admitted join-fetch plan is required."};
+        var request=new MongoCqlJoinFetch((translator,roots)=>translator.CompileJoinFetch(roots,plan.Children,plan.MaximumChildren));
+        var rows=await ExecuteCqlRowsAsync(plan.Roots,plan.MaximumRoots,cancellationToken,joinFetch:request).ConfigureAwait(false);
+        var result=Core.Helpers.OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(rows,new OASISResult<CosmicJoinFetchPacket>());
+        if(!rows.IsError)result.Result=new CosmicJoinFetchPacket(rows.Result,request.Children,request.NativeCommands,"MongoDB aggregate",request.Command);
+        return result;
+    }
+
     private static OASISResult<IReadOnlyList<IHolon>> CqlFailure(string code,string message,Exception cause=null)
         =>new(){IsError=true,ErrorCount=1,ErrorCode=code,Message=message,Exception=cause};
+}
+
+/// <summary>The join-fetch extension of one root command and the sink its single native read fills.</summary>
+internal sealed class MongoCqlJoinFetch
+{
+    internal readonly Func<MongoCqlTranslator,MongoCqlCommand,MongoCqlCommand> Compile;
+    internal readonly List<IHolon> Children=new();
+    internal string Command;
+    internal int NativeCommands;
+    internal MongoCqlJoinFetch(Func<MongoCqlTranslator,MongoCqlCommand,MongoCqlCommand> compile){Compile=compile;}
 }

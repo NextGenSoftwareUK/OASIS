@@ -13,7 +13,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories;
 
 public partial class HolonRepository
 {
-    internal async Task<IReadOnlyList<IHolon>> ExecuteNativeCqlAsync(MongoCqlCommand command,int maximumResults,CancellationToken cancellationToken)
+    internal async Task<IReadOnlyList<IHolon>> ExecuteNativeCqlAsync(MongoCqlCommand command,int maximumResults,CancellationToken cancellationToken,
+        MongoCqlJoinFetch joinFetch=null)
     {
         using var deadline=CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(TimeSpan.FromSeconds(30));
@@ -30,7 +31,7 @@ public partial class HolonRepository
             using var session=command.RequiresMembership || command.EntityComposition != null
                 ? await _dbContext.MongoClient.StartSessionAsync(new ClientSessionOptions{Snapshot=true,CausalConsistency=false},deadline.Token).ConfigureAwait(false)
                 : null;
-            return await ReadNativeCqlRowsAsync(command,maximumResults,64*1024*1024,session,Options,deadline.Token).ConfigureAwait(false);
+            return await ReadNativeCqlRowsAsync(command,maximumResults,64*1024*1024,session,Options,deadline.Token,joinFetch:joinFetch).ConfigureAwait(false);
         }
         catch(OperationCanceledException) when(!cancellationToken.IsCancellationRequested && deadline.IsCancellationRequested)
         {throw new MongoCqlGraphTimeoutException();}
@@ -65,7 +66,7 @@ public partial class HolonRepository
 
     private async Task<IReadOnlyList<IHolon>> ReadNativeCqlRowsAsync(MongoCqlCommand command,int maximumResults,
         int maximumBytes,IClientSessionHandle session,Func<AggregateOptions> options,CancellationToken cancellationToken,
-        Action<int> reserveNativeBytes=null)
+        Action<int> reserveNativeBytes=null,MongoCqlJoinFetch joinFetch=null)
     {
         if(command.EntityComposition != null)
             await ValidateNativeEntityStagesAsync(command.EntityComposition,session,options,cancellationToken).ConfigureAwait(false);
@@ -77,6 +78,7 @@ public partial class HolonRepository
         }
         // The native pipeline owns filtering, exact sort keys, offset and page
         // boundaries. Disk spilling is explicitly disabled to bound resources.
+        if(joinFetch!=null)joinFetch.NativeCommands++;
         using var cursor=session==null
             ? await _dbContext.Holon.AggregateAsync<BsonDocument>(command.Pipeline,options(),cancellationToken).ConfigureAwait(false)
             : await _dbContext.Holon.AggregateAsync<BsonDocument>(session,command.Pipeline,options(),cancellationToken).ConfigureAwait(false);
@@ -96,6 +98,19 @@ public partial class HolonRepository
                     if(error==2)throw new MongoCqlLimitException();
                     if(error!=0)throw new System.IO.InvalidDataException("MongoDB CQL traversal returned an invalid outcome.");
                     row=document["row"].AsBsonDocument;
+                }
+                if(joinFetch!=null)
+                {
+                    // The one aggregate carries each root's authorized direct children.
+                    if(!row.TryGetValue(MongoCqlTranslator.JoinFetchChildrenField,out var joined) || joined is not BsonArray children)
+                        throw new System.IO.InvalidDataException("MongoDB join fetch returned a root without its child array.");
+                    row=row.DeepClone().AsBsonDocument;row.Remove(MongoCqlTranslator.JoinFetchChildrenField);
+                    foreach(var child in children)
+                    {
+                        var childPayload=child.AsBsonDocument.ToBson();bytes+=childPayload.Length;
+                        if(bytes>maximumBytes)throw new MongoCqlLimitException();
+                        joinFetch.Children.Add(DataHelper.ConvertMongoEntityToOASISHolon(BsonSerializer.Deserialize<Entities.Holon>(childPayload),mapChildren:false));
+                    }
                 }
                 var payload=row.ToBson();bytes+=payload.Length;
                 if(bytes>maximumBytes)throw new MongoCqlLimitException();
