@@ -77,6 +77,12 @@ internal sealed partial class MongoCqlTranslator
                 traversalErrors.Add(Op("$ifNull", First("error"), Literal(1)));
                 return Op("$ifNull", First("matched"), Literal(false));
             }
+            if (node is CosmicQueryChildAggregate aggregate)
+            {
+                var alias = "child" + childIndex++;
+                pipeline.Add(ChildAggregateLookup(aggregate, access, alias));
+                return ChildAggregateTest(aggregate, alias);
+            }
             if (node is CosmicQueryAnyChild child)
             {
                 var alias = "child" + childIndex++;
