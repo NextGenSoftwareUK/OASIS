@@ -16,6 +16,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.TelosOASIS\NextGenSoftware.OASIS.API.Providers.TelosOASIS.csproj" />
   </ItemGroup>
 

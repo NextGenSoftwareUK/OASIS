@@ -13,6 +13,8 @@
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlInfluxDbReadSourceRegistration.cs" Link="Hosted/CqlInfluxDbReadSourceRegistration.cs" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlReadSourceProfile.cs" Link="Hosted/CqlReadSourceProfile.cs" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.InfluxDBOASIS\NextGenSoftware.OASIS.API.Providers.InfluxDBOASIS.csproj" />
   </ItemGroup>
   <ItemGroup>
@@ -29,8 +31,5 @@
   </ItemGroup>
   <ItemGroup Condition="'$(NativeStorageConformance)' != 'true'">
     <Compile Remove="InfluxDBNativeStorageConformanceTests.cs" />
-    <!-- Calls AddInfluxDbReadSource, which is not implemented anywhere yet (the hosted CQL registration for InfluxDB).
-         Re-enable once ONODE.WebAPI provides CqlInfluxDbReadSourceRegistration and this project links it. -->
-    <Compile Remove="InfluxDbHostedCqlNativeTests.cs" />
   </ItemGroup>
 </Project>

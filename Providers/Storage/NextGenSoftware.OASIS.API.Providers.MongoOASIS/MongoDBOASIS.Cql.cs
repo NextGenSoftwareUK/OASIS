@@ -21,7 +21,8 @@ public partial class MongoDBOASIS:ICosmicQueryStorageProvider
         => ExecuteCqlRowsAsync(plan, maximumResults, cancellationToken);
 
     private async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCqlRowsAsync<T>(CosmicQueryPlan<T> plan,
-        int maximumResults, CancellationToken cancellationToken, CosmicEntityCompositionPlan<T> composition=null,CosmicSetQueryPlan<T> set=null) where T:IHolon
+        int maximumResults, CancellationToken cancellationToken, CosmicEntityCompositionPlan<T> composition=null,CosmicSetQueryPlan<T> set=null,
+        Action<MongoCqlCommand> explain=null) where T:IHolon
     {
         try
         {
@@ -48,6 +49,7 @@ public partial class MongoDBOASIS:ICosmicQueryStorageProvider
                 : composition != null ? translator.CompileEntityComposition(composition, maximumResults)
                 : plan.PostWindowPredicate != null ? translator.CompilePostWindowElement(plan, maximumResults)
                 : translator.CompileExecution(plan.Query,maximumResults,plan.TailIndex);
+            if(explain!=null){explain(command);return new OASISResult<IReadOnlyList<IHolon>>(Array.Empty<IHolon>()){IsLoaded=true};}
             if(!IsProviderActivated||_holonRepository is not HolonRepository repository)
                 return CqlFailure("CQL_PROVIDER_NOT_READY","Activate MongoDB before native CQL execution.");
             if(plan.Query.GraphOptions!=null)

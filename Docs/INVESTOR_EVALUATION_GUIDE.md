@@ -6,7 +6,7 @@ The OASIS (Open Advanced Sensory Immersion System) is the universal interoperabi
 
 **Where we are today (August 2026):**
 - **WEB4** — The foundation: universal data aggregation, COSMIC ORM (**102 providers**), HyperDrive 100% uptime, SSO Avatar, cross-chain NFTs, ONET P2P networking. Live in production.
-- **WEB5** — The application layer: STAR ODK low-code metaverse generator, STARNET holon graph, OAPPs (OASIS applications), quests, missions, cross-world asset sharing. Live in production.
+- **WEB5** — The application layer: STAR ODK low-code metaverse generator, Smart Brick graph, OAPPs (OASIS applications), quests, missions, cross-world asset sharing. Live in production.
 - **WEB6** — The intelligence layer: one API, every AI. FAHRN multi-agent orchestration, Holonic BRAID shared reasoning graph, SkillOpt self-evolving agent skills, **508 MCP tools**, **56 REST endpoints**, **98 AI providers, 27 billable today** (OpenAI, Anthropic, Gemini, Groq, Mistral, Cohere, xAI/Grok, DeepSeek, Ollama, EXO, SambaNova, Cerebras, OpenRouter, Together AI, Fireworks AI, Perplexity, HuggingFace, Azure OpenAI, AWS Bedrock, Google Vertex AI, IBM WatsonX, Snowflake Cortex, Databricks, Cloudflare Workers AI, Alibaba Qwen, Doubao, MiniMax, Zhipu AI, Baidu ERNIE, 01.AI, Tencent Hunyuan, Naver HyperCLOVA X, LG EXAONE, JAIS, ElevenLabs, Runway ML, Black Forest Labs, and 60+ more), **22 orchestrator protocols** (MCP, A2A, ACP, ANP, LangGraph, OpenAI Agents SDK, Nostr NIP-90, LangChain, AutoGen, CrewAI, SemanticKernel, gRPC, GraphQL, Kafka, AMQP, MQTT, Webhook), DID/Verifiable Credentials, karma-gated model tiers. **Fully shipped as of August 2026. This is the primary revenue growth driver.**
 - **WEB7** — The symbiosis layer: bio-signal and neural interface integration bridging human consciousness to the OASIS AI layer. Architecture complete, implementation in progress.
 - **WEB8–WEB10** — The galactic mesh, singularity, and source layers — long-horizon vision stages.
@@ -176,31 +176,31 @@ No competitor comes close:
 - **MMORPG with Optional VR**: Massive multiplayer online role-playing game with virtual reality support
 - **Infinite Building**: Build anything you can imagine, similar to Minecraft and Pax Dei
 - **Benevolent Focus**: Encourages positive actions and environmental stewardship
-- **Cross-Platform STARNETHolons**: Share ALL STARNETHolons (OAPPs, Runtimes, Libraries, Templates, NFTs, GeoNFTs, GeoHotSpots, Quests, Missions, Chapters, InventoryItems, CelestialSpaces, CelestialBodies, Zomes, Holons, and all MetaDataDNA) with Our World
-- **Unified OAPP Ecosystem**: Same STARNETHolons work across all OASIS/STAR powered OAPPs (apps, games, sites, services, platforms, etc.)
+- **Cross-Platform Smart Bricks**: Share ALL Smart Bricks (OAPPs, Runtimes, Libraries, Templates, NFTs, GeoNFTs, GeoHotSpots, Quests, Missions, Chapters, InventoryItems, CelestialSpaces, CelestialBodies, Zomes, Holons, and all MetaDataDNA) with Our World
+- **Unified OAPP Ecosystem**: Same Smart Bricks work across all OASIS/STAR powered OAPPs (apps, games, sites, services, platforms, etc.)
 - **Avatar Progression**: Level up your avatar through positive actions and building
 - **Community Building**: Work together with other players to create amazing structures
 - **Educational Value**: Learn about sustainability, cooperation, and creativity
 - **Real-World Impact**: Connect virtual achievements with real-world environmental actions
-- **Cross-OAPP Trading**: Trade STARNETHolons between different OAPPs and platforms
-- **Universal Inventory**: Items and STARNETHolons work across all OAPPs in the ecosystem
+- **Cross-OAPP Trading**: Trade Smart Bricks between different OAPPs and platforms
+- **Universal Inventory**: Items and Smart Bricks work across all OAPPs in the ecosystem
 - **Cross-Platform Progression**: Your progress and achievements carry over between OAPPs
 - **Infinite Use Cases**: Games, businesses, shops, e-commerce, finance, education, healthcare, and everything else!
 
 **Investment Value**: Massive market opportunity in MMORPG gaming, first-mover advantage in benevolent gaming with cross-platform interoperability.
 
 ### 7. OASIS/STAR Cross-Platform Universal System
-**Revolutionary Innovation**: The world's first truly interoperable system where ALL STARNETHolons (OAPPs, Runtimes, Libraries, Templates, NFTs, GeoNFTs, GeoHotSpots, Quests, Missions, Chapters, InventoryItems, CelestialSpaces, CelestialBodies, Zomes, Holons, and all MetaDataDNA) can be shared and re-used across ANY OAPP (apps, games, sites, services, platforms, etc.) built on the OASIS API and STAR API:
+**Revolutionary Innovation**: The world's first truly interoperable system where ALL Smart Bricks (OAPPs, Runtimes, Libraries, Templates, NFTs, GeoNFTs, GeoHotSpots, Quests, Missions, Chapters, InventoryItems, CelestialSpaces, CelestialBodies, Zomes, Holons, and all MetaDataDNA) can be shared and re-used across ANY OAPP (apps, games, sites, services, platforms, etc.) built on the OASIS API and STAR API:
 
-- **Universal STARNETHolon Sharing**: ALL STARNETHolons work across JavaScript, Unity, Unreal, and any other platform
-- **Cross-OAPP Compatibility**: Quests, missions, NFTs, and all STARNETHolons work in different OAPPs with different UIs
-- **Platform Agnostic**: STARNETHolons work seamlessly across web, mobile, desktop, and VR platforms
-- **Engine Independent**: Same STARNETHolons work in Unity, Unreal, JavaScript, and any other engine
+- **Universal Smart Brick Sharing**: ALL Smart Bricks work across JavaScript, Unity, Unreal, and any other platform
+- **Cross-OAPP Compatibility**: Quests, missions, NFTs, and all Smart Bricks work in different OAPPs with different UIs
+- **Platform Agnostic**: Smart Bricks work seamlessly across web, mobile, desktop, and VR platforms
+- **Engine Independent**: Same Smart Bricks work in Unity, Unreal, JavaScript, and any other engine
 - **Unified OAPP Ecosystem**: Create once, use everywhere across all OASIS/STAR OAPPs (apps, games, sites, services, platforms, etc.)
 - **Cross-Platform Progression**: Your progress and achievements carry over between OAPPs
-- **Universal Inventory**: Items and STARNETHolons work across all OAPPs in the ecosystem
-- **Shared STARNETHolons**: Use the same STARNETHolons in different OAPPs with different experiences
-- **Cross-OAPP Trading**: Trade STARNETHolons between different OAPPs and platforms
+- **Universal Inventory**: Items and Smart Bricks work across all OAPPs in the ecosystem
+- **Shared Smart Bricks**: Use the same Smart Bricks in different OAPPs with different experiences
+- **Cross-OAPP Trading**: Trade Smart Bricks between different OAPPs and platforms
 - **Unified Avatar System**: Your avatar and progression work across all OAPPs
 - **OASIS API Backend**: Universal backend supporting all OAPP types and platforms
 - **STAR API Integration**: Gamification layer that works across all platforms

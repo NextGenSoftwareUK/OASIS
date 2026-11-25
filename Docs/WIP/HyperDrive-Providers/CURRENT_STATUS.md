@@ -21,6 +21,24 @@ OPORTAL, the ONODE popup and billing UI are now owned by a different session. CQ
 - Blockers: dev Neo4j to SQLite replication hold at sequence 14 needs David's approval for the baseline repair
   (ACTIONS-FOR-DAVID I1). Hosted-account providers remain listed there.
 
+## Progress (cloud-hyperdrive-A, updated 2026-11-25 01:50 UTC)
+
+Done in CI (native core-storage suite 26/26, sync + async):
+- TelosOASIS and SEEDSOASIS: storage now goes through the EOSIO (Antelope) implementation; `antelope-family-native-storage.yml`, run 45518765561.
+
+Passing 26/26 in both modes locally against real backends, waiting for CI (`work/cloud-hd-scuttlebutt` carries all nine in one `popular-providers-native-storage.yml` run):
+- DaprOASIS (daprd + Redis): gRPC health probe; emptied key indexes removed.
+- GUNOASIS (GUN relay): rebuilt on the real GUN wire protocol; chunked node replies merged.
+- MatrixOASIS (Synapse): records as encrypted room state events.
+- OrbitDBOASIS (@orbitdb/core 4 service): stable identity and address across restarts.
+- ArweaveOASIS (arlocal): owner-pinned, revisioned, encrypted records.
+- ScuttlebuttOASIS (ssb-db2 service): records in a signed feed.
+- AppwriteOASIS (self-hosted 1.7.4), PineconeOASIS (Pinecone Local), TablelandOASIS (local validator + Hardhat).
+
+Blocked on hosted accounts or a retire decision: see "Hosted-only providers" in `Docs/WIP/Release and Status/ACTIONS-FOR-DAVID.md`.
+
+CI capacity is the bottleneck: provider runs queue for over an hour behind Development pipelines.
+
 ## Branches
 
 This work is on `work/hyperdrive-triad`, which was cut from `origin/Development` (d1936908). The old GPT task branch

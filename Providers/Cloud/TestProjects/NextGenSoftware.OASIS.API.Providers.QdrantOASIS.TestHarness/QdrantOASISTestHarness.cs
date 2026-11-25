@@ -1,3 +1,4 @@
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Providers.QdrantOASIS;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using System;
@@ -48,9 +49,9 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS.TestHarness
         private static async Task TestProviderInformation()
         {
             Console.WriteLine("--- Testing Provider Information ---");
-            Console.WriteLine($"Version: {_provider.GetProviderVersion()}");
-            Console.WriteLine($"Type: {_provider.GetProviderType()}");
-            Console.WriteLine($"Category: {_provider.GetProviderCategory()}");
+            Console.WriteLine($"Version: {_provider.GetType().Assembly.GetName().Version}");
+            Console.WriteLine($"Type: {_provider.ProviderType.Value}");
+            Console.WriteLine($"Category: {_provider.ProviderCategory.Value}");
             Console.WriteLine();
         }
 

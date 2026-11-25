@@ -108,7 +108,7 @@ internal static class Program
         }
         
         WriteSuccess($"Balance retrieved successfully!");
-        WriteColored("Balance", balanceResult.Result?.ToString() ?? "0", ConsoleColor.Green);
+        WriteColored("Balance", balanceResult.Result.ToString(), ConsoleColor.Green);
         
         await radixOASIS.DeActivateProviderAsync();
     }
@@ -179,7 +179,7 @@ internal static class Program
         WriteSuccess("Oracle Node started!");
         
         WriteInfo("Getting chain state...");
-        var chainStateRequest = new RadixOracleNode.OracleDataRequest
+        var chainStateRequest = new OracleDataRequest
         {
             DataType = "chainstate"
         };
@@ -222,7 +222,7 @@ internal static class Program
         }
         
         WriteInfo("Connecting Chain Observer...");
-        var connectResult = await radixOASIS.ChainObserver.ConnectAsync();
+        var connectResult = await radixOASIS.ChainObserver.StartMonitoringAsync();
         
         if (connectResult.IsError)
         {
@@ -233,7 +233,7 @@ internal static class Program
         WriteSuccess("Chain Observer connected!");
         
         WriteInfo("Getting latest epoch...");
-        var epochResult = await radixOASIS.ChainObserver.GetLatestEpochAsync();
+        var epochResult = await radixOASIS.ChainObserver.GetLatestBlockAsync();
         
         if (epochResult.IsError)
         {
@@ -241,11 +241,11 @@ internal static class Program
         }
         else
         {
-            WriteSuccess($"Latest epoch retrieved: {epochResult.Result}");
-            WriteColored("Latest Epoch", epochResult.Result.ToString(), ConsoleColor.Green);
+            WriteSuccess($"Latest epoch retrieved: {epochResult.Result.Epoch}");
+            WriteColored("Latest Epoch", epochResult.Result.Epoch.ToString(), ConsoleColor.Green);
         }
         
-        await radixOASIS.ChainObserver.DisconnectAsync();
+        await radixOASIS.ChainObserver.StopMonitoringAsync();
         await radixOASIS.DeActivateProviderAsync();
     }
 
@@ -279,7 +279,7 @@ internal static class Program
         WriteSuccess("Oracle Node started!");
         
         WriteInfo("Getting XRD price feed...");
-        var priceRequest = new RadixOracleNode.OracleDataRequest
+        var priceRequest = new OracleDataRequest
         {
             DataType = "price",
             TokenSymbol = "XRD",
@@ -324,7 +324,7 @@ internal static class Program
         }
         
         WriteInfo("Connecting Chain Observer...");
-        var connectResult = await radixOASIS.ChainObserver.ConnectAsync();
+        var connectResult = await radixOASIS.ChainObserver.StartMonitoringAsync();
         
         if (connectResult.IsError)
         {
@@ -348,12 +348,12 @@ internal static class Program
             {
                 WriteColored("Chain Name", healthResult.Result.ChainName, ConsoleColor.Green);
                 WriteColored("Is Healthy", healthResult.Result.IsHealthy.ToString(), ConsoleColor.Cyan);
-                WriteColored("Status Message", healthResult.Result.StatusMessage, ConsoleColor.Magenta);
+                WriteColored("Status Message", healthResult.Result.Status, ConsoleColor.Magenta);
                 WriteColored("Last Checked", healthResult.Result.LastChecked.ToString(), ConsoleColor.Blue);
             }
         }
         
-        await radixOASIS.ChainObserver.DisconnectAsync();
+        await radixOASIS.ChainObserver.StopMonitoringAsync();
         await radixOASIS.DeActivateProviderAsync();
     }
 
@@ -391,8 +391,8 @@ internal static class Program
         WriteSuccess("Deposit completed successfully!");
         if (depositResult.Result != null)
         {
-            WriteColored("Transaction Hash", depositResult.Result.TransactionHash ?? depositResult.Result.IntentHash ?? "Unknown", ConsoleColor.Green);
-            WriteColored("Intent Hash", depositResult.Result.IntentHash ?? "Unknown", ConsoleColor.Cyan);
+            WriteColored("Transaction Hash", depositResult.Result.TransactionId ?? "Unknown", ConsoleColor.Green);
+            WriteColored("Duplicate Transaction Id", depositResult.Result.DuplicateTransactionId ?? "None", ConsoleColor.Cyan);
         }
         
         await radixOASIS.DeActivateProviderAsync();

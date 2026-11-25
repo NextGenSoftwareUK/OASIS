@@ -428,197 +428,37 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
 
 
         public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
-        {
-            return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
-        }
+            => _eosioOASIS.Search(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version);
 
-        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
-        {
-            var result = new OASISResult<bool>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                var saveResult = await SaveHolonsAsync(holons);
-                result.Result = !saveResult.IsError;
-                result.IsError = saveResult.IsError;
-                if (saveResult.IsError)
-                {
-                    result.Message = saveResult.Message;
-                }
-                else
-                {
-                    result.Message = $"Successfully imported {holons.Count()} holons to Telos";
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error importing holons to Telos: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
+            => _eosioOASIS.ImportAsync(holons);
 
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
-        {
-            return ImportAsync(holons).Result;
-        }
+            => _eosioOASIS.Import(holons);
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                var allHolonsResult = await LoadAllHolonsAsync(HolonType.All, version: version);
-                result.Result = allHolonsResult.Result;
-                result.IsError = allHolonsResult.IsError;
-                result.Message = allHolonsResult.Message;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error exporting all data from Telos: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+            => _eosioOASIS.ExportAllAsync(version);
 
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
-        {
-            return ExportAllAsync(version).Result;
-        }
+            => _eosioOASIS.ExportAll(version);
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                var allHolonsResult = await LoadAllHolonsAsync(HolonType.All, version: version);
-                if (allHolonsResult.IsError)
-                {
-                    result.IsError = true;
-                    result.Message = allHolonsResult.Message;
-                    return result;
-                }
-
-                var holons = allHolonsResult.Result?.Where(h => h.CreatedByAvatarId == avatarId || h.ParentHolonId == avatarId).ToList() ?? new List<IHolon>();
-                result.Result = holons;
-                result.Message = $"Exported {holons.Count} holons for avatar {avatarId} from Telos";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data from Telos: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
+            => _eosioOASIS.ExportAllDataForAvatarByIdAsync(avatarId, version);
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
-        {
-            return ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
-        }
+            => _eosioOASIS.ExportAllDataForAvatarById(avatarId, version);
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername, version);
-                if (avatarResult.IsError || avatarResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Avatar not found: {avatarUsername}");
-                    return result;
-                }
-
-                var exportResult = await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
-                result.Result = exportResult.Result;
-                result.IsError = exportResult.IsError;
-                result.Message = exportResult.Message;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data by username from Telos: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
+            => _eosioOASIS.ExportAllDataForAvatarByUsernameAsync(avatarUsername, version);
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
-        {
-            return ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
-        }
+            => _eosioOASIS.ExportAllDataForAvatarByUsername(avatarUsername, version);
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                var avatarResult = await LoadAvatarByEmailAsync(avatarEmailAddress, version);
-                if (avatarResult.IsError || avatarResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Avatar not found: {avatarEmailAddress}");
-                    return result;
-                }
-
-                var exportResult = await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
-                result.Result = exportResult.Result;
-                result.IsError = exportResult.IsError;
-                result.Message = exportResult.Message;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data by email from Telos: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
+            => _eosioOASIS.ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version);
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
-        {
-            return ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).Result;
-        }
+            => _eosioOASIS.ExportAllDataForAvatarByEmail(avatarEmailAddress, version);
 
 
 

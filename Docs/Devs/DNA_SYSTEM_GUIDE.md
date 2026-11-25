@@ -2,7 +2,7 @@
 
 ## 📋 **Overview**
 
-The DNA system is the core mechanism that enables STARNETHolons to be linked together as dependencies. This system allows for unlimited combinations of STARNETHolons, creating unique and complex applications, games, and experiences.
+The DNA system is the core mechanism that enables Smart Bricks to be linked together as dependencies. This system allows for unlimited combinations of Smart Bricks, creating unique and complex applications, games, and experiences.
 
 ## ⚠️ **Updating OASISDNA.json**
 
@@ -18,7 +18,7 @@ If you add a new section or item to the OASISDNA file, also remember to add it t
 ## 🧬 **DNA System Architecture**
 
 ### **Core Concept**
-The DNA system stores dependency relationships between STARNETHolons in JSON format, allowing any STARNETHolon to depend on any other STARNETHolon type.
+The DNA system stores dependency relationships between Smart Bricks in JSON format, allowing any Smart Brick to depend on any other Smart Brick type.
 
 ```json
 {
@@ -37,8 +37,8 @@ The DNA system stores dependency relationships between STARNETHolons in JSON for
 }
 ```
 
-### **STARNETHolon Types**
-All STARNETHolon types can be dependencies:
+### **Smart Brick Types**
+All Smart Brick types can be dependencies:
 
 - **OAPPs**: OASIS Applications
 - **Templates**: Application templates
@@ -302,16 +302,16 @@ star verify-dependencies oapp "My Game"
 ### **Visual Dependency Management**
 The STARNET Web UI provides visual tools for managing dependencies:
 
-- **Drag-and-Drop**: Drag STARNETHolons to create dependencies
+- **Drag-and-Drop**: Drag Smart Bricks to create dependencies
 - **Visual Graph**: See dependency relationships visually
 - **Dependency Browser**: Browse available dependencies
 - **Conflict Resolution**: Resolve dependency conflicts visually
 
 ### **OAPP Builder Integration**
-The OAPP Builder allows plugging any STARNETHolon into any other:
+The OAPP Builder allows plugging any Smart Brick into any other:
 
-- **Component Library**: Browse all available STARNETHolons
-- **Dependency Linking**: Link STARNETHolons with visual connections
+- **Component Library**: Browse all available Smart Bricks
+- **Dependency Linking**: Link Smart Bricks with visual connections
 - **Real-time Preview**: See how dependencies work together
 - **Validation**: Automatic validation of dependency relationships
 
@@ -405,4 +405,4 @@ star profile-dependencies oapp "My Game"
 
 ---
 
-*The DNA system enables unlimited creativity by allowing any STARNETHolon to depend on any other STARNETHolon, creating unique and complex applications.*
+*The DNA system enables unlimited creativity by allowing any Smart Brick to depend on any other Smart Brick, creating unique and complex applications.*

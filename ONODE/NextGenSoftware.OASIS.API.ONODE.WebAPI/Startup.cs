@@ -699,6 +699,9 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             if (Configuration["CQL_BNB_PUBLIC_SOURCE_JSON"] is string bnbPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.BnbPublicAccountMetadataSource.FromJson(bnbPublicSource)));
+            if (Configuration["CQL_ROOTSTOCK_PUBLIC_SOURCE_JSON"] is string rootstockPublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.RootstockOASIS.RootstockPublicAccountMetadataSource.FromJson(rootstockPublicSource)));
             if (Configuration["CQL_AZURE_BLOB_PUBLIC_SOURCE_JSON"] is string azureBlobPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS.AzureBlobPublicMetadataSource.FromJson(azureBlobPublicSource)));
@@ -771,6 +774,8 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             Services.Cql.CqlSupabaseReadSourceRegistration.AddSupabaseReadSource(services, Configuration);
             Services.Cql.CqlPlanetScaleReadSourceRegistration.AddPlanetScaleReadSource(services, Configuration);
             Services.Cql.CqlCouchDbReadSourceRegistration.AddCouchDbReadSource(services, Configuration);
+            Services.Cql.CqlInfluxDbReadSourceRegistration.AddInfluxDbReadSource(services, Configuration);
+            Services.Cql.CqlWeaviateReadSourceRegistration.AddWeaviateReadSource(services, Configuration);
             Services.Cql.CqlUrbitReadSourceRegistration.AddUrbitReadSource(services, Configuration);
             Services.Cql.CqlCloudinaryReadSourceRegistration.AddCloudinaryReadSource(services, Configuration);
             Services.Cql.CqlLoopbackTeachingSourceRegistration.AddLoopbackTeachingSources(services, Configuration);

@@ -61,6 +61,13 @@ internal static class NeoCqlProjection
                     { result[key + "_kind"] = "integer"; result[key + "_value"] = integer; }
                     else { result[key + "_kind"] = "number"; result[key + "_value"] = raw; }
                     break;
+                case JsonValueKind.Object when value.TryGetProperty("$values", out var wrapped) && wrapped.ValueKind == JsonValueKind.Array
+                    && value.EnumerateObject().All(member => member.Name is "$type" or "$values"):
+                    // Canonical record JSON wraps typed collections; project them as the array they are.
+                    result[key + "_kind"] = "array";
+                    result[key + "_strings"] = wrapped.EnumerateArray().Where(element => element.ValueKind == JsonValueKind.String)
+                        .Select(element => element.GetString()).ToArray();
+                    break;
                 case JsonValueKind.Object:
                     result[key + "_kind"] = "object";
                     foreach (var child in value.EnumerateObject())
@@ -69,7 +76,12 @@ internal static class NeoCqlProjection
                         pending.Push((child.Value, nested));
                     }
                     break;
-                case JsonValueKind.Array: result[key + "_kind"] = "array"; break;
+                case JsonValueKind.Array:
+                    result[key + "_kind"] = "array";
+                    // String elements as a native list property for collection membership (M15).
+                    result[key + "_strings"] = value.EnumerateArray().Where(element => element.ValueKind == JsonValueKind.String)
+                        .Select(element => element.GetString()).ToArray();
+                    break;
                 default: throw new System.IO.InvalidDataException("Unsupported Neo4j CQL metadata value.");
             }
         }

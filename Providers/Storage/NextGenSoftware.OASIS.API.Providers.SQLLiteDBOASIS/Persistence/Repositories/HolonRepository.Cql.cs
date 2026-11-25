@@ -24,6 +24,19 @@ public partial class HolonRepository
         int maximumResults, CancellationToken cancellationToken) where T : IHolon
         => ProjectCqlRowsAsync(ExecuteCqlReadAsync(plan, maximumResults, cancellationToken));
 
+    /// <summary>The exact SQLite SQL a plan compiles to (Q66); nothing is executed.</summary>
+    public async Task<OASISResult<CosmicQueryExplanation>> ExplainCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
+        int maximumResults, CancellationToken cancellationToken) where T : IHolon
+    {
+        CosmicQueryExplanation explanation = null;
+        var compiled = await ExecuteCqlReadAsync(plan, maximumResults, cancellationToken,
+            explain: (text, names) => explanation = new CosmicQueryExplanation("SQLite SQL", text, names.OrderBy(name => name, StringComparer.Ordinal))).ConfigureAwait(false);
+        if (compiled.IsError) return new OASISResult<CosmicQueryExplanation> { IsError = true, ErrorCount = 1, ErrorCode = compiled.ErrorCode, Message = compiled.Message, Exception = compiled.Exception };
+        return explanation == null
+            ? new OASISResult<CosmicQueryExplanation> { IsError = true, ErrorCount = 1, ErrorCode = "CQL_EXPLAIN_UNAVAILABLE", Message = "The plan produced no native command." }
+            : new OASISResult<CosmicQueryExplanation>(explanation);
+    }
+
     public Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicEntityCompositionAsync<T>(CosmicEntityCompositionPlan<T> plan,
         int maximumResults, CancellationToken cancellationToken) where T : IHolon
         => ProjectCqlRowsAsync(ExecuteCqlReadAsync(plan?.Source, maximumResults, cancellationToken, plan));
@@ -58,7 +71,7 @@ public partial class HolonRepository
 
     private async Task<OASISResult<CqlReadOutcome>> ExecuteCqlReadAsync<T>(CosmicQueryPlan<T> plan,
         int maximumResults, CancellationToken cancellationToken, CosmicEntityCompositionPlan<T> composition = null,
-        bool countOnly=false,CosmicSetQueryPlan<T> set=null) where T : IHolon
+        bool countOnly=false,CosmicSetQueryPlan<T> set=null,Action<string,IEnumerable<string>> explain=null) where T : IHolon
     {
         OASISResult<CqlReadOutcome> Error(string code,string message,Exception cause=null)
             => new() { IsError=true,ErrorCount=1,ErrorCode=code,Message=message,Exception=cause };
@@ -136,6 +149,7 @@ public partial class HolonRepository
             var hasRelationship = translator.HasRelationship || terminalTranslator?.HasRelationship == true
                 || entitySql?.HasRelationship == true;
             cancellationToken.ThrowIfCancellationRequested();
+            if(explain!=null){explain(sql,translator.Parameters.Select(parameter=>parameter.ParameterName));return new OASISResult<CqlReadOutcome>(new CqlReadOutcome(Array.Empty<IHolon>())){IsLoaded=true};}
             if(composition == null && set == null && fetch==0 && !translator.HasRelationship)return new OASISResult<CqlReadOutcome>(new CqlReadOutcome(Array.Empty<IHolon>())){IsLoaded=true};
             // Own the EF concurrency scope before changing any connection-local
             // native hook/limit. Nested EF enumeration uses the same logical scope.
@@ -522,6 +536,15 @@ public partial class HolonRepository
                 return StringMatch(CanonicalColumn(stringField.Name), match);
             }
             if (predicate is CosmicQueryMetadataTest test) return MetadataTest(test);
+            if (predicate is CosmicQueryMetadataContains contains)
+            {
+                var element = Bind(contains.Element);
+                // Canonical record JSON wraps typed collections as {"$type":…,"$values":[…]}; both forms are arrays.
+                return MetadataPredicate(contains.Segments, alias => "EXISTS (SELECT 1 FROM json_each(CASE WHEN " + alias + ".type = 'array' THEN "
+                    + alias + ".value WHEN " + alias + ".type = 'object' AND json_type(" + alias + ".value,'$.\"$values\"') = 'array' THEN json_extract("
+                    + alias + ".value,'$.\"$values\"') ELSE json_array() END) AS cqlElement WHERE cqlElement.type = 'text' AND cqlElement.value COLLATE BINARY = "
+                    + element + ")");
+            }
             if (predicate is CosmicQueryBoolean boolean) return boolean.Value ? "1" : "0";
             if (predicate is CosmicQueryLogical logical)
                 return "(" + Translate(logical.Left) + (logical.IsAnd ? " AND " : " OR ") + Translate(logical.Right) + ")";

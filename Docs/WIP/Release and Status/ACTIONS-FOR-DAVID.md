@@ -1486,6 +1486,57 @@ Links: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44675640513
 - The hosted tests also read a small JSON manifest of the seeded IDs, from `COSMIC_INFLUXDB_HOSTED_CQL_SOURCE` and `COSMIC_WEAVIATE_HOSTED_CQL_SOURCE`. Engineering writes that manifest once the sources exist.
 - Never put the tokens in Git or chat.
 
+## Cloud session `cloud-hyperdrive-A` cannot push to GitHub (2026-11-25)
+
+- Context: the HyperDrive provider loop must push claims to Development and run CI. In this cloud session both `git push` and the GitHub MCP write calls return 403 ("Resource not accessible by integration"). Reads work.
+- Steps: connect or reconnect GitHub at https://claude.ai/connect-github, and install the Claude GitHub App on NextGenSoftwareUK/OASIS (or ask an org owner): https://github.com/apps/claude/installations/select_target. Then start a new session with the repo selected.
+- Reason: without push there are no claims and no CI runs, so no provider can be marked done.
+- Status: DONE 2026-11-25. GitHub reconnected; claim and this entry pushed to Development (b025d919).
+
+## Hosted-only providers: accounts needed for native storage tests (cloud-hyperdrive-A, 2026-11-25)
+
+- Context: these providers have no self-hostable backend, so their native storage suite (26/26 sync + async) can only run against a real hosted account. Each needs a dedicated, empty test project/database that CI may fill and clear. Never reuse a production database. Put the values in GitHub Actions secrets (names below), never in Git or chat.
+- Steps, one account each (free tiers are enough):
+  - Nile (thenile.dev): create a database `oasis-ci`, create a database user; secret `NILE_CI_CONNECTION_STRING`.
+  - Cloudflare D1: create a D1 database `oasis-ci`; an API token with D1 edit on that account; secrets `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_D1_DATABASE_ID`, `CLOUDFLARE_D1_TOKEN`.
+  - Netlify Blobs: create a site `oasis-ci`, a personal access token; secrets `NETLIFY_SITE_ID`, `NETLIFY_BLOBS_TOKEN`.
+  - MotherDuck: create database `oasis_ci`, an access token; secret `MOTHERDUCK_CI_TOKEN`.
+  - Cloudinary: create a product environment `oasis-ci`; secrets `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`.
+  - Deno Deploy (KV): create a project `oasis-ci` with a KV database, an access token; secrets `DENO_DEPLOY_PROJECT`, `DENO_DEPLOY_TOKEN`.
+  - Fly.io: create an app `oasis-ci` with the storage the FlyIOOASIS provider uses (Postgres/LiteFS per its README), a deploy token; secrets `FLY_CI_APP`, `FLY_CI_TOKEN`.
+  - Neo4j Aura: create a free AuraDB instance `oasis-ci`; secrets `NEO4J_AURA_CI_URI`, `NEO4J_AURA_CI_USER`, `NEO4J_AURA_CI_PASSWORD`. (Neo4jOASIS itself already passes on a local Neo4j; Aura only adds the hosted path.)
+  - LanceDB Cloud: create a project and API key; secrets `LANCEDB_CLOUD_URI`, `LANCEDB_CLOUD_API_KEY`.
+- Decision needed, services that appear to be discontinued: Fauna (FaunaDB shut down in 2025), Vercel KV (sunset; existing stores moved to Upstash, which UpstashOASIS already covers) and Polybase (testnet no longer reachable; please confirm). Options: (a) mark FaunaOASIS, VercelKVOASIS and PolybaseOASIS as retired and remove them from the provider matrix, or (b) keep them as historical code with no test target. Engineering's recommendation is (a).
+- Reason: without these, these providers cannot be marked done; every self-hostable provider is being done meanwhile.
+- Status: OPEN 2026-11-25. Claims marked BLOCKED in WORK-CLAIMS.md.
+
+## Live CQL sandbox: demo databases and indexer keys (cloud-cql-C, 2026-11-25)
+
+- Context: about 40 self-hostable database providers already have CQL adapters with local or CI proof, for example Redis, Valkey, KeyDB, Dragonfly, Garnet, PostgreSQL, TimescaleDB, CockroachDB, SQL Server, Cassandra, ScyllaDB, Elasticsearch, OpenSearch, Solr, Meilisearch, Typesense, Qdrant, Weaviate, Milvus, Chroma, CouchDB, Couchbase, ArangoDB, SurrealDB, RavenDB, InfluxDB and Memcached. They are not live in the dev sandbox only because Development WEB4 has no running instance of them to read. The public chains are mostly done, and the remaining keyless public sources are being added by the cloud sessions (Rootstock, Story, Lens, QuestDB on 25 Nov).
+- Decision needed: may the CQL sessions add small demo database services to the Railway **development** environment only (one service per provider, using Railway's own templates where they exist, for example Redis and PostgreSQL), seeded with the same three public teaching records each provider already uses in CI?
+  - If yes: create a project token scoped to the development environment and store it as the GitHub Actions secret `RAILWAY_DEV_DEMO_TOKEN`, not in Git or chat. The sessions then add each service, seed it, set its `CQL_*` variable and verify that its presets return 3 and 2 records.
+  - If no: these providers stay CI-verified only and are not shown live.
+- Keyed indexer APIs (free tiers are enough, read-only): Alchemy, QuickNode, Ankr, Covalent (GoldRush), Moralis, Dune, Zapper, Tenderly, Goldsky and Nansen. Each needs one read-only key. Save each key on the Railway development WEB4 service as `CQL_<PROVIDER>_PUBLIC_READER_KEY`, for example `CQL_ALCHEMY_PUBLIC_READER_KEY`. These are lower priority than the demo databases.
+- Reason: without these, the providers above cannot return real records in the live sandbox. Everything that needs no account is being done meanwhile.
+- Status: OPEN 2026-11-25.
+
+## ONODE Manager release, signing and alerts - 2026-11-25
+
+Status: code work continues without these; only David can do them.
+
+1. Code signing (optional; unsigned builds still ship). Add these GitHub Actions secrets to NextGenSoftwareUK/OASIS. `release-onode-manager.yml` signs automatically once they exist:
+   - Windows: `WINDOWS_CERT_PFX_BASE64` (base64 of the .pfx) and `WINDOWS_CERT_PASSWORD`.
+   - macOS: `MACOS_CERT_P12_BASE64`, `MACOS_CERT_PASSWORD`, `MACOS_SIGN_APP_IDENTITY`, `MACOS_SIGN_INSTALL_IDENTITY`, `APPLE_ID`, `APPLE_TEAM_ID`, `APPLE_APP_PASSWORD` (app-specific password).
+2. First public ONODE Manager release. Run Global OASIS Release with `optional_components` including `onode_manager` and `publish=true`. It takes about 2 hours and creates a public GitHub release. Until it runs, the ONODE Manager download links on the sites stay dead.
+3. Dependabot: GitHub reports 669 alerts on the default branch (47 critical). Authorise the GitHub connector in Claude Code (`/mcp`) so a session can list and triage them.
+
+## GitHub Actions queue stall blocks COSMIC row merges - 2026-11-25 (cloud-cosmic-B)
+
+- Context: the COSMIC native qualification runs for O18 local view ([45519967748](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/45519967748), queued since 00:40 UTC), M24 defaults/computed values ([45524783092](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/45524783092), queued since 01:18) and O17 model diagnostics (branch `work/cloud-cosmic-o17`) have not started. Runners are occupied by full `OASIS CI/CD Pipeline` and `Subscription usage protocol` runs that every push to Development starts, including one-line claim commits; several have run for over an hour.
+- All three rows pass their native MongoDB/SQLite/Neo4j journeys locally; they merge to Development as soon as their CI is green. Nothing is needed from you for the code.
+- Decision for you (optional): either raise the account's concurrent-runner limit, or approve adding `paths-ignore: ["Docs/**"]` (or a concurrency group with cancel-in-progress) to `ci-cd.yml` and `subscription-usage-protocol.yml` so documentation-only claim commits stop queuing full pipelines. Agents will not change these deployment workflows without your go-ahead.
+- Status: OPEN 2026-11-25 01:52 UTC.
+
 ## Part I — HyperDrive replication on dev (24 November 2026)
 
 ### I1. Approve a baseline repair for Neo4j to SQLite at sequence 14
