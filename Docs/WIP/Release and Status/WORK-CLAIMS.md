@@ -81,4 +81,4 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | EclipseOASIS native storage (SVM: local solana-test-validator) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-eclipse | 2026-11-25 02:10 | IN PROGRESS |
 | BlueSkyOASIS native storage (self-hosted AT Protocol PDS) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-bluesky | 2026-11-25 02:10 | IN PROGRESS |
 | FilecoinOASIS native storage (local Lotus devnet) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-filecoin | 2026-11-25 02:10 | IN PROGRESS |
-| Dependabot dev-tooling alerts: Web3CoreOASIS undici (Hardhat) and TONOASIS SdkBridge protobufjs | Security / Providers | local: WEB6 catalogue session | Development (direct, small) | 2026-11-25 03:00 | IN PROGRESS |
+| Dependabot dev-tooling alerts: Web3CoreOASIS undici (Hardhat) and TONOASIS SdkBridge protobufjs | Security / Providers | local: WEB6 catalogue session | Development (direct, small) | 2026-11-25 03:00 | DONE (Web3Core: 148 contracts compile, 45 Hardhat tests pass; TON: Tact output identical) |
