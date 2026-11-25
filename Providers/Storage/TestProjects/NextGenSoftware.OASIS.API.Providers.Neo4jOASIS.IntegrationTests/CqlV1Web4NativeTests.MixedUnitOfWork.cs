@@ -254,6 +254,47 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.AreEqual("GEN-RENAMED",(await Stored(plain.Id)).Single().CustomKey,"Computed values follow every save.");
         }
         checks++;
+        // M23 read-only views: named query, rows never tracked, so never saved.
+        using(var viewSession=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            var viewId=keep.Id;
+            Assert.IsFalse(viewSession.HasView<Holon>("kept",root=>root.Where(row=>row.Id==viewId)).IsError);
+            var viewRows=await viewSession.QueryViewAsync<Holon>("kept");
+            Assert.IsFalse(viewRows.IsError,viewRows.ErrorCode+": "+viewRows.Message);
+            Assert.AreEqual(1,viewRows.Result.Count);
+            Assert.AreEqual(CosmicEntityState.Detached,viewSession.State(viewRows.Result[0]).Result,"View rows are not tracked.");
+            Assert.AreEqual(0,viewSession.Statistics.EntityCount);
+            Assert.IsTrue((await viewSession.QueryViewAsync<Holon>("missing")).IsError);
+        }
+        checks++;
+        // S07 graph merge: a disconnected parent with an edited child and a new child merges atomically.
+        {
+            var parent=New("graph-parent");var child=New("graph-child");
+            using(var setup=CosmicSession.Create(manager,adapter,access).Result)
+            {
+                Assert.IsFalse(setup.Add(parent).IsError);
+                Assert.IsFalse((await setup.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()))).IsError);
+                child.ParentHolonId=parent.Id;Assert.IsFalse(setup.Add(child).IsError);
+                Assert.IsFalse((await setup.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()))).IsError);
+            }
+            var fresh=New("graph-new-child");
+            var detached=new Holon{Id=parent.Id,Name="graph-parent-edited",CreatedByAvatarId=actor,IsActive=true,IsPublic=false,
+                Children=new List<IHolon>{
+                    new Holon{Id=child.Id,Name="graph-child-edited",ParentHolonId=parent.Id,CreatedByAvatarId=actor,IsActive=true,IsPublic=false},
+                    fresh}};
+            using(var merger=CosmicSession.Create(manager,adapter,access).Result)
+            {
+                var mergedGraph=await merger.MergeGraphAsync(detached);
+                Assert.IsFalse(mergedGraph.IsError,mergedGraph.ErrorCode+": "+mergedGraph.Message);Assert.AreEqual(3,mergedGraph.Result);
+                var graphSaved=await merger.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));
+                Assert.IsFalse(graphSaved.IsError,graphSaved.ErrorCode+": "+graphSaved.Message);
+            }
+            var graph=await Stored(parent.Id,child.Id,fresh.Id);
+            Assert.AreEqual("graph-parent-edited",graph.Single(row=>row.Id==parent.Id).Name);
+            Assert.AreEqual("graph-child-edited",graph.Single(row=>row.Id==child.Id).Name);
+            Assert.AreEqual(parent.Id,graph.Single(row=>row.Id==fresh.Id).ParentHolonId);
+        }
+        checks++;
         // M29 seed data: idempotent insert of fixed-identity rows in one unit of work.
         Holon[] Seed()=>new[]{
             new Holon{Id=seedIds[0],Name="seed-one",CreatedByAvatarId=actor,IsActive=true,IsPublic=false},
@@ -270,7 +311,7 @@ public sealed partial class CqlV1Web4NativeTests
         }
         Assert.AreEqual(2,(await Stored(seedIds)).Count);checks++;
         return new NativeFixtureJourneyProof(checks,4,new Dictionary<string,bool>{
-            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true,["notificationTrackingVerified"]=true,["collectionMembershipVerified"]=true,["stringTransformsVerified"]=true,["compiledQueryVerified"]=true,["asOfHistoryVerified"]=true,["setCollectionVerified"]=true,["generatedValuesVerified"]=true});
+            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true,["notificationTrackingVerified"]=true,["collectionMembershipVerified"]=true,["stringTransformsVerified"]=true,["compiledQueryVerified"]=true,["asOfHistoryVerified"]=true,["setCollectionVerified"]=true,["generatedValuesVerified"]=true,["readOnlyViewsVerified"]=true,["graphMergeVerified"]=true});
     }
 
     public sealed class SetModelHolon : Holon
