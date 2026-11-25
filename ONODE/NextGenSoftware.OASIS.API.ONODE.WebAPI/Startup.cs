@@ -699,6 +699,9 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             if (Configuration["CQL_BNB_PUBLIC_SOURCE_JSON"] is string bnbPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.BnbPublicAccountMetadataSource.FromJson(bnbPublicSource)));
+            if (Configuration["CQL_LENS_PUBLIC_SOURCE_JSON"] is string lensPublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.LensOASIS.LensPublicAccountMetadataSource.FromJson(lensPublicSource)));
             if (Configuration["CQL_AZURE_BLOB_PUBLIC_SOURCE_JSON"] is string azureBlobPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS.AzureBlobPublicMetadataSource.FromJson(azureBlobPublicSource)));
