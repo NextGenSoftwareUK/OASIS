@@ -1205,3 +1205,12 @@ H1 enabled-button follow-up (22 November):44990168013/job137109268095 SUCCESS on
 - HERE: in the HERE platform portal, create an API key for an app with Routing v8 and Geocoding & Search v1, and store it privately as `OASIS_HERE_ROUTING_API_KEY` in the same places. [Routing v8](https://docs.here.com/routing/docs/routing-v8-get-started) · [Discover](https://docs.here.com/geocoding-and-search/docs/code-discover-place)
 - MapLibre needs no key. It defaults to the public OSRM demo and Nominatim servers, which are limited to one request per second and not for production. For production volume, decide whether to self-host OSRM and Nominatim and pass their URLs.
 - Never put the keys in Git or chat. Engineering runs the opt-in live tests once the keys exist.
+
+## ONET: two decisions before the last protocol items (2026-11-24)
+
+Status: open, 24 November 2026. Everything else in the ONET plan is done and on Development (peer store, node identity, node events, real HoloNET mode, topology). Plan: [ONET_STORAGE_AND_HOLONET_PLAN_2026-11.md](../ONET/ONET_STORAGE_AND_HOLONET_PLAN_2026-11.md).
+
+1. Message encryption (audit item #24). ONET messages are signed and replay-protected but travel unencrypted. Adding encryption changes the wire format, so every ONET node (Railway WEB4 and any self-hosted ONODEs) must upgrade in the same release; older nodes would stop exchanging messages with upgraded ones. Decide: (a) encrypt, with a coordinated all-node upgrade, or (b) keep signed-only for now.
+2. Holochain-carried ONET traffic (plan item 8). Needs a new `onet` zome in the OASIS hApp and a live-conductor test run. HoloNET mode already works over the signed ONET transport. Decide whether to schedule the zome work now or later.
+
+Reply with the choices and the work continues from the plan.
