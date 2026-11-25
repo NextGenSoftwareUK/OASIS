@@ -104,3 +104,4 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | ONODE.Core interop providers: remove sync-over-async InitializeAsync().Result (Java, JavaScript, Python, WebAssembly) | ONODE.Core | local maps session (a7a489fd) | work/onode-interop-async | 2026-11-25 | IN PROGRESS |
 | Core unit test HyperDriveProviderExecutionTests.HolonVisibilityAuthorizationCannotEscapeItsInjectedRuntime failing in OASIS CI/CD Test Coverage ("provider returned no result") | Core / CI | local: WEB6 catalogue session | Development | 2026-11-25 | DONE 462cdba (601/601 HyperDriveProviderExecutionTests) |
 | Split ONODE.Core OAPPManagerBase.cs (1556 lines) into partial files under 500 lines | ONODE.Core | local maps session (a7a489fd) | work/onode-interop-async | 2026-11-25 | IN PROGRESS |
+| COSMIC Q36 arithmetic projection expressions | COSMIC ORM | local_fa02a367 child COSMIC session | work/cosmic-cql-ton-public | 2026-11-25 | IN PROGRESS |
