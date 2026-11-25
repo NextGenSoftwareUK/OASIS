@@ -115,3 +115,4 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | COSMIC A16 polymorphic/any associations | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-a16 | 2026-11-25 07:53 | IN PROGRESS (CI) |
 | COSMIC A05 inverse reference (ParentHolon) fix-up | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-a05 | 2026-11-25 08:25 | BLOCKED: see ACTIONS-FOR-DAVID (ParentHolon drives persisted ids) |
 | COSMIC M25 model-declared indexes and constraint management | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-m25 | 2026-11-25 09:10 | RELEASED 09:25: SQLite (json_each EXISTS) and MongoDB ($expr/$getField) metadata predicates cannot use native indexes; M25 needs index-aware compiler paths in all three stores first (performance work, deferred by breadth-first policy) |
+| COSMIC A14 future/multi-query execution | COSMIC ORM | local_fa02a367 child COSMIC session | work/cosmic-cql-ton-public | 2026-11-25 | IN PROGRESS |
