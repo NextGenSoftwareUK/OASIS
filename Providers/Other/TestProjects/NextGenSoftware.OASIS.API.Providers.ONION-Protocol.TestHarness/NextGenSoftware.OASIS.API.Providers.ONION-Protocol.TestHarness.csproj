@@ -7,6 +7,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.ONION-Protocol\NextGenSoftware.OASIS.API.Providers.ONION-Protocol.csproj" />
+    <ProjectReference Include="..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
     </ItemGroup>
 
     <ItemGroup>
