@@ -83,7 +83,7 @@ Last updated 31 October 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (mer
 | 11 | Messaging programme: review and push the `work/oasis-messaging` branches (parent, API.Core, STAR ODK, 7 npm repos), publish the npm packages, physical-device Bluetooth tests, HerzApp/Our World wiring decisions | G |
 | 10 | COSMIC/CQL: decide follow-up Default-routing fix publication; hosted Azure/Oracle remain deferred | F |
 | 12 | **Post-release 2026-11-24: production SQLite replication held (BINDING_MISMATCH), WEB9 fix to release, test records left on prod/dev** | POST-RELEASE-2026-11-24 |
-| 11 | **WEB6 model catalogue v6: review prices, then approve the push** (OpenRouter list import, media prices, 6 new text models) | G |
+| 11 | **WEB6 model catalogue v6: review the estimated prices** (pushed and live on Development; media prices and 6 text models are estimates) | G |
 | 12 | HyperDrive on dev: Neo4j to SQLite hold at sequence 14 — repair ran once and was refused (no write); **decision pending**: the same holon reaches SQLite from both Mongo and Neo4j | I |
 | 13 | **Railway dev: add one DNA key so IPFS keeps its catalogue across restarts** (`IPFSOASIS.CatalogueRootPointerPath`) | I |
 
@@ -1417,21 +1417,21 @@ Links: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44675640513
 
 ## Part G — WEB6 model catalogue (22 November 2026)
 
-### G1. Review catalogue v6 and approve the push
+### G1. Review the estimated prices in catalogue v6
 
-**Status:** open, 22 November 2026. Everything is committed on the local WEB6 branch `claude/web6-catalogue-v6` (2 commits on top of `origin/main` `f042a53`). Nothing is pushed, because the catalogue is what WEB4 billing charges.
+**Status:** open (price review only), updated 25 November 2026. Pushed on your instruction: WEB6 `Development` `0348ded`, pinned in OASIS `Development` `a712210` (gitlink and `OASIS_WEB6_COMMIT` together). The current WEB6 pin `add09f4` includes it.
 
 **What it contains**
-- OpenRouter: 336 paid text models imported at OpenRouter's own published per-token prices by `WEB6/Scripts/import_openrouter_models.py` (flat-priced chat models only; tiered, per-request, image/audio-output and router models are skipped and listed by the script). Re-run it to track OpenRouter's list. See `WEB6/docs/MODEL_CATALOGUE.md`.
-- Media unit prices (my estimates, please check against each provider's price list): StabilityAI image $0.03, OpenAI gpt-image-1 1024x1024 medium $0.042, Runway 5s $0.25, Luma $0.40, Pika 3s $0.20, Kling 5s std $0.14, ElevenLabs $0.30 per 1,000 characters (calls capped at 4,000 characters), AssemblyAI nano $0.12/hour and Deepgram nova-3 $0.0043/minute (calls capped at 4 hours).
-- Six text models with estimated prices: NVIDIA NIM, Meta Llama API, Reka Core, Writer Palmyra X 004, AI71 Falcon 180B, JAIS 30B.
-- OpenAI image calls now send `quality=medium` and the quality is part of the billed model key.
-- Per-request hold is unchanged at $2.70, so no request holds back more than before.
-- `AWSSDK.BedrockRuntime` moved to 4.x, which fixes the NU1107 restore failure (the rest of the repo is on 4.x). The Bedrock call compiles unchanged against 4.x.
+- OpenRouter: 336 paid text models at OpenRouter's own published per-token prices, imported by `WEB6/Scripts/import_openrouter_models.py` (flat-priced chat models only). Re-run it to track OpenRouter's list. See `WEB6/docs/MODEL_CATALOGUE.md`.
+- Six text models: NVIDIA NIM, Meta Llama API, Reka Core, Writer Palmyra X 004, AI71 Falcon 180B, JAIS 30B.
+- OpenAI image calls send `quality=medium`, and the quality is part of the billed model key. The per-request hold is unchanged at $2.70.
 
-**Verified:** the catalogue loads into the real `ModelInfo`/`ModelCatalogueDocument` types and passes the loader's validation rules; 11 new regression tests pass against it (and fail on a broken catalogue). **Not verified:** the full WEB6 build and test suite, because the shared checkout currently has unfinished COSMIC edits in `OASIS Architecture/…API.Core/Queries` that do not compile (`CosmicMixedProjectionResults.Grouping.cs`). Run the WEB6 tests once that lands.
+**What you need to check:** the prices that are my estimates, not published list prices:
+- Media: StabilityAI image $0.03, OpenAI gpt-image-1 1024x1024 medium $0.042, Runway 5s $0.25, Luma $0.40, Pika 3s $0.20, Kling 5s std $0.14, ElevenLabs $0.30 per 1,000 characters (calls capped at 4,000 characters), AssemblyAI nano $0.12/hour, Deepgram nova-3 $0.0043/minute (calls capped at 4 hours).
+- The six text models above.
+If any is wrong, a corrected catalogue needs a new version string (`web6-model-catalogue-YYYY-MM-DD-vN`), because published versions are immutable.
 
-**Then:** `git -C WEB6 push origin claude/web6-catalogue-v6` (or merge to `main`), advance the WEB6 gitlink and `OASIS_WEB6_COMMIT` together (`Docs/Devs/RAILWAY_DEPENDENCY_PINS.md`).
+**Verified:** the full WEB6 unit suite passes, 191/191 including the 11 catalogue invariant tests, on a clean checkout of OASIS `Development` (WEB6 `add09f4`, Core `a9fe1ec`), 25 November 2026.
 
 ### G2. Decide whether OpenRouter should bill from OpenRouter's reported cost
 
@@ -1439,7 +1439,7 @@ Links: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44675640513
 
 ### G3. Security advisories in shared packages
 
-**Status:** open, agent-owned, 22 November 2026. Blocked only because the shared checkout is mid-edit. AutoMapper 16.2.0 (GHSA-gpwp-5797-mjff, GHSA-6vhm-j9h7-f9gh, high) is referenced by the Optimism, Neo4j and MongoDB provider projects; 16.3.0 is the patched release. `Microsoft.AspNetCore.WebUtilities` 8.0.20 / 10.0.0 (GHSA-x33c-w48q-qrgc, high) arrives transitively; patched in 8.0.34 / 10.0.15. The COSMIC session owns those projects: bump them when its edits settle.
+**Status:** partly resolved, agent-owned, updated 25 November 2026. AutoMapper is fixed on `Development`: the provider projects no longer reference it and ONODE WebAPI uses 16.3.0. The transitive `Microsoft.AspNetCore.WebUtilities` advisory (GHSA-x33c-w48q-qrgc, patched in 8.0.34 / 10.0.15) has not been re-checked. Nothing is needed from you.
 
 ---
 
