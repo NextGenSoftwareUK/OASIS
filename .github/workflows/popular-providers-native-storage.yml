@@ -24,6 +24,8 @@ on:
       - 'Providers/Social/TestProjects/NextGenSoftware.OASIS.API.Providers.MatrixOASIS.IntegrationTests/**'
       - 'Providers/Other/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS/**'
       - 'Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS.IntegrationTests/**'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.ArweaveOASIS/**'
+      - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ArweaveOASIS.IntegrationTests/**'
       - 'Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.DaprOASIS.IntegrationTests/**'
       - 'Providers/Social/NextGenSoftware.OASIS.API.Providers.NostrOASIS/**'
       - 'Providers/*/TestProjects/*/*NativeStorageConformanceTests.cs'
@@ -39,7 +41,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        provider: [CouchDB, Couchbase, ArangoDB, SurrealDB, ClickHouse, InfluxDB, Chroma, PgVector, ArcadeDB, QuestDB, PouchDB, NATSJetStream, Nostr, Dapr, GUN, Matrix, OrbitDB]
+        provider: [CouchDB, Couchbase, ArangoDB, SurrealDB, ClickHouse, InfluxDB, Chroma, PgVector, ArcadeDB, QuestDB, PouchDB, NATSJetStream, Nostr, Dapr, GUN, Matrix, OrbitDB, Arweave]
     defaults:
       run:
         working-directory: OASIS
@@ -192,6 +194,24 @@ jobs:
               node "$service_dir/storage-service.mjs" "$fixture/orbitdb-sync" 18902 >"$fixture/orbitdb-sync.log" 2>&1 & relays="$relays $!"
               wait_for "grep -q ready '$fixture/orbitdb-async.log' && grep -q ready '$fixture/orbitdb-sync.log'"
               export OASIS_ORBITDB_ASYNC_SERVICE=http://127.0.0.1:18901 OASIS_ORBITDB_SYNC_SERVICE=http://127.0.0.1:18902 ;;
+            Arweave)
+              # Disposable arlocal gateway (pinned) and one freshly minted wallet per storage mode.
+              tests_dir="$PWD/Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ArweaveOASIS.IntegrationTests"
+              bridge="$PWD/Providers/Storage/NextGenSoftware.OASIS.API.Providers.ArweaveOASIS/SdkBridge/bridge.mjs"
+              npm ci --prefix "$(dirname "$bridge")" --no-audit --no-fund
+              npm ci --prefix "$tests_dir/arlocal" --no-audit --no-fund
+              (cd "$tests_dir/arlocal" && exec npx --no-install arlocal 1984) >"$fixture/arlocal.log" 2>&1 & relays="$relays $!"
+              wait_for "curl -fsS http://127.0.0.1:1984/info"
+              gateway=http://127.0.0.1:1984
+              for mode in async sync; do
+                echo "{\"operation\":\"generateWallet\",\"gateway\":\"$gateway\"}" | node "$bridge" >"$fixture/$mode-wallet.out"
+                jq -ec .wallet "$fixture/$mode-wallet.out" >"$fixture/$mode-wallet.json"
+                curl -fsS "$gateway/mint/$(jq -er .address "$fixture/$mode-wallet.out")/1000000000000000" >/dev/null
+                rm -- "$fixture/$mode-wallet.out"
+              done
+              curl -fsS "$gateway/mine" >/dev/null
+              export OASIS_ARWEAVE_GATEWAY="$gateway" OASIS_ARWEAVE_SDK_BRIDGE="$bridge" \
+                OASIS_ARWEAVE_ASYNC_WALLET_FILE="$fixture/async-wallet.json" OASIS_ARWEAVE_SYNC_WALLET_FILE="$fixture/sync-wallet.json" ;;
             Couchbase)
               container="$(docker run -d -p 127.0.0.1:8091-8097:8091-8097 -p 127.0.0.1:11210:11210 -p 127.0.0.1:11280:11280 couchbase/server:community-7.6.2)"
               wait_for "curl -fsS http://127.0.0.1:8091/ui/index.html"

@@ -15,7 +15,12 @@ public interface IArweaveService
     Task<byte[]> GetTransactionDataAsync(string txId);
     Task<List<string>> QueryByTagsAsync(Dictionary<string, string> tags);
     Task<List<string>> QueryOwnedByTagsAsync(Dictionary<string, string> tags);
+    /// <summary>Complete owner-pinned discovery (configured wallet only) returning each transaction with its native tags.</summary>
+    Task<List<ArweaveTaggedTransaction>> QueryOwnedTaggedAsync(Dictionary<string, string> tags);
 }
+
+/// <summary>An owner-pinned transaction identity with its native tags.</summary>
+public sealed record ArweaveTaggedTransaction(string Id, IReadOnlyDictionary<string, string> Tags);
 
 /// <summary>
 /// Invokes ArweaveTeam's official arweave-js SDK through a small stdin/stdout bridge.
@@ -107,6 +112,23 @@ public sealed class ArweaveService : IArweaveService
         using var response = await InvokeAsync(new { operation = "queryOwned", gateway = _gatewayUrl,
             wallet = wallet.RootElement, tags = tags ?? new Dictionary<string,string>() });
         return response.RootElement.GetProperty("ids").EnumerateArray().Select(value => RequiredIdentity(value)).ToList();
+    }
+
+    public async Task<List<ArweaveTaggedTransaction>> QueryOwnedTaggedAsync(Dictionary<string, string> tags)
+    {
+        if (string.IsNullOrWhiteSpace(_walletJson))
+            throw new InvalidOperationException("A configured Arweave wallet is required for owner-pinned discovery.");
+        using var wallet = JsonDocument.Parse(_walletJson);
+        using var response = await InvokeAsync(new { operation = "queryOwnedTagged", gateway = _gatewayUrl,
+            wallet = wallet.RootElement, tags = tags ?? new Dictionary<string, string>() });
+        return response.RootElement.GetProperty("transactions").EnumerateArray().Select(row =>
+        {
+            var tagMap = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (var tag in row.GetProperty("tags").EnumerateObject())
+                tagMap.Add(tag.Name, tag.Value.ValueKind == JsonValueKind.String ? tag.Value.GetString()
+                    : throw new InvalidDataException("Native Arweave tag value is malformed."));
+            return new ArweaveTaggedTransaction(RequiredIdentity(row.GetProperty("id")), tagMap);
+        }).ToList();
     }
 
     private static string RequiredIdentity(JsonElement value)
