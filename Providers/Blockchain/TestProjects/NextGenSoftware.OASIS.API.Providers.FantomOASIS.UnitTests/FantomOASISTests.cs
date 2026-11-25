@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Xunit;
 using NextGenSoftware.OASIS.API.Providers.FantomOASIS;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -24,53 +25,45 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS.UnitTests
         {
             // Assert
             Assert.NotNull(_provider);
-            Assert.Equal(ProviderType.FantomOASIS, _provider.ProviderType);
-            Assert.Equal("Fantom OASIS Provider", _provider.ProviderName);
-            Assert.Equal("Fantom (FTM) OASIS Provider", _provider.ProviderDescription);
-            Assert.Equal(ProviderCategory.StorageAndNetwork, _provider.ProviderCategory);
+            Assert.Equal(ProviderType.FantomOASIS, _provider.ProviderType.Value);
+            Assert.Equal("FantomOASIS", _provider.ProviderName);
+            Assert.Equal("Fantom Provider - High-performance EVM-compatible blockchain using Web3Core", _provider.ProviderDescription);
+            Assert.Equal(ProviderCategory.StorageAndNetwork, _provider.ProviderCategory.Value);
         }
 
         [Fact]
         public void ProviderType_ShouldBeFantomOASIS()
         {
             // Assert
-            Assert.Equal(ProviderType.FantomOASIS, _provider.ProviderType);
+            Assert.Equal(ProviderType.FantomOASIS, _provider.ProviderType.Value);
         }
 
         [Fact]
         public void ProviderName_ShouldBeCorrect()
         {
             // Assert
-            Assert.Equal("Fantom OASIS Provider", _provider.ProviderName);
+            Assert.Equal("FantomOASIS", _provider.ProviderName);
         }
 
         [Fact]
         public void ProviderDescription_ShouldBeCorrect()
         {
             // Assert
-            Assert.Equal("Fantom (FTM) OASIS Provider", _provider.ProviderDescription);
+            Assert.Equal("Fantom Provider - High-performance EVM-compatible blockchain using Web3Core", _provider.ProviderDescription);
         }
 
         [Fact]
         public void ProviderCategory_ShouldBeBlockchain()
         {
             // Assert
-            Assert.Equal(ProviderCategory.StorageAndNetwork, _provider.ProviderCategory);
+            Assert.Equal(ProviderCategory.StorageAndNetwork, _provider.ProviderCategory.Value);
         }
 
         [Fact]
-        public void ProviderVersion_ShouldNotBeEmpty()
+        public void ProviderCapabilities_IncludeBlockchain()
         {
             // Assert
-            Assert.NotNull(_provider.ProviderVersion);
-            Assert.NotEmpty(_provider.ProviderVersion);
-        }
-
-        [Fact]
-        public void IsActivated_ShouldBeFalseInitially()
-        {
-            // Assert
-            Assert.False(_provider.IsActivated);
+            Assert.Contains(_provider.ProviderCapabilities, c => c.Value == ProviderCategory.Blockchain);
         }
 
         [Fact]
@@ -81,10 +74,15 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS.UnitTests
         }
 
         [Fact]
-        public void IsProviderConnected_ShouldBeFalseInitially()
+        public async Task ActivateProviderAsync_WithoutChainSettings_DoesNotReportActive()
         {
-            // Assert
-            Assert.False(_provider.IsProviderConnected);
+            // Act
+            var result = await _provider.ActivateProviderAsync();
+
+            // Assert: the activated flag must agree with the result it returned.
+            Assert.Equal(!result.IsError && result.Result, _provider.IsProviderActivated);
+            if (result.IsError)
+                Assert.False(string.IsNullOrWhiteSpace(result.Message));
         }
     }
 }

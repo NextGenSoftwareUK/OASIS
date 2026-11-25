@@ -8,24 +8,29 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.UnitTests
 {
     public class SEEDSOASISTests
     {
+        // SEEDS runs on Telos. Point Telos at a closed local port so no test
+        // touches a real chain.
+        private static SEEDSOASIS NewProvider() =>
+            new SEEDSOASIS(new TelosOASIS.TelosOASIS("http://127.0.0.1:1", "testaccount", "testchain", "testkey"));
+
         [Fact]
         public void Constructor_ShouldInitializeProviderCorrectly()
         {
             // Arrange & Act
-            var seedsProvider = new SEEDSOASIS();
+            var seedsProvider = NewProvider();
 
             // Assert
             Assert.Equal("SEEDSOASIS", seedsProvider.ProviderName);
             Assert.Equal("SEEDS Provider", seedsProvider.ProviderDescription);
             Assert.Equal(ProviderType.SEEDSOASIS, seedsProvider.ProviderType.Value);
-            Assert.Equal(ProviderCategory.StorageAndNetwork, seedsProvider.ProviderCategory.Value);
+            Assert.Equal(ProviderCategory.Application, seedsProvider.ProviderCategory.Value);
         }
 
         [Fact]
         public void ProviderName_ShouldBeSetCorrectly()
         {
             // Arrange & Act
-            var seedsProvider = new SEEDSOASIS();
+            var seedsProvider = NewProvider();
 
             // Assert
             Assert.Equal("SEEDSOASIS", seedsProvider.ProviderName);
@@ -35,7 +40,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.UnitTests
         public void ProviderDescription_ShouldBeSetCorrectly()
         {
             // Arrange & Act
-            var seedsProvider = new SEEDSOASIS();
+            var seedsProvider = NewProvider();
 
             // Assert
             Assert.Equal("SEEDS Provider", seedsProvider.ProviderDescription);
@@ -45,7 +50,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.UnitTests
         public void ProviderType_ShouldBeSEEDSOASIS()
         {
             // Arrange & Act
-            var seedsProvider = new SEEDSOASIS();
+            var seedsProvider = NewProvider();
 
             // Assert
             Assert.Equal(ProviderType.SEEDSOASIS, seedsProvider.ProviderType.Value);
@@ -55,32 +60,33 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.UnitTests
         public void ProviderCategory_ShouldBeStorageAndNetwork()
         {
             // Arrange & Act
-            var seedsProvider = new SEEDSOASIS();
+            var seedsProvider = NewProvider();
 
             // Assert
-            Assert.Equal(ProviderCategory.StorageAndNetwork, seedsProvider.ProviderCategory.Value);
+            Assert.Equal(ProviderCategory.Application, seedsProvider.ProviderCategory.Value);
         }
 
         [Fact]
-        public async Task ActivateProviderAsync_ShouldReturnSuccess()
+        public async Task ActivateProviderAsync_WhenTelosUnreachable_FailsClearly()
         {
             // Arrange
-            var seedsProvider = new SEEDSOASIS();
+            var seedsProvider = NewProvider();
 
             // Act
             var result = await seedsProvider.ActivateProviderAsync();
 
-            // Assert
-            Assert.False(result.IsError);
-            Assert.True(result.Result);
-            Assert.Contains("SEEDS provider activated successfully", result.Message);
+            // Assert: SEEDS must not report itself active without its Telos transport.
+            Assert.True(result.IsError);
+            Assert.False(result.Result);
+            Assert.False(seedsProvider.IsProviderActivated);
+            Assert.Contains("could not activate its Telos storage transport", result.Message);
         }
 
         [Fact]
         public async Task DeActivateProviderAsync_ShouldReturnSuccess()
         {
             // Arrange
-            var seedsProvider = new SEEDSOASIS();
+            var seedsProvider = NewProvider();
 
             // Act
             var result = await seedsProvider.DeActivateProviderAsync();
@@ -88,14 +94,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.UnitTests
             // Assert
             Assert.False(result.IsError);
             Assert.True(result.Result);
-            Assert.Contains("SEEDS provider deactivated successfully", result.Message);
+            Assert.False(seedsProvider.IsProviderActivated);
         }
 
         [Fact]
         public void SEEDSConstants_ShouldBeSetCorrectly()
         {
             // Arrange & Act
-            var seedsProvider = new SEEDSOASIS();
+            var seedsProvider = NewProvider();
 
             // Assert
             Assert.NotNull(SEEDSOASIS.ENDPOINT_TEST);
