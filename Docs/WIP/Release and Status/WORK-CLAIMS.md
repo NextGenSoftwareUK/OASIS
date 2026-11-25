@@ -35,3 +35,4 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | Web4Site CQL Playground: remove stale pwsh / C:/Source/OASIS-cosmic local-demo instructions | CQL sandbox (Web4Site repo) | local: CQL sandbox (cql-sandbox session) | Web4Site work/cosmic-cql | 2026-11-25 00:40 | IN PROGRESS |
 | CI build gate for all provider TestHarness projects (stop harness rot) | CI / Providers/TestProjects | local: testharness-build-fix | work/testharness-ci-gate | 2026-11-25 00:50 | IN PROGRESS |
 | COSMIC O15 as-of history reads | COSMIC ORM | local: COSMIC ORM roadmap (work/cosmic-cql-ton-public session) | work/cosmic-cql-ton-public | 2026-11-25 00:35 | IN PROGRESS |
+| TelosOASIS native storage (reuse EOSIO Antelope fixture) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-telos | 2026-11-25 01:10 | IN PROGRESS |
