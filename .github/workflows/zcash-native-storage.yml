@@ -78,7 +78,6 @@ jobs:
           nuparams=c2d6d0b4:1
           rpcuser=$user
           rpcpassword=$password
-          [regtest]
           rpcbind=0.0.0.0
           rpcallowip=0.0.0.0/0
           rpcport=18232
