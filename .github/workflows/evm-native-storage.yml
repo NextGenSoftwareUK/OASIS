@@ -1,0 +1,59 @@
+name: EVM native storage
+
+on:
+  push:
+    branches: [work/hyperdrive-triad]
+    paths:
+      - '.github/workflows/evm-native-storage.yml'
+      - 'Scripts/TestHosts/run-local-evm-storage-conformance.cjs'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/**'
+      - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests/**'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.FhenixOASIS/**'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SeiOASIS/**'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BerachainOASIS/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  storage:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: OASIS
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install the locked Hardhat runtime
+        run: cd Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS && npm ci --ignore-scripts
+      - name: Run the shared core storage suite for every EVM provider against an in-process Hardhat chain
+        run: |
+          project=Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests
+          dotnet build "$project" -p:IncludeCoreStorageConformance=true -m:2 -nr:false -p:UseSharedCompilation=false
+          node Scripts/TestHosts/run-local-evm-storage-conformance.cjs "$project"
