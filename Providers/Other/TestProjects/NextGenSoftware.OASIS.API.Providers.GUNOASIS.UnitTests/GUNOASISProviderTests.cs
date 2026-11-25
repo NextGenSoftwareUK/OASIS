@@ -1,3 +1,4 @@
+using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Providers.GUNOASIS;
@@ -14,7 +15,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GUNOASIS.UnitTests
         private GUNOASIS _provider = null!;
 
         [TestInitialize]
-        public void Setup() => _provider = GUNOASISTestFactory.Create();
+        public void Setup() => _provider = new GUNOASIS("http://127.0.0.1:8765", new byte[32]);
 
         [TestMethod]
         public void ProviderType_ShouldBeSet()
@@ -35,6 +36,17 @@ namespace NextGenSoftware.OASIS.API.Providers.GUNOASIS.UnitTests
         [TestMethod]
         public void ProviderCategory_ShouldBeSet()
             => Assert.IsNotNull(_provider.ProviderCategory);
+
+        [TestMethod]
+        public void Constructor_RequiresA32ByteEncryptionKey()
+        {
+            Assert.ThrowsException<ArgumentException>(() => new GUNOASIS("http://127.0.0.1:8765", null!));
+            Assert.ThrowsException<ArgumentException>(() => new GUNOASIS("http://127.0.0.1:8765", new byte[16]));
+        }
+
+        [TestMethod]
+        public void Constructor_RejectsNonWebRelayUrls()
+            => Assert.ThrowsException<ArgumentException>(() => new GUNOASIS("ftp://127.0.0.1:8765", new byte[32]));
 
         [TestCleanup]
         public void Cleanup()
