@@ -51,6 +51,15 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
     }
     public partial class ChainLinkOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar
     {
+        /// <summary>Chainlink is an oracle network: it serves price feeds, VRF and Functions, and has no OASIS record store.
+        /// Avatar and holon storage members fail explicitly instead of submitting oracle requests to a job that does not exist.</summary>
+        private static OASISResult<T> NoRecordStore<T>()
+        {
+            var result = new OASISResult<T>();
+            OASISErrorHandling.HandleError(ref result, "ChainLinkOASIS has no OASIS record store; Chainlink is an oracle network (price feeds, VRF, Functions).");
+            return result;
+        }
+
         private readonly HttpClient _httpClient;
         private readonly string _rpcEndpoint;
         private readonly string _networkId;
