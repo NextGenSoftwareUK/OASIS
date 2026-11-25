@@ -419,6 +419,9 @@ public sealed partial class CqlV1Web4NativeTests
             var wrapped=await math.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>row.Id==edge.Id)
                 .Select(row=>CosmicQueryMetadata.Value<long>(row,"big")*2L).ToCosmicListAsync();
             Assert.IsTrue(wrapped.IsError,"An Int64 overflow must not wrap.");
+            var named=await math.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>row.Id==small.Id)
+                .Select(row=>CosmicQueryMetadata.Value<int>(row,"score")==1?"one":CosmicQueryMetadata.Value<int>(row,"score")==7?"seven":"other").ToCosmicListAsync();
+            Assert.IsFalse(named.IsError,named.ErrorCode+": "+named.Message);Assert.AreEqual("seven",named.Result.Single(),"Q55 Int32 CASE picks the matching branch.");
             var overflow=await math.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>row.Id==huge.Id)
                 .Select(row=>CosmicQueryMetadata.Value<int>(row,"score")*2).ToCosmicListAsync();
             Assert.IsTrue(overflow.IsError,"An Int32 overflow must not wrap.");
