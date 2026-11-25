@@ -96,3 +96,4 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | TONOASIS shared core storage suite on the local TVM sandbox (reuse ton-sqlite fixture); matrix: Web3CoreOASIS is a contract client, not a provider | HyperDrive providers | local: testharness-build-fix | work/ton-native-storage | 2026-11-25 03:10 | DONE 63de271d (docs 8eee7923) |
 | Dependabot alerts in root package-lock.json (mermaid-cli dev tool: lodash-es, basic-ftp, minimatch) | Security / tooling | local: WEB6 catalogue session | Development (direct, small) | 2026-11-25 | IN PROGRESS |
 | Dependabot minimatch alert in oasisweb4.com (via @typescript-eslint/typescript-estree) | Security / sites | local: WEB6 catalogue session | Development (direct, small) | 2026-11-25 | IN PROGRESS |
+| COSMIC M22 entity splitting / multiple mappings | COSMIC ORM | local_fa02a367 child COSMIC session | work/cosmic-cql-ton-public | 2026-11-25 | IN PROGRESS |
