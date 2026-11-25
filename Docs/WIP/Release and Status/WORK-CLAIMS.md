@@ -26,3 +26,5 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | Pinot native storage | HyperDrive providers | local: HyperDrive provider programme | work/hyperdrive-triad | 2026-11-25 00:03 | IN PROGRESS |
 | IPFS catalogue root pointer (dev replication-source fault) | HyperDrive replication | local: HyperDrive provider programme | work/hyperdrive-triad | 2026-11-25 00:03 | IN PROGRESS |
 | ChainLinkOASIS / Connext / read-only chain adapters classification | HyperDrive providers | local: HyperDrive provider programme | work/hyperdrive-triad | 2026-11-25 00:03 | IN PROGRESS |
+| Provider TestHarness projects build (all 172) | Providers/TestProjects | local: testharness-build-fix | work/testharness-build-fix | 2026-11-24 | DONE 603b3222 |
+| AlgorandOASIS native storage (shared suite 26/26 on LocalNet) | Providers/Blockchain | local: testharness-build-fix | work/algorand-native-storage | 2026-11-24 23:30 | IN PROGRESS |
