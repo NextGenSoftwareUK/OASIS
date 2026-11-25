@@ -26,6 +26,18 @@ public sealed class ZcashLedgerKeyValueBackendTests
     }
 
     [TestMethod]
+    public void Zip317FeeCountsOpReturnBytesAsTransparentActions()
+    {
+        // One P2PKH input (150 bytes) and outputs of 34 (P2PKH change) + 82 (73-byte OP_RETURN) = 116 bytes:
+        // ceil(116 / 34) = 4 logical actions, so 4 x 5000 zatoshis. zcashd rejected 10000 as "2 unpaid actions".
+        Assert.AreEqual(20_000, ZcashLedgerKeyValueBackend.Zip317Fee(1, [25, 73]));
+        // A delete commitment (41-byte OP_RETURN: 8 + 1 + 41 = 50 bytes) with change: ceil(84 / 34) = 3 actions.
+        Assert.AreEqual(15_000, ZcashLedgerKeyValueBackend.Zip317Fee(1, [25, 41]));
+        // A plain one-in, one-out P2PKH spend pays the two-action grace floor.
+        Assert.AreEqual(10_000, ZcashLedgerKeyValueBackend.Zip317Fee(1, [25]));
+    }
+
+    [TestMethod]
     public void ReadsADirectPushOpReturn()
     {
         byte[] payload = [.. "OASZK1D"u8.ToArray(), .. new byte[32]];

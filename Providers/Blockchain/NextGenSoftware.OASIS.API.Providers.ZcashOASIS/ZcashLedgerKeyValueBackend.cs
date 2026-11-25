@@ -281,8 +281,7 @@ internal sealed class ZcashLedgerKeyValueBackend : IKeyValueBackend, IDisposable
                 .Select(item => (Txid: item.GetProperty("txid").GetString()!, Vout: item.GetProperty("vout").GetInt32(),
                     Amount: ToZatoshis(item.GetProperty("amount"))))
                 .FirstOrDefault();
-            // ZIP-317: one transparent input, two outputs (OP_RETURN and change) is two logical actions.
-            var fee = MarginalFee * 2;
+            var fee = Zip317Fee(inputCount: 1, outputScriptLengths: [P2pkhScriptLength, 2 + payload.Length]);
             if (candidate.Txid == null || candidate.Amount - fee < DustThreshold)
                 throw new InvalidOperationException("The Zcash storage address has no spendable balance to pay for the commitment.");
 
@@ -322,6 +321,26 @@ internal sealed class ZcashLedgerKeyValueBackend : IKeyValueBackend, IDisposable
             await Task.Delay(500, cancellationToken);
         }
     }
+
+    private const int P2pkhScriptLength = 25;
+    private const int P2pkhInputSize = 150; // ZIP-317 P2PKH standard input size
+    private const int P2pkhOutputSize = 34; // ZIP-317 P2PKH standard output size
+
+    /// <summary>
+    /// ZIP-317 conventional fee for a transparent-only transaction. Transparent logical actions are measured by size:
+    /// max(ceil(total input bytes / 150), ceil(total output bytes / 34)); the fee is 5000 zatoshis per logical action,
+    /// with a grace floor of two actions. An OP_RETURN output is larger than a P2PKH output and counts accordingly.
+    /// </summary>
+    internal static long Zip317Fee(int inputCount, int[] outputScriptLengths)
+    {
+        var inputBytes = (long)inputCount * P2pkhInputSize;
+        var outputBytes = outputScriptLengths.Sum(length => 8L + CompactSizeLength(length) + length);
+        var logicalActions = Math.Max((inputBytes + P2pkhInputSize - 1) / P2pkhInputSize,
+            (outputBytes + P2pkhOutputSize - 1) / P2pkhOutputSize);
+        return MarginalFee * Math.Max(2, logicalActions);
+    }
+
+    private static int CompactSizeLength(long value) => value < 0xFD ? 1 : value <= 0xFFFF ? 3 : value <= 0xFFFF_FFFF ? 5 : 9;
 
     private static long ToZatoshis(JsonElement amount) =>
         (long)decimal.Round(decimal.Parse(amount.GetRawText(), NumberStyles.Float, CultureInfo.InvariantCulture) * ZatoshisPerZec);
