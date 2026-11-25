@@ -123,3 +123,4 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | PinataOASIS native storage (hosted pinning) | HyperDrive providers | cloud: cloud-hyperdrive-A | n/a | 2026-11-25 21:20 | BLOCKED: see ACTIONS-FOR-DAVID (bot and pinning accounts) |
 | PocketBaseOASIS native storage (local PocketBase binary in CI) | HyperDrive providers | local: HyperDrive provider programme | work/hyperdrive-triad | 2026-11-25 21:15 | IN PROGRESS |
 | COSMIC M20 inheritance table-per-type equivalent | COSMIC ORM | local: maps/interop session | work/cosmic-m20-tpt | 2026-11-25 | RELEASED: checklist says a document/graph TPT layout needs a faithful definition first; needs a COSMIC design decision before code |
+| BlockStackOASIS Gaia hub auth (signed v1 token) and native storage on a local gaia-hub | HyperDrive providers | local: HyperDrive provider programme | work/hyperdrive-triad | 2026-11-25 21:45 | IN PROGRESS |
