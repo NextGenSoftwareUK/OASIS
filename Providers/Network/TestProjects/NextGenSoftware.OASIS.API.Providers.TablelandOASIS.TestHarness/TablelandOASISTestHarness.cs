@@ -6,30 +6,34 @@ using NextGenSoftware.OASIS.API.Providers.TablelandOASIS;
 namespace NextGenSoftware.OASIS.API.Providers.TablelandOASIS.TestHarness
 {
     /// <summary>
-    /// Console harness that walks the full CRUD surface against a live backend.
-    /// Configure with TABLELANDOASIS_&lt;PARAM&gt; environment variables.
+    /// Console harness that walks the CRUD surface against a real Tableland network.
+    /// Required environment: TABLELAND_RPC_URL, TABLELAND_VALIDATOR_URL, TABLELAND_REGISTRY, TABLELAND_CHAIN_ID,
+    /// TABLELAND_PRIVATE_KEY and TABLELAND_ENCRYPTION_KEY (base64, 32 bytes). Optional TABLELAND_TABLE names an existing
+    /// table owned by the wallet; without it the harness creates a new one (a real registry transaction).
     /// </summary>
     public static class TablelandOASISTestHarness
     {
+        private static string Env(string name)
+            => Environment.GetEnvironmentVariable(name) is { Length: > 0 } value ? value : throw new InvalidOperationException($"{name} is required.");
+
         public static async Task Main()
         {
             Console.WriteLine("TablelandOASIS Test Harness");
             Console.WriteLine(new string('-', 60));
 
-            var provider = TablelandOASISTestFactory.Create();
+            var connection = new TablelandConnection(new Uri(Env("TABLELAND_RPC_URL")), new Uri(Env("TABLELAND_VALIDATOR_URL")),
+                Env("TABLELAND_REGISTRY"), long.Parse(Env("TABLELAND_CHAIN_ID")), Env("TABLELAND_PRIVATE_KEY"));
+            var table = Environment.GetEnvironmentVariable("TABLELAND_TABLE");
+            if (string.IsNullOrEmpty(table))
+            {
+                table = await TablelandKeyValueBackend.CreateTableAsync(connection);
+                Console.WriteLine($"PASS  create table {table}");
+            }
+            var provider = new TablelandOASIS(connection, table, Convert.FromBase64String(Env("TABLELAND_ENCRYPTION_KEY")));
 
             var activated = await provider.ActivateProviderAsync();
-            Console.WriteLine(activated.IsError
-                ? $"FAIL  activate: {activated.Message}"
-                : "PASS  activate");
-
-            if (activated.IsError)
-            {
-                Console.WriteLine($"\nSet the TABLELANDOASIS_* environment variables and try again.");
-                return;
-            }
-
-            Console.WriteLine($"      name    : {provider.ProviderName}");
+            Console.WriteLine(activated.IsError ? $"FAIL  activate: {activated.Message}" : $"PASS  activate ({provider.TableName}, wallet {provider.WalletAddress})");
+            if (activated.IsError) return;
 
             var avatar = new Avatar
             {

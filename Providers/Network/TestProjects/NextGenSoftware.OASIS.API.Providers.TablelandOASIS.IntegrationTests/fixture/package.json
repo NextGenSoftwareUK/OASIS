@@ -1,0 +1,11 @@
+{
+  "name": "oasis-tableland-native-fixture",
+  "private": true,
+  "description": "Disposable local Tableland network (Hardhat chain 31337 + validator) for the TablelandOASIS native storage suite.",
+  "engines": {
+    "node": "20.x"
+  },
+  "devDependencies": {
+    "@tableland/local": "3.0.2"
+  }
+}
