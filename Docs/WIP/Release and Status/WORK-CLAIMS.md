@@ -106,3 +106,4 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | Remove dead ONODE.Core OAPPManagerBase.cs (fully commented out; split not needed) | ONODE.Core | local maps session (a7a489fd) | work/onode-interop-async | 2026-11-25 | DONE 85b716166ee (ONODE.Core 9c77b5c, STAR 5db9aa2) |
 | COSMIC Q36 arithmetic projection expressions | COSMIC ORM | local_fa02a367 child COSMIC session | work/cosmic-cql-ton-public | 2026-11-25 | IN PROGRESS |
 | MapboxOASIS and WRLD3DOASIS: replace fake map operations (47 'return true' each) with the shared MapProviderBase and real vendor APIs | Maps | local maps session (a7a489fd) | work/map-providers-mapbox-wrld | 2026-11-25 | DONE 607db258b91 (Mapbox real; WRLD3D unavailable, decision in ACTIONS-FOR-DAVID) |
+| Audit: find test projects CI never runs (WebAPI.IntegrationTests, provider TestProjects) and wire them in | CI | local: onode-tests session | ci/test-project-coverage | 2026-11-25 | IN PROGRESS |
