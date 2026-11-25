@@ -22,7 +22,7 @@ OPORTAL, the ONODE popup and billing UI are now owned by a different session. CQ
 - Next 3: Ceramic signed commits (DID), BlockStack Gaia auth tokens, Aztec/Miden real storage designs.
 - Blockers: ACTIONS-FOR-DAVID I1 and the hosted-account providers.
 
-## Progress (cloud-hyperdrive-A, updated 2026-11-25 21:35 UTC)
+## Progress (cloud-hyperdrive-A, updated 2026-11-25 22:10 UTC)
 
 Done in CI (native core-storage suite 26/26, sync + async, against real backends):
 - TelosOASIS and SEEDSOASIS: storage through the EOSIO (Antelope) implementation; `antelope-family-native-storage.yml`, run 45518765561.
@@ -34,9 +34,11 @@ Done in CI (native core-storage suite 26/26, sync + async, against real backends
   OrbitDB and Scuttlebutt also pass a service-restart durability check in CI.
 - FilecoinOASIS: FEVM records through the shared Web3Core EVM base on a local Lotus devnet (chain 31415926); Web3Core gained
   an opt-in `EstimateContractGas` (FEVM gas units). popular-providers run 45700279460; EVM regression suite run 45700279496.
+- UrbitOASIS: purpose-built %oasis-kv Gall agent on an offline fake ship, poke-ack acknowledged writes, ship-restart
+  durability check; popular-providers run 45704685480.
 
 EclipseOASIS: done by the hyperdrive-triad session (f2717b1b); the duplicate `work/cloud-hd-eclipse` branch is not merged.
-Passing locally, CI pending: UrbitOASIS (offline fake ship, %oasis-kv Gall agent). In progress: RadixOASIS.
+Passing locally, CI pending: RadixOASIS (Babylon localnet, OasisKeyValueStore blueprint; run 45709199011). In progress: ONION-Protocol, HoloOASIS.Desktop.
 
 Classified non-storage: FarcasterOASIS (no keyed, durable app-data message type; see FARCASTER_STORAGE_CLASSIFICATION_2026-11-25.md).
 
