@@ -27,6 +27,16 @@ internal sealed partial class NeoCqlTranslator
             return (utcSource.State,"CASE WHEN ("+utcSource.State+")=2 THEN "+
                 NeoCqlUtcDateParts.Value(column.Function,"datetime("+utcSource.Value+")")+" ELSE null END");
         }
+        if (column.Function == CosmicProjectionFunction.TextValueCase)
+        {
+            if(column.Path.ValueType != typeof(string) || column.ValueType != typeof(string)
+                || column.TextCases == null || column.TextCases.Count == 0 || column.WhenFalse == null)
+                throw new System.NotSupportedException("Native multi-branch text CASE requires an exact String path and captured literal branches.");
+            var caseSource=TranslateProjectionPath(column.Path);
+            var branches=string.Concat(System.Linq.Enumerable.Select(column.TextCases,entry=>" WHEN "+Bind(entry.Key)+" THEN "+Bind(entry.Value)));
+            return ("CASE WHEN ("+caseSource.State+")=2 THEN 2 ELSE 3 END",
+                "CASE WHEN ("+caseSource.State+")=2 THEN CASE ("+caseSource.Value+")"+branches+" ELSE "+Bind(column.WhenFalse)+" END ELSE NULL END");
+        }
         if (column.Function == CosmicProjectionFunction.BooleanTextCase)
         {
             if(column.Path.ValueType != typeof(bool) || column.ValueType != typeof(string)

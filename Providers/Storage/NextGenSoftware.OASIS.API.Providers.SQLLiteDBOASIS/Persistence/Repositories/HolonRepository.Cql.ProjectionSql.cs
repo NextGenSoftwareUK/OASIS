@@ -23,6 +23,16 @@ public partial class HolonRepository
                 return (utcSource.State,"CASE WHEN ("+utcSource.State+")=2 THEN "+
                     SqliteCqlUtcDateParts.Value(column.Function,utcSource.Value)+" ELSE NULL END");
             }
+            if (column.Function == CosmicProjectionFunction.TextValueCase)
+            {
+                if(column.Path.ValueType != typeof(string) || column.ValueType != typeof(string)
+                    || column.TextCases == null || column.TextCases.Count == 0 || column.WhenFalse == null)
+                    throw new NotSupportedException("Native multi-branch text CASE requires an exact String path and captured literal branches.");
+                var caseSource=ProjectionOperand(column.Path,prefix,comparable);
+                var branches=string.Concat(column.TextCases.Select(entry=>" WHEN "+Bind(entry.Key)+" THEN "+Bind(entry.Value)));
+                return ("CASE WHEN ("+caseSource.State+")=2 THEN 2 ELSE 3 END",
+                    "CASE WHEN ("+caseSource.State+")=2 THEN CASE ("+caseSource.Value+")"+branches+" ELSE "+Bind(column.WhenFalse)+" END ELSE NULL END");
+            }
             if (column.Function == CosmicProjectionFunction.BooleanTextCase)
             {
                 if(column.Path.ValueType != typeof(bool) || column.ValueType != typeof(string)

@@ -295,6 +295,25 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.AreEqual(parent.Id,graph.Single(row=>row.Id==fresh.Id).ParentHolonId);
         }
         checks++;
+        // Q55 multi-branch text CASE: one string path, literal WHEN branches and ELSE, evaluated natively.
+        using(var cases=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            var gold=New("tier-gold");gold.MetaData=new Dictionary<string,object>{{"tier","g"}};
+            var silver=New("tier-silver");silver.MetaData=new Dictionary<string,object>{{"tier","s"}};
+            var other=New("tier-other");other.MetaData=new Dictionary<string,object>{{"tier","x"}};
+            foreach(var row in new[]{gold,silver,other})Assert.IsFalse(cases.Add(row).IsError);
+            Assert.IsFalse((await cases.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()))).IsError);
+            var tiers=new[]{gold.Id,silver.Id,other.Id};
+            var labelled=await cases.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>tiers.Contains(row.Id))
+                .Select(row=>new{row.Name,Label=CosmicQueryMetadata.Value<string>(row,"tier")=="g"?"Gold"
+                    :CosmicQueryMetadata.Value<string>(row,"tier")=="s"?"Silver":"Standard"}).ToCosmicListAsync();
+            Assert.IsFalse(labelled.IsError,labelled.ErrorCode+": "+labelled.Message);
+            var byName=labelled.Result.ToDictionary(row=>row.Name,row=>row.Label);
+            Assert.AreEqual("Gold",byName["tier-gold"]);Assert.AreEqual("Silver",byName["tier-silver"]);Assert.AreEqual("Standard",byName["tier-other"]);
+            Assert.ThrowsException<CosmicLinqException>(()=>cases.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result
+                .Select(row=>row.Name=="a"?"A":row.Description=="b"?"B":"C"),"Branches over different paths are refused.");
+        }
+        checks++;
         // M29 seed data: idempotent insert of fixed-identity rows in one unit of work.
         Holon[] Seed()=>new[]{
             new Holon{Id=seedIds[0],Name="seed-one",CreatedByAvatarId=actor,IsActive=true,IsPublic=false},
@@ -311,7 +330,7 @@ public sealed partial class CqlV1Web4NativeTests
         }
         Assert.AreEqual(2,(await Stored(seedIds)).Count);checks++;
         return new NativeFixtureJourneyProof(checks,4,new Dictionary<string,bool>{
-            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true,["notificationTrackingVerified"]=true,["collectionMembershipVerified"]=true,["stringTransformsVerified"]=true,["compiledQueryVerified"]=true,["asOfHistoryVerified"]=true,["setCollectionVerified"]=true,["generatedValuesVerified"]=true,["readOnlyViewsVerified"]=true,["graphMergeVerified"]=true});
+            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true,["notificationTrackingVerified"]=true,["collectionMembershipVerified"]=true,["stringTransformsVerified"]=true,["compiledQueryVerified"]=true,["asOfHistoryVerified"]=true,["setCollectionVerified"]=true,["generatedValuesVerified"]=true,["readOnlyViewsVerified"]=true,["graphMergeVerified"]=true,["multiBranchCaseVerified"]=true});
     }
 
     public sealed class SetModelHolon : Holon
