@@ -1508,3 +1508,13 @@ Links: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44675640513
 - Decision needed, services that appear to be discontinued: Fauna (FaunaDB shut down in 2025), Vercel KV (sunset; existing stores moved to Upstash, which UpstashOASIS already covers) and Polybase (testnet no longer reachable; please confirm). Options: (a) mark FaunaOASIS, VercelKVOASIS and PolybaseOASIS as retired and remove them from the provider matrix, or (b) keep them as historical code with no test target. Engineering's recommendation is (a).
 - Reason: without these, these providers cannot be marked done; every self-hostable provider is being done meanwhile.
 - Status: OPEN 2026-11-25. Claims marked BLOCKED in WORK-CLAIMS.md.
+
+## Live CQL sandbox: demo databases and indexer keys (cloud-cql-C, 2026-11-25)
+
+- Context: about 40 self-hostable database providers already have CQL adapters with local or CI proof, for example Redis, Valkey, KeyDB, Dragonfly, Garnet, PostgreSQL, TimescaleDB, CockroachDB, SQL Server, Cassandra, ScyllaDB, Elasticsearch, OpenSearch, Solr, Meilisearch, Typesense, Qdrant, Weaviate, Milvus, Chroma, CouchDB, Couchbase, ArangoDB, SurrealDB, RavenDB, InfluxDB and Memcached. They are not live in the dev sandbox only because Development WEB4 has no running instance of them to read. The public chains are mostly done, and the remaining keyless public sources are being added by the cloud sessions (Rootstock, Story, Lens, QuestDB on 25 Nov).
+- Decision needed: may the CQL sessions add small demo database services to the Railway **development** environment only (one service per provider, using Railway's own templates where they exist, for example Redis and PostgreSQL), seeded with the same three public teaching records each provider already uses in CI?
+  - If yes: create a project token scoped to the development environment and store it as the GitHub Actions secret `RAILWAY_DEV_DEMO_TOKEN`, not in Git or chat. The sessions then add each service, seed it, set its `CQL_*` variable and verify that its presets return 3 and 2 records.
+  - If no: these providers stay CI-verified only and are not shown live.
+- Keyed indexer APIs (free tiers are enough, read-only): Alchemy, QuickNode, Ankr, Covalent (GoldRush), Moralis, Dune, Zapper, Tenderly, Goldsky and Nansen. Each needs one read-only key. Save each key on the Railway development WEB4 service as `CQL_<PROVIDER>_PUBLIC_READER_KEY`, for example `CQL_ALCHEMY_PUBLIC_READER_KEY`. These are lower priority than the demo databases.
+- Reason: without these, the providers above cannot return real records in the live sandbox. Everything that needs no account is being done meanwhile.
+- Status: OPEN 2026-11-25.

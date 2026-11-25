@@ -70,3 +70,4 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | Polybase native storage (hosted only) | HyperDrive providers | cloud: cloud-hyperdrive-A | n/a | 2026-11-25 01:30 | BLOCKED: see ACTIONS-FOR-DAVID (hosted-only providers) |
 | PineconeOASIS native storage (Pinecone Local container) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-pinecone | 2026-11-25 01:30 | IN PROGRESS |
 | QuestDBOASIS live public CQL source (port unmerged symbol adapter 9e67263e..35d38833; read-only demo.questdb.io) | CQL sandbox (WEB4) | cloud: cloud-cql-C | work/cloud-cql-questdb | 2026-11-25 01:24 | IN PROGRESS |
+| Live CQL for self-hostable DB providers and keyed indexer APIs (needs Railway dev demo DBs / free keys) | CQL sandbox (WEB4) | cloud: cloud-cql-C | n/a | 2026-11-25 01:28 | BLOCKED: see ACTIONS-FOR-DAVID (Live CQL sandbox: demo databases and indexer keys) |
