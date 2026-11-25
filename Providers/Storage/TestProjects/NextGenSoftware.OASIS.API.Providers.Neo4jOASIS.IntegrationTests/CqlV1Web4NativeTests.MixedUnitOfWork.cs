@@ -444,6 +444,30 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.AreEqual(0,(await futures.ExecuteFuturesAsync()).Result,"Executed futures are not run twice.");
         }
         checks++;
+        // Q56 user-defined functions: registered native templates per store, literals bound as parameters.
+        Assert.IsFalse(CosmicQueryFunctions.Register(typeof(CqlTestFunctions).GetMethod(nameof(CqlTestFunctions.Shout))!,
+            sqliteTemplate:"upper({value})",mongoTemplate:"{\"$toUpper\":\"{value}\"}",cypherTemplate:"toUpper({value})").IsError);
+        Assert.IsFalse(CosmicQueryFunctions.Register(typeof(CqlTestFunctions).GetMethod(nameof(CqlTestFunctions.Prefix))!,
+            sqliteTemplate:"substr({value},1,{0})",mongoTemplate:"{\"$substrCP\":[\"{value}\",0,\"{0}\"]}",cypherTemplate:"substring({value},0,{0})").IsError);
+        Assert.IsTrue(CosmicQueryFunctions.Register(typeof(CqlTestFunctions).GetMethod(nameof(CqlTestFunctions.Shout))!,
+            sqliteTemplate:"upper({value}); DROP TABLE x").IsError,"Statement separators are refused.");
+        using(var udf=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            var word=New("udf-word");word.MetaData=new Dictionary<string,object>{{"word","hello"}};
+            var other=New("udf-other");other.MetaData=new Dictionary<string,object>{{"word","world"}};
+            foreach(var row in new[]{word,other})Assert.IsFalse(udf.Add(row).IsError);
+            Assert.IsFalse((await udf.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()))).IsError);
+            var pair=new[]{word.Id,other.Id};
+            async Task<Guid[]> Matching(System.Linq.Expressions.Expression<Func<Holon,bool>> filter)
+            {
+                var rows=await udf.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>pair.Contains(row.Id)).Where(filter).ToCosmicListAsync();
+                Assert.IsFalse(rows.IsError,rows.ErrorCode+": "+rows.Message);return rows.Result.Select(row=>row.Id).ToArray();
+            }
+            CollectionAssert.AreEqual(new[]{word.Id},await Matching(row=>CqlTestFunctions.Shout(CosmicQueryMetadata.Value<string>(row,"word"))=="HELLO"));
+            CollectionAssert.AreEqual(new[]{word.Id},await Matching(row=>CqlTestFunctions.Prefix(CosmicQueryMetadata.Value<string>(row,"word"),3)=="hel"));
+            CollectionAssert.AreEqual(new[]{other.Id},await Matching(row=>"wor"==CqlTestFunctions.Prefix(CosmicQueryMetadata.Value<string>(row,"word"),3)));
+        }
+        checks++;
         // M29 seed data: idempotent insert of fixed-identity rows in one unit of work.
         Holon[] Seed()=>new[]{
             new Holon{Id=seedIds[0],Name="seed-one",CreatedByAvatarId=actor,IsActive=true,IsPublic=false},
@@ -460,7 +484,7 @@ public sealed partial class CqlV1Web4NativeTests
         }
         Assert.AreEqual(2,(await Stored(seedIds)).Count);checks++;
         return new NativeFixtureJourneyProof(checks,4,new Dictionary<string,bool>{
-            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true,["notificationTrackingVerified"]=true,["collectionMembershipVerified"]=true,["stringTransformsVerified"]=true,["compiledQueryVerified"]=true,["asOfHistoryVerified"]=true,["setCollectionVerified"]=true,["generatedValuesVerified"]=true,["readOnlyViewsVerified"]=true,["graphMergeVerified"]=true,["multiBranchCaseVerified"]=true,["fullTextVerified"]=true,["entitySplittingVerified"]=true,["int32ArithmeticVerified"]=true,["futuresVerified"]=true});
+            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true,["notificationTrackingVerified"]=true,["collectionMembershipVerified"]=true,["stringTransformsVerified"]=true,["compiledQueryVerified"]=true,["asOfHistoryVerified"]=true,["setCollectionVerified"]=true,["generatedValuesVerified"]=true,["readOnlyViewsVerified"]=true,["graphMergeVerified"]=true,["multiBranchCaseVerified"]=true,["fullTextVerified"]=true,["entitySplittingVerified"]=true,["int32ArithmeticVerified"]=true,["futuresVerified"]=true,["userFunctionsVerified"]=true});
     }
 
     public sealed class SetModelHolon : Holon
