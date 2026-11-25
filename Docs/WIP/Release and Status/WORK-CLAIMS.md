@@ -122,3 +122,4 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | DiscordOASIS native storage (needs a bot token) | HyperDrive providers | cloud: cloud-hyperdrive-A | n/a | 2026-11-25 21:20 | BLOCKED: see ACTIONS-FOR-DAVID (bot and pinning accounts) |
 | PinataOASIS native storage (hosted pinning) | HyperDrive providers | cloud: cloud-hyperdrive-A | n/a | 2026-11-25 21:20 | BLOCKED: see ACTIONS-FOR-DAVID (bot and pinning accounts) |
 | PocketBaseOASIS native storage (local PocketBase binary in CI) | HyperDrive providers | local: HyperDrive provider programme | work/hyperdrive-triad | 2026-11-25 21:15 | IN PROGRESS |
+| COSMIC M20 inheritance table-per-type equivalent | COSMIC ORM | local: maps/interop session | work/cosmic-m20-tpt | 2026-11-25 | IN PROGRESS |
