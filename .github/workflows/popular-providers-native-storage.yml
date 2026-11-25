@@ -29,6 +29,8 @@ on:
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS/**'
       - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS.IntegrationTests/**'
       - 'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/StorageServiceKeyValueBackend.cs'
+      - 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.AppwriteOASIS/**'
+      - 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AppwriteOASIS.IntegrationTests/**'
       - 'Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.DaprOASIS.IntegrationTests/**'
       - 'Providers/Social/NextGenSoftware.OASIS.API.Providers.NostrOASIS/**'
       - 'Providers/*/TestProjects/*/*NativeStorageConformanceTests.cs'
@@ -44,7 +46,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        provider: [CouchDB, Couchbase, ArangoDB, SurrealDB, ClickHouse, InfluxDB, Chroma, PgVector, ArcadeDB, QuestDB, PouchDB, NATSJetStream, Nostr, Dapr, GUN, Matrix, OrbitDB, Arweave, Scuttlebutt]
+        provider: [CouchDB, Couchbase, ArangoDB, SurrealDB, ClickHouse, InfluxDB, Chroma, PgVector, ArcadeDB, QuestDB, PouchDB, NATSJetStream, Nostr, Dapr, GUN, Matrix, OrbitDB, Arweave, Scuttlebutt, Appwrite]
     defaults:
       run:
         working-directory: OASIS
@@ -80,8 +82,13 @@ jobs:
           password="$(openssl rand -hex 16)"
           container=""
           relays=""
+          appwrite_fixture=""
           cleanup() {
             status=$?
+            if [[ -n "$appwrite_fixture" ]]; then
+              if (( status != 0 )); then docker logs --tail 40 oasis-appwrite-http || true; fi
+              "$appwrite_fixture" stop || status=1
+            fi
             for pid in $relays; do kill -TERM "$pid" 2>/dev/null || true; wait "$pid" 2>/dev/null || true; done
             if [[ -n "$container" ]]; then
               for c in $container; do
@@ -224,6 +231,11 @@ jobs:
               node "$service_dir/storage-service.cjs" "$fixture/ssb-sync" 18906 >"$fixture/ssb-sync.log" 2>&1 & relays="$relays $!"
               wait_for "grep -q ready '$fixture/ssb-async.log' && grep -q ready '$fixture/ssb-sync.log'"
               export OASIS_SSB_ASYNC_SERVICE=http://127.0.0.1:18905 OASIS_SSB_SYNC_SERVICE=http://127.0.0.1:18906 ;;
+            Appwrite)
+              # Self-hosted Appwrite 1.7.4 (app, worker, MariaDB, Redis) on 127.0.0.1:18080, provisioned through its REST API.
+              appwrite_fixture="$PWD/Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AppwriteOASIS.IntegrationTests/fixture/start-appwrite.sh"
+              "$appwrite_fixture" start "$fixture/appwrite.env"
+              set -a; . "$fixture/appwrite.env"; set +a ;;
             Couchbase)
               container="$(docker run -d -p 127.0.0.1:8091-8097:8091-8097 -p 127.0.0.1:11210:11210 -p 127.0.0.1:11280:11280 couchbase/server:community-7.6.2)"
               wait_for "curl -fsS http://127.0.0.1:8091/ui/index.html"
