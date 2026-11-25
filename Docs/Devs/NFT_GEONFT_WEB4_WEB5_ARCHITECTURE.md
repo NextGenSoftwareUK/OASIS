@@ -76,7 +76,7 @@ flowchart LR
 
 ## Why WEB5 wrappers exist
 
-The WEB4 object owns the portable NFT or geographic gameplay data. Wrapping it as a WEB5 STARNET holon adds:
+The WEB4 object owns the portable NFT or geographic gameplay data. Wrapping it as a WEB5 Smart Brick adds:
 
 - listing and discovery in the STARNET App/Asset Store;
 - package publishing, download, installation, sharing, and version control;

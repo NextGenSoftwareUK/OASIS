@@ -61,7 +61,7 @@ star config --provider "MongoDB"
 # - And more...
 ```
 
-## 🏗️ **Step 2: Create Your First STARNETHolon**
+## 🏗️ **Step 2: Create Your First Smart Brick**
 
 ### **2.1 Create an OAPP**
 ```bash
@@ -74,7 +74,7 @@ star create oapp "My First OAPP" --description "A sample OAPP"
 # - Basic configuration
 ```
 
-### **2.2 Create Supporting STARNETHolons**
+### **2.2 Create Supporting Smart Bricks**
 ```bash
 # Create a Quest
 star create quest "Tutorial Quest" --description "Learn the basics"
@@ -114,7 +114,7 @@ star add-dependency inventoryitem "Sword" nft "Character NFT"
 
 ## 📦 **Step 4: Publish to STARNET**
 
-### **4.1 Publish STARNETHolons**
+### **4.1 Publish Smart Bricks**
 ```bash
 # Publish OAPP to STARNET
 star publish oapp "My First OAPP"
@@ -296,10 +296,10 @@ star list-templates
 
 You've successfully:
 - ✅ Set up STAR CLI
-- ✅ Created your first STARNETHolons
+- ✅ Created your first Smart Bricks
 - ✅ Linked dependencies
 - ✅ Published to STARNET
-- ✅ Downloaded and installed STARNETHolons
+- ✅ Downloaded and installed Smart Bricks
 - ✅ Understood the DNA system
 - ✅ Used advanced features
 

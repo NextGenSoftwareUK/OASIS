@@ -12,8 +12,8 @@ The STARNET OAPP Builder is a powerful drag-and-drop visual interface for creati
 - **Real-time Preview**: Live preview of your application
 - **Component Connections**: Visual component linking
 
-### **STARNETHolon Types**
-The OAPP Builder supports ALL STARNETHolon types as components:
+### **Smart Brick Types**
+The OAPP Builder supports ALL Smart Brick types as components:
 
 - **OAPPs**: OASIS Applications
 - **Templates**: Application templates
@@ -51,14 +51,14 @@ The OAPP Builder supports ALL STARNETHolon types as components:
 └─────────────────────────────────────────────────────────┘
 ```
 
-### **STARNETHolon Library Panel**
-- **Search**: Find STARNETHolons quickly across all types
-- **Categories**: Browse by STARNETHolon type (OAPPs, Quests, NFTs, etc.)
-- **Dependencies**: View available dependencies for each STARNETHolon
-- **Favorites**: Bookmark frequently used STARNETHolons
-- **Recent**: Recently used STARNETHolons
+### **Smart Brick Library Panel**
+- **Search**: Find Smart Bricks quickly across all types
+- **Categories**: Browse by Smart Brick type (OAPPs, Quests, NFTs, etc.)
+- **Dependencies**: View available dependencies for each Smart Brick
+- **Favorites**: Bookmark frequently used Smart Bricks
+- **Recent**: Recently used Smart Bricks
 - **Templates**: Pre-built application templates
-- **Community**: Browse community-created STARNETHolons
+- **Community**: Browse community-created Smart Bricks
 
 ### **Canvas Area**
 - **Grid System**: Snap-to-grid alignment

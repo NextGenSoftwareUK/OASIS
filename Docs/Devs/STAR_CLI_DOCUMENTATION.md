@@ -4,23 +4,23 @@
 
 ## 📋 **Overview**
 
-The STAR CLI (Command Line Interface) is the most important tool for developers working with the OASIS ecosystem. It provides comprehensive command-line access to all STARNET functionality, including STARNETHolon management, DNA system operations, and dependency management.
+The STAR CLI (Command Line Interface) is the most important tool for developers working with the OASIS ecosystem. It provides comprehensive command-line access to all STARNET functionality, including Smart Brick management, DNA system operations, and dependency management.
 
 ## 🎯 **Key Features**
 
-### **STARNETHolon Management**
-- **Create, Edit, Delete**: Full CRUD operations for all STARNETHolon types
+### **Smart Brick Management**
+- **Create, Edit, Delete**: Full CRUD operations for all Smart Brick types
 - **Publish & Download**: Publish to STARNET and download from others
 - **Version Control**: Manage versions and rollbacks
-- **Search & Discovery**: Find and explore STARNETHolons
+- **Search & Discovery**: Find and explore Smart Bricks
 
 ### **DNA System**
-- **Dependency Management**: Link any STARNETHolon to any other STARNETHolon
+- **Dependency Management**: Link any Smart Brick to any other Smart Brick
 - **DNA Generation**: Automatic DNA file creation and management
 - **Dependency Resolution**: Handle complex dependency chains
 - **Metadata Management**: Advanced metadata system integration
 
-### **STARNETHolon Types**
+### **Smart Brick Types**
 - **OAPPs**: OASIS Applications
 - **Templates**: Application templates
 - **Runtimes**: Execution environments
@@ -122,7 +122,7 @@ dotnet run
 # 3. Initial configuration
 ```
 
-## 🏗️ **STARNETHolon Operations**
+## 🏗️ **Smart Brick Operations**
 
 ### **OAPP Commands**
 ```bash
@@ -600,7 +600,7 @@ runoasisapitests                           # Run OASIS API tests
 ## 🔗 **Dependency Management**
 
 ### **Understanding Dependencies**
-The DNA system allows ANY STARNETHolon to depend on ANY other STARNETHolon:
+The DNA system allows ANY Smart Brick to depend on ANY other Smart Brick:
 
 ```json
 {
@@ -847,9 +847,9 @@ star optimize
 ## 🚀 **Best Practices**
 
 ### **Development Workflow**
-1. **Plan Dependencies**: Map out required STARNETHolons
-2. **Create Base Components**: Start with foundational STARNETHolons
-3. **Build Dependencies**: Create dependent STARNETHolons
+1. **Plan Dependencies**: Map out required Smart Bricks
+2. **Create Base Components**: Start with foundational Smart Bricks
+3. **Build Dependencies**: Create dependent Smart Bricks
 4. **Test Integration**: Verify all dependencies work
 5. **Publish System**: Publish complete system to STARNET
 
@@ -857,7 +857,7 @@ star optimize
 - **Keep Dependencies Minimal**: Only include necessary dependencies
 - **Use Semantic Versioning**: Follow versioning best practices
 - **Document Dependencies**: Clearly document why each dependency exists
-- **Test Dependency Changes**: Verify changes don't break dependent STARNETHolons
+- **Test Dependency Changes**: Verify changes don't break dependent Smart Bricks
 
 ### **DNA Best Practices**
 - **Regular DNA Updates**: Keep DNA files current
@@ -903,7 +903,7 @@ star --trace publish oapp "My OAPP"
 
 ### **Web UI to CLI**
 - **Export Operations**: Export from Web UI for CLI use
-- **Import Operations**: Import CLI-created STARNETHolons
+- **Import Operations**: Import CLI-created Smart Bricks
 - **Synchronization**: Keep both interfaces in sync
 
 ## 📞 **Support and Resources**
@@ -920,4 +920,4 @@ star --trace publish oapp "My OAPP"
 
 ---
 
-*The STAR CLI is the most powerful tool for developers working with the OASIS ecosystem, providing complete control over STARNETHolons and their dependencies.*
+*The STAR CLI is the most powerful tool for developers working with the OASIS ecosystem, providing complete control over Smart Bricks and their dependencies.*
