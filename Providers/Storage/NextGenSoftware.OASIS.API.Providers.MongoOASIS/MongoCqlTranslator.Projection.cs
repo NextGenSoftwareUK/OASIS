@@ -147,6 +147,22 @@ internal sealed partial class MongoCqlTranslator
                 {"v", Choose(Op("$and", present, inRange), new BsonDocument("$toInt", computed), BsonNull.Value)}
             });
         }
+        if (column.Function == CosmicProjectionFunction.TextToInt32Case)
+        {
+            if(column.Path.ValueType != typeof(string) || column.ValueType != typeof(int)
+                || column.Int32Cases == null || column.Int32Cases.Count == 0 || !column.Int32Replacement.HasValue)
+                throw new NotSupportedException("Native text-to-Int32 CASE requires an exact String path and captured literal branches.");
+            var numericName = prefix + "numericCase";
+            var numericPresent = Op("$eq", "$$"+numericName+".s", Literal(2));
+            var numericBranches = new BsonArray();
+            foreach (var entry in column.Int32Cases)
+                numericBranches.Add(new BsonDocument{{"case",Op("$eq","$$"+numericName+".v",Literal(entry.Key))},{"then",Literal(entry.Value)}});
+            var numericSelected = new BsonDocument("$switch",new BsonDocument{{"branches",numericBranches},{"default",Literal(column.Int32Replacement.Value)}});
+            return SingleLet(numericName,ProjectionCell(column.Path,prefix+"source"),new BsonDocument {
+                {"s",Choose(numericPresent,Literal(2),Literal(3))},
+                {"v",Choose(numericPresent,numericSelected,BsonNull.Value)}
+            });
+        }
         if (column.Function == CosmicProjectionFunction.TextValueCase)
         {
             if(column.Path.ValueType != typeof(string) || column.ValueType != typeof(string)

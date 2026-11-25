@@ -314,6 +314,12 @@ public sealed partial class CqlV1Web4NativeTests
                     :CosmicQueryMetadata.Value<string>(row,"tier")=="s"?"Silver":"Standard"}).ToCosmicListAsync();
             Assert.IsFalse(labelled.IsError,labelled.ErrorCode+": "+labelled.Message);
             var byName=labelled.Result.ToDictionary(row=>row.Name,row=>row.Label);
+            var ranked=await cases.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>tiers.Contains(row.Id))
+                .Select(row=>new{row.Name,Rank=CosmicQueryMetadata.Value<string>(row,"tier")=="g"?3
+                    :CosmicQueryMetadata.Value<string>(row,"tier")=="s"?2:1}).ToCosmicListAsync();
+            Assert.IsFalse(ranked.IsError,ranked.ErrorCode+": "+ranked.Message);
+            var rankByName=ranked.Result.ToDictionary(row=>row.Name,row=>row.Rank);
+            Assert.AreEqual(3,rankByName["tier-gold"]);Assert.AreEqual(2,rankByName["tier-silver"]);Assert.AreEqual(1,rankByName["tier-other"]);
             Assert.AreEqual("Gold",byName["tier-gold"]);Assert.AreEqual("Silver",byName["tier-silver"]);Assert.AreEqual("Standard",byName["tier-other"]);
             Assert.ThrowsException<CosmicLinqException>(()=>cases.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result
                 .Select(row=>row.Name=="a"?"A":row.Description=="b"?"B":"C"),"Branches over different paths are refused.");

@@ -32,6 +32,16 @@ public partial class HolonRepository
                 return ("CASE WHEN ("+arithmeticSource.State+")=2 AND "+computed+" NOT BETWEEN -2147483648 AND 2147483647 THEN 3 ELSE ("+arithmeticSource.State+") END",
                     "CASE WHEN ("+arithmeticSource.State+")=2 AND "+computed+" BETWEEN -2147483648 AND 2147483647 THEN "+computed+" ELSE NULL END");
             }
+            if (column.Function == CosmicProjectionFunction.TextToInt32Case)
+            {
+                if(column.Path.ValueType != typeof(string) || column.ValueType != typeof(int)
+                    || column.Int32Cases == null || column.Int32Cases.Count == 0 || !column.Int32Replacement.HasValue)
+                    throw new NotSupportedException("Native text-to-Int32 CASE requires an exact String path and captured literal branches.");
+                var numericSource=ProjectionOperand(column.Path,prefix,comparable);
+                var numericBranches=string.Concat(column.Int32Cases.Select(entry=>" WHEN "+Bind(entry.Key)+" THEN "+Bind((long)entry.Value)));
+                return ("CASE WHEN ("+numericSource.State+")=2 THEN 2 ELSE 3 END",
+                    "CASE WHEN ("+numericSource.State+")=2 THEN CASE ("+numericSource.Value+")"+numericBranches+" ELSE "+Bind((long)column.Int32Replacement.Value)+" END ELSE NULL END");
+            }
             if (column.Function == CosmicProjectionFunction.TextValueCase)
             {
                 if(column.Path.ValueType != typeof(string) || column.ValueType != typeof(string)
