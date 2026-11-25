@@ -37,6 +37,8 @@ on:
       - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.TablelandOASIS.IntegrationTests/**'
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.CelestiaOASIS/**'
       - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.CelestiaOASIS.IntegrationTests/**'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.CeramicOASIS/**'
+      - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CeramicOASIS.IntegrationTests/**'
       - 'Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.DaprOASIS.IntegrationTests/**'
       - 'Providers/Social/NextGenSoftware.OASIS.API.Providers.NostrOASIS/**'
       - 'Providers/*/TestProjects/*/*NativeStorageConformanceTests.cs'
@@ -52,7 +54,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        provider: [CouchDB, Couchbase, ArangoDB, SurrealDB, ClickHouse, InfluxDB, Chroma, PgVector, ArcadeDB, QuestDB, PouchDB, NATSJetStream, Nostr, Dapr, GUN, Matrix, OrbitDB, Arweave, Scuttlebutt, Appwrite, Pinecone, Tableland, Celestia]
+        provider: [CouchDB, Couchbase, ArangoDB, SurrealDB, ClickHouse, InfluxDB, Chroma, PgVector, ArcadeDB, QuestDB, PouchDB, NATSJetStream, Nostr, Dapr, GUN, Matrix, OrbitDB, Arweave, Scuttlebutt, Appwrite, Pinecone, Tableland, Celestia, Ceramic]
     defaults:
       run:
         working-directory: OASIS
@@ -85,6 +87,11 @@ jobs:
         if: matrix.provider == 'Tableland'
         with:
           node-version: '20.18.1'
+      # The Ceramic storage service uses the Ceramic SDK 0.12, which needs Node 22.
+      - uses: actions/setup-node@v4
+        if: matrix.provider == 'Ceramic'
+        with:
+          node-version: '22'
       - name: Run the shared core storage suite against the real backend
         env:
           PROVIDER: ${{ matrix.provider }}
@@ -271,6 +278,9 @@ jobs:
               # Local Celestia devnet (celestia-app + celestia-node, digest-pinned); the script prints container ids and the node URL/token.
               eval "$(Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.CelestiaOASIS.IntegrationTests/fixture/start-celestia.sh)"
               export OASIS_CELESTIA_URL OASIS_CELESTIA_TOKEN ;;
+            Ceramic)
+              # ceramic-one 0.58.0 (digest-pinned community build; see ACTIONS-FOR-DAVID) plus one storage service per mode.
+              source "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CeramicOASIS.IntegrationTests/start-ceramic-fixture.sh" ;;
             Couchbase)
               container="$(docker run -d -p 127.0.0.1:8091-8097:8091-8097 -p 127.0.0.1:11210:11210 -p 127.0.0.1:11280:11280 couchbase/server:community-7.6.2)"
               wait_for "curl -fsS http://127.0.0.1:8091/ui/index.html"
