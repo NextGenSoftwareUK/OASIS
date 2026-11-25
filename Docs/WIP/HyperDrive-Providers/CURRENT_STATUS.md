@@ -165,7 +165,9 @@ Done (91 pass the native core-storage-v2 suite 52/52 against their real backend;
 
 Partly done, with open items:
 - Turso: managed Turso and hosted WEB4 activation are still open.
-- HoloOASIS.Edge: the shared suite and cross-agent replication are still open.
+- HoloOASIS.Edge: cross-agent replication on a live conductor is still open. The shared core-storage suite does not apply
+  (2026-11-25): HoloOASIS.Edge and EdgeSQLiteOASIS are Edge Runtime replication/sync components, not storage providers;
+  their unit tests run in `edge-runtime-validation.yml`.
 - HoloOASIS.Unity: the Android conductor device lifecycle is still open.
 - Algorand: done 2026-11-25. Passes the shared suite 26/26 in both modes against its native record-box application on a disposable LocalNet (`.github/workflows/algorand-native-storage.yml`). Fixes: detail lookups by username/email read the stored detail record; holon graphs are saved (children were refused); batch saves acknowledge counts; Import and owner export work on enrolled records; metadata queries select from the decrypted records instead of public Indexer fields; an unversioned save publishes the next revision instead of failing the predecessor check. The suite needs the application funded for its box storage (fixture `OASIS_ALGORAND_RECORD_APP_FUNDING`).
 
