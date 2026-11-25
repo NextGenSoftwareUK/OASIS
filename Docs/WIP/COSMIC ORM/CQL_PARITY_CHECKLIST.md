@@ -4,10 +4,13 @@ Maintained by cloud session cloud-cosmic-B.
 
 | Date (UTC) | Row | Status | Evidence |
 |---|---|---|---|
-| 2026-11-25 | M24 defaults/computed values | Implemented; native 3/3 local pass; CI pending | Core 9096b411, branch work/cloud-cosmic-m24 |
-| 2026-11-25 | O18 local view | Implemented; CI run 45519967748 | branch work/cloud-cosmic-o18 |
+| 2026-11-25 | O17 model diagnostics | Implemented; native 3/3 local pass; CI pending | branch work/cloud-cosmic-o17 |
+| 2026-11-25 | M24 defaults/computed values | Implemented; native 3/3 local pass; CI run 45524783092 queued | branch work/cloud-cosmic-m24 |
+| 2026-11-25 | O18 local view | Implemented; native 3/3 local pass; CI run 45519967748 queued | branch work/cloud-cosmic-o18 |
+
 
 Maintained by cloud session cloud-cosmic-B (claims in `Docs/WIP/Release and Status/WORK-CLAIMS.md`).
+
 
 
 
@@ -546,8 +549,12 @@ older chronological roadmap is supporting history, not the source of green statu
 | O14 | Multi-tenancy with tenant-bound model/connection/query/cache scope | ✅ | ✅ | ✅ | **DEMO** — `CosmicSession.SetTenant(tenant, metadataKey)`: every session query (LINQ, Find, navigation loading, filtered include) carries a native tenant metadata predicate that `ignoreQueryFilters` cannot bypass; inserts are stamped; updating or deleting another tenant's record fails with COSMIC_TENANT_MISMATCH; the identity map is per session. All three in [45448347544](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/45448347544). Stateless sessions are not tenant-bound yet. |
 | O15 | Temporal/audit history with as-of query semantics | ❌ | ❌ | ❌ | Version history is archived per save when version control is on (and per-save deltas exist). Open: an as-of LINQ query surface that reads the archived revision valid at a timestamp natively on each store. |
 | O16 | Full text/spatial/hierarchy provider extensions | ❌ | ❌ | ❌ | Not started. Needs concrete extensions chosen per store (SQLite FTS5, MongoDB text/2dsphere, Neo4j full-text/point indexes) with a shared query surface. |
+| O17 | Validation tooling, design-time services and model diagnostics | 🟡 | 🟡 | 🟡 | Implemented (cloud-cosmic-B, Core dbbb1475): `CosmicModelBuilder.Validate()` reports every model problem (code, entity, property, message) instead of stopping at the first; `Build()` refuses exactly those models (ErrorCount = issue count). `CosmicModel.Describe()` returns the structured mapping (storage keys, required/length/precision, conversions, comparers, owned, shadow properties, read-only, query filters) and `ToDebugString()` a deterministic text view (EF `Model.ToDebugString`). `CosmicSession.FindModelViolationsAsync<T>(n)` scans up to n authorized rows natively (bounded `Take` in the native plan, no tracking, no writes) and reports records that violate the current constraints, using the same rule evaluation as save-time validation. Native journey `NativeModelDiagnosticsDescribeValidateAndScanStoredData` passed 3/3 (MongoDB/SQLite/Neo4j, 8 checks) locally; CI `qualify-cosmic-model-diagnostics-native.yml` pending. Not included: IDE designer/CLI commands (separate tooling product). |
+| O18 | EF6 databinding/local-view integration | ❌ | ❌ | ❌ | Not started. Needs an observable local view of tracked entities (ObservableCollection-style) raising add/remove notifications; the identity map is internal today. |
+
 | O17 | Validation tooling, design-time services and model diagnostics | ❌ | ❌ | ❌ | Not started. Model validation runs at build time (CosmicModelBuilder refuses invalid models); design-time tooling and diagnostics commands are not built. |
 | O18 | EF6 databinding/local-view integration | 🟡 | 🟡 | 🟡 | Implemented (cloud-cosmic-B, Core 58cb81d2): `CosmicSession.Local<T>()` returns `CosmicLocalView<T>` (`IReadOnlyList<T>`, `INotifyCollectionChanged`, `INotifyPropertyChanged`) listing tracked, not-deleted roots in tracking order. Add/Attach/tracked reads/Update add; Remove/Detach/Clear/acknowledged deletes remove; CancelRemoval restores; view `Add`/`Remove` write through to the session; session or view disposal closes it. No-tracking reads and other actors' rows never appear. Native journey `NativeSessionLocalViewTracksAddsReadsRemovalsAndCommits` passed 3/3 (MongoDB/SQLite/Neo4j, 8 checks each) locally; CI `qualify-cosmic-local-view-native.yml` pending. |
+
 
 ## COSMIC extensions (separate from the EF/NHibernate parity denominator)
 
