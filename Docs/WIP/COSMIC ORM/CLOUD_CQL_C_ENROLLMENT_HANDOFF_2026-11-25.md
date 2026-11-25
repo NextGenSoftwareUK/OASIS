@@ -10,6 +10,8 @@ on Railway Development. Nothing here needs David.
 | RootstockOASIS | `CQL_ROOTSTOCK_PUBLIC_SOURCE_JSON` | `https://public-node.rsk.co/` | `0x1e` (30) | `confirmed-100` |
 | StoryProtocolOASIS | `CQL_STORY_PUBLIC_SOURCE_JSON` | `https://mainnet.storyrpc.io/` | `0x5ea` (1514) | `finalized` |
 | LensOASIS | `CQL_LENS_PUBLIC_SOURCE_JSON` | `https://rpc.lens.xyz/` | `0xe8` (232) | `finalized` |
+| QuestDBOASIS | `CQL_QUESTDB_SYMBOL_SOURCE_JSON` | `https://demo.questdb.io/api/v1/sql/execute` (read-only public demo) | n/a | latest trade row per symbol |
+| ENSOffchainOASIS | `CQL_ENSOFFCHAIN_PUBLIC_SOURCE_JSON` | `https://api.web3.bio/` | n/a | live name-service profile |
 
 ## Steps (per provider, on the laptop)
 
@@ -54,3 +56,19 @@ Now only the BootLoader registration step is serialized (`CqlHostedSourceRegistr
 Holo provisioning and the per-source health checks run in the bounded parallel lane.
 `CqlActivationLaneTests` covers this. The Holo cold start itself is still the CQL
 sandbox session's item.
+
+## QuestDB and ENSOffchain (merged 25a128c2aa)
+
+These two sources have no publish script yet. Set their variables on the development WEB4 service, and add each provider to `queryOnlyProviders`, the zero-cost tariffs and the presets, the same way the BNB publisher does:
+
+```json
+CQL_QUESTDB_SYMBOL_SOURCE_JSON = {"schema":1,"endpoint":"https://demo.questdb.io/api/v1/sql/execute",
+  "dataset":"questdb-demo-trades","sourceOwner":"<public demo source owner>",
+  "symbols":["BTC-USDT","ETH-USDT","SOL-USDT"]}
+CQL_ENSOFFCHAIN_PUBLIC_SOURCE_JSON = {"schema":1,"origin":"https://api.web3.bio/",
+  "sourceOwner":"<public demo source owner>","names":["brantly.eth","nick.eth","vitalik.eth"]}
+```
+
+Preset metadata keys: `QuestDbSymbol` and `ENSOffchainName`. Both sources were verified live from the cloud session on 25 November. QuestDB returned the three symbols as `SYMBOL` in 0.3 s. web3.bio returned the exact identity, the `ens` platform and a canonical address for all three names.
+
+The QuestDB symbol adapter (`9e67263e`..`35d38833`, 4 November) had never been merged into Development. It is now ported, with an explicit `dataset` descriptor: `fixture` (the default) or `questdb-demo-trades`. SQL is never taken from configuration.
