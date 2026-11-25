@@ -98,3 +98,5 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | Dependabot minimatch alert in oasisweb4.com (via @typescript-eslint/typescript-estree) | Security / sites | local: WEB6 catalogue session | Development (direct, small) | 2026-11-25 | IN PROGRESS |
 | COSMIC M22 entity splitting / multiple mappings | COSMIC ORM | local_fa02a367 child COSMIC session | work/cosmic-cql-ton-public | 2026-11-25 | IN PROGRESS |
 | ENSOffchainOASIS live public CQL source (anonymous api.web3.bio ENS name profiles) | CQL sandbox (WEB4) | cloud: cloud-cql-C | work/cloud-cql-ensoffchain | 2026-11-25 02:45 | DONE (code) 25a128c2aa; live pending Railway enrollment by CQL sandbox session (CLOUD_CQL_C_ENROLLMENT_HANDOFF_2026-11-25.md) |
+| FarcasterOASIS native storage (local Hubble hub + local OP chain) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-farcaster | 2026-11-25 09:25 | IN PROGRESS |
+| RadixOASIS native storage (local Babylon network) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-radix | 2026-11-25 09:25 | IN PROGRESS |
