@@ -84,7 +84,8 @@ Last updated 31 October 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (mer
 | 10 | COSMIC/CQL: decide follow-up Default-routing fix publication; hosted Azure/Oracle remain deferred | F |
 | 12 | **Post-release 2026-11-24: production SQLite replication held (BINDING_MISMATCH), WEB9 fix to release, test records left on prod/dev** | POST-RELEASE-2026-11-24 |
 | 11 | **WEB6 model catalogue v6: review prices, then approve the push** (OpenRouter list import, media prices, 6 new text models) | G |
-| 12 | **HyperDrive on dev: approve one baseline repair for the Neo4j to SQLite replication hold at sequence 14** (the IPFS replication-source fault needs nothing from you) | I |
+| 12 | HyperDrive on dev: Neo4j to SQLite baseline repair at sequence 14 — **approved 25 November**, handed to the CQL sandbox session to run | I |
+| 13 | **Railway dev: add one DNA key so IPFS keeps its catalogue across restarts** (`IPFSOASIS.CatalogueRootPointerPath`) | I |
 
 ---
 
@@ -1621,7 +1622,8 @@ Status: decided by David, 24 November 2026; engineering in progress (no further 
 
 ### I1. Approve a baseline repair for Neo4j to SQLite at sequence 14
 
-- Status: open, 24 November 2026. Reported by the CQL/WEB4 session from the live dev WEB4 logs
+- Status: approved by David on 25 November 2026 ("Sure its fine"); handed to the CQL sandbox session, which ran the
+  earlier Mongo to SQLite repairs, to execute once. Originally reported 24 November 2026 by the CQL/WEB4 session from the live dev WEB4 logs
   (`railway logs -e dev -s 5123199a-43c4-4439-9921-e10e2aec7841`).
 - What: `Replication Neo4jOASIS -> hyperdrive-target:SQLLiteDBOASIS blocked at sequence 14, operation
   b64bce63-3aeb-40c0-b3b2-b75675a87023: COSMIC_REPLICA_LINEAGE_CONFLICT`. This is a new hold and is not the protected
@@ -1642,3 +1644,18 @@ Status: decided by David, 24 November 2026; engineering in progress (no further 
   boot, so each restart rolled IPFS back to the legacy v1 catalogue (`QmXZ6Sh7...`). The new
   `IPFSOASIS.CatalogueRootPointerPath` DNA setting keeps the root on the `/data` volume; the agent sets it in Railway's
   `OASIS_DNA_JSON` when the fix is deployed.
+
+### I2. Add the IPFS catalogue pointer key to Railway dev
+
+- Status: open, 25 November 2026.
+- What: in Railway, project OASIS, environment **dev**, service WEB4 (`5123199a-43c4-4439-9921-e10e2aec7841`), edit the
+  variable `OASIS_DNA_JSON`. In `OASIS` → `StorageProviders` → `IPFSOASIS`, add
+  `"CatalogueRootPointerPath": "/data/IPFS/catalogue-root"` next to `LookUpIPFSAddress`. Change nothing else.
+- Why: the entrypoint rewrites the DNA file from `OASIS_DNA_JSON` on every boot, so IPFS forgot its current catalogue on
+  each restart and replication failed with "The IPFS catalogue has no persisted storage identity". The code fix (now on
+  Development, commit 8ebfa79c) keeps the catalogue root in this file on the `/data` volume. The agent could not set it:
+  the 31.6K-character value is too long for a Windows command line, and Railway's API refuses the CLI login token from a
+  script.
+- After: the next deploy picks it up; the first IPFS write upgrades the old catalogue and the replication-source error
+  stops. Tell the agent when it is saved and it will verify in the dev logs.
+- Unblocks: IPFS as a HyperDrive replication source on dev. Staging/production need the same key when promoted.
