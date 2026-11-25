@@ -121,8 +121,12 @@ app.MapGet("/", () => Results.Redirect("/swagger"));
 // "/health" is already exempt from the API key middleware; no billing policy applies.
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", service = "WEB9 OASIS Singularity Layer API", timestamp = DateTime.UtcNow }));
 
-if(builder.Configuration["PREPARED_STORAGE_ADMISSION_JSON"]!=null){
-    var admittedBoot=await OASISBootLoader.BootOASISForAdmittedStorageAsync(OASISBootLoader.OASISDNAPath??System.IO.Path.Combine(AppContext.BaseDirectory,"OASIS_DNA.json"));
-    if(admittedBoot.IsError||!admittedBoot.Result)throw new InvalidOperationException(admittedBoot.Message);
-}
+// Boot OASIS on every host, as WEB6-WEB8 do. Without it the provider manager has no
+// avatar-login authorities, so every bearer is refused (ACCESS_SESSION_AUTHORITY_NOT_ADMITTED).
+var dnaPath=OASISBootLoader.OASISDNAPath??System.IO.Path.Combine(AppContext.BaseDirectory,"OASIS_DNA.json");
+var admittedBoot=builder.Configuration["PREPARED_STORAGE_ADMISSION_JSON"]!=null;
+var bootResult=admittedBoot?await OASISBootLoader.BootOASISForAdmittedStorageAsync(dnaPath):await OASISBootLoader.BootOASISAsync(dnaPath);
+if(admittedBoot&&(bootResult.IsError||!bootResult.Result))throw new InvalidOperationException(bootResult.Message);
+if(bootResult.IsError)
+    NextGenSoftware.OASIS.Common.OASISErrorHandling.HandleError($"Warning: WEB9 OASIS boot failed: {bootResult.Message}");
 app.Run();

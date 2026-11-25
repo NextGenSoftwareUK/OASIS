@@ -75,3 +75,7 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | Auto-bump submodule pointers on Development so Solution Integrity stops failing on drift (WEB6, API.Core, STAR ODK so far) | CI | local: HyperDrive Client session | work/submodule-autobump | 2026-11-25 02:40 | IN PROGRESS |
 | CeramicOASIS native storage (ceramic-one local node) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-ceramic | 2026-11-25 01:50 | IN PROGRESS |
 | CelestiaOASIS native storage (local Celestia devnet) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-celestia | 2026-11-25 01:50 | IN PROGRESS |
+| COSMIC M19 inheritance discriminator (TPH) | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-m19 | 2026-11-25 01:58 | IN PROGRESS |
+| EclipseOASIS native storage (SVM: local solana-test-validator) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-eclipse | 2026-11-25 02:10 | IN PROGRESS |
+| BlueSkyOASIS native storage (self-hosted AT Protocol PDS) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-bluesky | 2026-11-25 02:10 | IN PROGRESS |
+| FilecoinOASIS native storage (local Lotus devnet) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-filecoin | 2026-11-25 02:10 | IN PROGRESS |
