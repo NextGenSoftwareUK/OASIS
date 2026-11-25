@@ -22,7 +22,6 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using Newtonsoft.Json;
-using NextGenSoftware.OASIS.API.Providers.ZcashOASIS.Infrastructure.Repositories;
 using NextGenSoftware.OASIS.API.Providers.ZcashOASIS.Infrastructure.Services.Zcash;
 using NextGenSoftware.OASIS.API.Providers.ZcashOASIS.Models;
 using NextGenSoftware.OASIS.API.Core.Managers;
@@ -31,86 +30,6 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
 {
     public partial class ZcashOASIS
     {
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Zcash provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                // Load avatar by email first
-                var avatarResult = await LoadAvatarByEmailAsync(avatarEmailAddress, version);
-                if (avatarResult.IsError || avatarResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Avatar not found: {avatarEmailAddress}");
-                    return result;
-                }
-
-                // Delegate to ExportAllDataForAvatarByIdAsync
-                var exportResult = await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
-                result.Result = exportResult.Result;
-                result.IsError = exportResult.IsError;
-                result.Message = exportResult.Message;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data by email from Zcash: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
-        {
-            return ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).Result;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Zcash provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                // Load all holons
-                var holonsResult = await LoadAllHolonsAsync(HolonType.All, version: version);
-                if (holonsResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, holonsResult.Message);
-                    return result;
-                }
-
-                result.Result = holonsResult.Result ?? new List<IHolon>();
-                result.IsError = false;
-                result.Message = $"Exported {result.Result.Count()} holons from Zcash";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
-            }
-            return result;
-        }
-
-        public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
-        {
-            return ExportAllAsync(version).Result;
-        }
-
 
         public OASISResult<ITransactionResponse> SendToken(ISendWeb3TokenRequest request)
         {
