@@ -1,0 +1,61 @@
+name: CQL protocol test projects build
+
+# The IPFS, SOLID and ActivityPub test projects reference the shipping WebAPI
+# project for its CQL endpoint types. This checks they compile whenever the
+# WebAPI CQL surface or those projects change.
+on:
+  push:
+    branches: [work/cql-sandbox-providers, Development]
+    paths:
+      - '.github/workflows/cql-protocol-test-projects.yml'
+      - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/**'
+      - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj'
+      - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests/**'
+      - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests/**'
+      - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.IntegrationTests/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        project:
+          - NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests
+          - NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests
+          - NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.IntegrationTests
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: OASIS
+          submodules: true
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - name: Read the recorded dependency revisions
+        id: dependency
+        working-directory: OASIS
+        run: grep -E '^(LIBRARIES_COMMIT|HOLOCHAIN_COMMIT)=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependency.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependency.outputs.HOLOCHAIN_COMMIT }}
+          path: holochain-client-csharp
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Build ${{ matrix.project }}
+        working-directory: OASIS
+        run: dotnet build Providers/Network/TestProjects/${{ matrix.project }} -m:2 -nr:false -p:UseSharedCompilation=false
