@@ -468,6 +468,23 @@ public sealed partial class CqlV1Web4NativeTests
             CollectionAssert.AreEqual(new[]{other.Id},await Matching(row=>"wor"==CqlTestFunctions.Prefix(CosmicQueryMetadata.Value<string>(row,"word"),3)));
         }
         checks++;
+        // A05 inverse navigation: a tracked child resolves its tracked parent instance without a persisted reference.
+        var navParent=New("nav-parent");var navChild=New("nav-child");navChild.ParentHolonId=navParent.Id;
+        using(var navWriter=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            Assert.IsFalse(navWriter.Add(navParent).IsError);Assert.IsFalse(navWriter.Add(navChild).IsError);
+            Assert.IsFalse((await navWriter.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()))).IsError);
+        }
+        using(var navReader=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            var child=(await navReader.FindAsync<Holon>(navChild.Id)).Result;
+            var missing=navReader.TrackedParent<Holon>(child);
+            Assert.IsFalse(missing.IsError);Assert.IsFalse(missing.IsLoaded);Assert.AreEqual("COSMIC_PARENT_NOT_TRACKED",missing.ErrorCode);
+            var parent=(await navReader.FindAsync<Holon>(navParent.Id)).Result;
+            var resolved=navReader.TrackedParent<Holon>(child);
+            Assert.IsTrue(resolved.IsLoaded,resolved.Message);Assert.AreSame(parent,resolved.Result,"The inverse resolves to the tracked parent instance.");
+        }
+        checks++;
         // M29 seed data: idempotent insert of fixed-identity rows in one unit of work.
         Holon[] Seed()=>new[]{
             new Holon{Id=seedIds[0],Name="seed-one",CreatedByAvatarId=actor,IsActive=true,IsPublic=false},
@@ -484,7 +501,7 @@ public sealed partial class CqlV1Web4NativeTests
         }
         Assert.AreEqual(2,(await Stored(seedIds)).Count);checks++;
         return new NativeFixtureJourneyProof(checks,4,new Dictionary<string,bool>{
-            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true,["notificationTrackingVerified"]=true,["collectionMembershipVerified"]=true,["stringTransformsVerified"]=true,["compiledQueryVerified"]=true,["asOfHistoryVerified"]=true,["setCollectionVerified"]=true,["generatedValuesVerified"]=true,["readOnlyViewsVerified"]=true,["graphMergeVerified"]=true,["multiBranchCaseVerified"]=true,["fullTextVerified"]=true,["entitySplittingVerified"]=true,["int32ArithmeticVerified"]=true,["futuresVerified"]=true,["userFunctionsVerified"]=true});
+            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true,["notificationTrackingVerified"]=true,["collectionMembershipVerified"]=true,["stringTransformsVerified"]=true,["compiledQueryVerified"]=true,["asOfHistoryVerified"]=true,["setCollectionVerified"]=true,["generatedValuesVerified"]=true,["readOnlyViewsVerified"]=true,["graphMergeVerified"]=true,["multiBranchCaseVerified"]=true,["fullTextVerified"]=true,["entitySplittingVerified"]=true,["int32ArithmeticVerified"]=true,["futuresVerified"]=true,["userFunctionsVerified"]=true,["inverseNavigationVerified"]=true});
     }
 
     public sealed class SetModelHolon : Holon
