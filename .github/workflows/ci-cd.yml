@@ -1232,6 +1232,8 @@ jobs:
           "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.FantomOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.FantomOASIS.UnitTests.csproj"
           "Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.UnitTests.csproj"
           "Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.PLANOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.PLANOASIS.UnitTests.csproj"
+          "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BaseOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.BaseOASIS.UnitTests.csproj"
+          "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.AvalancheOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.AvalancheOASIS.UnitTests.csproj"
           "ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.Core.UnitTests/NextGenSoftware.OASIS.API.ONODE.Core.Tests/NextGenSoftware.OASIS.API.ONODE.Core.Tests.csproj"
           "ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.csproj"
           "STAR ODK/NextGenSoftware.OASIS.STAR.UnitTests/NextGenSoftware.OASIS.STAR.UnitTests.csproj"

@@ -11,54 +11,69 @@ namespace NextGenSoftware.OASIS.API.Providers.AvalancheOASIS.UnitTests;
 /// </summary>
 public class AvalancheOASISTests
 {
-    private const string TestHostUri = "https://api.avax-test.network/ext/bc/C/rpc";
+    private const string TestHostUri = "http://127.0.0.1:1"; // closed local port: activation must fail offline
     private const string TestPrivateKey = "0000000000000000000000000000000000000000000000000000000000000001";
-    private const BigInteger TestChainId = 43113; // Avalanche Fuji Testnet
+    private static readonly BigInteger TestChainId = 43113; // Avalanche Fuji Testnet
     private const string TestContractAddress = "0x0000000000000000000000000000000000000000";
 
     [Fact]
     public void Constructor_ShouldInitializeProvider_WithCorrectProperties()
     {
         // Arrange & Act
-        var provider = new AvalancheOASIS(TestHostUri, TestPrivateKey, TestChainId, TestContractAddress);
+        var provider = new AvalancheOASIS(TestHostUri, TestPrivateKey, TestContractAddress, TestChainId);
 
         // Assert
         Assert.NotNull(provider);
         Assert.Equal("AvalancheOASIS", provider.ProviderName);
-        Assert.Equal("Avalanche Provider", provider.ProviderDescription);
+        Assert.Equal("Avalanche Provider - EVM-compatible using Web3Core", provider.ProviderDescription);
         Assert.Equal(ProviderType.AvalancheOASIS, provider.ProviderType.Value);
         Assert.Equal(ProviderCategory.StorageAndNetwork, provider.ProviderCategory.Value);
     }
 
     [Fact]
-    public void Constructor_ShouldThrowException_WhenHostUriIsNull()
+    public async Task Activation_FailsWithoutThrowing_WhenHostUriIsMissing()
     {
-        // Arrange, Act & Assert
-        Assert.Throws<ArgumentNullException>(() => 
-            new AvalancheOASIS(null!, TestPrivateKey, TestChainId, TestContractAddress));
+        // Providers are built unconfigured and checked at activation, so a
+        // missing setting must surface as an error result, not an exception.
+        var provider = new AvalancheOASIS(null!, TestPrivateKey, TestContractAddress, TestChainId);
+
+        var result = await provider.ActivateProviderAsync();
+
+        Assert.True(result.IsError);
+        Assert.False(provider.IsProviderActivated);
     }
 
     [Fact]
-    public void Constructor_ShouldThrowException_WhenPrivateKeyIsNull()
+    public async Task Activation_FailsWithoutThrowing_WhenPrivateKeyIsMissing()
     {
-        // Arrange, Act & Assert
-        Assert.Throws<ArgumentNullException>(() => 
-            new AvalancheOASIS(TestHostUri, null!, TestChainId, TestContractAddress));
+        // Providers are built unconfigured and checked at activation, so a
+        // missing setting must surface as an error result, not an exception.
+        var provider = new AvalancheOASIS(TestHostUri, null!, TestContractAddress, TestChainId);
+
+        var result = await provider.ActivateProviderAsync();
+
+        Assert.True(result.IsError);
+        Assert.False(provider.IsProviderActivated);
     }
 
     [Fact]
-    public void Constructor_ShouldThrowException_WhenContractAddressIsNull()
+    public async Task Activation_FailsWithoutThrowing_WhenContractAddressIsMissing()
     {
-        // Arrange, Act & Assert
-        Assert.Throws<ArgumentNullException>(() => 
-            new AvalancheOASIS(TestHostUri, TestPrivateKey, TestChainId, null!));
+        // Providers are built unconfigured and checked at activation, so a
+        // missing setting must surface as an error result, not an exception.
+        var provider = new AvalancheOASIS(TestHostUri, TestPrivateKey, null!, TestChainId);
+
+        var result = await provider.ActivateProviderAsync();
+
+        Assert.True(result.IsError);
+        Assert.False(provider.IsProviderActivated);
     }
 
     [Fact]
     public void ProviderType_ShouldBeAvalancheOASIS()
     {
         // Arrange
-        var provider = new AvalancheOASIS(TestHostUri, TestPrivateKey, TestChainId, TestContractAddress);
+        var provider = new AvalancheOASIS(TestHostUri, TestPrivateKey, TestContractAddress, TestChainId);
 
         // Act
         var providerType = provider.ProviderType.Value;
@@ -71,7 +86,7 @@ public class AvalancheOASISTests
     public void ProviderCategory_ShouldBeStorageAndNetwork()
     {
         // Arrange
-        var provider = new AvalancheOASIS(TestHostUri, TestPrivateKey, TestChainId, TestContractAddress);
+        var provider = new AvalancheOASIS(TestHostUri, TestPrivateKey, TestContractAddress, TestChainId);
 
         // Act
         var category = provider.ProviderCategory.Value;
@@ -87,7 +102,7 @@ public class AvalancheOASISTests
     public void Constructor_ShouldAcceptVariousHostUris(string hostUri)
     {
         // Arrange & Act
-        var provider = new AvalancheOASIS(hostUri, TestPrivateKey, TestChainId, TestContractAddress);
+        var provider = new AvalancheOASIS(hostUri, TestPrivateKey, TestContractAddress, TestChainId);
 
         // Assert
         Assert.NotNull(provider);
@@ -101,7 +116,7 @@ public class AvalancheOASISTests
     public void Constructor_ShouldAcceptVariousChainIds(int chainId)
     {
         // Arrange & Act
-        var provider = new AvalancheOASIS(TestHostUri, TestPrivateKey, chainId, TestContractAddress);
+        var provider = new AvalancheOASIS(TestHostUri, TestPrivateKey, TestContractAddress, new BigInteger(chainId));
 
         // Assert
         Assert.NotNull(provider);

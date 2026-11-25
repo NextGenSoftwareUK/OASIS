@@ -11,9 +11,9 @@ namespace NextGenSoftware.OASIS.API.Providers.BaseOASIS.UnitTests;
 /// </summary>
 public class BaseOASISTests
 {
-    private const string TestHostUri = "https://sepolia.base.org";
+    private const string TestHostUri = "http://127.0.0.1:1"; // closed local port: activation must fail offline
     private const string TestPrivateKey = "0000000000000000000000000000000000000000000000000000000000000001";
-    private const BigInteger TestChainId = 84532; // Base Sepolia Testnet
+    private static readonly BigInteger TestChainId = 84532; // Base Sepolia Testnet
     private const string TestContractAddress = "0x0000000000000000000000000000000000000000";
 
     [Fact]
@@ -25,33 +25,48 @@ public class BaseOASISTests
         // Assert
         Assert.NotNull(provider);
         Assert.Equal("BaseOASIS", provider.ProviderName);
-        Assert.Equal("Base Provider", provider.ProviderDescription);
+        Assert.Equal("Base Provider - EVM-compatible using Web3Core", provider.ProviderDescription);
         Assert.Equal(ProviderType.BaseOASIS, provider.ProviderType.Value);
         Assert.Equal(ProviderCategory.StorageAndNetwork, provider.ProviderCategory.Value);
     }
 
     [Fact]
-    public void Constructor_ShouldThrowException_WhenHostUriIsNull()
+    public async Task Activation_FailsWithoutThrowing_WhenHostUriIsMissing()
     {
-        // Arrange, Act & Assert
-        Assert.Throws<ArgumentNullException>(() => 
-            new BaseOASIS(null!, TestPrivateKey, TestChainId, TestContractAddress));
+        // Providers are built unconfigured and checked at activation, so a
+        // missing setting must surface as an error result, not an exception.
+        var provider = new BaseOASIS(null!, TestPrivateKey, TestChainId, TestContractAddress);
+
+        var result = await provider.ActivateProviderAsync();
+
+        Assert.True(result.IsError);
+        Assert.False(provider.IsProviderActivated);
     }
 
     [Fact]
-    public void Constructor_ShouldThrowException_WhenPrivateKeyIsNull()
+    public async Task Activation_FailsWithoutThrowing_WhenPrivateKeyIsMissing()
     {
-        // Arrange, Act & Assert
-        Assert.Throws<ArgumentNullException>(() => 
-            new BaseOASIS(TestHostUri, null!, TestChainId, TestContractAddress));
+        // Providers are built unconfigured and checked at activation, so a
+        // missing setting must surface as an error result, not an exception.
+        var provider = new BaseOASIS(TestHostUri, null!, TestChainId, TestContractAddress);
+
+        var result = await provider.ActivateProviderAsync();
+
+        Assert.True(result.IsError);
+        Assert.False(provider.IsProviderActivated);
     }
 
     [Fact]
-    public void Constructor_ShouldThrowException_WhenContractAddressIsNull()
+    public async Task Activation_FailsWithoutThrowing_WhenContractAddressIsMissing()
     {
-        // Arrange, Act & Assert
-        Assert.Throws<ArgumentNullException>(() => 
-            new BaseOASIS(TestHostUri, TestPrivateKey, TestChainId, null!));
+        // Providers are built unconfigured and checked at activation, so a
+        // missing setting must surface as an error result, not an exception.
+        var provider = new BaseOASIS(TestHostUri, TestPrivateKey, TestChainId, null!);
+
+        var result = await provider.ActivateProviderAsync();
+
+        Assert.True(result.IsError);
+        Assert.False(provider.IsProviderActivated);
     }
 
     [Fact]
@@ -101,7 +116,7 @@ public class BaseOASISTests
     public void Constructor_ShouldAcceptVariousChainIds(int chainId)
     {
         // Arrange & Act
-        var provider = new BaseOASIS(TestHostUri, TestPrivateKey, chainId, TestContractAddress);
+        var provider = new BaseOASIS(TestHostUri, TestPrivateKey, new BigInteger(chainId), TestContractAddress);
 
         // Assert
         Assert.NotNull(provider);
