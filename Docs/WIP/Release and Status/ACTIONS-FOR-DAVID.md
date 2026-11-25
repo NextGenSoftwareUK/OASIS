@@ -1518,3 +1518,13 @@ Links: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44675640513
 - Keyed indexer APIs (free tiers are enough, read-only): Alchemy, QuickNode, Ankr, Covalent (GoldRush), Moralis, Dune, Zapper, Tenderly, Goldsky and Nansen. Each needs one read-only key. Save each key on the Railway development WEB4 service as `CQL_<PROVIDER>_PUBLIC_READER_KEY`, for example `CQL_ALCHEMY_PUBLIC_READER_KEY`. These are lower priority than the demo databases.
 - Reason: without these, the providers above cannot return real records in the live sandbox. Everything that needs no account is being done meanwhile.
 - Status: OPEN 2026-11-25.
+
+## ONODE Manager release, signing and alerts - 2026-11-25
+
+Status: code work continues without these; only David can do them.
+
+1. Code signing (optional; unsigned builds still ship). Add these GitHub Actions secrets to NextGenSoftwareUK/OASIS. `release-onode-manager.yml` signs automatically once they exist:
+   - Windows: `WINDOWS_CERT_PFX_BASE64` (base64 of the .pfx) and `WINDOWS_CERT_PASSWORD`.
+   - macOS: `MACOS_CERT_P12_BASE64`, `MACOS_CERT_PASSWORD`, `MACOS_SIGN_APP_IDENTITY`, `MACOS_SIGN_INSTALL_IDENTITY`, `APPLE_ID`, `APPLE_TEAM_ID`, `APPLE_APP_PASSWORD` (app-specific password).
+2. First public ONODE Manager release. Run Global OASIS Release with `optional_components` including `onode_manager` and `publish=true`. It takes about 2 hours and creates a public GitHub release. Until it runs, the ONODE Manager download links on the sites stay dead.
+3. Dependabot: GitHub reports 669 alerts on the default branch (47 critical). Authorise the GitHub connector in Claude Code (`/mcp`) so a session can list and triage them.
