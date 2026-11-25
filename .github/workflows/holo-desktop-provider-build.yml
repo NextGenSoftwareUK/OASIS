@@ -70,6 +70,10 @@ jobs:
           }
           else { $revision = $development }
           "development=$revision" >> $env:GITHUB_OUTPUT
+          # The provider branch's own changes are those since it forked from Development.
+          $fork = (Invoke-RestMethod -Headers $headers -Uri "$repository/compare/$revision...$env:GITHUB_SHA").merge_base_commit.sha
+          if ($fork -cnotmatch '^[a-f0-9]{40}$') { throw 'Unable to resolve where the provider branch forked from Development.' }
+          "fork=$fork" >> $env:GITHUB_OUTPUT
           Write-Output "Qualifying provider revision $env:GITHUB_SHA against Development $revision"
       - uses: actions/checkout@v7
         if: '!inputs.exact_source'
@@ -87,12 +91,12 @@ jobs:
         if: '!inputs.exact_source'
         env:
           HOLO_VERIFICATION: ${{ inputs.verification }}
+          PROVIDER_FORK: ${{ steps.baseline.outputs.fork }}
         shell: pwsh
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
-          # This runner baseline already includes the native CQL mode.
-          $startupBase = '4838fdd9e694dfd7a36b64f61fd8fc200eb96668'
-          $storageBase = '4fef831e0be670475bcaba71e6b46cf99c22c447'
+          # Overlay only what the provider branch changed since it forked from Development.
+          $fork = $env:PROVIDER_FORK
           $source = '../provider-source'
           $paths = @(
             'Scripts/test_holonet_live_release.ps1'
@@ -110,7 +114,6 @@ jobs:
             'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/HoloOASISDesktopNativeStorageConformanceTests.cs'
             'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests.csproj'
           )
-          $routingBase = '0ca6397b2fce3f2d9db4535c878936d2817ef9f6'
           if ($env:HOLO_VERIFICATION -eq 'routing') {
             $paths = @(
               'Scripts/test_holonet_live_release.ps1'
@@ -120,14 +123,10 @@ jobs:
               'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/HoloNativeRoutingTests.cs'
               'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests.csproj'
             )
-            git -C $source fetch --no-tags --depth=1 --filter=blob:none origin $routingBase
           }
-          git -C $source fetch --no-tags --depth=1 --filter=blob:none origin $startupBase $storageBase
+          git -C $source fetch --no-tags --depth=1 --filter=blob:none origin $fork
           foreach ($path in $paths) {
-            $base = if ($env:HOLO_VERIFICATION -eq 'routing') { $routingBase } elseif ($path -eq 'Scripts/test_holonet_live_release.ps1' -or
-              $path -like '*/NextGenSoftware.OASIS.OASISBootLoader.TestHarness/Program.cs' -or
-              $path -like '*/NextGenSoftware.OASIS.API.Providers.HoloOASIS/HoloOASIS.ActivateDeactivateLoad.cs') { $startupBase } else { $storageBase }
-            $before = git -C $source ls-tree $base -- $path
+            $before = git -C $source ls-tree $fork -- $path
             $after = git -C $source ls-tree HEAD -- $path
             $current = git ls-tree HEAD -- $path
             if ($before -ceq $after -or $current -ceq $after) { continue }
