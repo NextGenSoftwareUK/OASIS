@@ -77,9 +77,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Sandbox
                 },
                 async (avatarId, provider) =>
                 {
-                    var loaded = await HolonManager.Instance.LoadAllHolonsAsync(HolonType.All, loadChildren: false, recursive: false, maxChildDepth: 0,
-                        continueOnError: true, loadChildrenFromProvider: false, childHolonType: HolonType.All, version: 0, providerType: provider,
-                        avatarId: avatarId, includePublic: false);
+                    // Ask the provider for the owner's own rows. HolonManager's avatarId is the viewer (a
+                    // wizard sees everything), so it would list the whole store, and one legacy duplicate
+                    // identity anywhere then failed every demo avatar's cleanup.
+                    var storage = ProviderManager.Instance.GetStorageProvider(provider)
+                        ?? throw new InvalidOperationException($"{provider} is not registered.");
+                    var loaded = await storage.LoadAllHolonsAsync(avatarId, includePublic: false, type: HolonType.All,
+                        loadChildren: false, recursive: false, maxChildDepth: 0, curentChildDepth: 0, continueOnError: true,
+                        loadChildrenFromProvider: false, version: 0);
                     if (loaded.IsError) throw new InvalidOperationException($"Listing {provider} holons of {avatarId} failed: {loaded.Message}");
                     return (IReadOnlyList<IHolon>)(loaded.Result ?? Enumerable.Empty<IHolon>()).ToList();
                 },
