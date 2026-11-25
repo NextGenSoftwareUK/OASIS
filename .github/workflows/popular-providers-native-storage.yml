@@ -26,6 +26,9 @@ on:
       - 'Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS.IntegrationTests/**'
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.ArweaveOASIS/**'
       - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ArweaveOASIS.IntegrationTests/**'
+      - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS/**'
+      - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS.IntegrationTests/**'
+      - 'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/StorageServiceKeyValueBackend.cs'
       - 'Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.DaprOASIS.IntegrationTests/**'
       - 'Providers/Social/NextGenSoftware.OASIS.API.Providers.NostrOASIS/**'
       - 'Providers/*/TestProjects/*/*NativeStorageConformanceTests.cs'
@@ -41,7 +44,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        provider: [CouchDB, Couchbase, ArangoDB, SurrealDB, ClickHouse, InfluxDB, Chroma, PgVector, ArcadeDB, QuestDB, PouchDB, NATSJetStream, Nostr, Dapr, GUN, Matrix, OrbitDB, Arweave]
+        provider: [CouchDB, Couchbase, ArangoDB, SurrealDB, ClickHouse, InfluxDB, Chroma, PgVector, ArcadeDB, QuestDB, PouchDB, NATSJetStream, Nostr, Dapr, GUN, Matrix, OrbitDB, Arweave, Scuttlebutt]
     defaults:
       run:
         working-directory: OASIS
@@ -212,6 +215,15 @@ jobs:
               curl -fsS "$gateway/mine" >/dev/null
               export OASIS_ARWEAVE_GATEWAY="$gateway" OASIS_ARWEAVE_SDK_BRIDGE="$bridge" \
                 OASIS_ARWEAVE_ASYNC_WALLET_FILE="$fixture/async-wallet.json" OASIS_ARWEAVE_SYNC_WALLET_FILE="$fixture/sync-wallet.json" ;;
+            Scuttlebutt)
+              # Two disposable Scuttlebutt storage services, each owning its own signed feed (one per storage mode).
+              service_dir="$PWD/Providers/Network/NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS/StorageService"
+              npm ci --prefix "$service_dir" --no-audit --no-fund
+              export OASIS_SSB_STORAGE_TOKEN="$password"
+              node "$service_dir/storage-service.cjs" "$fixture/ssb-async" 18905 >"$fixture/ssb-async.log" 2>&1 & relays="$relays $!"
+              node "$service_dir/storage-service.cjs" "$fixture/ssb-sync" 18906 >"$fixture/ssb-sync.log" 2>&1 & relays="$relays $!"
+              wait_for "grep -q ready '$fixture/ssb-async.log' && grep -q ready '$fixture/ssb-sync.log'"
+              export OASIS_SSB_ASYNC_SERVICE=http://127.0.0.1:18905 OASIS_SSB_SYNC_SERVICE=http://127.0.0.1:18906 ;;
             Couchbase)
               container="$(docker run -d -p 127.0.0.1:8091-8097:8091-8097 -p 127.0.0.1:11210:11210 -p 127.0.0.1:11280:11280 couchbase/server:community-7.6.2)"
               wait_for "curl -fsS http://127.0.0.1:8091/ui/index.html"
@@ -237,5 +249,15 @@ jobs:
             wait_for "grep -q ready '$fixture/orbitdb-restart.log'"
             [[ "$(curl -fsS -H "$auth" "http://127.0.0.1:18901/kv?key=durability/probe")" == kept ]]
             echo "OrbitDB data survived a storage service restart."
+          fi
+          if [[ "$PROVIDER" == Scuttlebutt ]]; then
+            auth="Authorization: Bearer $password"
+            curl -fsS -X PUT -H "$auth" "http://127.0.0.1:18905/kv?key=durability/probe" --data-binary kept >/dev/null
+            for pid in $relays; do kill -TERM "$pid"; wait "$pid" || true; done
+            relays=""
+            node "$service_dir/storage-service.cjs" "$fixture/ssb-async" 18905 >"$fixture/ssb-restart.log" 2>&1 & relays="$!"
+            wait_for "grep -q ready '$fixture/ssb-restart.log'"
+            [[ "$(curl -fsS -H "$auth" "http://127.0.0.1:18905/kv?key=durability/probe")" == kept ]]
+            echo "Scuttlebutt feed data survived a storage service restart."
           fi
           echo "$PROVIDER passed both storage modes against its real backend."
