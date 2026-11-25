@@ -60,6 +60,7 @@ public sealed class CqlNostrMongoNativeTests
         public HolonManager CreateManager(IOASISProvider provider) => new(null, dna, registry);
     }
 
+    [Trait("Category", "LiveService")]
     [NostrMongoNativeFact]
     public async Task NativeNostrMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
     {

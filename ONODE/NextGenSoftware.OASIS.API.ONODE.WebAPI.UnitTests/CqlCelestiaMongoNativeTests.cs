@@ -60,6 +60,7 @@ public sealed class CqlCelestiaMongoNativeTests
         public HolonManager CreateManager(IOASISProvider provider) => new(null, dna, registry);
     }
 
+    [Trait("Category", "LiveService")]
     [CelestiaMongoNativeFact]
     public async Task NativeCelestiaMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
     {

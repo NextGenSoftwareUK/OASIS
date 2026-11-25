@@ -5,6 +5,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
 
 public sealed class CqlSeedsSettingsHttpTests
 {
+    [Trait("Category", "LiveService")]
     [ReviewedPublicMongoNativeFact("COSMIC_SEEDS_SETTINGS_NATIVE_HTTP")]
     public Task SeedsSettingsNativeHttp() => ReviewedPublicMongoHttpFixture.VerifyHttpAsync(
         ProviderType.SEEDSOASIS, owner =>

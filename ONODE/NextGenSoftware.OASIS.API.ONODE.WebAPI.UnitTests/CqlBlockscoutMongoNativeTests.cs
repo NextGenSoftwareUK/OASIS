@@ -60,6 +60,7 @@ public sealed class CqlBlockscoutMongoNativeTests
         public HolonManager CreateManager(IOASISProvider provider) => new(null, dna, registry);
     }
 
+    [Trait("Category", "LiveService")]
     [BlockscoutMongoNativeFact]
     public async Task NativeBlockscoutMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
     {

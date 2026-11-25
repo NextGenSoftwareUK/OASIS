@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive;
 /// <summary>Read-only reconciliation of the retained, acknowledged demo cohort; never creates providers or replays writes.</summary>
 public sealed class SandboxHostedReplicationProbe
 {
+    [Trait("Category", "LiveService")]
     [HostedRoutingOperationProbeFact]
     public async Task ObserveExactRoutingOperationWithoutPayloads()
     {
@@ -58,6 +59,7 @@ public sealed class SandboxHostedReplicationProbe
     }
 
 
+    [Trait("Category", "LiveService")]
     [SandboxHostedAccountingProbeFact]
     public async Task ObserveRetainedSourceAndDeliveryObligations()
     {

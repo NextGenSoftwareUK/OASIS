@@ -60,6 +60,7 @@ public sealed class CqlClickHouseMongoNativeTests
         public HolonManager CreateManager(IOASISProvider provider) => new(null, dna, registry);
     }
 
+    [Trait("Category", "LiveService")]
     [ClickHouseMongoNativeFact]
     public async Task NativeClickHouseMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
     {

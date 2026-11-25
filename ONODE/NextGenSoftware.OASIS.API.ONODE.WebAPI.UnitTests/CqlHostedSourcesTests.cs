@@ -32,6 +32,10 @@ public partial class CqlHostedSourcesTests
         };
     }
 
+    // Only a guard against a hung activation, not a latency assertion: the background activation is queued on the
+    // shared thread pool, and in a full-project run (~1,500 tests) 5 s was not enough to be scheduled, so it flaked.
+    private static readonly TimeSpan HangGuard = TimeSpan.FromSeconds(30);
+
     private sealed class Registry : ICqlHostedSourceRegistry
     {
         public readonly Dictionary<ProviderType, QueryStorage> Providers = new();
@@ -91,7 +95,7 @@ public partial class CqlHostedSourcesTests
         Assert.All(sources.Describe(), row => Assert.Null(row.TextKeyProfile));
 
         await sources.StartAsync(default);
-        await sources.ExecuteTask!.WaitAsync(TimeSpan.FromSeconds(5));
+        await sources.ExecuteTask!.WaitAsync(HangGuard);
         var ready = Assert.Single(sources.Describe().Where(row => row.QueryOnly));
         Assert.True(ready.Available);
         Assert.Equal(new CqlHostedTextKeyProfile("NativeKey", 128, maximumSetKeys), ready.TextKeyProfile);
@@ -142,7 +146,7 @@ public partial class CqlHostedSourcesTests
             Array.Empty<ProviderType>(), enrolled.Select(type => new StorageQueryTariff(type, 0, "test-v1")).ToArray(),
             null, enrolled);
         using var sources = new CqlHostedSources(admission, registry, NullLogger<CqlHostedSources>.Instance);
-        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        using var timeout = new CancellationTokenSource(HangGuard);
 
         await sources.StartAsync(timeout.Token);
         try
@@ -275,7 +279,7 @@ public partial class CqlHostedSourcesTests
         registry.Add(ProviderType.ActivityPubOASIS, false);
         using var sources = Sources(registry);
         await sources.StartAsync(default);
-        await registry.Finished.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        await registry.Finished.Task.WaitAsync(HangGuard);
         await sources.ExecuteTask!;
         Assert.Equal(new[] { ProviderType.ActivityPubOASIS }, registry.Activations);
         Assert.All(sources.Describe(), row => Assert.True(row.Available));
@@ -295,10 +299,10 @@ public partial class CqlHostedSourcesTests
         registry.Add(ProviderType.ActivityPubOASIS, alreadyActive);
         using var sources = Sources(registry);
         await sources.StartAsync(default);
-        await registry.Attempted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        await registry.Attempted.Task.WaitAsync(HangGuard);
         Assert.False(sources.Describe().Single(row => row.QueryOnly).Available);
         registry.Release.SetResult();
-        await sources.ExecuteTask!.WaitAsync(TimeSpan.FromSeconds(5));
+        await sources.ExecuteTask!.WaitAsync(HangGuard);
         Assert.True(sources.Describe().Single(row => row.QueryOnly).Available);
         await sources.StopAsync(default);
     }
@@ -311,7 +315,7 @@ public partial class CqlHostedSourcesTests
         registry.Add(ProviderType.ActivityPubOASIS, false);
         using var sources = Sources(registry);
         await sources.StartAsync(default);
-        await registry.Finished.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        await registry.Finished.Task.WaitAsync(HangGuard);
         await sources.ExecuteTask!;
         var description = sources.Describe();
         var social = description.Single(row => row.QueryOnly);
@@ -370,7 +374,7 @@ public partial class CqlHostedSourcesTests
             "\"metadataPath\":[\"" + metadataKey + "\"],\"scalar\":\"String\",\"operator\":\"In\",\"value\":[\"101\",\"102\"]}]}}]}";
         using var sources = new CqlHostedSources(Admission(), registry, NullLogger<CqlHostedSources>.Instance,
             CqlHostedQueryExamples.FromJson(json));
-        await sources.StartAsync(default); await registry.Finished.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        await sources.StartAsync(default); await registry.Finished.Task.WaitAsync(HangGuard);
         await sources.ExecuteTask!;
         var row = sources.Describe().Single(entry => entry.QueryOnly);
         Assert.Equal(supported, row.Available);

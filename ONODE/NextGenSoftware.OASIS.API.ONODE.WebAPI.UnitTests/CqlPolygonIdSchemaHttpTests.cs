@@ -5,6 +5,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
 
 public sealed class CqlPolygonIdSchemaHttpTests
 {
+    [Trait("Category", "LiveService")]
     [ReviewedPublicMongoNativeFact("COSMIC_POLYGON_ID_SCHEMA_NATIVE_HTTP")]
     public Task PolygonIdSchemaNativeHttp() => ReviewedPublicMongoHttpFixture.VerifyHttpAsync(
         ProviderType.PolygonIDOASIS, owner =>

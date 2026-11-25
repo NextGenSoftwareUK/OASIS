@@ -60,6 +60,7 @@ public sealed class CqlEclipseMongoNativeTests
         public HolonManager CreateManager(IOASISProvider provider) => new(null, dna, registry);
     }
 
+    [Trait("Category", "LiveService")]
     [EclipseMongoNativeFact]
     public async Task NativeEclipseMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
     {

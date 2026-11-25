@@ -45,6 +45,7 @@ public sealed class CqlHoloOasisDevelopmentConductorTests
             HoloOasisDevelopmentConductor.DescribeNativeStartup("INFO Conductor startup: apps enabled."));
     }
 
+    [Trait("Category", "LiveService")]
     [HoloOasisLinuxConductorFact]
     public async Task StartsAnOfficialLoopbackConductorAndReleasesTheStateLease()
     {

@@ -12,8 +12,10 @@ using IoFile=System.IO.File;
 
 public sealed partial class ReplicaBaselineRepairCommandTests
 {
+    [Trait("Category", "LiveService")]
     [NativeFact]
     public Task ReviewedInFlightSqliteFixtureNeo()=>ReconcileOriginalSqliteInFlight(ProviderType.Neo4jOASIS);
+    [Trait("Category", "LiveService")]
     [NativeFact]
     public Task ReviewedInFlightSqliteFixtureMongo()=>ReconcileOriginalSqliteInFlight(ProviderType.MongoDBOASIS);
 

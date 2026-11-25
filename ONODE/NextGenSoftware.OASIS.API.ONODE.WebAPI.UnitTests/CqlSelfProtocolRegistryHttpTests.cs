@@ -5,6 +5,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
 
 public sealed class CqlSelfProtocolRegistryHttpTests
 {
+    [Trait("Category", "LiveService")]
     [ReviewedPublicMongoNativeFact("COSMIC_SELF_PROTOCOL_REGISTRY_NATIVE_HTTP")]
     public Task SelfProtocolRegistryNativeHttp() => ReviewedPublicMongoHttpFixture.VerifyHttpAsync(
         ProviderType.SelfProtocolOASIS, owner =>

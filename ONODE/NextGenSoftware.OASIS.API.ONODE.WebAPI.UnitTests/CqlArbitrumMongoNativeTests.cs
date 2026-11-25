@@ -60,6 +60,7 @@ public sealed class CqlArbitrumMongoNativeTests
         public HolonManager CreateManager(IOASISProvider provider) => new(null, dna, registry);
     }
 
+    [Trait("Category", "LiveService")]
     [ArbitrumMongoNativeFact]
     public async Task NativeArbitrumMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
     {

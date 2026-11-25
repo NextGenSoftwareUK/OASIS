@@ -5,6 +5,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
 
 public sealed class CqlSubqueryDictionaryHttpTests
 {
+    [Trait("Category", "LiveService")]
     [ReviewedPublicMongoNativeFact("COSMIC_SUBQUERY_DICTIONARY_NATIVE_HTTP")]
     public Task SubqueryDictionaryNativeHttp() => ReviewedPublicMongoHttpFixture.VerifyHttpAsync(
         ProviderType.SubqueryOASIS, owner =>

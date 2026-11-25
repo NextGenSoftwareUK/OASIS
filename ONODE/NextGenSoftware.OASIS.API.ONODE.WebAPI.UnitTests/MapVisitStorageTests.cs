@@ -7,15 +7,23 @@ using Xunit;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
 
+/// <summary>VisitLocation also updates the existing competition service, so this runs only in the isolated CI worker
+/// (OASIS_NATIVE_MAP_VISITS=owned-ci). Reported as skipped elsewhere instead of passing without asserting anything.</summary>
+public sealed class NativeMapVisitsFactAttribute : FactAttribute
+{
+    public NativeMapVisitsFactAttribute()
+    {
+        if (Environment.GetEnvironmentVariable("OASIS_NATIVE_MAP_VISITS") != "owned-ci")
+            Skip = "Set OASIS_NATIVE_MAP_VISITS=owned-ci in the isolated CI worker to run the native map-visit storage test.";
+    }
+}
+
 public sealed class MapVisitStorageTests
 {
-    [Fact]
+    [Trait("Category", "LiveService")]
+    [NativeMapVisitsFact]
     public async Task NativeMapVisitSurvivesNewManagersAndKeepsAvatarHistoryPrivate()
     {
-        // VisitLocation also updates the existing competition service. Run only in the isolated CI worker.
-        if (Environment.GetEnvironmentVariable("OASIS_NATIVE_MAP_VISITS") != "owned-ci")
-            return;
-
         var folder = Directory.CreateTempSubdirectory("oasis-map-visits-");
         try
         {

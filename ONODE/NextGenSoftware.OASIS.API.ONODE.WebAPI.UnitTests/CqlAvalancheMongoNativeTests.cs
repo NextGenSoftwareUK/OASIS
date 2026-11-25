@@ -60,6 +60,7 @@ public sealed class CqlAvalancheMongoNativeTests
         public HolonManager CreateManager(IOASISProvider provider) => new(null, dna, registry);
     }
 
+    [Trait("Category", "LiveService")]
     [AvalancheMongoNativeFact]
     public async Task NativeAvalancheMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
     {

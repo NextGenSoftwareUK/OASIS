@@ -18,108 +18,134 @@ public sealed class PublicBatchReviewFactAttribute : FactAttribute
 
 public sealed class CqlPreparedPublicBatchTests
 {
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualThreeFoldCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualClickHouseCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualZcashCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualBittensorCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualSevenSourceCandidatePlansAllTwentyEightPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(7);
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualTenSourceCandidatePlansAllFortyPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(10);
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualOptimismCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualLineaScrollCandidatePlansEightPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(2);
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualZkSyncAbstractCandidatePlansEightPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(2);
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualMonadCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualSeiCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
     // Validate the complete merged publisher output, including cross-provider
     // resolution against the same shipping Mongo capabilities used by the API.
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualSeventeenSourceCandidatePlansAllSixtyEightPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(17);
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualBerachainCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualBitcoinCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualXrplCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualStellarCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualAlgorandCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualAptosCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualHederaCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualSuiCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualElrondCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualRadixCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualStarknetCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualCardanoCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualArweaveCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualTonCandidatePlansFourPresetsWithShippingCapabilities()
     {
@@ -132,62 +158,77 @@ public sealed class CqlPreparedPublicBatchTests
             Assert.Equal(30000, example.GetProperty("request").GetProperty("maximumDurationMilliseconds").GetInt32());
     }
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualFilecoinCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualTelosCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualEosioCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualChainLinkCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualBlueSkyCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualNostrCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualMatrixCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualStacksCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualWormholeCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualAkashCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualEclipseCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualEnsCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualBlockscoutCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualCelestiaCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [Trait("Category", "LiveService")]
     [PublicBatchReviewFact]
     public async Task ActualChainflipCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);

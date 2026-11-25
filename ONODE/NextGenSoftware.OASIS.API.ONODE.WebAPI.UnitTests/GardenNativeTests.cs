@@ -7,6 +7,7 @@ using NextGenSoftware.OASIS.Common;
 
 public sealed class GardenNativeTests
 {
+    [Trait("Category", "LiveService")]
     [PlacesNativeMongoFact]
     public async Task SharedTransactionsDeduplicatePlantingCareWaterAndMatureRewards()
     {

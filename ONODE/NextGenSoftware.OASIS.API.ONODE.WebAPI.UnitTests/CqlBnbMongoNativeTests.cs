@@ -60,6 +60,7 @@ public sealed class CqlBnbMongoNativeTests
         public HolonManager CreateManager(IOASISProvider provider) => new(null, dna, registry);
     }
 
+    [Trait("Category", "LiveService")]
     [BnbMongoNativeFact]
     public async Task NativeBnbMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
     {

@@ -167,3 +167,60 @@ jobs:
         with:
           name: webapi-unit-test-results
           path: TestResults/webapi-unit-results.trx
+
+  webapi-full-unit-tests:
+    # Runs the WHOLE ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests project (not a --filter slice).
+    # Tests that need live external services (MongoDB replica sets, Stripe sandbox, chain RPC endpoints,
+    # Holochain conductors) carry [Trait("Category", "LiveService")] and self-skip unless their env vars are set.
+    name: ONODE WebAPI Full Unit Tests
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout OASIS
+        uses: actions/checkout@v7
+        with:
+          path: OASIS
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
+      - name: Read pinned dependency commits
+        id: pins
+        run: grep -E '^(LIBRARIES_COMMIT|HOLOCHAIN_COMMIT)=[0-9a-f]{40}$' "$GITHUB_WORKSPACE/OASIS/Docker/oasis-dependency-versions.env" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout NextGenSoftware-Libraries
+        uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.pins.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+
+      - name: Checkout holochain-client-csharp
+        uses: actions/checkout@v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.pins.outputs.HOLOCHAIN_COMMIT }}
+          path: holochain-client-csharp
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Build
+        run: dotnet build "OASIS/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.csproj" -c Release
+
+      - name: Run full WebAPI unit test project
+        run: >
+          dotnet test "OASIS/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.csproj"
+          -c Release --no-build --filter "Category!=LiveService"
+          --blame-hang --blame-hang-timeout 10m
+          --logger "trx;LogFileName=webapi-full-unit-results.trx" --results-directory TestResults
+
+      - name: Upload full WebAPI unit test results
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: webapi-full-unit-test-results
+          path: TestResults/

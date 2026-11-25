@@ -60,6 +60,7 @@ public sealed class CqlHyperlaneMongoNativeTests
         public HolonManager CreateManager(IOASISProvider provider) => new(null, dna, registry);
     }
 
+    [Trait("Category", "LiveService")]
     [HyperlaneMongoNativeFact]
     public async Task NativeHyperlaneMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
     {

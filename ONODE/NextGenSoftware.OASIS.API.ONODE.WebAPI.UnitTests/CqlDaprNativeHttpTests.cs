@@ -37,6 +37,7 @@ public sealed class CqlDaprNativeHttpTests
 {
     private const ProviderType Provider = ProviderType.DaprOASIS;
 
+    [Trait("Category", "LiveService")]
     [DaprNativeHttpFact]
     public async Task Registered_Dapr_profile_returns_exact_public_rows_over_WEB4_HTTP()
     {

@@ -17,6 +17,7 @@ public sealed class RetainedLocalFileCandidateFactAttribute : FactAttribute
 
 public class LocalFileRetainedCandidateTests
 {
+    [Trait("Category", "LiveService")]
     [RetainedLocalFileCandidateFact]
     public void ExactRetainedExportIsAdmittedByShippingBootstrapWithoutWritesOrCqlReplay()
     {
@@ -48,6 +49,7 @@ public class LocalFileRetainedCandidateTests
         // intentionally not called and no acknowledged CQL query is repeated.
     }
 
+    [Trait("Category", "LiveService")]
     [RetainedLocalFileCandidateFact]
     public async Task ExactRetainedBundleStartsAndActivatesInAnIsolatedDirectory()
     {

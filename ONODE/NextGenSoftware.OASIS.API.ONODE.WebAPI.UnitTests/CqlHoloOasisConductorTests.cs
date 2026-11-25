@@ -32,6 +32,7 @@ public sealed class CqlHoloOasisConductorTests
     private const string ReadFunction = "get_holon_by_id";
     private const string Prefix = "CQL_HOLOOASIS_QUERY:";
 
+    [Trait("Category", "LiveService")]
     [HoloOasisConductorFact]
     public async Task ReadsCurrentPublicHolonAndDoesNotExposeDeletedRevisions()
     {

@@ -60,6 +60,7 @@ public sealed class CqlCardanoMongoNativeTests
         public HolonManager CreateManager(IOASISProvider provider) => new(null, dna, registry);
     }
 
+    [Trait("Category", "LiveService")]
     [CardanoMongoNativeFact]
     public async Task NativeCardanoMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
     {

@@ -5,6 +5,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
 
 public sealed class CqlCivicNetworkHttpTests
 {
+    [Trait("Category", "LiveService")]
     [ReviewedPublicMongoNativeFact("COSMIC_CIVIC_NETWORK_NATIVE_HTTP")]
     public Task CivicNetworkNativeHttp() => ReviewedPublicMongoHttpFixture.VerifyHttpAsync(
         ProviderType.CivicOASIS, owner =>

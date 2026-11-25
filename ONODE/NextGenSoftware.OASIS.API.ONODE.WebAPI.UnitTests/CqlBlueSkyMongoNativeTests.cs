@@ -60,6 +60,7 @@ public sealed class CqlBlueSkyMongoNativeTests
         public HolonManager CreateManager(IOASISProvider provider) => new(null, dna, registry);
     }
 
+    [Trait("Category", "LiveService")]
     [BlueSkyMongoNativeFact]
     public async Task NativeBlueSkyMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
     {
