@@ -144,3 +144,4 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | NianticLightshipOASIS map provider: replace always-true stubs with explicit unavailability (Lightship Maps SDK sunset) | Map providers | local: maps/interop session | work/gomap-shared-maps | 2026-11-25 | IN PROGRESS |
 | COSMIC Q60 NHibernate HQL language compatibility | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-q60 | 2026-11-25 23:35 | IN PROGRESS |
 | COSMIC M21 inheritance table-per-concrete-type equivalent | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-m21 | 2026-11-25 23:35 | BLOCKED: see ACTIONS-FOR-DAVID (single Holon partition in all three providers) |
+| Dead endpoints + capability-v1 probes: ConnextOASIS, EigenLayerOASIS, GelatoNetworkOASIS, ChainlinkFunctionsOASIS (default hosts no longer resolve / expired cert) | HyperDrive providers (non-storage) | local: testharness-build-fix | work/tracker-capability-probes | 2026-11-25 | IN PROGRESS |
