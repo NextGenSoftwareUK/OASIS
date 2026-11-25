@@ -266,7 +266,7 @@ public sealed partial class CqlV1Web4NativeTests
             var view=viewSession.View<KeptHolonView>();Assert.IsFalse(view.IsError,view.ErrorCode+": "+view.Message);
             var viewRows=await view.Result.ToCosmicListAsync();
             Assert.IsFalse(viewRows.IsError,viewRows.ErrorCode+": "+viewRows.Message);
-            Assert.AreEqual(1,viewRows.Result.Count);Assert.AreEqual(keep.Name,viewRows.Result[0].Name);
+            Assert.AreEqual(1,viewRows.Result.Count);Assert.AreEqual((await Stored(keep.Id)).Single().Name,viewRows.Result[0].Name,"The view returns the stored row.");
             Assert.AreEqual(0,viewSession.Statistics.EntityCount,"View rows are not tracked.");
         }
         using(var undeclared=CosmicSession.Create(manager,adapter,access).Result)
