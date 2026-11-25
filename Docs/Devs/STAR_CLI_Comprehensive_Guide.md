@@ -65,7 +65,7 @@ For an **exhaustive, code-truth list** (including `game` ONODE verbs, `cosmic`, 
 | `gate` | Opens the OASIS portal URL in the default browser |
 | `api` / `api oasis` | Opens the configured WEB4/STAR site in the browser |
 
-### 3.1 STARNET holon namespaces (second-level commands)
+### 3.1 Smart Brick namespaces (second-level commands)
 
 These enter the generic **STARNET UI** router (`ShowSubCommandAsync`) with verbs such as `create`, `show`, `list`, `search`, `update`, `delete`, `publish`, `download`, `install`, … (exact set per holon type):
 

@@ -6,7 +6,7 @@ This guide gets you up and running with the **STAR CLI** on **Windows**, either 
 
 ## What is STAR CLI?
 
-The STAR CLI is the command-line tool for the OASIS ecosystem. It lets you create and manage OAPPs, Quests, NFTs, inventory items, and other STARNETHolons; authenticate with your avatar; and work with the DNA system. See [STAR CLI Quick Start](./STAR_CLI_QUICK_START_GUIDE.md) and [STAR CLI Documentation](./STAR_CLI_DOCUMENTATION.md) for full usage.
+The STAR CLI is the command-line tool for the OASIS ecosystem. It lets you create and manage OAPPs, Quests, NFTs, inventory items, and other Smart Bricks; authenticate with your avatar; and work with the DNA system. See [STAR CLI Quick Start](./STAR_CLI_QUICK_START_GUIDE.md) and [STAR CLI Documentation](./STAR_CLI_DOCUMENTATION.md) for full usage.
 
 ---
 
@@ -112,7 +112,7 @@ Uninstall: `dotnet tool uninstall -g NextGenSoftware.OASIS.STAR.CLI`
 
 ## Next steps
 
-- **[STAR CLI Quick Start Guide](./STAR_CLI_QUICK_START_GUIDE.md)** — First commands, auth, creating OAPPs and STARNETHolons.
+- **[STAR CLI Quick Start Guide](./STAR_CLI_QUICK_START_GUIDE.md)** — First commands, auth, creating OAPPs and Smart Bricks.
 - **[STAR CLI Documentation](./STAR_CLI_DOCUMENTATION.md)** — Full command reference.
 - **[STAR CLI Installers & Packaging](./STAR_CLI_INSTALLERS_AND_PACKAGING.md)** — All install options (global tool, single-file, installers).
 - **[DNA System Guide](./DNA_SYSTEM_GUIDE.md)** — DNA and dependency management.
