@@ -55,3 +55,4 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | LensOASIS live public CQL source (anonymous rpc.lens.xyz finalized balance reads, Lens Chain 232) | CQL sandbox (WEB4) | cloud: cloud-cql-C | work/cloud-cql-lens | 2026-11-25 01:13 | IN PROGRESS |
 | AppwriteOASIS native storage (self-hosted Appwrite in Docker) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-appwrite | 2026-11-25 01:20 | IN PROGRESS |
 | TablelandOASIS native storage (@tableland/local validator + Hardhat) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-tableland | 2026-11-25 01:20 | IN PROGRESS |
+| COSMIC O17 model validation and diagnostics | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-o17 | 2026-11-25 01:22 | IN PROGRESS |
