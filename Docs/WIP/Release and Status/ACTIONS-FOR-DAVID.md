@@ -84,7 +84,7 @@ Last updated 31 October 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (mer
 | 10 | COSMIC/CQL: decide follow-up Default-routing fix publication; hosted Azure/Oracle remain deferred | F |
 | 12 | **Post-release 2026-11-24: production SQLite replication held (BINDING_MISMATCH), WEB9 fix to release, test records left on prod/dev** | POST-RELEASE-2026-11-24 |
 | 11 | **WEB6 model catalogue v6: review prices, then approve the push** (OpenRouter list import, media prices, 6 new text models) | G |
-| 12 | **HyperDrive on dev: confirm the Neo4j to SQLite baseline repair at sequence 14** in the CQL sandbox session (explained there) | I |
+| 12 | HyperDrive on dev: Neo4j to SQLite hold at sequence 14 — repair ran once and was refused (no write); **decision pending**: the same holon reaches SQLite from both Mongo and Neo4j | I |
 | 13 | **Railway dev: add one DNA key so IPFS keeps its catalogue across restarts** (`IPFSOASIS.CatalogueRootPointerPath`) | I |
 
 ---
@@ -1622,30 +1622,27 @@ Status: decided by David, 24 November 2026; engineering in progress (no further 
 
 ## Part I — HyperDrive replication on dev (24 November 2026)
 
-### I1. Approve a baseline repair for Neo4j to SQLite at sequence 14
+### I1. Neo4j to SQLite hold at sequence 14 (dev)
 
-- Status: awaiting David's confirmation in the CQL sandbox session, 25 November 2026. David replied "Sure its fine"
-  before it had been explained; it is a one-shot write to hosted dev data, so it runs only after he confirms there. Originally reported 24 November 2026 by the CQL/WEB4 session from the live dev WEB4 logs
-  (`railway logs -e dev -s 5123199a-43c4-4439-9921-e10e2aec7841`).
-- What: `Replication Neo4jOASIS -> hyperdrive-target:SQLLiteDBOASIS blocked at sequence 14, operation
-  b64bce63-3aeb-40c0-b3b2-b75675a87023: COSMIC_REPLICA_LINEAGE_CONFLICT`. This is a new hold and is not the protected
-  Mongo to SQLite 535/543 holds, which stay untouched.
-- Why: this is the designed outcome when a source holon already had versions before the route was enrolled. The SQLite
-  target never received the earlier versions, so normal delivery must refuse version N without its predecessor. No data
-  is lost; the delivery is held, not dropped. The fix is the reviewed initial-baseline repair, which writes to the hosted
-  SQLite target, so it needs your approval. The Neo4j to SQLite route is supported by the deployed repair command
-  (`ReplicaBaselineRepairCommand`, Development).
-- Steps: reply "approve the Neo4j to SQLite baseline repair for sequence 14" and the agent prepares the reviewed request
-  (read-only source and target inspection first), shows you the exact holon, version and digests, and runs
-  `dotnet NextGenSoftware.OASIS.API.ONODE.WebAPI.dll --cosmic-repair-baseline /data/COSMIC/ReplicaRepair/<request>.json`
-  in the dev WEB4 service once. Procedure and safety rules: `Docs/WIP/COSMIC ORM/REPLICA_BASELINE_AND_RECOVERY.md`.
-- Unblocks: the Neo4j to SQLite route on dev (later operations on that route queue behind the hold).
-- Not needed from you: the second fault in the same report, `Replication source binding IPFSOASIS unavailable` ("The
-  IPFS catalogue has no persisted storage identity"), is an engineering bug, fixed on `work/hyperdrive-triad`. The
-  catalogue root pointer lived in the DNA file, which the Railway entrypoint rewrites from `OASIS_DNA_JSON` on every
-  boot, so each restart rolled IPFS back to the legacy v1 catalogue (`QmXZ6Sh7...`). The new
-  `IPFSOASIS.CatalogueRootPointerPath` DNA setting keeps the root on the `/data` volume; the agent sets it in Railway's
-  `OASIS_DNA_JSON` when the fix is deployed.
+- Status, 25 November 2026: David approved the reviewed baseline repair in the CQL sandbox session, which ran it once.
+  The target refused it before any write: `COSMIC_REPLICA_INITIALIZATION_RECONCILIATION_REQUIRED` (exit 1). Request
+  `/data/COSMIC/ReplicaRepair/neo-seq14-request.json` (init operation 9c165163-0a7d-4a14-93e7-a0fb500b5c23) is spent:
+  never resubmit or regenerate it; its journal stays at phase Submitted with no receipt. The source obligation is
+  unchanged and 535/543 are untouched.
+- What the inspection showed (`--cosmic-inspect-held Neo4jOASIS 14`, read-only, Development 8b7614d3): operation
+  b64bce63-3aeb-40c0-b3b2-b75675a87023, root holon 715eb09e-ce75-4ab3-9f4e-e76c0493281a, actor
+  c0b43739-cc8e-48c3-9a6f-6a071a95170f, payload digest 6B8C1A22…398D, state ReconciliationRequired.
+- Why it was refused: that holon is already in the SQLite target, installed on 30 October by the Mongo to SQLite
+  sequence-8 repair. The same holon now arrives from a second source (Neo4j), and a baseline only installs into an
+  absent target. This is not a data loss; it is two enrolled sources governing one target replica.
+- Next step (engineering, read-only): compare the held Neo4j payload with SQLite's current head for 715eb09e (version
+  and content digest). Then:
+  - If they are the same content, the hold can be acknowledged as already satisfied. That needs a new reviewed
+    "equivalent head" completion in the repair command (it does not exist yet); engineering will build it.
+  - If they differ, Mongo and Neo4j have diverged for this holon and **David decides which lineage wins** (keep the
+    Mongo-derived SQLite copy and retire the Neo4j obligation, or replace it with the Neo4j version).
+- Also found: `OASIS_SANDBOX` is not set on the dev service, so the shell repair/inspect commands need
+  `OASIS_SANDBOX=true` on their command line.
 
 ### I2. Add the IPFS catalogue pointer key to Railway dev
 
