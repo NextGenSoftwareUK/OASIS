@@ -20,6 +20,8 @@ on:
       - 'Providers/Other/NextGenSoftware.OASIS.API.Providers.DaprOASIS/**'
       - 'Providers/Other/NextGenSoftware.OASIS.API.Providers.GUNOASIS/**'
       - 'Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.GUNOASIS.IntegrationTests/**'
+      - 'Providers/Social/NextGenSoftware.OASIS.API.Providers.MatrixOASIS/**'
+      - 'Providers/Social/TestProjects/NextGenSoftware.OASIS.API.Providers.MatrixOASIS.IntegrationTests/**'
       - 'Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.DaprOASIS.IntegrationTests/**'
       - 'Providers/Social/NextGenSoftware.OASIS.API.Providers.NostrOASIS/**'
       - 'Providers/*/TestProjects/*/*NativeStorageConformanceTests.cs'
@@ -35,7 +37,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        provider: [CouchDB, Couchbase, ArangoDB, SurrealDB, ClickHouse, InfluxDB, Chroma, PgVector, ArcadeDB, QuestDB, PouchDB, NATSJetStream, Nostr, Dapr, GUN]
+        provider: [CouchDB, Couchbase, ArangoDB, SurrealDB, ClickHouse, InfluxDB, Chroma, PgVector, ArcadeDB, QuestDB, PouchDB, NATSJetStream, Nostr, Dapr, GUN, Matrix]
     defaults:
       run:
         working-directory: OASIS
@@ -157,6 +159,28 @@ jobs:
               node "$relay_dir/relay.cjs" 18767 "$fixture/radisk-sync" & relays="$relays $!"
               wait_for "curl -fsS -o /dev/null http://127.0.0.1:18766/gun.js && curl -fsS -o /dev/null http://127.0.0.1:18767/gun.js"
               export OASIS_GUN_ASYNC_RELAY=http://127.0.0.1:18766 OASIS_GUN_SYNC_RELAY=http://127.0.0.1:18767 ;;
+            Matrix)
+              # Disposable Synapse homeserver: loopback listener, no federation, message rate limits lifted for the fixture.
+              synapse_image=matrixdotorg/synapse:v1.138.0
+              mkdir "$fixture/synapse"
+              docker run --rm -v "$fixture/synapse:/data" -e SYNAPSE_SERVER_NAME=oasis.test -e SYNAPSE_REPORT_STATS=no "$synapse_image" generate
+              sudo python3 - "$fixture/synapse/homeserver.yaml" <<'PY'
+          import sys
+          path = sys.argv[1]
+          text = open(path).read()
+          text = text.replace("  - port: 8008\n", "  - port: 8008\n    bind_addresses: ['127.0.0.1']\n", 1)
+          text = text.replace('trusted_key_servers:\n  - server_name: "matrix.org"\n', "trusted_key_servers: []\n")
+          text = text.rstrip("\n") + "\nrc_message:\n  per_second: 1000\n  burst_count: 1000\n"
+          open(path, "w").write(text)
+          PY
+              container="$(docker run -d --network host -v "$fixture/synapse:/data" "$synapse_image")"
+              wait_for "curl -fsS http://127.0.0.1:8008/health"
+              docker exec "$container" register_new_matrix_user -c /data/homeserver.yaml -u oasis -p "$password" --no-admin http://127.0.0.1:8008
+              token="$(curl -fsS -X POST http://127.0.0.1:8008/_matrix/client/v3/login \
+                -d "{\"type\":\"m.login.password\",\"identifier\":{\"type\":\"m.id.user\",\"user\":\"oasis\"},\"password\":\"$password\"}" | jq -er .access_token)"
+              room() { curl -fsS -X POST -H "Authorization: Bearer $token" http://127.0.0.1:8008/_matrix/client/v3/createRoom -d '{"preset":"private_chat"}' | jq -er .room_id; }
+              export OASIS_MATRIX_HOMESERVER=http://127.0.0.1:8008 OASIS_MATRIX_USER=oasis \
+                OASIS_MATRIX_ASYNC_ROOM="$(room)" OASIS_MATRIX_SYNC_ROOM="$(room)" ;;
             Couchbase)
               container="$(docker run -d -p 127.0.0.1:8091-8097:8091-8097 -p 127.0.0.1:11210:11210 -p 127.0.0.1:11280:11280 couchbase/server:community-7.6.2)"
               wait_for "curl -fsS http://127.0.0.1:8091/ui/index.html"
