@@ -59,7 +59,7 @@ sandbox session's item.
 
 ## QuestDB and ENSOffchain (merged 25a128c2aa)
 
-These two sources have no publish script yet. Set their variables on the development WEB4 service, and add each provider to `queryOnlyProviders`, the zero-cost tariffs and the presets, the same way the BNB publisher does:
+Use `Scripts/Sandbox/Publish-HostedQuestDbPublicConfiguration.py` and `Scripts/Sandbox/Publish-HostedEnsOffchainPublicConfiguration.py`, following the same steps as above. Their `source.json` files go in `LocalState/COSMIC/HostedQuestDbPublicSourceCurrent/` and `LocalState/COSMIC/HostedEnsOffchainPublicSourceCurrent/`, with these exact values:
 
 ```json
 CQL_QUESTDB_SYMBOL_SOURCE_JSON = {"schema":1,"endpoint":"https://demo.questdb.io/api/v1/sql/execute",
