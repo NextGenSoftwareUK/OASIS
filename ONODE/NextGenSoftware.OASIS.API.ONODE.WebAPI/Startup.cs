@@ -270,7 +270,7 @@ You will note that every request below has a corresponding overload that also ta
 <li><b>LensV2OASIS</b> - Lens Protocol v2 Provider.</li>
 <li><b>BlueSkyOASIS</b> - BlueSky / AT Protocol Decentralised Social Provider (XRPC REST, DIDs, AT-URIs; posts → Holons, profiles → Avatars).</li>
 <li><b>MatrixOASIS</b> - Matrix Client-Server API v3 Decentralised Messaging Provider (room events → Holons, @user:server → Avatars).</li>
-<li><b>FilecoinOASIS</b> - Filecoin Lotus JSON-RPC Provider (storage deals, CIDs → Holons, addresses → Avatars; Glif.io public node).</li>
+<li><b>FilecoinOASIS</b> - Filecoin EVM (FEVM) storage Provider (Web3Core contract records via the Lotus Ethereum JSON-RPC; Glif.io public node).</li>
 <li><b>AlgorandOASIS</b> - Algorand Provider (Algod v2 REST + Indexer; transactions → Holons, accounts → Avatars, ASA support).</li>
 <li><b>CeramicOASIS</b> - Ceramic Network / ComposeDB Provider (TileDocument streams → Holons, DID resolution → Avatars; HTTP API, pin/unpin).</li>
 <li><b>BasechainOASIS</b> - Basechain (Loom Network) EVM Provider (Ethereum JSON-RPC; transactions → Holons, addresses → Avatars).</li>

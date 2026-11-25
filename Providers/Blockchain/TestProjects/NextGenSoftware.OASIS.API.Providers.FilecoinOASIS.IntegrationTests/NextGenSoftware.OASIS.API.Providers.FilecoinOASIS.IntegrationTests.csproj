@@ -16,4 +16,12 @@
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.FilecoinOASIS\NextGenSoftware.OASIS.API.Providers.FilecoinOASIS.csproj" />
     <ProjectReference Include="..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
   </ItemGroup>
+  <ItemGroup Condition="'$(NativeStorageConformance)' == 'true'">
+    <Compile Remove="**/*.cs" />
+    <Compile Include="FilecoinNativeStorageConformanceTests.cs" />
+    <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(NativeStorageConformance)' != 'true'">
+    <Compile Remove="FilecoinNativeStorageConformanceTests.cs" />
+  </ItemGroup>
 </Project>

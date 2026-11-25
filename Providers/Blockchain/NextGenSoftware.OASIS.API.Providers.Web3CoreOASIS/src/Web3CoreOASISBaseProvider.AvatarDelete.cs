@@ -53,6 +53,9 @@ public partial class Web3CoreOASISBaseProvider
 {
     protected virtual bool UseLegacyGasPricing => false;
 
+    /// <summary>True for chains whose gas schedule is not Ethereum's; mutations then use the node's eth_estimateGas limit.</summary>
+    protected virtual bool EstimateContractGas => false;
+
     public override async Task<OASISResult<bool>> ActivateProviderAsync()
     {
         OASISResult<bool> result = new();
@@ -73,7 +76,7 @@ public partial class Web3CoreOASISBaseProvider
                 throw new InvalidOperationException($"No contract bytecode was found at configured address '{_contractAddress}'.");
 
             _web3CoreOASIS = new(_chainPrivateKey, _hostURI, _contractAddress, Web3CoreOASISBaseProviderHelper.Abi,
-                _expectedChainId, UseLegacyGasPricing);
+                _expectedChainId, UseLegacyGasPricing, EstimateContractGas);
             IsProviderActivated = true;
             result.Result = true;
         }

@@ -9,36 +9,30 @@ namespace NextGenSoftware.OASIS.API.Providers.FilecoinOASIS.IntegrationTests
     /// <summary>
     /// Exercises the real CRUD surface against a live backend.
     ///
-    /// Connection details come from FILECOINOASIS_&lt;PARAM&gt; environment variables. When the
-    /// backend is not reachable the provider fails to activate and every test is
-    /// inconclusive rather than failed - so an unconfigured machine reports "skipped"
-    /// instead of red.
+    /// Connection details come from FILECOINOASIS_* environment variables (see FilecoinOASISTestFactory).
+    /// Unconfigured machines report the tests inconclusive; a configured backend that fails to
+    /// activate is a test failure.
     /// </summary>
     [TestClass]
     public class FilecoinOASISIntegrationTests
     {
         private FilecoinOASIS _provider = null!;
-        private bool _live;
 
         [TestInitialize]
         public void Setup()
         {
-            _provider = FilecoinOASISTestFactory.Create();
-            try { _live = !_provider.ActivateProvider().IsError && _provider.IsProviderActivated; }
-            catch { _live = false; }
-        }
-
-        private void RequireLive()
-        {
-            if (!_live)
-                Assert.Inconclusive(
-                    "No live FilecoinOASIS backend configured - set the FILECOINOASIS_* environment variables to run this.");
+            var provider = FilecoinOASISTestFactory.CreateFromEnvironment();
+            if (provider == null)
+                Assert.Inconclusive("No FilecoinOASIS FEVM backend configured - set FILECOINOASIS_HOSTURI, _CHAINPRIVATEKEY, _CONTRACTADDRESS and _CHAINID.");
+            _provider = provider;
+            var activation = _provider.ActivateProvider();
+            Assert.IsFalse(activation.IsError, activation.Message);
+            Assert.IsTrue(_provider.IsProviderActivated);
         }
 
         [TestMethod]
         public async Task SaveAndLoadAvatar_RoundTrips()
         {
-            RequireLive();
 
             var avatar = new Avatar
             {
@@ -61,7 +55,6 @@ namespace NextGenSoftware.OASIS.API.Providers.FilecoinOASIS.IntegrationTests
         [TestMethod]
         public async Task LoadAvatarByUsername_FindsTheSavedAvatar()
         {
-            RequireLive();
 
             var avatar = new Avatar
             {
@@ -83,7 +76,6 @@ namespace NextGenSoftware.OASIS.API.Providers.FilecoinOASIS.IntegrationTests
         [TestMethod]
         public async Task SaveAndLoadHolon_RoundTrips()
         {
-            RequireLive();
 
             var holon = new Holon { Id = Guid.NewGuid(), Name = $"OASIS IT Holon {Guid.NewGuid():N}" };
 
@@ -100,7 +92,6 @@ namespace NextGenSoftware.OASIS.API.Providers.FilecoinOASIS.IntegrationTests
         [TestMethod]
         public async Task DeletedAvatar_IsNotReturnedAsLive()
         {
-            RequireLive();
 
             var avatar = new Avatar
             {
@@ -121,7 +112,6 @@ namespace NextGenSoftware.OASIS.API.Providers.FilecoinOASIS.IntegrationTests
         [TestMethod]
         public async Task LoadAllAvatars_ReturnsAResult()
         {
-            RequireLive();
             var all = await _provider.LoadAllAvatarsAsync();
             Assert.IsNotNull(all);
         }
