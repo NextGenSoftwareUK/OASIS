@@ -136,3 +136,5 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | COSMIC Q61 NHibernate Criteria/QueryOver compatibility | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-q61 | 2026-11-25 22:12 | IN PROGRESS |
 | LoomOASIS native storage | HyperDrive providers | cloud: cloud-hyperdrive-A | n/a | 2026-11-25 22:15 | CLASSIFIED non-storage (PLAN_LOOM_CLASSIFICATION_2026-11-25.md) |
 | PLANOASIS native storage | HyperDrive providers | cloud: cloud-hyperdrive-A | n/a | 2026-11-25 22:15 | BLOCKED: backend unknown, see ACTIONS-FOR-DAVID (PLANOASIS) |
+| SignProtocolOASIS native storage (Sign Protocol contracts on local Hardhat) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-signprotocol | 2026-11-25 22:20 | IN PROGRESS |
+| OracleObjectStorageOASIS native storage (hosted OCI only) | HyperDrive providers | cloud: cloud-hyperdrive-A | n/a | 2026-11-25 22:20 | BLOCKED: see ACTIONS-FOR-DAVID (Oracle Object Storage test bucket) |
