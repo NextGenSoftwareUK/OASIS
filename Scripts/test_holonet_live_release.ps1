@@ -73,7 +73,7 @@ else {
 }
 $ResultsDirectory = (Resolve-Path -LiteralPath $ResultsDirectory).Path
 $saved = @{}
-$names = @('OASIS_CQL_HOLOOASIS_NATIVE', 'OASIS_HOLOCHAIN_ADMIN_URI', 'OASIS_HOLOCHAIN_REPORT_DIR', 'OASIS_HOLO_EDGE_RESTART_RECEIPT', 'HOLONET_LIVE_ADMIN_URI', 'HOLONET_LIVE_HAPP_PATH', 'HOLONET_LIVE_CLONE_HAPP_PATH', 'HOLONET_LIVE_MEMPROOFS_HAPP_PATH', 'HOLONET_LIVE_HC_BIN', 'HOLONET_GENERATE_HAPP_TO', 'HOLONET_GENERATE_HAPP_VERSION', 'HOLONET_LIVE_GENERATED_HAPP_DIR', 'HOLONET_LIVE_GENERATED_SRC_DIR')
+$names = @('OASIS_CQL_HOLOOASIS_NATIVE', 'OASIS_HOLOCHAIN_ADMIN_URI', 'OASIS_HOLOCHAIN_REPORT_DIR', 'OASIS_NATIVE_STORAGE_FIXTURE', 'OASIS_HOLO_EDGE_RESTART_RECEIPT', 'HOLONET_LIVE_ADMIN_URI', 'HOLONET_LIVE_HAPP_PATH', 'HOLONET_LIVE_CLONE_HAPP_PATH', 'HOLONET_LIVE_MEMPROOFS_HAPP_PATH', 'HOLONET_LIVE_HC_BIN', 'HOLONET_GENERATE_HAPP_TO', 'HOLONET_GENERATE_HAPP_VERSION', 'HOLONET_LIVE_GENERATED_HAPP_DIR', 'HOLONET_LIVE_GENERATED_SRC_DIR')
 foreach ($name in $names) { $saved[$name] = [Environment]::GetEnvironmentVariable($name) }
 $process = $null
 $startConductor = {
@@ -230,8 +230,14 @@ try {
     elseif ($DesktopProject) {
         $env:OASIS_HOLOCHAIN_ADMIN_URI = $env:HOLONET_LIVE_ADMIN_URI
         $env:OASIS_HOLOCHAIN_REPORT_DIR = $ResultsDirectory
+        if ($HoloConformance) {
+            # The Desktop adapter writes its shared-suite reports as async.json/sync.json in its own fixture directory.
+            $env:OASIS_NATIVE_STORAGE_FIXTURE = Join-Path $ResultsDirectory 'holo-desktop'
+            New-Item -ItemType Directory -Path $env:OASIS_NATIVE_STORAGE_FIXTURE | Out-Null
+        }
         $test = if ($HoloEdgeReplication) { 'EdgeReplayKeepsTheOriginalNativeMutation' } elseif ($HoloRouting) { 'HoloNativeRoutingTests' } elseif ($HoloConformance) { 'HoloCoreStorageConformance' } else { 'DesktopAvatarAndHolonCrud' }
-        $minimum = if ($HoloConformance -or $HoloRouting) { 2 } else { 1 }
+        # Conformance: canonical HoloOASIS and the Desktop adapter, each in async and sync mode.
+        $minimum = if ($HoloConformance) { 4 } elseif ($HoloRouting) { 2 } else { 1 }
         $timeoutOptions = @()
         if ($HoloConformance) { $timeoutOptions = @('--blame-hang-timeout', '2m', '--blame-hang-dump-type', 'none') }
         if ($HoloRouting) { $timeoutOptions += "/p:HoloRoutingTests=true" }

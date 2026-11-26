@@ -6,6 +6,17 @@ using Xunit;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests;
 
+/// <summary>
+/// The canonical and Desktop providers share one disposable conductor and install the same hApp for the same agent.
+/// Concurrent installs race on that agent's source chain ("head moved"), so these classes run serially.
+/// </summary>
+[CollectionDefinition(Name, DisableParallelization = true)]
+public sealed class HolochainConductorCollection
+{
+    public const string Name = "Shared Holochain conductor";
+}
+
+[Collection(HolochainConductorCollection.Name)]
 public class HoloOASISIntegrationTests
 {
     [Theory]
