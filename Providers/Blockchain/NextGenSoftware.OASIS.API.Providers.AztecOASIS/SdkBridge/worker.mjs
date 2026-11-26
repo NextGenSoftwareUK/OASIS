@@ -31,17 +31,19 @@ async function init({ nodeUrl, secret, salt, signingKey, contract }) {
   const wallet = await EmbeddedWallet.create(node, { ephemeral: true });
   const account = await wallet.createSchnorrInitializerlessAccount(Fr.fromString(secret), Fr.fromString(salt), Fq.fromString(signingKey));
   const artifact = loadContractArtifact(JSON.parse(readFileSync(ARTIFACT_PATH, 'utf8')));
-  state = { node, wallet, account, artifact };
-  if (contract) await attach(contract);
+  const ready = { node, wallet, account, artifact };
+  // Commit the worker state only once the contract is attached, so a failed init can be retried with its real error.
+  if (contract) ready.contract = await attach(ready, contract);
+  state = ready;
   return { address: account.address.toString() };
 }
 
-async function attach(address) {
+async function attach(target, address) {
   const contractAddress = AztecAddress.fromString(address);
-  const instance = await state.node.getContract(contractAddress);
+  const instance = await target.node.getContract(contractAddress);
   if (!instance) throw new Error(`No OasisKv contract instance is published at ${address}.`);
-  await state.wallet.registerContract(instance, state.artifact);
-  state.contract = Contract.at(contractAddress, state.artifact, state.wallet);
+  await target.wallet.registerContract(instance, target.artifact);
+  return Contract.at(contractAddress, target.artifact, target.wallet);
 }
 
 function requireContract() {
@@ -76,7 +78,7 @@ async function view(method, ...args) {
 
 const operations = {
   init,
-  attach: async ({ contract }) => { await attach(contract); return {}; },
+  attach: async ({ contract }) => { if (!state) throw new Error('The Aztec worker is not initialised.'); state.contract = await attach(state, contract); return {}; },
   deploy,
   owner: async () => ({ owner: (await view('get_owner')).toString(), account: state.account.address.toString() }),
   put: async ({ id, hi, lo }) => submit(requireContract().methods.put(Fr.fromString(id), Fr.fromString(hi), Fr.fromString(lo))),
