@@ -356,6 +356,22 @@ internal sealed partial class MongoCqlTranslator
             });
             case CosmicQueryStringLength length: return At(length.Path, value =>
                 Utf16LengthComparison(value, length.Operator, length.Value));
+            case CosmicQueryGeoDistance geo: return At(geo.Latitude, latitude => At(geo.Longitude, longitude =>
+            {
+                // O16: haversine great-circle distance with MongoDB trigonometry operators.
+                BsonValue Rad(BsonValue degrees) => new BsonDocument("$degreesToRadians", new BsonDocument("$toDouble", degrees));
+                BsonValue Sin(BsonValue x) => new BsonDocument("$sin", x);
+                BsonValue Cos(BsonValue x) => new BsonDocument("$cos", x);
+                BsonValue Half(BsonValue a, BsonValue b) => Op("$divide", Op("$subtract", a, b), Literal(2.0));
+                var lat = Rad(latitude); var lon = Rad(longitude);
+                var cLat = Literal(geo.CentreLatitude * Math.PI / 180); var cLon = Literal(geo.CentreLongitude * Math.PI / 180);
+                var hav = Op("$add", Op("$pow", Sin(Half(lat, cLat)), Literal(2)),
+                    Op("$multiply", Cos(lat), Cos(cLat), Op("$pow", Sin(Half(lon, cLon)), Literal(2))));
+                var distance = Op("$multiply", Literal(2 * CosmicQueryGeoDistance.EarthRadiusKilometres),
+                    new BsonDocument("$asin", new BsonDocument("$sqrt", Op("$min", hav, Literal(1.0)))));
+                return Op("$cond", Op("$and", Op("$isNumber", latitude), Op("$isNumber", longitude)),
+                    Op("$lte", distance, Literal(geo.Kilometres)), Literal(false));
+            }, "cqlgeolon"), "cqlgeolat");
             case CosmicQueryFunctionComparison userFunction: return At(userFunction.Path, value =>
             {
                 // Q56: the registered aggregation template; {value} and literal placeholders are replaced

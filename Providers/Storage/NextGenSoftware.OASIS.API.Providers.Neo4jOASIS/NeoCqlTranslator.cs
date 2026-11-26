@@ -165,6 +165,16 @@ internal sealed partial class NeoCqlTranslator
                 }
                 else fieldTest = Total(left.Value + Symbol(fields.Operator) + right.Value);
                 return Total(leftValid + " AND " + rightValid + " AND (" + fieldTest + ")");
+            case CosmicQueryGeoDistance geo:
+            {
+                // O16: haversine great-circle distance in Cypher.
+                var latitude = Operand(geo.Latitude); var longitude = Operand(geo.Longitude);
+                var lat = "radians(toFloat(" + latitude.Value + "))"; var lon = "radians(toFloat(" + longitude.Value + "))";
+                var cLat = "radians(" + Bind(geo.CentreLatitude) + ")"; var cLon = "radians(" + Bind(geo.CentreLongitude) + ")";
+                var hav = "(sin((" + lat + "-" + cLat + ")/2)^2+cos(" + lat + ")*cos(" + cLat + ")*sin((" + lon + "-" + cLon + ")/2)^2)";
+                var distance = "(2*" + Bind(CosmicQueryGeoDistance.EarthRadiusKilometres) + "*asin(sqrt(CASE WHEN " + hav + ">1.0 THEN 1.0 ELSE " + hav + " END)))";
+                return Total(latitude.Guard + " AND " + longitude.Guard + " AND coalesce(" + distance + " <= " + Bind(geo.Kilometres) + ",false)");
+            }
             case CosmicQueryFunctionComparison userFunction:
                 // Q56: the registered Cypher template; literals are parameters.
                 if (userFunction.Function.CypherTemplate == null)

@@ -526,6 +526,25 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.AreEqual(early.Seen.UtcDateTime,loaded.Seen.UtcDateTime,"DateTimeOffset round-trips as its UTC instant.");
         }
         checks++;
+        // O16 spatial: haversine great-circle distance over latitude/longitude metadata, computed natively.
+        using(var places=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            var london=New("geo-london");london.MetaData=new Dictionary<string,object>{{"lat",51.5074},{"lon",-0.1278}};
+            var paris=New("geo-paris");paris.MetaData=new Dictionary<string,object>{{"lat",48.8566},{"lon",2.3522}};
+            foreach(var row in new[]{london,paris})Assert.IsFalse(places.Add(row).IsError);
+            Assert.IsFalse((await places.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()))).IsError);
+            var cities=new[]{london.Id,paris.Id};
+            async Task<string[]> Within(double kilometres)
+            {
+                var rows=await places.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>cities.Contains(row.Id))
+                    .Where(row=>CosmicQueryGeo.WithinKilometres(CosmicQueryMetadata.Value<double>(row,"lat"),CosmicQueryMetadata.Value<double>(row,"lon"),51.5074,-0.1278,kilometres)).ToCosmicListAsync();
+                Assert.IsFalse(rows.IsError,rows.ErrorCode+": "+rows.Message);return rows.Result.Select(row=>row.Name).OrderBy(name=>name).ToArray();
+            }
+            CollectionAssert.AreEqual(new[]{"geo-london"},await Within(50));
+            CollectionAssert.AreEqual(new[]{"geo-london","geo-paris"},await Within(400),"London to Paris is about 344 km.");
+            CollectionAssert.AreEqual(new[]{"geo-london"},await Within(300));
+        }
+        checks++;
         // M29 seed data: idempotent insert of fixed-identity rows in one unit of work.
         Holon[] Seed()=>new[]{
             new Holon{Id=seedIds[0],Name="seed-one",CreatedByAvatarId=actor,IsActive=true,IsPublic=false},
@@ -542,7 +561,7 @@ public sealed partial class CqlV1Web4NativeTests
         }
         Assert.AreEqual(2,(await Stored(seedIds)).Count);checks++;
         return new NativeFixtureJourneyProof(checks,4,new Dictionary<string,bool>{
-            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true,["notificationTrackingVerified"]=true,["collectionMembershipVerified"]=true,["stringTransformsVerified"]=true,["compiledQueryVerified"]=true,["asOfHistoryVerified"]=true,["setCollectionVerified"]=true,["generatedValuesVerified"]=true,["readOnlyViewsVerified"]=true,["graphMergeVerified"]=true,["multiBranchCaseVerified"]=true,["fullTextVerified"]=true,["entitySplittingVerified"]=true,["int32ArithmeticVerified"]=true,["futuresVerified"]=true,["userFunctionsVerified"]=true,["inverseNavigationVerified"]=true,["dateTimeDomainsVerified"]=true});
+            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true,["notificationTrackingVerified"]=true,["collectionMembershipVerified"]=true,["stringTransformsVerified"]=true,["compiledQueryVerified"]=true,["asOfHistoryVerified"]=true,["setCollectionVerified"]=true,["generatedValuesVerified"]=true,["readOnlyViewsVerified"]=true,["graphMergeVerified"]=true,["multiBranchCaseVerified"]=true,["fullTextVerified"]=true,["entitySplittingVerified"]=true,["int32ArithmeticVerified"]=true,["futuresVerified"]=true,["userFunctionsVerified"]=true,["inverseNavigationVerified"]=true,["dateTimeDomainsVerified"]=true,["geoDistanceVerified"]=true});
     }
 
     public sealed class SetModelHolon : Holon

@@ -522,6 +522,19 @@ public partial class HolonRepository
                     throw new NotSupportedException("SQLite CQL string length path is unsupported.");
                 return StringLength(CanonicalColumn(lengthField.Name), length);
             }
+            if (predicate is CosmicQueryGeoDistance geo)
+            {
+                // O16: haversine great-circle distance, computed natively with SQLite math functions.
+                if (!geo.Latitude.IsMetadata || !geo.Longitude.IsMetadata)
+                    throw new NotSupportedException("SQLite CQL geo distance uses metadata Double fields.");
+                string Raw(CosmicQueryPath path, string name) => "(" + MetadataSubquery(path.Segments, alias => alias + ".value", _ => "1", name) + " LIMIT 1)";
+                string Numeric(CosmicQueryPath path, string name) => "(" + MetadataSubquery(path.Segments, alias => "typeof(" + alias + ".value)", _ => "1", name) + " LIMIT 1) IN ('real','integer')";
+                var lat = "radians(" + Raw(geo.Latitude, "geolat") + ")"; var lon = "radians(" + Raw(geo.Longitude, "geolon") + ")";
+                var cLat = "radians(" + Bind(geo.CentreLatitude) + ")"; var cLon = "radians(" + Bind(geo.CentreLongitude) + ")";
+                var hav = "(sin((" + lat + "-" + cLat + ")/2)*sin((" + lat + "-" + cLat + ")/2)+cos(" + lat + ")*cos(" + cLat + ")*sin((" + lon + "-" + cLon + ")/2)*sin((" + lon + "-" + cLon + ")/2))";
+                var distance = "(2*" + Bind(CosmicQueryGeoDistance.EarthRadiusKilometres) + "*asin(sqrt(min(1.0," + hav + "))))";
+                return "(" + Numeric(geo.Latitude, "geolatt") + " AND " + Numeric(geo.Longitude, "geolont") + " AND coalesce(" + distance + " <= " + Bind(geo.Kilometres) + ",0))";
+            }
             if (predicate is CosmicQueryFunctionComparison userFunction)
             {
                 // Q56: the registered SQLite template; literals are bound, never concatenated.
