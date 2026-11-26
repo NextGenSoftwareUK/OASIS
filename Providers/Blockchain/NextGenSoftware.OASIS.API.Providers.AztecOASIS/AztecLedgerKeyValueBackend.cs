@@ -101,7 +101,7 @@ internal sealed class AztecLedgerKeyValueBackend : IKeyValueBackend, IDisposable
         var id = RecordId(key);
         var replaced = await ReadCommitmentAsync(id, cancellationToken);
         var (hi, lo) = Halves(hash);
-        await _sdk.InvokeAsync("put", new { id, hi, lo }, cancellationToken);
+        await _sdk.InvokeAsync("put", new { recordId = id, hi, lo }, cancellationToken);
         if (replaced != null && !replaced.AsSpan().SequenceEqual(hash)) await UnpinAsync(replaced, cancellationToken);
     }
 
@@ -111,7 +111,7 @@ internal sealed class AztecLedgerKeyValueBackend : IKeyValueBackend, IDisposable
         var id = RecordId(key);
         var hash = await ReadCommitmentAsync(id, cancellationToken);
         if (hash == null) return; // deleting a missing key succeeds
-        await _sdk.InvokeAsync("remove", new { id }, cancellationToken);
+        await _sdk.InvokeAsync("remove", new { recordId = id }, cancellationToken);
         await UnpinAsync(hash, cancellationToken); // the ledger records the removal; release the envelope content
     }
 
@@ -163,7 +163,7 @@ internal sealed class AztecLedgerKeyValueBackend : IKeyValueBackend, IDisposable
     private async Task<byte[]> ReadCommitmentAsync(string id, CancellationToken cancellationToken)
     {
         await InitialiseAsync(cancellationToken);
-        var read = await _sdk.InvokeAsync("get", new { id }, cancellationToken);
+        var read = await _sdk.InvokeAsync("get", new { recordId = id }, cancellationToken);
         return Join(read.GetProperty("hi").GetString()!, read.GetProperty("lo").GetString()!);
     }
 

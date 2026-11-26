@@ -82,10 +82,10 @@ const operations = {
   attach: async ({ contract }) => { if (!state) throw new Error('The Aztec worker is not initialised.'); state.contract = await attach(state, contract); return {}; },
   deploy,
   owner: async () => ({ owner: (await view('get_owner')).toString(), account: state.account.address.toString() }),
-  put: async ({ id, hi, lo }) => submit(requireContract().methods.put(Fr.fromString(id), Fr.fromString(hi), Fr.fromString(lo))),
-  remove: async ({ id }) => submit(requireContract().methods.remove(Fr.fromString(id))),
-  get: async ({ id }) => {
-    const [hi, lo] = await view('get', Fr.fromString(id));
+  put: async ({ recordId, hi, lo }) => submit(requireContract().methods.put(Fr.fromString(recordId), Fr.fromString(hi), Fr.fromString(lo))),
+  remove: async ({ recordId }) => submit(requireContract().methods.remove(Fr.fromString(recordId))),
+  get: async ({ recordId }) => {
+    const [hi, lo] = await view('get', Fr.fromString(recordId));
     return { hi: hex(hi), lo: hex(lo) };
   },
   list: async () => {
