@@ -4,9 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Contracts.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.GOMapOASIS;
-using NextGenSoftware.OASIS.API.Providers.GOMapOASIS.Bridge;
-using NextGenSoftware.OASIS.API.Providers.GOMapOASIS.Geocoding;
-using NextGenSoftware.OASIS.API.Providers.GOMapOASIS.Models;
+using NextGenSoftware.OASIS.Providers.Shared.Maps.Models;
+using NextGenSoftware.OASIS.Providers.Shared.Maps.Search;
 
 namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.TestHarness
 {
@@ -71,8 +70,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.TestHarness
             Console.WriteLine("Projection into GO Map world space");
             Console.WriteLine("----------------------------------");
 
-            GOMapWorldPosition? position =
-                provider.ConvertToWorldPosition(TowerOfLondon.Latitude, TowerOfLondon.Longitude);
+            MapWorldPosition? position = provider.ToWorldPosition(TowerOfLondon, 0.0);
 
             Console.WriteLine($"  Tower of London    : {position}");
 
@@ -97,7 +95,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.TestHarness
             provider.UpdateOrbitValue(45f);
 
             Console.WriteLine($"  After pan and zoom : zoom {provider.Camera.Zoom}, centre {provider.Camera.Centre}");
-            Console.WriteLine($"  Orbit              : {provider.Camera.Orbit} degrees");
+            Console.WriteLine($"  Orbit              : {provider.Camera.Bearing} degrees");
             Console.WriteLine();
         }
 
@@ -112,12 +110,12 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.TestHarness
             provider.PlaceOAPPOnMap("Our World London", StPauls.Latitude, StPauls.Longitude);
             provider.DropPin(StPauls, "avatar-marker");
 
-            foreach (GOMapPlacement placement in provider.Placements.OrderBy(p => p.Kind.ToString()))
+            foreach (MapPlacement placement in provider.Placements.OrderBy(p => p.Kind.ToString()))
                 Console.WriteLine($"  {placement.Kind,-12} {placement.Entity} @ {placement.Location}");
 
             Console.WriteLine($"  Pins dropped       : {provider.Pins.Count}");
 
-            IReadOnlyCollection<GOMapPlacement> near = provider.GetPlacementsNear(StPauls, 500.0);
+            IReadOnlyCollection<MapPlacement> near = provider.GetPlacementsNear(StPauls, 500.0);
             Console.WriteLine($"  Within 500m of St Paul's: {near.Count}");
             Console.WriteLine();
         }
@@ -127,8 +125,8 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.TestHarness
             Console.WriteLine("Command queue (what a Unity client would drain and apply)");
             Console.WriteLine("--------------------------------------------------------");
 
-            foreach (GOMapCommand command in provider.DrainCommands())
-                Console.WriteLine($"  {command.CommandType,-20} applied to live map: {command.AppliedToLiveMap}");
+            foreach (MapCommand command in provider.DrainCommands())
+                Console.WriteLine($"  {command.CommandType,-20} applied to renderer: {command.AppliedToRenderer}");
 
             Console.WriteLine();
         }
@@ -139,7 +137,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.TestHarness
             Console.WriteLine("--------------");
 
             List<Geolocation> route = await provider.DirectionsAPI.GetDirectionsAsync(
-                StPauls, TowerOfLondon, RoutingType.Walking);
+                StPauls, TowerOfLondon, RoutingType.Driving);
 
             if (route.Count == 0)
             {
@@ -152,7 +150,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.TestHarness
                     travelled += provider.CalculateDistance(route[i - 1], route[i]);
 
                 Console.WriteLine($"  Waypoints          : {route.Count}");
-                Console.WriteLine($"  Walked distance    : {travelled:F0} m");
+                Console.WriteLine($"  Driven distance    : {travelled:F0} m");
                 Console.WriteLine($"  Straight line      : {provider.CalculateDistance(StPauls, TowerOfLondon):F0} m");
             }
 
@@ -162,7 +160,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.TestHarness
 
             ForwardGeocodingResponse<IPointOfInterest> results =
                 await provider.GeocodingProvider.POISearchAsync(
-                    new POISearchRequest("Tower of London", StPauls, 3));
+                    new MapPlaceSearchRequest("Tower of London", StPauls, 3));
 
             foreach (IPointOfInterest poi in results.Data)
                 Console.WriteLine($"  {poi.Name} [{poi.Category}] {poi.Distance:F0}m away");

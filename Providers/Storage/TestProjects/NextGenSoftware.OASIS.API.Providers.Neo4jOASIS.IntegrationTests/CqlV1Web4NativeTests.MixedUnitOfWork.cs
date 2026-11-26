@@ -419,11 +419,70 @@ public sealed partial class CqlV1Web4NativeTests
             var wrapped=await math.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>row.Id==edge.Id)
                 .Select(row=>CosmicQueryMetadata.Value<long>(row,"big")*2L).ToCosmicListAsync();
             Assert.IsTrue(wrapped.IsError,"An Int64 overflow must not wrap.");
+            var named=await math.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>row.Id==small.Id)
+                .Select(row=>CosmicQueryMetadata.Value<int>(row,"score")==1?"one":CosmicQueryMetadata.Value<int>(row,"score")==7?"seven":"other").ToCosmicListAsync();
+            Assert.IsFalse(named.IsError,named.ErrorCode+": "+named.Message);Assert.AreEqual("seven",named.Result.Single(),"Q55 Int32 CASE picks the matching branch.");
             var overflow=await math.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>row.Id==huge.Id)
                 .Select(row=>CosmicQueryMetadata.Value<int>(row,"score")*2).ToCosmicListAsync();
             Assert.IsTrue(overflow.IsError,"An Int32 overflow must not wrap.");
             Assert.ThrowsException<CosmicLinqException>(()=>math.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result
                 .Select(row=>CosmicQueryMetadata.Value<int>(row,"score")*CosmicQueryMetadata.Value<int>(row,"score")),"Non-linear arithmetic is refused.");
+        }
+        checks++;
+        // A14 futures: deferred queries run together, in order, each with its own native access-bound result.
+        using(var futures=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            var named=futures.Future(futures.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>row.Id==keep.Id).Select(row=>row.Name));
+            var counted=futures.Future(futures.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>row.Id==keep.Id||row.Id==Guid.Empty));
+            Assert.IsFalse(named.IsError,named.Message);Assert.IsFalse(counted.IsError,counted.Message);
+            Assert.IsFalse(named.Result.IsExecuted);Assert.AreEqual("COSMIC_FUTURE_NOT_EXECUTED",named.Result.Result.ErrorCode);
+            var executed=await futures.ExecuteFuturesAsync();
+            Assert.IsFalse(executed.IsError,executed.Message);Assert.AreEqual(2,executed.Result);
+            Assert.IsFalse(named.Result.Result.IsError,named.Result.Result.Message);
+            Assert.AreEqual((await Stored(keep.Id)).Single().Name,named.Result.Result.Result.Single());
+            Assert.AreEqual(1,counted.Result.Result.Result.Count);
+            Assert.AreEqual(0,(await futures.ExecuteFuturesAsync()).Result,"Executed futures are not run twice.");
+        }
+        checks++;
+        // Q56 user-defined functions: registered native templates per store, literals bound as parameters.
+        Assert.IsFalse(CosmicQueryFunctions.Register(typeof(CqlTestFunctions).GetMethod(nameof(CqlTestFunctions.Shout))!,
+            sqliteTemplate:"upper({value})",mongoTemplate:"{\"$toUpper\":\"{value}\"}",cypherTemplate:"toUpper({value})").IsError);
+        Assert.IsFalse(CosmicQueryFunctions.Register(typeof(CqlTestFunctions).GetMethod(nameof(CqlTestFunctions.Prefix))!,
+            sqliteTemplate:"substr({value},1,{0})",mongoTemplate:"{\"$substrCP\":[\"{value}\",0,\"{0}\"]}",cypherTemplate:"substring({value},0,{0})").IsError);
+        Assert.IsTrue(CosmicQueryFunctions.Register(typeof(CqlTestFunctions).GetMethod(nameof(CqlTestFunctions.Shout))!,
+            sqliteTemplate:"upper({value}); DROP TABLE x").IsError,"Statement separators are refused.");
+        using(var udf=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            var word=New("udf-word");word.MetaData=new Dictionary<string,object>{{"word","hello"}};
+            var other=New("udf-other");other.MetaData=new Dictionary<string,object>{{"word","world"}};
+            foreach(var row in new[]{word,other})Assert.IsFalse(udf.Add(row).IsError);
+            Assert.IsFalse((await udf.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()))).IsError);
+            var pair=new[]{word.Id,other.Id};
+            async Task<Guid[]> Matching(System.Linq.Expressions.Expression<Func<Holon,bool>> filter)
+            {
+                var rows=await udf.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>pair.Contains(row.Id)).Where(filter).ToCosmicListAsync();
+                Assert.IsFalse(rows.IsError,rows.ErrorCode+": "+rows.Message);return rows.Result.Select(row=>row.Id).ToArray();
+            }
+            CollectionAssert.AreEqual(new[]{word.Id},await Matching(row=>CqlTestFunctions.Shout(CosmicQueryMetadata.Value<string>(row,"word"))=="HELLO"));
+            CollectionAssert.AreEqual(new[]{word.Id},await Matching(row=>CqlTestFunctions.Prefix(CosmicQueryMetadata.Value<string>(row,"word"),3)=="hel"));
+            CollectionAssert.AreEqual(new[]{other.Id},await Matching(row=>"wor"==CqlTestFunctions.Prefix(CosmicQueryMetadata.Value<string>(row,"word"),3)));
+        }
+        checks++;
+        // A05 inverse navigation: a tracked child resolves its tracked parent instance without a persisted reference.
+        var navParent=New("nav-parent");var navChild=New("nav-child");navChild.ParentHolonId=navParent.Id;
+        using(var navWriter=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            Assert.IsFalse(navWriter.Add(navParent).IsError);Assert.IsFalse(navWriter.Add(navChild).IsError);
+            Assert.IsFalse((await navWriter.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()))).IsError);
+        }
+        using(var navReader=CosmicSession.Create(manager,adapter,access).Result)
+        {
+            var child=(await navReader.FindAsync<Holon>(navChild.Id)).Result;
+            var missing=navReader.TrackedParent<Holon>(child);
+            Assert.IsFalse(missing.IsError);Assert.IsFalse(missing.IsLoaded);Assert.AreEqual("COSMIC_PARENT_NOT_TRACKED",missing.ErrorCode);
+            var parent=(await navReader.FindAsync<Holon>(navParent.Id)).Result;
+            var resolved=navReader.TrackedParent<Holon>(child);
+            Assert.IsTrue(resolved.IsLoaded,resolved.Message);Assert.AreSame(parent,resolved.Result,"The inverse resolves to the tracked parent instance.");
         }
         checks++;
         // M29 seed data: idempotent insert of fixed-identity rows in one unit of work.
@@ -442,7 +501,7 @@ public sealed partial class CqlV1Web4NativeTests
         }
         Assert.AreEqual(2,(await Stored(seedIds)).Count);checks++;
         return new NativeFixtureJourneyProof(checks,4,new Dictionary<string,bool>{
-            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true,["notificationTrackingVerified"]=true,["collectionMembershipVerified"]=true,["stringTransformsVerified"]=true,["compiledQueryVerified"]=true,["asOfHistoryVerified"]=true,["setCollectionVerified"]=true,["generatedValuesVerified"]=true,["readOnlyViewsVerified"]=true,["graphMergeVerified"]=true,["multiBranchCaseVerified"]=true,["fullTextVerified"]=true,["entitySplittingVerified"]=true,["int32ArithmeticVerified"]=true});
+            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true,["notificationTrackingVerified"]=true,["collectionMembershipVerified"]=true,["stringTransformsVerified"]=true,["compiledQueryVerified"]=true,["asOfHistoryVerified"]=true,["setCollectionVerified"]=true,["generatedValuesVerified"]=true,["readOnlyViewsVerified"]=true,["graphMergeVerified"]=true,["multiBranchCaseVerified"]=true,["fullTextVerified"]=true,["entitySplittingVerified"]=true,["int32ArithmeticVerified"]=true,["futuresVerified"]=true,["userFunctionsVerified"]=true,["inverseNavigationVerified"]=true});
     }
 
     public sealed class SetModelHolon : Holon

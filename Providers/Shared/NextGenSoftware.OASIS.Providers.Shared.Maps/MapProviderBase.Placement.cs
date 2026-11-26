@@ -22,6 +22,20 @@ namespace NextGenSoftware.OASIS.Providers.Shared.Maps
         public IReadOnlyCollection<MapPlacement> GetPlacements(MapPlacementKind kind) =>
             _placements.Values.Where(p => p.Kind == kind).ToList();
 
+        /// <summary>Pins within <paramref name="radiusMetres"/> of a coordinate, nearest first.</summary>
+        public IReadOnlyCollection<MapPin> GetPinsNear(Geolocation location, double radiusMetres)
+        {
+            if (!GeoMath.IsValid(location)) throw new ArgumentException("A valid WGS84 coordinate is required.", nameof(location));
+            if (radiusMetres <= 0) throw new ArgumentOutOfRangeException(nameof(radiusMetres));
+
+            return _pins.Values
+                .Select(p => new { Pin = p, Distance = GeoMath.HaversineMetres(location, p.Location) })
+                .Where(x => x.Distance <= radiusMetres)
+                .OrderBy(x => x.Distance)
+                .Select(x => x.Pin)
+                .ToList();
+        }
+
         public IReadOnlyCollection<MapPlacement> GetPlacementsNear(Geolocation location, double radiusMetres)
         {
             if (!GeoMath.IsValid(location)) throw new ArgumentException("A valid WGS84 coordinate is required.", nameof(location));

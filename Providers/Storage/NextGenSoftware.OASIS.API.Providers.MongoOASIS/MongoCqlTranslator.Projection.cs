@@ -132,6 +132,21 @@ internal sealed partial class MongoCqlTranslator
             return SingleLet(utcName,ProjectionCell(column.Path,prefix+"utcSource"),new BsonDocument{
                 {"s",cell+".s"},{"v",Choose(Op("$eq",cell+".s",Literal(2)),UtcDatePartFromTicks(column.Function,ticks),Literal(BsonNull.Value))}});
         }
+        if (column.Function == CosmicProjectionFunction.Int32ToTextCase)
+        {
+            if(column.Path.ValueType != typeof(int) || column.ValueType != typeof(string) || column.Int32TextCases == null || column.Int32TextCases.Count == 0 || column.WhenFalse == null)
+                throw new NotSupportedException("Native Int32 CASE requires an exact Int32 path and captured literal branches.");
+            var integerName = prefix + "integerCase";
+            var integerPresent = Op("$eq", "$$"+integerName+".s", Literal(2));
+            var integerBranches = new BsonArray();
+            foreach (var entry in column.Int32TextCases)
+                integerBranches.Add(new BsonDocument{{"case",Op("$eq",new BsonDocument("$toLong","$$"+integerName+".v"),Literal((long)entry.Key))},{"then",Literal(entry.Value)}});
+            var integerSelected = new BsonDocument("$switch",new BsonDocument{{"branches",integerBranches},{"default",Literal(column.WhenFalse)}});
+            return SingleLet(integerName,ProjectionCell(column.Path,prefix+"source"),new BsonDocument {
+                {"s",Choose(integerPresent,Literal(2),Literal(3))},
+                {"v",Choose(integerPresent,integerSelected,BsonNull.Value)}
+            });
+        }
         if (column.Function == CosmicProjectionFunction.Int64Affine)
         {
             if(column.Path.ValueType != typeof(long) || column.ValueType != typeof(long) || !column.Int64Multiplier.HasValue || !column.Int64Offset.HasValue)

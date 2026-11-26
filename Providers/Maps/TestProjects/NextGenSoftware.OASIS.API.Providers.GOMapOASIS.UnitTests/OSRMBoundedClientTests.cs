@@ -33,7 +33,7 @@ public class OSRMBoundedClientTests
     public async Task ExactRequestAndCompleteObservation(RoutingType type, string profile)
     {
         using var handler = new Handler(Valid); using var client = new HttpClient(handler);
-        var p = new OSRMDirectionsProvider(client);
+        var p = new OSRMDirectionsProvider(client) { BaseUrl = "https://osrm.example.org" };
         var result = await p.GetRouteAsync(new Geolocation(52, 13), new Geolocation(52.1, 13.1), type);
         Assert.IsFalse(result.IsError, result.Message); Assert.AreEqual(1, handler.Calls);
         StringAssert.Contains(handler.Url!, "/route/v1/" + profile + "/13,52;13.1,52.1?");
@@ -101,8 +101,8 @@ public class OSRMBoundedClientTests
     [TestMethod]
     public async Task LegacyDirectionsReportsTheSameValidationFailure()
     {
-        using var handler = new Handler("{}"); using var client = new HttpClient(handler); var p = new OSRMDirectionsProvider(client);
-        var route = await p.GetDirectionsAsync(new Geolocation(52,13),new Geolocation(52.1,13.1));
+        using var handler = new Handler("{}"); using var client = new HttpClient(handler); var p = new OSRMDirectionsProvider(client) { BaseUrl = "https://osrm.example.org" };
+        var route = await p.GetDirectionsAsync(new Geolocation(52,13),new Geolocation(52.1,13.1),RoutingType.Driving);
         Assert.AreEqual(0,route.Count); Assert.IsNotNull(p.LastError); Assert.AreEqual(1,handler.Calls);
     }
     [TestMethod]
@@ -134,13 +134,13 @@ public class OSRMBoundedClientTests
         using var firstHandler = new BlockingHandler(); using var firstClient = new HttpClient(firstHandler);
         using var secondHandler = new Handler(Valid); using var secondClient = new HttpClient(secondHandler);
         using var firstCancellation = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        var first = new OSRMDirectionsProvider(firstClient).GetRouteAsync(new Geolocation(52,13),new Geolocation(52.1,13.1),cancellationToken:firstCancellation.Token);
+        var first = new OSRMDirectionsProvider(firstClient).GetRouteAsync(new Geolocation(52,13),new Geolocation(52.1,13.1),RoutingType.Driving,cancellationToken:firstCancellation.Token);
         try
         {
             await firstHandler.Entered.Task.WaitAsync(TimeSpan.FromSeconds(3));
             using var secondCancellation = new CancellationTokenSource(TimeSpan.FromMilliseconds(50));
             await ExpectCancellation(() => new OSRMDirectionsProvider(secondClient).GetRouteAsync(
-                new Geolocation(52,13),new Geolocation(52.1,13.1),cancellationToken:secondCancellation.Token));
+                new Geolocation(52,13),new Geolocation(52.1,13.1),RoutingType.Driving,cancellationToken:secondCancellation.Token));
             Assert.AreEqual(0,secondHandler.Calls);
         }
         finally

@@ -91,6 +91,12 @@ namespace NextGenSoftware.OASIS.Providers.Shared.Maps
         {
             _sink = null;
             IsInitialized = false;
+            OnShutdown();
+        }
+
+        /// <summary>Called after the session ends, so a provider can release its own renderer binding.</summary>
+        protected virtual void OnShutdown()
+        {
         }
 
         public void SetOrigin(Geolocation origin)

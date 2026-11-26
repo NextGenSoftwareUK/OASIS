@@ -356,6 +356,36 @@ internal sealed partial class MongoCqlTranslator
             });
             case CosmicQueryStringLength length: return At(length.Path, value =>
                 Utf16LengthComparison(value, length.Operator, length.Value));
+            case CosmicQueryFunctionComparison userFunction: return At(userFunction.Path, value =>
+            {
+                // Q56: the registered aggregation template; {value} and literal placeholders are replaced
+                // by expression nodes after parsing, so values are never spliced into JSON text.
+                if (userFunction.Function.MongoTemplate == null)
+                    throw new NotSupportedException("CQL_CAPABILITY_UNSUPPORTED: the user-defined function has no MongoDB translation.");
+                BsonValue Bound(BsonValue node) => node switch
+                {
+                    BsonString text when text.Value == "{value}" => value,
+                    BsonString text when text.Value.Length > 2 && text.Value[0] == '{' && text.Value[^1] == '}' && int.TryParse(text.Value.Substring(1, text.Value.Length - 2), out var index)
+                        => Literal(BsonValue.Create(userFunction.Arguments[index])),
+                    BsonDocument document => new BsonDocument(document.Elements.Select(element => new BsonElement(element.Name, Bound(element.Value)))),
+                    BsonArray array => new BsonArray(array.Select(Bound)),
+                    _ => node
+                };
+                BsonDocument parsed;
+                try { parsed = BsonDocument.Parse("{\"f\":" + userFunction.Function.MongoTemplate + "}"); }
+                catch (Exception cause) { throw new NotSupportedException("The MongoDB template is not an aggregation expression.", cause); }
+                var applied = Bound(parsed["f"]);
+                var symbol = userFunction.Operator switch
+                {
+                    CosmicQueryComparisonOperator.Equal => "$eq", CosmicQueryComparisonOperator.NotEqual => "$ne",
+                    CosmicQueryComparisonOperator.GreaterThan => "$gt", CosmicQueryComparisonOperator.GreaterThanOrEqual => "$gte",
+                    CosmicQueryComparisonOperator.LessThan => "$lt", _ => "$lte"
+                };
+                var expected = userFunction.Function.SourceType == typeof(string) ? "string" : userFunction.Function.SourceType == typeof(bool) ? "bool" : null;
+                var compared = Op(symbol, applied, Literal(BsonValue.Create(userFunction.Value)));
+                return expected == null ? Op("$cond", Op("$isNumber", value), compared, Literal(false))
+                    : Op("$cond", Op("$eq", Type(value), Literal(expected)), compared, Literal(false));
+            });
             case CosmicQueryFullText fullText: return At(fullText.Path, value =>
             {
                 // O16: each term is a whole word (letters/digits runs), case-insensitive, matched natively.
