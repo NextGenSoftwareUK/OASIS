@@ -62,6 +62,12 @@ read availability separately: Blockscout earlier15s timeout and Nostr intermitte
 503causes remain unresolved. Do not harden completed provider query cells merely
 to reproduce green. [Current Blockscout evidence](BLOCKSCOUT_PUBLIC_SOURCE_STATUS.md).
 
+Status 25 Nov 2026: authorized serialized reactivation exists:
+`POST /api/admin/cql/sources/{provider}/recover` (Wizard only, generation and host-instance fenced, one receipt per
+source). Live dev catalogue: 107/107 sources available, Blockscout included. Blockscout's remaining intermittent 504 was
+its fixed 15 s HttpClient timeout firing before the declared 30 s read deadline (`CQL_QUERY_CANCELLED` at 15.5 s). The
+client timeout is now infinite, so the linked 30 s deadline is the only budget. Open: sustained-availability observation.
+
 ## Reproduced local launcher blocker — recover before further breadth
 
 Published website commands reference 35 launchers absent from the current branch; retained source exists at sandbox-integration pin 237403a75b6983e013141cf7ba44bf66858abafd. Recover scoped provider/demo source dependencies, beginning with DuckDB, preserve current changes, verify controlled builds and command paths. Do not replay original accepted native cohorts or create replacement environments. This is a current demo-link bug, not deferred parity work. [Exact report](LOCAL_LAUNCHER_INTEGRATION_GAP.md).
