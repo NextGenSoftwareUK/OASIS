@@ -136,14 +136,16 @@ public sealed class CrossChainTrackerCapabilityTests
     {
         const string host = "scan.layerzero-api.com";
         var guard = new PublicReadGuard(host, (HttpMethod.Get, "/v1/messages/"));
-        using var native = new HttpClient(new PublicReadGuard(host, (HttpMethod.Get, "/v1/messages/latest")));
+        using var native = new HttpClient(new PublicReadGuard(host, (HttpMethod.Get, "/v1/messages/tx/")));
         var provider = new LayerZeroV2OASIS($"https://{host}/v1", guard);
         await RunAsync(provider, "LayerZeroV2OASIS", async () =>
         {
-            using var latest = await ReadJsonAsync(native, HttpMethod.Get, $"https://{host}/v1/messages/latest?limit=1");
-            var hash = latest.RootElement.GetProperty("data")[0].GetProperty("source").GetProperty("tx").GetProperty("txHash").GetString();
+            // A fixed, settled message: "latest" can be empty or still indexing from some networks.
+            const string hash = "0x949eb9cc91f856a2ba03692c5d39038f149587910e8f5da8ab6706b853aab429";
+            using var expected = await ReadJsonAsync(native, HttpMethod.Get, $"https://{host}/v1/messages/tx/{hash}");
+            var guid = expected.RootElement.GetProperty("data")[0].GetProperty("guid").GetString();
             var before = guard.Requests;
-            RequireTransfer(await Load(provider.GetTransfersBySourceTxAsync(hash!)), t => Same(t.SourceTxHash, hash), "layerzero-v2");
+            RequireTransfer(await Load(provider.GetTransfersBySourceTxAsync(hash)), t => Same(t.SourceTxHash, hash) && Same(t.Id, guid), "layerzero-v2");
             return new NonStorageConformance.Probe(host, "MessagesBySourceTx", guard.Requests - before, true, true);
         });
     }
