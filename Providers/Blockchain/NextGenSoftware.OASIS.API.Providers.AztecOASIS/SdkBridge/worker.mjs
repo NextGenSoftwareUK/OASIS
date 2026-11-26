@@ -39,7 +39,8 @@ async function init({ nodeUrl, secret, salt, signingKey, contract }) {
 }
 
 async function attach(target, address) {
-  const contractAddress = AztecAddress.fromString(address);
+  const contractAddress = AztecAddress.fromStringUnsafe(address);
+  if (!(await contractAddress.isValid())) throw new Error(`${address} is not a valid Aztec address.`);
   const instance = await target.node.getContract(contractAddress);
   if (!instance) throw new Error(`No OasisKv contract instance is published at ${address}.`);
   await target.wallet.registerContract(instance, target.artifact);
