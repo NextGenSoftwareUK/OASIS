@@ -77,6 +77,8 @@ WebAPI and run with Jint, are the single source of truth. Do not extend the brow
 | `POST /api/data/query-cql/sql` (16 KB) | `{ "query": "SELECT * FROM MongoDBOASIS LIMIT 5", "parameters": {} }` | The typed endpoint's response. `X-OASIS-CQL-Path` names it. |
 | `POST /api/data/query-cql/ask` (4 KB) | `{ "question": "...", "execute": true }` | As above plus `X-OASIS-CQL-Text` (URL-encoded SQL), or `{ sql }` when `execute` is false. |
 
+`X-OASIS-CQL-Parse-Ms` is the server time spent compiling the text. The scripts are parsed once per process.
+
 `X-OASIS-CQL-Scalar-Alias` carries the `AS` name of a scalar result. Errors: 400 `CQL_SQL_INVALID`, 422
 `CQL_ASK_UNSUPPORTED`, 502 `CQL_ASK_DRAFT_FAILED`.
 
