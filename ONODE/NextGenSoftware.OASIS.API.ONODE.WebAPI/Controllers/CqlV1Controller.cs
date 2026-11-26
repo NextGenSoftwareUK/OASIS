@@ -12,7 +12,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers;
 [Route("api/data/query-cql")]
 [Authorize]
 [ServiceFilter(typeof(CqlV1ResourceFilter))]
-public sealed class CqlV1Controller : ControllerBase
+public sealed partial class CqlV1Controller : ControllerBase
 {
     private readonly ICqlV1Providers providers;
     public CqlV1Controller(ICqlV1Providers providers) => this.providers = providers;

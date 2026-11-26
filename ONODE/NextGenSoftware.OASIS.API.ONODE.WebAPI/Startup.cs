@@ -33,13 +33,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
         // direct HTTP callers receive, including when the query outcome is uncertain.
         internal static void ConfigureCorsPolicy(CorsPolicyBuilder policy)
             => policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()
-                .WithExposedHeaders("X-OASIS-Operation-Id");
+                .WithExposedHeaders("X-OASIS-Operation-Id", "X-OASIS-CQL-Path", "X-OASIS-CQL-Text", "X-OASIS-CQL-Scalar-Alias");
 
         internal const string SessionCookieOrigin = "https://web4.oasisomniverse.one";
 
         internal static CorsPolicyBuilder ConfigureSessionCookieCorsPolicy(CorsPolicyBuilder policy)
             => policy.WithOrigins(SessionCookieOrigin).AllowCredentials().AllowAnyMethod().AllowAnyHeader()
-                .WithExposedHeaders("X-OASIS-Operation-Id");
+                .WithExposedHeaders("X-OASIS-Operation-Id", "X-OASIS-CQL-Path", "X-OASIS-CQL-Text", "X-OASIS-CQL-Scalar-Alias");
 
         internal const string DevelopmentSessionCookieOrigin = "https://sandbox.web4.oasisomniverse.one";
 
@@ -535,6 +535,11 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                 (avatarId, token) => Controllers.SubscriptionController.GetCurrentKarmaAsync(avatarId.ToString("D"), token));
             bool subscriptionUsageEnabled = string.Equals(Configuration["SUBSCRIPTION_USAGE_ENABLED"], "true", StringComparison.OrdinalIgnoreCase);
             services.AddSingleton<Services.Cql.ICqlV1Providers, Services.Cql.CqlV1Providers>();
+
+            // SQL-like and free-text CQL (api/data/query-cql/sql and /ask).
+            services.AddSingleton<Services.Cql.CqlTextCompiler>();
+            services.AddHttpClient(Services.Cql.CqlTextMiddleware.Web6Client, client => client.Timeout = TimeSpan.FromSeconds(30))
+                .ConfigurePrimaryHttpMessageHandler(() => new System.Net.Http.HttpClientHandler { AllowAutoRedirect = false });
             // What owners shared with a caller (and their groups) is part of every CQL query, per OASIS.Cql in the DNA.
             Services.Cql.CqlV1Compiler.SharedReads = new Services.Cql.DnaCqlSharedReads();
             services.AddSingleton<Services.Cql.CqlV1ResourceFilter>();
@@ -1068,6 +1073,9 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                 catch (System.Net.WebSockets.WebSocketException) { }
                 finally { Hubs.ONODEWebSocketHub.Unregister(nodeId, socket); }
             });
+
+            // Must run before usage admission: it gives a text query the path of the typed query it compiles to.
+            app.UseMiddleware<Services.Cql.CqlTextMiddleware>();
 
             if(Configuration["PREPARED_STORAGE_ADMISSION_JSON"]!=null)
             {

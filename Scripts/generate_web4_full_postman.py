@@ -107,6 +107,14 @@ def pm_url(path: str):
     return raw
 
 
+# Example bodies for routes whose request is not obvious; every other body is left as {}.
+EXAMPLE_BODIES = {
+    "/api/data/query-cql/sql": {"query": "SELECT * FROM MongoDBOASIS WHERE Version >= @minimum LIMIT 5",
+                                "parameters": {"minimum": 1}},
+    "/api/data/query-cql/ask": {"question": "Show five records from MongoDB", "execute": False},
+}
+
+
 def build():
     folders = []
     total = 0
@@ -125,7 +133,7 @@ def build():
                 headers.append({"key": "Idempotency-Key", "value": "{{$guid}}"})
             request = {"method": verb, "header": headers, "url": pm_url(path)}
             if verb in ("POST", "PUT", "PATCH"):
-                request["body"] = {"mode": "raw", "raw": "{}", "options": {"raw": {"language": "json"}}}
+                request["body"] = {"mode": "raw", "raw": json.dumps(EXAMPLE_BODIES[path], indent=2) if path in EXAMPLE_BODIES else "{}", "options": {"raw": {"language": "json"}}}
             label = re.sub(r"(?<!^)(?=[A-Z])", " ", method).replace("Async", "").strip()
             items.append({"name": f"{label}  [{verb} {path}]", "request": request})
         if items:
@@ -140,7 +148,7 @@ def build():
                 f"Every WEB4 OASIS API route ({total} requests), generated from the ONODE WebAPI controllers by "
                 "Scripts/generate_web4_full_postman.py. Set web4BaseUrl (production https://api.web4.oasisomniverse.one, "
                 "dev https://dev.api.web4.oasisomniverse.one) and bearerToken (from POST /api/avatar/authenticate). "
-                "Request bodies are left as {}; see the controller or Swagger for each model. Do not run money, crypto "
+                "Most request bodies are left as {}; see the controller or Swagger for each model. Do not run money, crypto "
                 "or minting requests against production."),
             "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
         },

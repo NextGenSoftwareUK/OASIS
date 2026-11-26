@@ -111,6 +111,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Jint" Version="4.4.1" />
     <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj" />
     <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.ONET\NextGenSoftware.OASIS.ONET.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.ONODE.Core\NextGenSoftware.OASIS.API.ONODE.Core.csproj" Condition="Exists('..\NextGenSoftware.OASIS.API.ONODE.Core\NextGenSoftware.OASIS.API.ONODE.Core.csproj')" />
@@ -291,4 +292,9 @@
 <ItemGroup><ProjectReference Include="../../Providers/Other/NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS/NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS.csproj" /></ItemGroup>
 <ItemGroup><ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.TRONOASIS/NextGenSoftware.OASIS.API.Providers.TRONOASIS.csproj" /></ItemGroup>
 <ItemGroup><ProjectReference Include="../../Providers/Other/NextGenSoftware.OASIS.API.Providers.UrbitOASIS/NextGenSoftware.OASIS.API.Providers.UrbitOASIS.csproj" /></ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Services\Cql\Text\cql-text.js" LogicalName="OASIS.Cql.Text.cql-text.js" />
+    <EmbeddedResource Include="Services\Cql\Text\cql-ask.js" LogicalName="OASIS.Cql.Text.cql-ask.js" />
+  </ItemGroup>
+
 </Project>
