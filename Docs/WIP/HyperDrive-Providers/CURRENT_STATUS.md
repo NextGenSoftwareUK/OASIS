@@ -22,7 +22,7 @@ OPORTAL, the ONODE popup and billing UI are now owned by a different session. CQ
 - Next 3: Ceramic signed commits (DID), BlockStack Gaia auth tokens, Aztec/Miden real storage designs.
 - Blockers: ACTIONS-FOR-DAVID I1 and the hosted-account providers.
 
-## Progress (cloud-hyperdrive-A, updated 2026-11-26 02:25 UTC)
+## Progress (cloud-hyperdrive-A, updated 2026-11-26 02:30 UTC)
 
 Done in CI (native core-storage suite 26/26, sync + async, against real backends):
 - TelosOASIS and SEEDSOASIS: storage through the EOSIO (Antelope) implementation; `antelope-family-native-storage.yml`, run 45518765561.
@@ -53,7 +53,16 @@ Known gap: providers that delegate storage (Eclipse to Solana, Telos to EOSIO) s
 provider's ProviderUniqueStorageKey type; routing by the outer type does not find them. Fix is to make the stamped type
 configurable in SolanaOASIS/EOSIOOASIS.
 
-Blocked on hosted accounts or a retire decision: see "Hosted-only providers" in `Docs/WIP/Release and Status/ACTIONS-FOR-DAVID.md`.
+Summary (cloud-hyperdrive-A, 2026-11-26): every self-hostable storage provider this session took on now passes the
+native core-storage suite in CI (20 above). Nothing self-hostable is left unclaimed; the remaining providers need David:
+
+- Accounts needed (ACTIONS-FOR-DAVID): Nile, Cloudflare D1, Netlify Blobs, MotherDuck, Cloudinary, Deno Deploy, Fly.io,
+  Neo4j Aura, LanceDB Cloud, Telegram, Discord, Pinata, Oracle Object Storage (plus the earlier hosted entries: Zilliz,
+  Xata, Tigris, BigQuery, Snowflake, Redshift, Databricks, Algolia, Fastly).
+- Decisions needed: retire Fauna, Vercel KV and Polybase (services discontinued); what PLAN is, or retire PLANOASIS;
+  approve the pinned community ceramic-one CI image.
+- Classified non-storage: FarcasterOASIS, LoomOASIS.
+- Known gap: delegating providers (Eclipse to Solana, Telos to EOSIO) stamp records with the inner provider type.
 
 ## Branches
 
