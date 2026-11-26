@@ -36,3 +36,4 @@ Branch `work/cql-sandbox-providers` (worktree `C:\Source\OASIS2-cql-sandbox`). T
   8a5b0867 at v13). 11 were installed as baselines because SQLite did not have the root (seq 18-23, 26-28, 34, 37). Every
   run exited 0. Re-inspection shows them Completed, with the installed roots present in SQLite. Requests are kept on the
   dev volume under /data/COSMIC/ReplicaRepair/legacy/. 535/543 untouched.
+- Paused 26 Nov 2026 (weekly usage 90%). Stopped after: Blockscout single read budget (Development 71232347), CQL query-phase elapsed diagnostics (19df1d4a) plus ONODEManager pin fix (4907a46a), and native payload in demo copies (Web4Site 4b6ed77). Next on resume: AFTER_DEMO_BACKLOG "Virtual Holons and hybrid import", or typed native scalars in demo copies.
