@@ -21,3 +21,9 @@ Branch `work/cql-sandbox-providers` (worktree `C:\Source\OASIS2-cql-sandbox`). T
 - InfluxDB/Weaviate live demos: need hosted accounts and read-only tokens from David (ACTIONS-FOR-DAVID.md, "Hosted InfluxDB and Weaviate read-only CQL sources").
 - HyperDrive session answers (24 Nov): the IPFS catalogue root reset on every boot is fixed on `work/hyperdrive-triad` (`f4bd7089`, new DNA key `IPFSOASIS.CatalogueRootPointerPath`) and deploys with its next batch. The Neo4j->SQLite sequence 14 hold is the designed hold and waits on David's approval (ACTIONS-FOR-DAVID I1).
 - Originally handed to the HyperDrive session on 24 Nov: live replication Neo4j->SQLite blocked at sequence 14 (`COSMIC_REPLICA_LINEAGE_CONFLICT`), and the IPFS replication source has no persisted catalogue identity.
+- Legacy Neo4j->SQLite backlog (25 Nov): after I1, sequences 15-40 were frozen to the pre-V2 target id and held one at a
+  time as COSMIC_REPLICATION_ROUTE_UNBOUND. With Development 091b3998 deployed, all 26 were resolved on dev, oldest first,
+  through the reviewed commands. 15 were retired because SQLite already held newer versions (roots 715eb09e at v18 and
+  8a5b0867 at v13). 11 were installed as baselines because SQLite did not have the root (seq 18-23, 26-28, 34, 37). Every
+  run exited 0. Re-inspection shows them Completed, with the installed roots present in SQLite. Requests are kept on the
+  dev volume under /data/COSMIC/ReplicaRepair/legacy/. 535/543 untouched.
