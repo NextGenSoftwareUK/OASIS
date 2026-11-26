@@ -151,3 +151,4 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 
 - DONE 2026-11-25 (Development 71232347, master 77f30af9) by CQL sandbox session (local_b7903255): AFTER_DEMO_BACKLOG "Read-source operational recovery after bounded startup exhaustion" - authorized serialized reactivation of an exhausted CQL read source (Blockscout live case).
 | KeyDBOASIS and DragonflyOASIS native storage (full shared suite on local containers, Valkey pattern) | HyperDrive providers | local: HyperDrive provider programme | work/blockstack-gaia | 2026-11-26 03:40 | IN PROGRESS |
+| Remove 45 fully commented-out .cs files (ONODE WebAPI SCMS/Cargo/Telos leftovers, EOSIO, CargoOASIS handlers, Native EndPoint, Neo4jOASIS2 model, misc); keeps Template, Archived and LOST_METHODS_REVIEW | Cleanup | local: maps/interop session | work/dead-commented-files | 2026-11-25 | IN PROGRESS |
