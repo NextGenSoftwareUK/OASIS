@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.AxelarOASIS;
 using NextGenSoftware.OASIS.API.Providers.BittensorOASIS;
+using NextGenSoftware.OASIS.API.Providers.BlockscoutOASIS;
 using NextGenSoftware.OASIS.API.Providers.ChainflipOASIS;
 using NextGenSoftware.OASIS.API.Providers.ChainlinkFunctionsOASIS;
 using NextGenSoftware.OASIS.API.Providers.EigenLayerOASIS;
@@ -283,6 +284,27 @@ public sealed class CrossChainTrackerCapabilityTests
             Assert.AreEqual(key, loaded.Result.MetaData["storage_key"]?.ToString(), "The provider derived a different System.Account storage key.");
             Assert.AreEqual(free, loaded.Result.MetaData["free_rao"]?.ToString(), "The provider's free balance differs from the chain's.");
             return new NonStorageConformance.Probe(host, "SystemAccountStorageRead", guard.Requests - before, true, true);
+        });
+    }
+
+    [TestMethod]
+    public async Task BlockscoutReadsTheWethContractAddress()
+    {
+        const string host = "eth.blockscout.com";
+        const string weth = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
+        var guard = new PublicReadGuard(host, (HttpMethod.Get, "/api/v2/"));
+        using var native = new HttpClient(new PublicReadGuard(host, (HttpMethod.Get, "/api/v2/addresses/")));
+        var provider = new BlockscoutOASIS($"https://{host}/api/v2", guard);
+        await RunAsync(provider, "BlockscoutOASIS", async () =>
+        {
+            using var expected = await ReadJsonAsync(native, HttpMethod.Get, $"https://{host}/api/v2/addresses/{weth}");
+            var name = expected.RootElement.GetProperty("name").GetString();
+            var before = guard.Requests;
+            var loaded = await provider.LoadAvatarByProviderKeyAsync(weth).WaitAsync(TimeSpan.FromSeconds(60));
+            Assert.IsFalse(loaded.IsError, loaded.Message);
+            Assert.AreEqual("True", loaded.Result.MetaData["is_contract"]?.ToString(), true);
+            Assert.AreEqual(name, loaded.Result.MetaData["name"]?.ToString());
+            return new NonStorageConformance.Probe(host, "AddressRead", guard.Requests - before, true, true);
         });
     }
 }

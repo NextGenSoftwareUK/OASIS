@@ -28,6 +28,10 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockscoutOASIS
                 _http.DefaultRequestHeaders.Add("x-api-key", apiKey);
         }
 
+        /// <summary>Test seam: the public API behind a caller-supplied handler (for example a request guard).</summary>
+        internal BlockscoutOASIS(string baseUrl, HttpMessageHandler handler)
+            : this(new HttpClient(handler, disposeHandler: false) { BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/") }) { }
+
         private BlockscoutOASIS(HttpClient client)
         {
             _http = client;
@@ -35,6 +39,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockscoutOASIS
             ProviderDescription = "Blockscout open-source block explorer REST API provider.";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.BlockscoutOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
         }
 
         private async Task<JObject> GetAsync(string path)
