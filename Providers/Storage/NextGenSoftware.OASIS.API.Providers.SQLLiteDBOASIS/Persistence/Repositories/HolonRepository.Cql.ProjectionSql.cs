@@ -23,6 +23,14 @@ public partial class HolonRepository
                 return (utcSource.State,"CASE WHEN ("+utcSource.State+")=2 THEN "+
                     SqliteCqlUtcDateParts.Value(column.Function,utcSource.Value)+" ELSE NULL END");
             }
+            if (column.Function == CosmicProjectionFunction.UserFunction)
+            {
+                if(column.UserFunction?.SqliteTemplate == null)
+                    throw new NotSupportedException("CQL_CAPABILITY_UNSUPPORTED: the user-defined function has no SQLite translation.");
+                var userSource=ProjectionOperand(column.Path,prefix,comparable);
+                var applied="("+CosmicQueryFunction.Substitute(column.UserFunction.SqliteTemplate,userSource.Value,index=>Bind(column.UserFunctionArguments[index]))+")";
+                return (userSource.State,"CASE WHEN ("+userSource.State+")=2 THEN "+applied+" ELSE NULL END");
+            }
             if (column.Function == CosmicProjectionFunction.Int32ToTextCase)
             {
                 if(column.Path.ValueType != typeof(int) || column.ValueType != typeof(string) || column.Int32TextCases == null || column.Int32TextCases.Count == 0 || column.WhenFalse == null)

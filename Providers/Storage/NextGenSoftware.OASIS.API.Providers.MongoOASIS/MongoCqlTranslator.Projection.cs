@@ -132,6 +132,30 @@ internal sealed partial class MongoCqlTranslator
             return SingleLet(utcName,ProjectionCell(column.Path,prefix+"utcSource"),new BsonDocument{
                 {"s",cell+".s"},{"v",Choose(Op("$eq",cell+".s",Literal(2)),UtcDatePartFromTicks(column.Function,ticks),Literal(BsonNull.Value))}});
         }
+        if (column.Function == CosmicProjectionFunction.UserFunction)
+        {
+            if(column.UserFunction?.MongoTemplate == null)
+                throw new NotSupportedException("CQL_CAPABILITY_UNSUPPORTED: the user-defined function has no MongoDB translation.");
+            var userName = prefix + "userFunction";
+            var userCell = "$$" + userName;
+            BsonValue Bound(BsonValue node) => node switch
+            {
+                BsonString text when text.Value == "{value}" => userCell + ".v",
+                BsonString text when text.Value.Length > 2 && text.Value[0] == '{' && text.Value[^1] == '}' && int.TryParse(text.Value.Substring(1, text.Value.Length - 2), out var index)
+                    => Literal(BsonValue.Create(column.UserFunctionArguments[index])),
+                BsonDocument document => new BsonDocument(document.Elements.Select(element => new BsonElement(element.Name, Bound(element.Value)))),
+                BsonArray array => new BsonArray(array.Select(Bound)),
+                _ => node
+            };
+            BsonDocument parsed;
+            try { parsed = BsonDocument.Parse("{\"f\":" + column.UserFunction.MongoTemplate + "}"); }
+            catch (Exception cause) { throw new NotSupportedException("The MongoDB template is not an aggregation expression.", cause); }
+            var userPresent = Op("$eq", userCell + ".s", Literal(2));
+            return SingleLet(userName, ProjectionCell(column.Path, prefix + "source"), new BsonDocument {
+                {"s", userCell + ".s"},
+                {"v", Choose(userPresent, Bound(parsed["f"]), BsonNull.Value)}
+            });
+        }
         if (column.Function == CosmicProjectionFunction.Int32ToTextCase)
         {
             if(column.Path.ValueType != typeof(int) || column.ValueType != typeof(string) || column.Int32TextCases == null || column.Int32TextCases.Count == 0 || column.WhenFalse == null)

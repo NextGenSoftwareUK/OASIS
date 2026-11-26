@@ -27,6 +27,14 @@ internal sealed partial class NeoCqlTranslator
             return (utcSource.State,"CASE WHEN ("+utcSource.State+")=2 THEN "+
                 NeoCqlUtcDateParts.Value(column.Function,"datetime("+utcSource.Value+")")+" ELSE null END");
         }
+        if (column.Function == CosmicProjectionFunction.UserFunction)
+        {
+            if(column.UserFunction?.CypherTemplate == null)
+                throw new System.NotSupportedException("CQL_CAPABILITY_UNSUPPORTED: the user-defined function has no Cypher translation.");
+            var userSource=TranslateProjectionPath(column.Path);
+            var applied="("+CosmicQueryFunction.Substitute(column.UserFunction.CypherTemplate,userSource.Value,index=>Bind(column.UserFunctionArguments[index]))+")";
+            return (userSource.State,"CASE WHEN ("+userSource.State+")=2 THEN "+applied+" ELSE null END");
+        }
         if (column.Function == CosmicProjectionFunction.Int32ToTextCase)
         {
             if(column.Path.ValueType != typeof(int) || column.ValueType != typeof(string) || column.Int32TextCases == null || column.Int32TextCases.Count == 0 || column.WhenFalse == null)

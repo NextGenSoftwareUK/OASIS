@@ -466,6 +466,10 @@ public sealed partial class CqlV1Web4NativeTests
             CollectionAssert.AreEqual(new[]{word.Id},await Matching(row=>CqlTestFunctions.Shout(CosmicQueryMetadata.Value<string>(row,"word"))=="HELLO"));
             CollectionAssert.AreEqual(new[]{word.Id},await Matching(row=>CqlTestFunctions.Prefix(CosmicQueryMetadata.Value<string>(row,"word"),3)=="hel"));
             CollectionAssert.AreEqual(new[]{other.Id},await Matching(row=>"wor"==CqlTestFunctions.Prefix(CosmicQueryMetadata.Value<string>(row,"word"),3)));
+            var shouted=await udf.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>row.Id==word.Id)
+                .Select(row=>new{Loud=CqlTestFunctions.Shout(CosmicQueryMetadata.Value<string>(row,"word")),Short=CqlTestFunctions.Prefix(CosmicQueryMetadata.Value<string>(row,"word"),2)}).ToCosmicListAsync();
+            Assert.IsFalse(shouted.IsError,shouted.ErrorCode+": "+shouted.Message);
+            Assert.AreEqual("HELLO",shouted.Result.Single().Loud);Assert.AreEqual("he",shouted.Result.Single().Short,"Q56 functions project natively.");
         }
         checks++;
         // A05 inverse navigation: a tracked child resolves its tracked parent instance without a persisted reference.
