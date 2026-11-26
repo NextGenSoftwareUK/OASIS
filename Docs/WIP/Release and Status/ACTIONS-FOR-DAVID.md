@@ -103,7 +103,7 @@ Last updated 31 October 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (mer
 | 11 | Messaging programme: review and push the `work/oasis-messaging` branches (parent, API.Core, STAR ODK, 7 npm repos), publish the npm packages, physical-device Bluetooth tests, HerzApp/Our World wiring decisions | G |
 | 10 | COSMIC/CQL: decide follow-up Default-routing fix publication; hosted Azure/Oracle remain deferred | F |
 | 12 | **Post-release 2026-11-24: production SQLite replication held (BINDING_MISMATCH), WEB9 fix to release, test records left on prod/dev** | POST-RELEASE-2026-11-24 |
-| 11 | **WEB6 model catalogue: review the estimated prices (G1)** (v8 live on Development; G2 OpenRouter billing decided and implemented) | G |
+| 11 | **WEB6 model catalogue (G1, G2)** (v10 live on Development; prices reviewed, OpenRouter bills reported cost; nothing needed) | G |
 | 12 | HyperDrive on dev: Neo4j to SQLite hold at sequence 14 — repair ran once and was refused (no write); **decision pending**: the same holon reaches SQLite from both Mongo and Neo4j | I |
 | 13 | **Railway dev: add one DNA key so IPFS keeps its catalogue across restarts** (`IPFSOASIS.CatalogueRootPointerPath`) | I |
 
@@ -1437,21 +1437,17 @@ Links: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44675640513
 
 ## Part G — WEB6 model catalogue (22 November 2026)
 
-### G1. Review the estimated prices in the catalogue (now v7)
+### G1. Estimated prices in the catalogue (now v10)
 
-**Status:** open (price review only), updated 25 November 2026. v6 was pushed on your instruction (WEB6 `0348ded`, OASIS `a712210`). v7 (WEB6 `4c54731`, OASIS `4426ead`) re-imported OpenRouter's current list after 8 imported models were retired and 21 repriced within three days, and bills per-million prices exactly instead of rounding to 4 decimals. Your review is still only the estimated prices below; the OpenRouter prices are OpenRouter's own.
+**Status:** reviewed by the WEB6 session on 25 November 2026 on your "whatever you recommend"; nothing is needed from you. Catalogue v10 corrects the two prices that differed from the providers' published lists.
 
-**What it contains**
-- OpenRouter: 336 paid text models at OpenRouter's own published per-token prices, imported by `WEB6/Scripts/import_openrouter_models.py` (flat-priced chat models only). Re-run it to track OpenRouter's list. See `WEB6/docs/MODEL_CATALOGUE.md`.
-- Six text models: NVIDIA NIM, Meta Llama API, Reka Core, Writer Palmyra X 004, AI71 Falcon 180B, JAIS 30B.
-- OpenAI image calls send `quality=medium`, and the quality is part of the billed model key. The per-request hold is unchanged at $2.70.
+**Corrected in v10**
+- ElevenLabs `eleven_multilingual_v2`: $0.30 -> $0.08 per 1,000 characters (elevenlabs.io/pricing/api: same dollar price on every plan). WEB6 was charging nearly four times cost.
+- Pika `default:3s`: WEB6 requests 1080p, which Pika lists at $0.09 per second, so 3 seconds cost $0.27. The catalogue had $0.20, below cost.
 
-**What you need to check:** the prices that are my estimates, not published list prices:
-- Media: StabilityAI image $0.03, OpenAI gpt-image-1 1024x1024 medium $0.042, Runway 5s $0.25, Luma $0.40, Pika 3s $0.20, Kling 5s std $0.14, ElevenLabs $0.30 per 1,000 characters (calls capped at 4,000 characters), AssemblyAI nano $0.12/hour, Deepgram nova-3 $0.0043/minute (calls capped at 4 hours).
-- The six text models above.
-If any is wrong, a corrected catalogue needs a new version string (`web6-model-catalogue-YYYY-MM-DD-vN`), because published versions are immutable.
+**Match published list prices:** StabilityAI stable-image-core $0.03 (3 credits), OpenAI gpt-image-1 1024x1024 medium $0.042, Runway gen3a_turbo 5s $0.25 (5 credits per second at $0.01), AssemblyAI nano $0.12 per hour, Deepgram nova-3 $0.0043 per minute, Writer palmyra-x-004 $5/$12 per million tokens.
 
-**Verified:** the full WEB6 unit suite passes, 191/191 including the 11 catalogue invariant tests, on a clean checkout of OASIS `Development` (WEB6 `add09f4`, Core `a9fe1ec`), 25 November 2026.
+**No public price to check against, kept as estimates:** Luma (prices only in credits, with no dollar rate published), Kling v1.5 standard 5s $0.14 (the pricing page renders no prices), Reka Core $2/$2 (prices only in the logged-in developer console), Meta Llama API Maverick $0.27/$0.85 (the old Llama API page now redirects to a different Meta product), NVIDIA NIM llama-3.3-70b $0.40/$0.40 (no price on the model page), AI71 Falcon 180B $0.50/$0.50 and JAIS 30B $1/$1 (no public price). These cost nothing until a key for the provider is configured; check them against your invoice when one is.
 
 ### G2. OpenRouter billing from reported cost
 
