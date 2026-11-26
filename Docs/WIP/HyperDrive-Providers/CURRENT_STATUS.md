@@ -161,6 +161,8 @@ Partly done, with open items:
 - HoloOASIS.Unity: the Android conductor device lifecycle is still open.
 - Algorand: chain reads and payments pass; durable storage is still open.
 
+- Aztec: done 2026-11-26. Passes the shared suite 26/26 in both modes on a disposable Aztec 5.3.0 local network (`.github/workflows/aztec-native-storage.yml`). Records are Kubo raw blocks committed by the OasisKv Noir contract (public state, owner-only writes) through a pinned aztec.js worker. The fake REST storage was removed.
+
 Next, breadth first, in order of popularity (shared suite not yet run):
 1. Pinecone, LanceDB (Cloud), Zilliz: hosted vector stores, need accounts
 2. Appwrite, Fauna, Xata, Nile, CloudflareD1, VercelKV, NetlifyBlobs, Tigris (hosted; need accounts, see ACTIONS-FOR-DAVID)
