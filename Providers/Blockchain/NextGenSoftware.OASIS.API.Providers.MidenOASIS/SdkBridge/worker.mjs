@@ -110,7 +110,7 @@ async function setEntries(entries) {
   const { client, component, accountId } = requireState();
   const lines = entries.map(({ key, value }) =>
     `    push.[${value.join(',')}]\n    push.[${key.join(',')}]\n    call.kv::set_entry\n    dropw dropw dropw dropw`);
-  const script = await client.compile.txScript({ code: `use oasis::kv\n\nbegin\n${lines.join('\n')}\nend\n`, libraries: [{ component }] });
+  const script = await client.compile.txScript({ code: `use oasis::kv\nuse miden::core::sys\n\n@transaction_script\npub proc main\n${lines.join('\n')}\n    exec.sys::truncate_stack\nend\n`, libraries: [{ component }] });
   let txId;
   try {
     const submitted = await client.transactions.execute({ account: accountId, script, waitForConfirmation: true, timeout: 300_000 });
