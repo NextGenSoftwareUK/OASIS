@@ -148,3 +148,5 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | Remove dead Neo4jOASIS2 AvatarRepository.cs (fully commented out) and unused IAvatarRepository | Storage providers | local: maps/interop session | work/neo4j2-dead-repo | 2026-11-25 | DONE: Development 1d6f8a66285 |
 | RitualOASIS capability-v1 probe (public RPC answers); Bittensor (taostats now token-gated) and Galadriel (devnet cert wrong host) endpoint findings | HyperDrive providers (non-storage) | local: testharness-build-fix | work/tracker-capability-probes | 2026-11-26 | IN PROGRESS |
 | BittensorOASIS: replace token-gated taostats API with keyless subtensor JSON-RPC (Finney genesis check; SS58 + Substrate storage hashing for accounts/subnets) + capability-v1 probe | HyperDrive providers (non-storage) | local: testharness-build-fix | work/tracker-capability-probes | 2026-11-26 | IN PROGRESS |
+
+- CLAIMED 2026-11-25 by CQL sandbox session (local_b7903255): AFTER_DEMO_BACKLOG "Read-source operational recovery after bounded startup exhaustion" - authorized serialized reactivation of an exhausted CQL read source (Blockscout live case).
