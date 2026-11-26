@@ -14,6 +14,8 @@ Today the WEB4 sandbox offers three query modes, but only JSON CQL is a server e
 
 Both new endpoints get the same validation, size limits, idempotency and usage metering as JSON CQL. They are added to the WEB4 SDK, the Postman collection, the Docs site and the STAR CLI (`cql run sql`, `cql ask`). The sandbox page then calls them instead of doing the work in the browser.
 
+**Important for all agents (Claude and GPT):** the SQL-like parser and the free-text prompt move into the WEB4 server. The single source of truth becomes the copy inside the ONODE WebAPI (run server-side with an embedded JavaScript engine, so behaviour stays identical to today's sandbox). Do not add features to the browser copies in Web4Site (`cql-text.js`, `cql-ask.js`): new SQL syntax, providers or prompt rules go in the server copy, and the sandbox page is switched to call `/api/data/query-cql/sql` and `/ask`. Any change made only in the browser is lost work.
+
 ### Phase 2b: every parity feature on every provider
 
 - Goal: every checklist feature works on all OASIS providers (about 234 provider projects), not just the three.
