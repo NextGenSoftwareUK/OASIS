@@ -7,7 +7,7 @@
 import { readFileSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import { createInterface } from 'node:readline';
-import { AccountId, AuthSecretKey, MidenClient, Note, StorageMap, StorageSlot, Word } from '@miden-sdk/miden-sdk';
+import { AccountBuilder, AccountComponent, AccountId, AccountStorageMode, AuthSecretKey, MidenClient, Note, StorageMap, StorageSlot, Word } from '@miden-sdk/miden-sdk';
 
 const REPLY_PREFIX = '@@OASIS-MIDEN@@';
 const SLOT = 'oasis::kv';
@@ -44,7 +44,16 @@ async function deploy({ rpcUrl, accountSeed, keySeed, faucetUrl }) {
   if (state) throw new Error('The Miden worker is already initialised.');
   const { client, component } = await openClient(rpcUrl);
   const auth = AuthSecretKey.rpoFalconWithRNG(seedBytes(keySeed));
-  const account = await client.accounts.create({ seed: seedBytes(accountSeed), auth, components: [component], storage: 'public' });
+  // The basic wallet component lets the account receive the funding note's fee asset (P2ID calls receive_asset).
+  const built = new AccountBuilder(seedBytes(accountSeed))
+    .storageMode(AccountStorageMode.public())
+    .withAuthComponent(AccountComponent.createAuthComponentFromSecretKey(auth))
+    .withComponent(component)
+    .withBasicWalletComponent()
+    .build();
+  const account = built.account;
+  await client.accounts.insert({ account });
+  await client.keystore.insert(account.id(), auth);
   const note = await requestFunding(faucetUrl, account.id().toString());
   // The node may not have committed the funding note yet; consuming retries until it does (bounded).
   let consumed;
