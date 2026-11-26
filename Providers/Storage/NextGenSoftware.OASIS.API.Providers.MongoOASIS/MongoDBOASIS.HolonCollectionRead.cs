@@ -20,11 +20,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 public partial class MongoDBOASIS
 {
     private async Task<OASISResult<IEnumerable<IHolon>>> ReadHolonCollectionGraphAsync(HolonType type,Guid? parent,string parentKey,
-        Dictionary<string,string> metadata,MetaKeyValuePairMatchMode match,bool children,bool recursive,int depth,int initialDepth,bool fromProvider,int version,bool synchronous)
+        Dictionary<string,string> metadata,MetaKeyValuePairMatchMode match,bool children,bool recursive,int depth,int initialDepth,bool fromProvider,int version,bool synchronous,Guid? owner=null)
     {
         var result=new OASISResult<IEnumerable<IHolon>>();IClientSessionHandle session=null;
         try
         {
+            if(owner==Guid.Empty || owner.HasValue && (version>0 || children && fromProvider))
+                throw new ArgumentException("Owner-scoped Mongo reads require a nonempty owner and current roots only.");
             if(depth<0 || initialDepth<0 || version<0) throw new ArgumentOutOfRangeException(nameof(depth));
             if(!Enum.IsDefined(typeof(HolonType),type) || !Enum.IsDefined(typeof(MetaKeyValuePairMatchMode),match)) throw new ArgumentException("Unknown Mongo query type or match mode.");
             if(parentKey!=null && !ObjectId.TryParse(parentKey,out _)) throw new ArgumentException("A native Mongo parent key is required.");
@@ -69,6 +71,9 @@ public partial class MongoDBOASIS
             if(parent.HasValue) rootsFilter &= Builders<NativeHolon>.Filter.Eq(row=>row.ParentHolonId,parent.Value);
             if(version!=0) rootsFilter &= Builders<NativeHolon>.Filter.Eq(row=>row.Version,version);
             if(metadata!=null) rootsFilter &= Repository.BuildMetaDataMultiFilter(metadata,match);
+            // Owner-scoped reads filter natively, so unrelated rows (including legacy duplicate
+            // identities owned by others) never reach the ambiguity check below.
+            if(owner.HasValue) rootsFilter &= Builders<NativeHolon>.Filter.Eq(row=>row.CreatedByAvatarId,owner.Value.ToString("D"));
             var roots=await Read(rootsFilter).ConfigureAwait(false);
             if(roots.Count==0) {result.Result=Array.Empty<IHolon>();result.IsLoaded=true;return result;}
             var rows=children && fromProvider ? await Read(Repository.BuildHolonTypeFilter(HolonType.All)).ConfigureAwait(false):roots;

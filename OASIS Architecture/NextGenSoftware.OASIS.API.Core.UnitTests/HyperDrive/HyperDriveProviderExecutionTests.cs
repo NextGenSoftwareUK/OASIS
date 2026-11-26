@@ -3729,8 +3729,7 @@ public sealed partial class HyperDriveProviderExecutionTests
         var providerManager = new ProviderManager(null, dna);
         var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "isolated-holon-authorization");
         provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
-        // avatarId here is the viewer, not the owner: the manager asks the provider for unfiltered rows
-        // (no avatar) and applies per-holon permissions itself (Core 8183ce3 reverted the owner pass-through).
+        // The manager asks the provider for unfiltered rows (no avatar) and applies per-holon permissions itself.
         provider.Setup(x => x.LoadAllHolons(HolonType.All, false, false, 0, 0, true, false, 0))
             .Returns(new OASISResult<IEnumerable<IHolon>>(holons));
         provider.Setup(x => x.LoadAvatar(avatarId, 0))

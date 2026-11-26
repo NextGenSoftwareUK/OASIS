@@ -2,6 +2,16 @@
 
 2026-11-18 — CLOUD ACTIONS SUPERSEDED / DEFERRED BY DAVID: cloud migration is abandoned and work resumes locally with isolated remote CI. This supersedes CLOUD-CQL-ACCESS-PREFLIGHT-2026-11-18 and CLOUD-CQL-HANDOFF-START-2026-11-18 for the current task; no cloud setup or repeated sign-in is requested. The latest named cloud chat reports Core read restored, startup still failed without a task ID. Historical access failures below are retained. Full roadmap and shared-cluster/deployment stand-down remain intact.
 
+## COSMIC-M20-TPT-DEFINITION-2026-11-25 - Decide what table-per-type inheritance means on document/graph stores
+
+Status: OPEN (2026-11-25). COSMIC checklist row M20 (Docs/WIP/COSMIC ORM/CQL_PARITY_CHECKLIST.md) says a document/graph TPT equivalent "needs a faithful definition first". M19 (discriminator, one record per entity) is done on MongoDB, SQLite and Neo4j. M21 depends on this decision too.
+
+Choose one:
+1. Split storage: each inheritance level's declared properties live in their own record (collection/table/label per level), joined by the entity id on read and written in one unit of work.
+2. Treat M20 as satisfied by M19 (one record per entity) and mark it equivalent rather than separately built.
+
+Reply with 1 or 2. The claim is released on the claims branch until then.
+
 ## GITHUB-ACTIONS-RUNNER-CAPACITY-2026-11-25
 
 Status: open, 25 November 2026. GitHub Actions in NextGenSoftwareUK/OASIS runs only 2-3 jobs at a time while 40-130 runs queue, so CI-verified items (native-storage suites, the provider TestHarness gate, CQL/COSMIC checks) wait hours. Agents now batch pushes and avoid new runs while more than about 20 are queued, which slows verification further.
@@ -93,7 +103,7 @@ Last updated 31 October 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (mer
 | 11 | Messaging programme: review and push the `work/oasis-messaging` branches (parent, API.Core, STAR ODK, 7 npm repos), publish the npm packages, physical-device Bluetooth tests, HerzApp/Our World wiring decisions | G |
 | 10 | COSMIC/CQL: decide follow-up Default-routing fix publication; hosted Azure/Oracle remain deferred | F |
 | 12 | **Post-release 2026-11-24: production SQLite replication held (BINDING_MISMATCH), WEB9 fix to release, test records left on prod/dev** | POST-RELEASE-2026-11-24 |
-| 11 | **WEB6 model catalogue: review the estimated prices; decide OpenRouter billing (G2)** (v7 live on Development; OpenRouter prices move hourly) | G |
+| 11 | **WEB6 model catalogue: review the estimated prices (G1)** (v8 live on Development; G2 OpenRouter billing decided and implemented) | G |
 | 12 | HyperDrive on dev: Neo4j to SQLite hold at sequence 14 — repair ran once and was refused (no write); **decision pending**: the same holon reaches SQLite from both Mongo and Neo4j | I |
 | 13 | **Railway dev: add one DNA key so IPFS keeps its catalogue across restarts** (`IPFSOASIS.CatalogueRootPointerPath`) | I |
 
@@ -1443,13 +1453,13 @@ If any is wrong, a corrected catalogue needs a new version string (`web6-model-c
 
 **Verified:** the full WEB6 unit suite passes, 191/191 including the 11 catalogue invariant tests, on a clean checkout of OASIS `Development` (WEB6 `add09f4`, Core `a9fe1ec`), 25 November 2026.
 
-### G2. Decide whether OpenRouter should bill from OpenRouter's reported cost
+### G2. OpenRouter billing from reported cost
 
-**Status:** open decision, updated 25 November 2026. Today every billed model needs a fixed price and each request holds back its worst case up front, so tiered and router models (`openrouter/auto`, per-request fees) stay unavailable.
+**Status:** decided and implemented 25 November 2026 (you said "whatever you recommend"). Nothing more is needed from you.
 
-New evidence: OpenRouter's fixed prices do not stay fixed. `qwen/qwen3.5-9b` input went 0.17 -> 0.10 -> 0.17 USD per million within hours on 25 November, as OpenRouter switched upstream providers. Between re-imports WEB6 therefore bills some OpenRouter models below or above cost. The new weekly `WEB6 OpenRouter price drift` workflow fails when a model is retired or priced below cost, but re-importing only narrows the gap.
+What changed: every OpenRouter call now sends the catalogue rate as `max_price`, so OpenRouter never routes to an upstream dearer than the price the request reserved for, and asks for `usage.cost`. The receipt bills the cost OpenRouter reports for that call (`CostSource = openrouter-reported-cost`). A missing cost, or one above the cap, is refused for reconciliation; it is never repriced from the catalogue. Other providers keep the contracted catalogue rate. Effect: WEB6 can no longer bill an OpenRouter call below cost, and price drops are passed on. A model whose upstream price rose above the catalogue rate fails at OpenRouter until the next re-import, which the weekly drift workflow flags.
 
-Billing from OpenRouter's reported per-call cost would close it and open up the router models. It needs a per-call spending cap (the hold) and a change to how billing settles. Please decide: keep fixed prices plus weekly re-imports, or bill OpenRouter from reported cost.
+Still not enabled: router models such as `openrouter/auto` and per-request fees, because the hold is still sized from a fixed catalogue rate.
 
 ### G3. Security advisories in shared packages
 
@@ -1554,9 +1564,24 @@ Billing from OpenRouter's reported per-call cost would close it and open up the 
 - Decision needed: may the CQL sessions add small demo database services to the Railway **development** environment only (one service per provider, using Railway's own templates where they exist, for example Redis and PostgreSQL), seeded with the same three public teaching records each provider already uses in CI?
   - If yes: create a project token scoped to the development environment and store it as the GitHub Actions secret `RAILWAY_DEV_DEMO_TOKEN`, not in Git or chat. The sessions then add each service, seed it, set its `CQL_*` variable and verify that its presets return 3 and 2 records.
   - If no: these providers stay CI-verified only and are not shown live.
+  - Nothing has been created or changed yet. This entry only asks for approval.
+  - Cost: yes, this adds Railway cost. Railway bills usage around the clock, even for idle services. Published rates checked 25 Nov 2026 ([railway.com/pricing](https://railway.com/pricing), [docs](https://docs.railway.com/reference/pricing/plans)): RAM $10 per GB-month, CPU $20 per vCPU-month, volume storage $0.15 per GB-month, egress $0.05 per GB. Memory held while idle is most of the cost. These estimates are for an idle demo with three records each, not measured:
+
+    | Group | Providers | Idle memory each | Rough cost each |
+    | --- | --- | --- | --- |
+    | Light | Redis, Valkey, KeyDB, Dragonfly, Garnet, Memcached, PostgreSQL, TimescaleDB, CouchDB, Meilisearch, Typesense, Qdrant, Chroma, SurrealDB, PocketBase, InfluxDB | 50-200 MB | about $1-3 a month |
+    | Medium | ArangoDB, RavenDB, CockroachDB, SQL Server | 300-800 MB | about $4-9 a month |
+    | Heavy (JVM or multi-process) | Cassandra, ScyllaDB, Elasticsearch, OpenSearch, Solr, Couchbase, Milvus | 1-2 GB | about $11-25 a month |
+
+    All of them together: roughly $150-300 a month, most of it from the heavy group. The light group alone: roughly $25-50 a month.
+  - Ways to keep it small:
+    1. Recommended first batch: only the light group (16 services, about $25-50 a month). It covers most of the list.
+    2. Railway's serverless (sleep when idle) setting cuts idle cost a lot. The first query after a sleep waits while the database wakes, so the sandbox looks slow or briefly unavailable for that provider.
+    3. Share one service where the adapter allows it, for example one PostgreSQL for the PostgreSQL, TimescaleDB and pgvector demos, as separate databases.
+    4. Leave the heavy group CI-verified only. They already pass in CI.
 - Keyed indexer APIs (free tiers are enough, read-only): Alchemy, QuickNode, Ankr, Covalent (GoldRush), Moralis, Dune, Zapper, Tenderly, Goldsky and Nansen. Each needs one read-only key. Save each key on the Railway development WEB4 service as `CQL_<PROVIDER>_PUBLIC_READER_KEY`, for example `CQL_ALCHEMY_PUBLIC_READER_KEY`. These are lower priority than the demo databases.
 - GOMap routing origin: WEB4 deliberately refuses the public OSRM demo servers (`router.project-osrm.org`, `routing.openstreetmap.de`), because their usage policies forbid this use. Choose one option: (a) a small OSRM container on Railway development with the Berlin extract (fits the same demo-database approval above), or (b) a hosted routing API account. Then set `CQL_GOMAP_ROUTE_QUERY_SOURCE_ORIGIN` and `CQL_GOMAP_ROUTE_QUERY_SOURCE_OWNER`.
-- Retirement decision (same question as Fauna, Vercel KV and Polybase above): BasechainOASIS and LoomOASIS target Loom Network's Basechain, which has been wound down. Either retire them from the matrix or keep them as historical code.
+- Retirement decision (same question as Fauna, Vercel KV and Polybase above): BasechainOASIS and LoomOASIS target Loom Network's Basechain sidechain. **Not verified:** this comes from background knowledge that Loom stopped developing Basechain years ago and that the network may be shut down or unmaintained. Nobody has probed its RPC (`basechain.dappchains.com`) or found an official notice. Polybase is also unconfirmed (its testnet was reported unreachable). Fauna (hosted FaunaDB, shutdown announced in 2025) and Vercel KV (retired, stores moved to Upstash, which UpstashOASIS covers) match public announcements. On request, a CQL session will send one read-only request to the Basechain and Polybase endpoints and look for official notices before you decide. Options: retire them from the matrix, or keep them as historical code.
 - Reason: without these, the providers above cannot return real records in the live sandbox. Everything that needs no account is being done meanwhile.
 - Status: OPEN 2026-11-25.
 
@@ -1638,6 +1663,14 @@ Status: decided by David, 24 November 2026; engineering in progress (no further 
 
 ### I1. Neo4j to SQLite hold at sequence 14 (dev)
 
+- Decision, 25 November 2026: David chose "Keep SQLite's v18". The read-only compare showed the held Neo4j payload at
+  version 1 (ff3aa32d-94ae-42b6-a2a4-ab396158fb58) and SQLite's head at version 18 (8a4802aa-0f1c-4d63-804c-c714ec828a60,
+  modified 29 October), so they differ. SQLite keeps v18 and the Neo4j sequence-14 obligation is retired without delivery.
+- DONE, 25 November 2026: David approved, and `--cosmic-retire-held` ran once on dev (Development 5cb1a0f8) with
+  `Docs/WIP/HyperDrive-Providers/I1/neo-seq14-retire-request.json` (same SHA-256 on the volume). Output
+  `{"success":true,"retired":true,"sequence":14}`. A read-only re-inspect shows sequence 14 Completed and SQLite still at
+  v18 (8a4802aa). 535/543 untouched. Closed.
+
 - Status, 25 November 2026: David approved the reviewed baseline repair in the CQL sandbox session, which ran it once.
   The target refused it before any write: `COSMIC_REPLICA_INITIALIZATION_RECONCILIATION_REQUIRED` (exit 1). Request
   `/data/COSMIC/ReplicaRepair/neo-seq14-request.json` (init operation 9c165163-0a7d-4a14-93e7-a0fb500b5c23) is spent:
@@ -1706,3 +1739,30 @@ Status: decided by David, 24 November 2026; engineering in progress (no further 
 - Open 2026-11-25. `NextGenSoftware.OASIS.API.ONODE.Core` 2.0.1 on nuget.org depends on `Ipfs.Http.Client` >= 0.42, which does not exist on nuget.org (the newest there is 0.33.0). Any project that falls back to the package (for example a checkout without the ONODE.Core submodule, or an external NuGet consumer) fails restore with NU1102.
 - The source is already fixed: IPFSOASIS now packs the local Ipfs.Http.Client DLL privately instead of declaring it as a NuGet dependency. Only the published package is stale.
 - Decision needed: approve publishing a new ONODE.Core version (and the IPFSOASIS package) through the normal NuGet release, so the fixed dependency graph reaches nuget.org. Existing versions are not changed or republished.
+
+## Shared NuGet cache on the dev machine is corrupt (Mvc.Testing 10.0.0)
+
+- Open 2026-11-25. `C:\Users\David\.nuget\packages\microsoft.aspnetcore.mvc.testing\10.0.0` is half-deleted and its `Microsoft.AspNetCore.Mvc.Testing.Tasks.dll` is locked by a running build server, so restores that need it fail with "Access denied". Sessions currently work around it with a private `NUGET_PACKAGES` folder and `-nodeReuse:false`.
+- Fix (briefly interrupts other sessions' builds): when no release build is running, run `dotnet build-server shutdown`, delete that `10.0.0` folder, then restore any project once to re-download it. Reply "repair the NuGet cache" and Claude will do it.
+
+## Bot and pinning accounts for Telegram, Discord and Pinata native storage tests (cloud-hyperdrive-A, 2026-11-25)
+
+- Context: these three providers can only be tested against the real hosted services. Each needs a dedicated test account or bot that CI may fill and clear. Put values in GitHub Actions secrets, never in Git or chat.
+- Steps:
+  - Telegram: create a bot with @BotFather and a private test channel with the bot as admin; secrets `TELEGRAM_CI_BOT_TOKEN`, `TELEGRAM_CI_CHAT_ID`.
+  - Discord: create an application and bot in the Discord developer portal, invite it to a private test server with a dedicated channel (send/read/manage messages); secrets `DISCORD_CI_BOT_TOKEN`, `DISCORD_CI_CHANNEL_ID`.
+  - Pinata: create a free Pinata account and a scoped API key (pinning + unpinning) for a test group; secret `PINATA_CI_JWT`.
+- Note: Telegram and Discord message history is not a durable keyed store. Engineering will first check whether either can meet the suite's contract within platform rules, and will classify a provider as non-storage rather than force it, as was done for Farcaster.
+- Status: OPEN 2026-11-25. Claims marked BLOCKED on the claims branch.
+
+## PLANOASIS: what is the PLAN backend? (cloud-hyperdrive-A, 2026-11-25)
+
+- Context: PLANOASIS calls `https://api.plan.network/avatars/{id}` and similar REST paths, but its README is the generic template and no API documentation or self-hostable server could be found, so the native storage suite cannot be run. Details: `Docs/WIP/HyperDrive-Providers/PLAN_LOOM_CLASSIFICATION_2026-11-25.md`.
+- Decision: either (a) point engineering at PLAN's API documentation and a dedicated test account (secret `PLAN_CI_API_KEY` if it uses one), or (b) retire PLANOASIS from the provider matrix. Engineering's recommendation is (b) unless PLAN is a live service you rely on.
+- Status: OPEN 2026-11-25. Claim marked BLOCKED.
+
+## Oracle Object Storage test bucket (cloud-hyperdrive-A, 2026-11-25)
+
+- Context: OracleObjectStorageOASIS can only be tested against Oracle Cloud (OCI) Object Storage; there is no local OCI emulator. OracleDB (the priority Oracle provider) already passes on its own.
+- Steps: in an OCI tenancy (Always Free is enough) create a bucket `oasis-ci` in one region and an API signing key for a user limited to that bucket; secrets `OCI_CI_TENANCY_OCID`, `OCI_CI_USER_OCID`, `OCI_CI_FINGERPRINT`, `OCI_CI_PRIVATE_KEY`, `OCI_CI_REGION`, `OCI_CI_NAMESPACE`, `OCI_CI_BUCKET`.
+- Status: OPEN 2026-11-25. Claim marked BLOCKED.

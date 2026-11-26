@@ -1519,3 +1519,23 @@ A focused Shared regression reproduced an incorrect requirement that old/new sou
 - Evidence `TestResults/MutationPreparationCurrent/native-lineage-fixed.trx`, SHA256 `98657739F7BA17D4AC9B14A34C1DF1993044D3F51C3F5D8466C985FEC450A8E8`.
 - Evidence `TestResults/OwnedRoutingCurrent/mongo-graph-adoption.trx`, SHA256 `7FBB37904C3585F68570C172B5A68A83B09B336711078D5A2BAF874A750E330D`.
 - Evidence `TestResults/OwnedRoutingCurrent/mongo-migration-fence.trx`, SHA256 `0FE35C8EE628C1E822D0CA1602203C4296A76A7D131DA56E735F0714B185B8D6`.
+
+## Legacy-route pending obligation disposition (operator, per head) - 25 Nov 2026
+
+Gate 5 is partly covered for one shape: obligations frozen to a pre-V2 legacy target id
+(`hyperdrive-target:<Provider>`). The worker holds every such head as
+`COSMIC_REPLICATION_ROUTE_UNBOUND` and never delivers it. An operator now resolves those
+heads one at a time, oldest first, with the two existing reviewed shell commands:
+
+- `--cosmic-retire-held` when the target already holds a newer version of the root. The
+  obligation is completed with a retirement acknowledgement and nothing is written to the target.
+- `--cosmic-repair-baseline` when the target does not hold the root. It installs the frozen
+  payload as an initial baseline and refuses if the target already has the root.
+
+Both commands, the shared `HolonReplicaInitializationPreparation`, and the Mongo/SQLite/Neo
+completion fences accept exactly `COSMIC_REPLICA_LINEAGE_CONFLICT` or
+`COSMIC_REPLICATION_ROUTE_UNBOUND` (`HolonReplicaReviewedHoldCodes`). Every other check is
+unchanged: current held head, exact attempt/operation/payload digest, no unresolved native
+execution, and exact target evidence. An equal or older target head is not resolved
+automatically; it stops for review. This is not an automatic retarget or relabel.
+First use: the dev Neo4j to SQLite backlog, sequences 15 to 40.

@@ -58,8 +58,6 @@ public class CosmicProjectionIntentTests
     {
         var source = CosmicQuery<Holon>.Create();
         Assert.True(source.Select(holon => new[] { holon.Name }).IsError);
-        // Int32 affine arithmetic such as holon.Version + 1 is a native projection since Q36;
-        // a product of two columns is not affine and must still be rejected.
         Assert.True(source.Select(holon => new { Computed = holon.Version * holon.Version }).IsError);
         Assert.True(source.Select(holon => new { Constant = "coffee" }).IsError);
     }

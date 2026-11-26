@@ -84,7 +84,34 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.UnitTests
             Assert.IsTrue(provider.ZoomMapIn(1f));
 
             Assert.AreEqual(map.Zoom, provider.Camera.Zoom, 0.001);
-            Assert.IsTrue(provider.DrainCommands()[0].AppliedToLiveMap);
+            Assert.AreEqual(0, provider.PendingCommandCount, "A bound provider applies commands instead of queueing them.");
+        }
+
+        [TestMethod]
+        public void ProviderBoundToAnInstance_ShouldForwardPinsAndSelection()
+        {
+            FakeGOMap map = new FakeGOMap();
+            GOMapOASIS provider = new GOMapOASIS(map);
+            object marker = new object();
+
+            Assert.IsTrue(provider.DropPin(StPauls, marker));
+            Assert.IsTrue(provider.RemovePin(marker));
+            Assert.IsTrue(provider.SelectHolonOnMap("holon"));
+
+            Assert.AreEqual(1, map.DroppedPins);
+            Assert.AreEqual(1, map.RemovedPins);
+            Assert.AreEqual("holon", map.LastSelected);
+        }
+
+        [TestMethod]
+        public void ProviderBoundToAnInstance_ShouldFailWhenTheComponentLacksTheMethod()
+        {
+            GOMapOASIS provider = new GOMapOASIS(new FakeGOMap());
+
+            Assert.IsFalse(provider.PlaceQuestOnMap("quest", StPauls.Latitude, StPauls.Longitude));
+            Assert.AreEqual(0, provider.Placements.Count, "A placement the scene rejected must not be recorded.");
+            Assert.IsNotNull(provider.LastError);
+            StringAssert.Contains(provider.Bridge.LastError, "placeQuest");
         }
 
         [TestMethod]

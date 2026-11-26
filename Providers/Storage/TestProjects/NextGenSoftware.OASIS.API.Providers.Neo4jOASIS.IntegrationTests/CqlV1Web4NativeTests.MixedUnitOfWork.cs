@@ -399,6 +399,26 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.AreEqual(-1,divided.Result.Single().Toward,"Integer division truncates toward zero.");
             Assert.ThrowsException<CosmicLinqException>(()=>math.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result
                 .Select(row=>CosmicQueryMetadata.Value<int>(row,"score")/0),"Division by a zero literal is refused.");
+            var ratio=New("math-ratio");ratio.MetaData=new Dictionary<string,object>{{"ratio",1.5}};
+            var vast=New("math-vast");vast.MetaData=new Dictionary<string,object>{{"ratio",double.MaxValue}};
+            foreach(var row in new[]{ratio,vast})Assert.IsFalse(math.Add(row).IsError);
+            Assert.IsFalse((await math.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()))).IsError);
+            var scaled=await math.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>row.Id==ratio.Id)
+                .Select(row=>CosmicQueryMetadata.Value<double>(row,"ratio")*2.5-0.75).ToCosmicListAsync();
+            Assert.IsFalse(scaled.IsError,scaled.ErrorCode+": "+scaled.Message);Assert.AreEqual(3.0,scaled.Result.Single(),1e-12);
+            var infinite=await math.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>row.Id==vast.Id)
+                .Select(row=>CosmicQueryMetadata.Value<double>(row,"ratio")*10).ToCosmicListAsync();
+            Assert.IsTrue(infinite.IsError,"A non-finite Double result must not be returned.");
+            var large=New("math-large");large.MetaData=new Dictionary<string,object>{{"big",5_000_000_000L}};
+            var edge=New("math-edge");edge.MetaData=new Dictionary<string,object>{{"big",long.MaxValue}};
+            foreach(var row in new[]{large,edge})Assert.IsFalse(math.Add(row).IsError);
+            Assert.IsFalse((await math.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()))).IsError);
+            var widened=await math.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>row.Id==large.Id)
+                .Select(row=>CosmicQueryMetadata.Value<long>(row,"big")*3+1L).ToCosmicListAsync();
+            Assert.IsFalse(widened.IsError,widened.ErrorCode+": "+widened.Message);Assert.AreEqual(15_000_000_001L,widened.Result.Single());
+            var wrapped=await math.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>row.Id==edge.Id)
+                .Select(row=>CosmicQueryMetadata.Value<long>(row,"big")*2L).ToCosmicListAsync();
+            Assert.IsTrue(wrapped.IsError,"An Int64 overflow must not wrap.");
             var overflow=await math.Linq<Holon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>row.Id==huge.Id)
                 .Select(row=>CosmicQueryMetadata.Value<int>(row,"score")*2).ToCosmicListAsync();
             Assert.IsTrue(overflow.IsError,"An Int32 overflow must not wrap.");

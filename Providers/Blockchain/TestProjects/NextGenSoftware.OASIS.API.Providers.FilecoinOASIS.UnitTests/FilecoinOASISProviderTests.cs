@@ -1,46 +1,57 @@
+using System;
+using System.Numerics;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.FilecoinOASIS;
+using NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.FilecoinOASIS.UnitTests
 {
     /// <summary>
-    /// Provider metadata checks. These run with no backend - they assert the provider
-    /// identifies itself correctly and starts deactivated.
+    /// Backend-free checks of the FEVM provider contract: identity, Web3Core storage binding,
+    /// chain identity validation and activation preconditions (no RPC call is made).
     /// </summary>
     [TestClass]
     public class FilecoinOASISProviderTests
     {
-        private FilecoinOASIS _provider = null!;
-
-        [TestInitialize]
-        public void Setup() => _provider = FilecoinOASISTestFactory.Create();
-
         [TestMethod]
-        public void ProviderType_ShouldBeSet()
-            => Assert.AreNotEqual(ProviderType.None, _provider.ProviderType.Value);
-
-        [TestMethod]
-        public void ProviderName_ShouldNotBeEmpty()
-            => Assert.IsFalse(string.IsNullOrWhiteSpace(_provider.ProviderName));
-
-        [TestMethod]
-        public void ProviderDescription_ShouldNotBeEmpty()
-            => Assert.IsFalse(string.IsNullOrWhiteSpace(_provider.ProviderDescription));
-
-        [TestMethod]
-        public void IsProviderActivated_ShouldBeFalseInitially()
-            => Assert.IsFalse(_provider.IsProviderActivated);
-
-        [TestMethod]
-        public void ProviderCategory_ShouldBeSet()
-            => Assert.IsNotNull(_provider.ProviderCategory);
-
-        [TestCleanup]
-        public void Cleanup()
+        public void DefaultProvider_IdentifiesAsFilecoinFevmStorage()
         {
-            if (_provider != null && _provider.IsProviderActivated)
-                _provider.DeActivateProvider();
+            var provider = new FilecoinOASIS();
+            Assert.AreEqual(ProviderType.FilecoinOASIS, provider.ProviderType.Value);
+            Assert.AreEqual("FilecoinOASIS", provider.ProviderName);
+            Assert.AreEqual(ProviderCategory.StorageAndNetwork, provider.ProviderCategory.Value);
+            Assert.IsInstanceOfType(provider, typeof(Web3CoreOASISBaseProvider));
+            Assert.IsInstanceOfType(provider, typeof(IOASISStorageProvider));
+            Assert.IsInstanceOfType(provider, typeof(IOASISNETProvider));
+            Assert.IsFalse(provider.IsProviderActivated);
+        }
+
+        [TestMethod]
+        public void MainnetDefaults_AreTheFilecoinFevmChain()
+        {
+            Assert.AreEqual(new BigInteger(314), FilecoinOASIS.MainnetChainId);
+            StringAssert.EndsWith(FilecoinOASIS.MainnetRpc, "/rpc/v1");
+        }
+
+        [TestMethod]
+        public void NonPositiveChainIdentity_IsRejected()
+        {
+            Assert.ThrowsException<ArgumentOutOfRangeException>(() => new FilecoinOASIS("http://127.0.0.1:1234/rpc/v1", "", "", BigInteger.Zero));
+            Assert.ThrowsException<ArgumentOutOfRangeException>(() => new FilecoinOASIS("http://127.0.0.1:1234/rpc/v1", "", "", new BigInteger(-314)));
+        }
+
+        [TestMethod]
+        public async Task ActivationWithoutKeyOrContract_FailsWithAnExplicitError()
+        {
+            var provider = new FilecoinOASIS("http://127.0.0.1:1/rpc/v1", "", "", new BigInteger(31415926));
+            var result = await provider.ActivateProviderAsync();
+            Assert.IsTrue(result.IsError);
+            Assert.IsFalse(result.Result);
+            Assert.IsFalse(provider.IsProviderActivated);
+            StringAssert.Contains(result.Message, "private key and deployed contract address");
         }
     }
 }

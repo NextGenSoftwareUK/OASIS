@@ -57,7 +57,7 @@ About 290 variables. Grouped:
 | `OASIS_ENVIRONMENT` | set | set | Environment name used by `ProgrammaticVerificationPolicy`. |
 | `OASIS_ALLOW_PROGRAMMATIC_VERIFICATION` | unset | true | Lets tests verify avatars without email. Must stay unset in production. |
 | `OASIS_INCLUDE_TEACHING_SIDECARS` | true | true | Build-time: puts the teaching sidecars into the image (`Dockerfile.web4`). |
-| `OASIS_SANDBOX` | set at the shell | set at the shell | Only set by hand when running the repair commands `--cosmic-repair-baseline` and `--cosmic-rearm-held-head`. Never set it on the service. |
+| `OASIS_SANDBOX` | set at the shell | set at the shell | Only set by hand when running the repair commands `--cosmic-repair-baseline`, `--cosmic-rearm-held-head`, `--cosmic-inspect-held` (read only) and `--cosmic-retire-held` (completes one reviewed held Neo4j to SQLite lineage conflict whose SQLite head the owner chose to keep; it rechecks both versions first and a rerun changes nothing). Never set it on the service. |
 
 **Sandbox sidecars** (`Docker/entrypoint.onode.sh` starts them inside the container):
 `OASIS_SANDBOX_DAPR`, `_DUCKDB`, `_GUN`, `_IPFS`, `_NATS`, `_OPENVINO`, `_ORBITDB`, `_POUCHDB`, `_SOLID`, `_WAKU`

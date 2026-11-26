@@ -120,7 +120,8 @@ public sealed class GOMapRouteQueryTests
     [TestMethod,TestCategory("GOMapRouteNative")]
     public async Task FixedPublicNativeCqlReturnsThreeAndTwoAttributedRoutes()
     {
-        Assert.AreEqual("fixed-public-berlin",Environment.GetEnvironmentVariable("COSMIC_GOMAP_NATIVE_CQL"));
+        if (Environment.GetEnvironmentVariable("COSMIC_GOMAP_NATIVE_CQL") != "fixed-public-berlin")
+            Assert.Inconclusive("Native CQL routing requires explicit cloud qualification (COSMIC_GOMAP_NATIVE_CQL=fixed-public-berlin).");
         Assert.AreEqual("true",Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
         var directory=Path.GetFullPath(Environment.GetEnvironmentVariable("COSMIC_GOMAP_NATIVE_CQL_EVIDENCE_DIRECTORY")!);
         Assert.AreEqual(Path.GetFullPath(Path.Combine(Environment.GetEnvironmentVariable("GITHUB_WORKSPACE")!,"OASIS","TestResults","GOMapRouteQueryCurrent","native")),directory);

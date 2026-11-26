@@ -23,3 +23,10 @@ Branch `work/cql-sandbox-providers` (worktree `C:\Source\OASIS2-cql-sandbox`). T
 - InfluxDB/Weaviate live demos: need hosted accounts and read-only tokens from David (ACTIONS-FOR-DAVID.md, "Hosted InfluxDB and Weaviate read-only CQL sources").
 - HyperDrive session answers (24 Nov): the IPFS catalogue root reset on every boot is fixed on `work/hyperdrive-triad` (`f4bd7089`, new DNA key `IPFSOASIS.CatalogueRootPointerPath`) and deploys with its next batch. The Neo4j->SQLite sequence 14 hold is the designed hold and waits on David's approval (ACTIONS-FOR-DAVID I1).
 - Originally handed to the HyperDrive session on 24 Nov: live replication Neo4j->SQLite blocked at sequence 14 (`COSMIC_REPLICA_LINEAGE_CONFLICT`), and the IPFS replication source has no persisted catalogue identity.
+
+## Live sweep 25 Nov 2026
+
+- Dev sandbox catalogue: 107 providers, 103 with presets, 412 presets (206 Rows, 206 Federation). Only BlockscoutOASIS is unavailable.
+- Result: 411/412 first pass and 412/412 after one retry. The single miss was ArweaveOASIS `public-records`, which hit its 5-second budget once on a slow public gateway (CQL_QUERY_CANCELLED); three retries took 2.1-2.3 s each.
+- The earlier 129-ok / 79-bad sweep came from the sweep script's sandbox token expiring mid-run (every later call was a 401), not from the service. The script now refreshes the token every 4 minutes and after any 401.
+- I1 (Neo4j->SQLite sequence 14): David chose to keep SQLite's v18. A one-shot `--cosmic-retire-held` command is on `work/i1-retire-held`. It waits for David's approval of the exact request before its single run on dev.

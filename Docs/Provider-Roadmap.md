@@ -146,7 +146,7 @@ The [current inventory](WIP/HyperDrive-Providers/PROVIDER_MATRIX.md) lists 234 s
 |---|---|---|
 | GO Map (Unity AR) | GOMapOASIS | **Done** |
 | Mapbox (geospatial) | MapboxOASIS | **Done** |
-| WRLD 3D (metaverse) | WRLD3DOASIS | **Done** |
+| WRLD 3D (metaverse) | WRLD3DOASIS | **Unavailable** (platform gone; reports unavailable) |
 | Cargo (NFT marketplace) | CargoOASIS | **Done** |
 
 ---
@@ -291,7 +291,7 @@ Ranked by: user reach, ecosystem activity (as of mid-2026), and strategic fit wi
 | 32 | PLAN | Decentralised | Low | Low | **Done** |
 | 33 | GO Map | Unity AR | Low | Medium | **Done** |
 | 34 | Mapbox | Geospatial | Low (REST) | High | **Done** |
-| 35 | WRLD 3D | Metaverse | Low | Medium | **Done** |
+| 35 | WRLD 3D | Metaverse | Low | Medium | **Unavailable** |
 | 36 | Cargo | NFT Marketplace | Low (REST) | Medium | **Done** |
 
 ---

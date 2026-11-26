@@ -1,6 +1,6 @@
 # NextGenSoftware.OASIS.API.Providers.ONIONProtocolOASIS
 
-ONION Protocol OASIS Provider — integrates the OASIS API with the ONION (Open Network Infrastructure for Omniverse Nodes) privacy and routing protocol.
+Onion OASIS Provider (`OnionOASIS`) — OASIS storage reached only through Tor. Records are compressed and encrypted in-process, then stored in an OASIS storage service (the repository storage-service contract served by the OrbitDB storage service in `Providers/Other/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS/StorageService`) that is published as a Tor onion service. Every request goes through the Tor client's SOCKS5 port, which resolves the `.onion` name itself.
 
 ## Installation
 
@@ -23,6 +23,16 @@ Direct external package references:
 Project references and conditional dependency versions are recorded in the source project. NuGet restore resolves packaged dependencies; do not mix arbitrary DLLs from different release graphs.
 
 ## Integration and configuration
+
+```csharp
+var provider = new OnionOASIS("http://<onion address>.onion", serviceToken, encryptionKey32Bytes, "127.0.0.1", 9050);
+```
+
+1. Run the OrbitDB storage service on loopback: `OASIS_ORBITDB_STORAGE_TOKEN=... node storage-service.mjs <data dir> <port>`.
+2. Publish it with Tor: `HiddenServiceDir <dir>` and `HiddenServicePort 80 127.0.0.1:<port>`; the onion address is in `<dir>/hostname`.
+3. Point the provider at that address and a Tor client SOCKS5 port. Only `.onion` URLs are accepted, so storage traffic cannot leave Tor.
+
+The onion operator stores ciphertext only; keep the 32-byte encryption key and the service token in protected configuration. Storage semantics are those of the shared key-value storage provider base, verified by the shared native core-storage suite (`Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.OnionOASIS.IntegrationTests`, which runs over a private loopback Tor network and never contacts the public Tor network).
 
 Use this package for the responsibility described above, alongside its owning OASIS runtime/provider integration. Inspect the source project's public APIs and owning component documentation for construction and configuration; this package installation command does not start an API server, authenticate an avatar or provision an external service.
 

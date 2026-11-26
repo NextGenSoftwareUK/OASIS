@@ -26,14 +26,21 @@ public sealed class StorageServiceKeyValueBackend : IKeyValueBackend
     /// <param name="service">Name used in errors, e.g. "OrbitDB storage service".</param>
     /// <param name="addressPrefix">Required prefix of the address the service reports from /health.</param>
     public StorageServiceKeyValueBackend(string serviceUrl, string serviceToken, string service, string addressPrefix)
+        : this(serviceUrl, serviceToken, service, addressPrefix, new HttpClientHandler())
     {
+    }
+
+    /// <param name="transport">The HTTP transport to reach the service through, e.g. a Tor SOCKS5 proxy handler.</param>
+    public StorageServiceKeyValueBackend(string serviceUrl, string serviceToken, string service, string addressPrefix, HttpMessageHandler transport)
+    {
+        ArgumentNullException.ThrowIfNull(transport);
         _service = string.IsNullOrWhiteSpace(service) ? throw new ArgumentException("A service name is required.", nameof(service)) : service;
         _addressPrefix = string.IsNullOrEmpty(addressPrefix) ? throw new ArgumentException("An address prefix is required.", nameof(addressPrefix)) : addressPrefix;
         if (!Uri.TryCreate(serviceUrl?.TrimEnd('/') + "/", UriKind.Absolute, out var baseUri) || baseUri.Scheme is not ("http" or "https"))
             throw new ArgumentException($"A {service} URL (http or https) is required.", nameof(serviceUrl));
         if (string.IsNullOrWhiteSpace(serviceToken))
             throw new ArgumentException($"The {service} token is required.", nameof(serviceToken));
-        _http = new HttpClient { BaseAddress = baseUri, Timeout = TimeSpan.FromSeconds(60) };
+        _http = new HttpClient(transport) { BaseAddress = baseUri, Timeout = TimeSpan.FromSeconds(60) };
         _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", serviceToken);
     }
 

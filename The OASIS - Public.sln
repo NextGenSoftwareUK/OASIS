@@ -376,8 +376,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.P
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.CargoOASIS.UnitTests", "Providers\Other\TestProjects\NextGenSoftware.OASIS.API.Providers.CargoOASIS.UnitTests\NextGenSoftware.OASIS.API.Providers.CargoOASIS.UnitTests.csproj", "{CAADD503-133D-4818-B8D9-EBCD53D5A7C0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.ONION-Protocol.IntegrationTests", "Providers\Other\TestProjects\NextGenSoftware.OASIS.API.Providers.ONION-Protocol.IntegrationTests\NextGenSoftware.OASIS.API.Providers.ONION-Protocol.IntegrationTests.csproj", "{4A90E252-090B-4FD4-859A-95AF009A716F}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.ONION-Protocol.TestHarness", "Providers\Other\TestProjects\NextGenSoftware.OASIS.API.Providers.ONION-Protocol.TestHarness\NextGenSoftware.OASIS.API.Providers.ONION-Protocol.TestHarness.csproj", "{3116121C-E5EF-43BE-A81A-F2E400DB9111}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.ONION-Protocol.UnitTests", "Providers\Other\TestProjects\NextGenSoftware.OASIS.API.Providers.ONION-Protocol.UnitTests\NextGenSoftware.OASIS.API.Providers.ONION-Protocol.UnitTests.csproj", "{150237D3-DC27-471B-BB96-71829C555213}"
@@ -4361,24 +4359,6 @@ Global
 		{CAADD503-133D-4818-B8D9-EBCD53D5A7C0}.Release|x64.Build.0 = Release|Any CPU
 		{CAADD503-133D-4818-B8D9-EBCD53D5A7C0}.Release|x86.ActiveCfg = Release|Any CPU
 		{CAADD503-133D-4818-B8D9-EBCD53D5A7C0}.Release|x86.Build.0 = Release|Any CPU
-		{4A90E252-090B-4FD4-859A-95AF009A716F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4A90E252-090B-4FD4-859A-95AF009A716F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4A90E252-090B-4FD4-859A-95AF009A716F}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{4A90E252-090B-4FD4-859A-95AF009A716F}.Debug|x64.Build.0 = Debug|Any CPU
-		{4A90E252-090B-4FD4-859A-95AF009A716F}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{4A90E252-090B-4FD4-859A-95AF009A716F}.Debug|x86.Build.0 = Debug|Any CPU
-		{4A90E252-090B-4FD4-859A-95AF009A716F}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
-		{4A90E252-090B-4FD4-859A-95AF009A716F}.Linux|Any CPU.Build.0 = Debug|Any CPU
-		{4A90E252-090B-4FD4-859A-95AF009A716F}.Linux|x64.ActiveCfg = Debug|Any CPU
-		{4A90E252-090B-4FD4-859A-95AF009A716F}.Linux|x64.Build.0 = Debug|Any CPU
-		{4A90E252-090B-4FD4-859A-95AF009A716F}.Linux|x86.ActiveCfg = Debug|Any CPU
-		{4A90E252-090B-4FD4-859A-95AF009A716F}.Linux|x86.Build.0 = Debug|Any CPU
-		{4A90E252-090B-4FD4-859A-95AF009A716F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4A90E252-090B-4FD4-859A-95AF009A716F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4A90E252-090B-4FD4-859A-95AF009A716F}.Release|x64.ActiveCfg = Release|Any CPU
-		{4A90E252-090B-4FD4-859A-95AF009A716F}.Release|x64.Build.0 = Release|Any CPU
-		{4A90E252-090B-4FD4-859A-95AF009A716F}.Release|x86.ActiveCfg = Release|Any CPU
-		{4A90E252-090B-4FD4-859A-95AF009A716F}.Release|x86.Build.0 = Release|Any CPU
 		{3116121C-E5EF-43BE-A81A-F2E400DB9111}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3116121C-E5EF-43BE-A81A-F2E400DB9111}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3116121C-E5EF-43BE-A81A-F2E400DB9111}.Debug|x64.ActiveCfg = Debug|Any CPU

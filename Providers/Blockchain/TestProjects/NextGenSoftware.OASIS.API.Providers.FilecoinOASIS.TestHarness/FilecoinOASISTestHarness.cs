@@ -16,7 +16,12 @@ namespace NextGenSoftware.OASIS.API.Providers.FilecoinOASIS.TestHarness
             Console.WriteLine("FilecoinOASIS Test Harness");
             Console.WriteLine(new string('-', 60));
 
-            var provider = FilecoinOASISTestFactory.Create();
+            var provider = FilecoinOASISTestFactory.CreateFromEnvironment();
+            if (provider == null)
+            {
+                Console.WriteLine("Set FILECOINOASIS_HOSTURI, _CHAINPRIVATEKEY, _CONTRACTADDRESS and _CHAINID (Lotus FEVM) and try again.");
+                return;
+            }
 
             var activated = await provider.ActivateProviderAsync();
             Console.WriteLine(activated.IsError
