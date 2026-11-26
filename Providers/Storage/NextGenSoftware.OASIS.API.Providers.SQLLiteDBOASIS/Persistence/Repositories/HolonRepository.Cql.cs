@@ -538,6 +538,20 @@ public partial class HolonRepository
                     throw new NotSupportedException("SQLite CQL string length path is unsupported.");
                 return StringLength(CanonicalColumn(lengthField.Name), length);
             }
+            if (predicate is CosmicQueryFunctionComparison userFunction)
+            {
+                // Q56: the registered SQLite template; literals are bound, never concatenated.
+                if (userFunction.Function.SqliteTemplate == null)
+                    throw new NotSupportedException("CQL_CAPABILITY_UNSUPPORTED: the user-defined function has no SQLite translation.");
+                string Applied(string operand) => "(" + CosmicQueryFunction.Substitute(userFunction.Function.SqliteTemplate, operand,
+                    index => Bind(userFunction.Arguments[index])) + ")" + ComparisonSymbol(userFunction.Operator) + Bind(userFunction.Value);
+                if (userFunction.Path.IsMetadata)
+                    return MetadataPredicate(userFunction.Path.Segments, alias => "(" + MetadataTypeGuard(userFunction.Path.ValueType, alias) + " AND coalesce(" + Applied(alias + ".value") + ",0))");
+                if (userFunction.Path.Segments.Count != 1 || !SqliteCqlContract.Fields.TryGetValue(userFunction.Path.Segments[0], out var functionField))
+                    throw new NotSupportedException("SQLite CQL user-defined function path is unsupported.");
+                var functionColumn = CanonicalColumn(functionField.Name);
+                return "(" + functionColumn + " IS NOT NULL AND coalesce(" + Applied(functionColumn) + ",0))";
+            }
             if (predicate is CosmicQueryFullText fullText)
             {
                 string Words(string operand) => "(" + string.Join(" AND ", fullText.Terms.Select(term =>
