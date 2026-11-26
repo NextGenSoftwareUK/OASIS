@@ -76,7 +76,7 @@ jobs:
           done
           cleanup() {
             status=$?
-            (( status != 0 )) && compose logs --tail 60 sequencer funding-service 2>/dev/null || true
+            if (( status != 0 )); then compose ps -a 2>/dev/null || true; compose logs --no-color --tail 40 2>/dev/null || true; fi
             compose down -v --remove-orphans >/dev/null 2>&1 || status=1
             if [[ -n "$kubo" ]]; then docker rm -fv "$kubo" >/dev/null || status=1; fi
             [[ "$fixture" == "$RUNNER_TEMP"/oasis-native.* ]] && rm -rf -- "$fixture"
