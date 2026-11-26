@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.Providers.ChainflipOASIS;
 using NextGenSoftware.OASIS.API.Providers.ChainlinkFunctionsOASIS;
 using NextGenSoftware.OASIS.API.Providers.EigenLayerOASIS;
 using NextGenSoftware.OASIS.API.Providers.deBridgeOASIS;
+using NextGenSoftware.OASIS.API.Providers.ENSOASIS;
 using NextGenSoftware.OASIS.API.Providers.HyperlaneOASIS;
 using NextGenSoftware.OASIS.API.Providers.LayerZeroV2OASIS;
 using NextGenSoftware.OASIS.API.Providers.RitualOASIS;
@@ -305,6 +306,29 @@ public sealed class CrossChainTrackerCapabilityTests
             Assert.AreEqual("True", loaded.Result.MetaData["is_contract"]?.ToString(), true);
             Assert.AreEqual(name, loaded.Result.MetaData["name"]?.ToString());
             return new NonStorageConformance.Probe(host, "AddressRead", guard.Requests - before, true, true);
+        });
+    }
+
+    [TestMethod]
+    public async Task EnsResolvesVitalikEthThroughTheUniversalResolver()
+    {
+        const string host = "ethereum-rpc.publicnode.com";
+        const string name = "vitalik.eth";
+        var guard = new PublicReadGuard(host, (HttpMethod.Post, "/"));
+        using var native = new HttpClient(new PublicReadGuard(host, (HttpMethod.Post, "/")));
+        var provider = new ENSOASIS($"https://{host}", guard);
+        await RunAsync(provider, "ENSOASIS", async () =>
+        {
+            var call = JsonSerializer.Serialize(new { jsonrpc = "2.0", id = 1, method = "eth_call",
+                @params = new object[] { new { to = EnsUniversalResolverCodec.MainnetProxy, data = EnsUniversalResolverCodec.EncodeAddressCall(name) }, "latest" } });
+            using var raw = await ReadJsonAsync(native, HttpMethod.Post, $"https://{host}/", call);
+            var expected = EnsUniversalResolverCodec.DecodeAddressResult(raw.RootElement.GetProperty("result").GetString()!).Address;
+            var before = guard.Requests;
+            var loaded = await provider.LoadAvatarByProviderKeyAsync(name).WaitAsync(TimeSpan.FromSeconds(60));
+            Assert.IsFalse(loaded.IsError, loaded.Message);
+            Assert.AreEqual(expected, loaded.Result.MetaData["ens_resolved_address"]?.ToString());
+            Assert.AreEqual(42, loaded.Result.MetaData["ens_owner"]?.ToString()?.Length);
+            return new NonStorageConformance.Probe(host, "UniversalResolverAddr", guard.Requests - before, true, true);
         });
     }
 }
