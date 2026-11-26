@@ -41,16 +41,6 @@ jobs:
           path: NextGenSoftware-Libraries
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
           persist-credentials: false
-      # Gaia v2.9.0 (stacks-network/gaia, tag commit 93eba111d89cc1969a94611f6da372f2b5907598): hub and reader built from source.
-      - uses: actions/checkout@v7
-        with:
-          repository: stacks-network/gaia
-          ref: 93eba111d89cc1969a94611f6da372f2b5907598
-          path: gaia
-          persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '18'
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
@@ -58,32 +48,29 @@ jobs:
         run: |
           dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BlockStackOASIS.UnitTests" \
             -m:2 -nr:false -p:UseSharedCompilation=false
-      - name: Build the Gaia hub and reader
-        working-directory: gaia
-        run: |
-          (cd hub && npm ci --no-audit --no-fund && npm run build:tsc)
-          (cd reader && npm ci --no-audit --no-fund && npm run build)
       - name: Run the shared core storage suite against a disposable local Gaia hub
         run: |
           fixture="$(mktemp -d "$RUNNER_TEMP/oasis-native.XXXXXXXX")"
           disk="$(mktemp -d "$RUNNER_TEMP/gaia-disk.XXXXXXXX")"
-          hub_pid="" reader_pid=""
+          hub="" reader=""
           cleanup() {
             status=$?
-            [[ -n "$hub_pid" ]] && kill "$hub_pid" 2>/dev/null || true
-            [[ -n "$reader_pid" ]] && kill "$reader_pid" 2>/dev/null || true
-            if (( status != 0 )); then tail -n 60 "$fixture/hub.log" "$fixture/reader.log" 2>/dev/null || true; fi
-            [[ "$fixture" == "$RUNNER_TEMP"/oasis-native.* ]] && rm -rf -- "$fixture"
-            [[ "$disk" == "$RUNNER_TEMP"/gaia-disk.* ]] && rm -rf -- "$disk"
+            if (( status != 0 )); then
+              [[ -n "$hub" ]] && docker logs --tail 60 "$hub" 2>&1 || true
+              [[ -n "$reader" ]] && docker logs --tail 30 "$reader" 2>&1 || true
+            fi
+            [[ -n "$hub" ]] && docker rm -fv "$hub" >/dev/null 2>&1 || true
+            [[ -n "$reader" ]] && docker rm -fv "$reader" >/dev/null 2>&1 || true
+            [[ "$fixture" == "$RUNNER_TEMP"/oasis-native.* ]] && sudo rm -rf -- "$fixture"
+            [[ "$disk" == "$RUNNER_TEMP"/gaia-disk.* ]] && sudo rm -rf -- "$disk"
             exit "$status"
           }
           trap cleanup EXIT
-          echo '{"port":8008,"diskSettings":{"storageRootDirectory":"'"$disk"'"}}' > "$fixture/reader.json"
-          echo '{"port":4000,"serverName":"127.0.0.1:4000","driver":"disk","readURL":"http://127.0.0.1:8008/","diskSettings":{"storageRootDirectory":"'"$disk"'"},"proofsConfig":{"proofsRequired":0},"requireCorrectHubUrl":false}' > "$fixture/hub.json"
-          (cd ../gaia/reader && CONFIG_PATH="$fixture/reader.json" node --experimental-specifier-resolution=node lib/index.js > "$fixture/reader.log" 2>&1) &
-          reader_pid=$!
-          (cd ../gaia/hub && CONFIG_PATH="$fixture/hub.json" node --experimental-specifier-resolution=node lib/index.js > "$fixture/hub.log" 2>&1) &
-          hub_pid=$!
+          # Gaia v2.8.1 hub and reader (disk driver), pinned by digest; both read and write the same directory.
+          echo '{"port":8008,"diskSettings":{"storageRootDirectory":"/gaia-disk"}}' > "$fixture/reader.json"
+          echo '{"port":4000,"serverName":"127.0.0.1:4000","driver":"disk","readURL":"http://127.0.0.1:8008/","diskSettings":{"storageRootDirectory":"/gaia-disk"},"proofsConfig":{"proofsRequired":0},"requireCorrectHubUrl":false}' > "$fixture/hub.json"
+          reader="$(docker run -d --network host -v "$disk:/gaia-disk" -v "$fixture/reader.json:/config.json:ro" -e CONFIG_PATH=/config.json             blockstack/gaia-reader@sha256:11c3be163e58b9ebc4b99f00dbb43395f20019ee576da69348f09f560f7b30eb)"
+          hub="$(docker run -d --network host -v "$disk:/gaia-disk" -v "$fixture/hub.json:/config.json:ro" -e CONFIG_PATH=/config.json             blockstack/gaia-hub@sha256:3da1e0d8b5e323cb1df49d604f1b320942a0978dea9b3cf62e8d2b683131de6d)"
           for attempt in $(seq 1 60); do
             if curl -fsS http://127.0.0.1:4000/hub_info >/dev/null 2>&1 && curl -sS -o /dev/null http://127.0.0.1:8008/ 2>/dev/null; then break; fi
             [[ "$attempt" != 60 ]]; sleep 1
