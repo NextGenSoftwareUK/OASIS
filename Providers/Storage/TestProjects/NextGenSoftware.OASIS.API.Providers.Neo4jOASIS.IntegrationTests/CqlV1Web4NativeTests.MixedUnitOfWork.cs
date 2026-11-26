@@ -489,6 +489,43 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.IsTrue(resolved.IsLoaded,resolved.Message);Assert.AreSame(parent,resolved.Result,"The inverse resolves to the tracked parent instance.");
         }
         checks++;
+        // Q30 date/time domains through the standard order-preserving conversions, compared and ordered natively.
+        var timeModel=new CosmicModelBuilder();
+        timeModel.Entity<TimedHolon>().Property(row=>row.Duration).HasConversion(CosmicValueConverters.TimeSpanTicks).HasMetadataKey("q30_duration");
+        timeModel.Entity<TimedHolon>().Property(row=>row.Day).HasConversion(CosmicValueConverters.DateOnlyDayNumber).HasMetadataKey("q30_day");
+        timeModel.Entity<TimedHolon>().Property(row=>row.At).HasConversion(CosmicValueConverters.TimeOnlyTicks).HasMetadataKey("q30_at");
+        timeModel.Entity<TimedHolon>().Property(row=>row.Seen).HasConversion(CosmicValueConverters.DateTimeOffsetUtcInstant).HasMetadataKey("q30_seen");
+        var timeBuilt=timeModel.Build();Assert.IsFalse(timeBuilt.IsError,timeBuilt.Message);
+        var early=new TimedHolon{Id=Guid.NewGuid(),Name="q30-early",CreatedByAvatarId=actor,IsActive=true,IsNewHolon=true,
+            Duration=TimeSpan.FromMinutes(2),Day=new DateOnly(2026,1,5),At=new TimeOnly(8,30),Seen=new DateTimeOffset(2026,1,5,9,0,0,TimeSpan.FromHours(2))};
+        var late=new TimedHolon{Id=Guid.NewGuid(),Name="q30-late",CreatedByAvatarId=actor,IsActive=true,IsNewHolon=true,
+            Duration=TimeSpan.FromMinutes(45),Day=new DateOnly(2026,3,9),At=new TimeOnly(17,15),Seen=new DateTimeOffset(2026,1,5,8,30,0,TimeSpan.Zero)};
+        owned.Add(early.Id);owned.Add(late.Id);
+        using(var timeWriter=CosmicSession.Create(manager,adapter,access,timeBuilt.Result).Result)
+        {
+            Assert.IsFalse(timeWriter.Add(early).IsError);Assert.IsFalse(timeWriter.Add(late).IsError);
+            var timeSaved=await timeWriter.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid()));Assert.IsFalse(timeSaved.IsError,timeSaved.ErrorCode+": "+timeSaved.Message);
+        }
+        using(var timeReader=CosmicSession.Create(manager,adapter,access,timeBuilt.Result).Result)
+        {
+            var both=new[]{early.Id,late.Id};
+            async Task<string[]> Names(System.Linq.Expressions.Expression<Func<TimedHolon,bool>> filter)
+            {
+                var rows=await timeReader.Linq<TimedHolon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>both.Contains(row.Id)).Where(filter).ToCosmicListAsync();
+                Assert.IsFalse(rows.IsError,rows.ErrorCode+": "+rows.Message);return rows.Result.Select(row=>row.Name).OrderBy(name=>name).ToArray();
+            }
+            var longest=TimeSpan.FromMinutes(10);var cutoff=new DateOnly(2026,2,1);var noon=new TimeOnly(12,0);
+            var instant=new DateTimeOffset(2026,1,5,8,0,0,TimeSpan.Zero);
+            CollectionAssert.AreEqual(new[]{"q30-late"},await Names(row=>row.Duration>longest));
+            CollectionAssert.AreEqual(new[]{"q30-early"},await Names(row=>row.Day<cutoff));
+            CollectionAssert.AreEqual(new[]{"q30-late"},await Names(row=>row.At>=noon));
+            // 09:00+02:00 is 07:00 UTC, before 08:00 UTC; 08:30+00:00 is after it.
+            CollectionAssert.AreEqual(new[]{"q30-late"},await Names(row=>row.Seen>instant));
+            var loaded=(await timeReader.Linq<TimedHolon>(CosmicQueryTrackingMode.NoTracking).Result.Where(row=>row.Id==early.Id).ToCosmicListAsync()).Result.Single();
+            Assert.AreEqual(early.Duration,loaded.Duration);Assert.AreEqual(early.Day,loaded.Day);Assert.AreEqual(early.At,loaded.At);
+            Assert.AreEqual(early.Seen.UtcDateTime,loaded.Seen.UtcDateTime,"DateTimeOffset round-trips as its UTC instant.");
+        }
+        checks++;
         // M29 seed data: idempotent insert of fixed-identity rows in one unit of work.
         Holon[] Seed()=>new[]{
             new Holon{Id=seedIds[0],Name="seed-one",CreatedByAvatarId=actor,IsActive=true,IsPublic=false},
@@ -505,7 +542,7 @@ public sealed partial class CqlV1Web4NativeTests
         }
         Assert.AreEqual(2,(await Stored(seedIds)).Count);checks++;
         return new NativeFixtureJourneyProof(checks,4,new Dictionary<string,bool>{
-            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true,["notificationTrackingVerified"]=true,["collectionMembershipVerified"]=true,["stringTransformsVerified"]=true,["compiledQueryVerified"]=true,["asOfHistoryVerified"]=true,["setCollectionVerified"]=true,["generatedValuesVerified"]=true,["readOnlyViewsVerified"]=true,["graphMergeVerified"]=true,["multiBranchCaseVerified"]=true,["fullTextVerified"]=true,["entitySplittingVerified"]=true,["int32ArithmeticVerified"]=true,["futuresVerified"]=true,["userFunctionsVerified"]=true,["inverseNavigationVerified"]=true});
+            ["mixedCommitVerified"]=true,["staleUpdateAbortsDeletionVerified"]=true,["saveFailedCallbackVerified"]=true,["cancellationVerified"]=true,["asyncStreamingVerified"]=true,["seedDataVerified"]=true,["dateArithmeticVerified"]=true,["notificationTrackingVerified"]=true,["collectionMembershipVerified"]=true,["stringTransformsVerified"]=true,["compiledQueryVerified"]=true,["asOfHistoryVerified"]=true,["setCollectionVerified"]=true,["generatedValuesVerified"]=true,["readOnlyViewsVerified"]=true,["graphMergeVerified"]=true,["multiBranchCaseVerified"]=true,["fullTextVerified"]=true,["entitySplittingVerified"]=true,["int32ArithmeticVerified"]=true,["futuresVerified"]=true,["userFunctionsVerified"]=true,["inverseNavigationVerified"]=true,["dateTimeDomainsVerified"]=true});
     }
 
     public sealed class SetModelHolon : Holon
