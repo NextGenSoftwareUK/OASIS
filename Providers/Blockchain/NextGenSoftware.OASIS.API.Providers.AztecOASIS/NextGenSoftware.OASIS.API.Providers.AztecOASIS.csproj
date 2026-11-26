@@ -48,6 +48,19 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" />
+      <InternalsVisibleTo Include="NextGenSoftware.OASIS.API.Providers.AztecOASIS.UnitTests" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Include="SdkBridge\worker.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="AztecSdkBridge\worker.mjs" />
+      <None Include="SdkBridge\test-account.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="AztecSdkBridge\test-account.mjs" />
+      <None Include="SdkBridge\package.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="AztecSdkBridge\package.json" />
+      <None Include="SdkBridge\package-lock.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="AztecSdkBridge\package-lock.json" />
+      <None Include="contracts\oasis_kv\artifact\OasisKv.json" Condition="Exists('contracts\oasis_kv\artifact\OasisKv.json')" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="AztecSdkBridge\OasisKv.json" />
+    </ItemGroup>
+
+    <ItemGroup>
       <None Update="README.md">
         <PackagePath>\</PackagePath>
         <Pack>True</Pack>

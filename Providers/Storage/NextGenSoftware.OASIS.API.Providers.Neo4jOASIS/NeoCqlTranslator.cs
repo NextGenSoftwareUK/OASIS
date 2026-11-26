@@ -168,6 +168,13 @@ internal sealed partial class NeoCqlTranslator
                 }
                 else fieldTest = Total(left.Value + Symbol(fields.Operator) + right.Value);
                 return Total(leftValid + " AND " + rightValid + " AND (" + fieldTest + ")");
+            case CosmicQueryFunctionComparison userFunction:
+                // Q56: the registered Cypher template; literals are parameters.
+                if (userFunction.Function.CypherTemplate == null)
+                    throw new NotSupportedException("CQL_CAPABILITY_UNSUPPORTED: the user-defined function has no Cypher translation.");
+                var functionSource = Operand(userFunction.Path);
+                return Total(functionSource.Guard + " AND coalesce((" + CosmicQueryFunction.Substitute(userFunction.Function.CypherTemplate, functionSource.Value,
+                    index => Bind(userFunction.Arguments[index])) + ")" + Symbol(userFunction.Operator) + Bind(userFunction.Value) + ",false)");
             case CosmicQueryFullText fullText:
                 var words = Operand(fullText.Path);
                 // O16: Java regex full match; each term is a whole word of letter/digit runs, case-insensitive.

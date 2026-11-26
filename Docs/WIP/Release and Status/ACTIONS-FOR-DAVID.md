@@ -103,7 +103,7 @@ Last updated 31 October 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (mer
 | 11 | Messaging programme: review and push the `work/oasis-messaging` branches (parent, API.Core, STAR ODK, 7 npm repos), publish the npm packages, physical-device Bluetooth tests, HerzApp/Our World wiring decisions | G |
 | 10 | COSMIC/CQL: decide follow-up Default-routing fix publication; hosted Azure/Oracle remain deferred | F |
 | 12 | **Post-release 2026-11-24: production SQLite replication held (BINDING_MISMATCH), WEB9 fix to release, test records left on prod/dev** | POST-RELEASE-2026-11-24 |
-| 11 | **WEB6 model catalogue: review the estimated prices (G1)** (v8 live on Development; G2 OpenRouter billing decided and implemented) | G |
+| 11 | **WEB6 model catalogue (G1, G2)** (v10 live on Development; prices reviewed, OpenRouter bills reported cost; nothing needed) | G |
 | 12 | HyperDrive on dev: Neo4j to SQLite hold at sequence 14 — repair ran once and was refused (no write); **decision pending**: the same holon reaches SQLite from both Mongo and Neo4j | I |
 | 13 | **Railway dev: add one DNA key so IPFS keeps its catalogue across restarts** (`IPFSOASIS.CatalogueRootPointerPath`) | I |
 
@@ -1437,21 +1437,17 @@ Links: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44675640513
 
 ## Part G — WEB6 model catalogue (22 November 2026)
 
-### G1. Review the estimated prices in the catalogue (now v7)
+### G1. Estimated prices in the catalogue (now v10)
 
-**Status:** open (price review only), updated 25 November 2026. v6 was pushed on your instruction (WEB6 `0348ded`, OASIS `a712210`). v7 (WEB6 `4c54731`, OASIS `4426ead`) re-imported OpenRouter's current list after 8 imported models were retired and 21 repriced within three days, and bills per-million prices exactly instead of rounding to 4 decimals. Your review is still only the estimated prices below; the OpenRouter prices are OpenRouter's own.
+**Status:** reviewed by the WEB6 session on 25 November 2026 on your "whatever you recommend"; nothing is needed from you. Catalogue v10 corrects the two prices that differed from the providers' published lists.
 
-**What it contains**
-- OpenRouter: 336 paid text models at OpenRouter's own published per-token prices, imported by `WEB6/Scripts/import_openrouter_models.py` (flat-priced chat models only). Re-run it to track OpenRouter's list. See `WEB6/docs/MODEL_CATALOGUE.md`.
-- Six text models: NVIDIA NIM, Meta Llama API, Reka Core, Writer Palmyra X 004, AI71 Falcon 180B, JAIS 30B.
-- OpenAI image calls send `quality=medium`, and the quality is part of the billed model key. The per-request hold is unchanged at $2.70.
+**Corrected in v10**
+- ElevenLabs `eleven_multilingual_v2`: $0.30 -> $0.08 per 1,000 characters (elevenlabs.io/pricing/api: same dollar price on every plan). WEB6 was charging nearly four times cost.
+- Pika `default:3s`: WEB6 requests 1080p, which Pika lists at $0.09 per second, so 3 seconds cost $0.27. The catalogue had $0.20, below cost.
 
-**What you need to check:** the prices that are my estimates, not published list prices:
-- Media: StabilityAI image $0.03, OpenAI gpt-image-1 1024x1024 medium $0.042, Runway 5s $0.25, Luma $0.40, Pika 3s $0.20, Kling 5s std $0.14, ElevenLabs $0.30 per 1,000 characters (calls capped at 4,000 characters), AssemblyAI nano $0.12/hour, Deepgram nova-3 $0.0043/minute (calls capped at 4 hours).
-- The six text models above.
-If any is wrong, a corrected catalogue needs a new version string (`web6-model-catalogue-YYYY-MM-DD-vN`), because published versions are immutable.
+**Match published list prices:** StabilityAI stable-image-core $0.03 (3 credits), OpenAI gpt-image-1 1024x1024 medium $0.042, Runway gen3a_turbo 5s $0.25 (5 credits per second at $0.01), AssemblyAI nano $0.12 per hour, Deepgram nova-3 $0.0043 per minute, Writer palmyra-x-004 $5/$12 per million tokens.
 
-**Verified:** the full WEB6 unit suite passes, 191/191 including the 11 catalogue invariant tests, on a clean checkout of OASIS `Development` (WEB6 `add09f4`, Core `a9fe1ec`), 25 November 2026.
+**No public price to check against, kept as estimates:** Luma (prices only in credits, with no dollar rate published), Kling v1.5 standard 5s $0.14 (the pricing page renders no prices), Reka Core $2/$2 (prices only in the logged-in developer console), Meta Llama API Maverick $0.27/$0.85 (the old Llama API page now redirects to a different Meta product), NVIDIA NIM llama-3.3-70b $0.40/$0.40 (no price on the model page), AI71 Falcon 180B $0.50/$0.50 and JAIS 30B $1/$1 (no public price). These cost nothing until a key for the provider is configured; check them against your invoice when one is.
 
 ### G2. OpenRouter billing from reported cost
 
@@ -1554,6 +1550,7 @@ Still not enabled: router models such as `openrouter/auto` and per-request fees,
   - Fly.io: create an app `oasis-ci` with the storage the FlyIOOASIS provider uses (Postgres/LiteFS per its README), a deploy token; secrets `FLY_CI_APP`, `FLY_CI_TOKEN`.
   - Neo4j Aura: create a free AuraDB instance `oasis-ci`; secrets `NEO4J_AURA_CI_URI`, `NEO4J_AURA_CI_USER`, `NEO4J_AURA_CI_PASSWORD`. (Neo4jOASIS itself already passes on a local Neo4j; Aura only adds the hosted path.)
   - LanceDB Cloud: create a project and API key; secrets `LANCEDB_CLOUD_URI`, `LANCEDB_CLOUD_API_KEY`.
+  - Lens v2 (LensV2OASIS): a Lens profile on a test wallet and an access token from Lens auth; secrets `LENS_CI_PROFILE_ID`, `LENS_CI_ACCESS_TOKEN`. Not verified: the Lens v2 API may have been replaced by Lens Chain (LensOASIS already reads Lens Chain 232 publicly); if so, retire LensV2OASIS instead.
 - Decision needed, services that appear to be discontinued: Fauna (FaunaDB shut down in 2025), Vercel KV (sunset; existing stores moved to Upstash, which UpstashOASIS already covers) and Polybase (testnet no longer reachable; please confirm). Options: (a) mark FaunaOASIS, VercelKVOASIS and PolybaseOASIS as retired and remove them from the provider matrix, or (b) keep them as historical code with no test target. Engineering's recommendation is (a).
 - Reason: without these, these providers cannot be marked done; every self-hostable provider is being done meanwhile.
 - Status: OPEN 2026-11-25. Claims marked BLOCKED in WORK-CLAIMS.md.
@@ -1693,6 +1690,12 @@ Status: decided by David, 24 November 2026; engineering in progress (no further 
 
 ### I2. Add the IPFS catalogue pointer key to Railway dev
 
+- Update, 25 November 2026: the key is present but has the WRONG value. It reads
+  `"CatalogueRootPointerPath": "C:/Program Files/Git/data/IPFS/catalogue-root"`: Git Bash rewrote the Linux path when
+  the value was saved from Windows. The container has no such folder, so IPFS still reports "Replication source binding
+  IPFSOASIS unavailable". Fix: in the Railway dashboard (not from a Git Bash shell), edit `OASIS_DNA_JSON` on dev WEB4
+  and change that one value to exactly `/data/IPFS/catalogue-root`. The agent cannot do it: the corrected command line
+  is 35,172 characters, Windows allows 32,767, and the API refuses scripted calls.
 - Status: open, 25 November 2026.
 - What: in Railway, project OASIS, environment **dev**, service WEB4 (`5123199a-43c4-4439-9921-e10e2aec7841`), edit the
   variable `OASIS_DNA_JSON`. In `OASIS` → `StorageProviders` → `IPFSOASIS`, add
@@ -1766,3 +1769,37 @@ Status: decided by David, 24 November 2026; engineering in progress (no further 
 - Context: OracleObjectStorageOASIS can only be tested against Oracle Cloud (OCI) Object Storage; there is no local OCI emulator. OracleDB (the priority Oracle provider) already passes on its own.
 - Steps: in an OCI tenancy (Always Free is enough) create a bucket `oasis-ci` in one region and an API signing key for a user limited to that bucket; secrets `OCI_CI_TENANCY_OCID`, `OCI_CI_USER_OCID`, `OCI_CI_FINGERPRINT`, `OCI_CI_PRIVATE_KEY`, `OCI_CI_REGION`, `OCI_CI_NAMESPACE`, `OCI_CI_BUCKET`.
 - Status: OPEN 2026-11-25. Claim marked BLOCKED.
+
+## COSMIC M21 (table-per-concrete-type) blocked: single holon partition - 2026-11-25 (cloud-cosmic-B)
+
+- Context: M21 needs each concrete type in its own native partition (MongoDB collection, SQLite table, Neo4j label), with base-type queries running as native unions. Investigation only; no code was written.
+- Blocker: all three providers hard-code one holon partition:
+  - MongoDB: the "Holon" collection appears in 24 places, and the change-stream replication capture watches only that collection.
+  - SQLite: the Holon table appears in about 46 SQL references, plus the outbox and visibility schema.
+  - Neo4j: the :Holon label appears 35 times.
+  - Core: the save, delete, revision, receipt and HyperDrive replication contracts carry no partition.
+- Delivering M21 needs, in this order:
+  1. a partition hint in the Core write contracts and a new provider capability;
+  2. replication capture across all partitions;
+  3. partition-parameterised CQL builders, and set operators that union across partitions;
+  4. identity unique across partitions (a registry or a check inside the same transaction);
+  5. probing all partitions on load by Id and by parent, and a migration path for existing records.
+- Decision needed: settle M21's storage definition together with the open M20 (COSMIC-M20-TPT-DEFINITION) decision, then choose one:
+  1. fund the full multi-partition work above;
+  2. accept a Neo4j-only multi-label variant, with MongoDB and SQLite refusing TPC at model admission;
+  3. mark M21 not applicable for document and graph stores, where TPH (M19, merged) covers the use case.
+- Status: OPEN 2026-11-25 23:40 UTC. The claim on the claims branch is marked BLOCKED.
+
+## GELATO-RELAY-API-KEY-2026-11-25 (open, 2026-11-25)
+
+Context: GelatoNetworkOASIS reads Gelato relay data. Its default host `relay.gelato.network` now serves an expired TLS
+certificate, the legacy keyless hosts (`relay.gelato.digital`, `api.gelato.digital`) no longer resolve, and Gelato's current
+relayer API (`https://api.gelato.cloud/rpc`) requires an `X-API-Key` from the Gelato App.
+
+What David needs to do:
+1. Create a Gelato account at https://app.gelato.cloud and generate a Relay API key (free tier).
+2. Store it as the GitHub Actions secret `GELATO_API_KEY` (never in source).
+
+Why: without a key, GelatoNetworkOASIS cannot activate, so its capability-v1 probe cannot run. The provider code moves to the
+current API either way; only the live probe waits on the key.
+Status: open. Owner of the follow-up: testharness-build-fix session (work/tracker-capability-probes).

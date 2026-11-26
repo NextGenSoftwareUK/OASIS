@@ -1,0 +1,89 @@
+name: BlockStack native storage
+
+on:
+  push:
+    branches: [work/blockstack-gaia]
+    paths:
+      - '.github/workflows/blockstack-native-storage.yml'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BlockStackOASIS/**'
+      - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BlockStackOASIS.IntegrationTests/**'
+      - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BlockStackOASIS.UnitTests/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  storage:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: OASIS
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Unit tests (Gaia token, bucket address, explicit unconfigured failure)
+        run: |
+          dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BlockStackOASIS.UnitTests" \
+            -m:2 -nr:false -p:UseSharedCompilation=false
+      - name: Run the shared core storage suite against a disposable local Gaia hub
+        run: |
+          fixture="$(mktemp -d "$RUNNER_TEMP/oasis-native.XXXXXXXX")"
+          disk="$(mktemp -d "$RUNNER_TEMP/gaia-disk.XXXXXXXX")"
+          hub="" reader=""
+          cleanup() {
+            status=$?
+            if (( status != 0 )); then
+              [[ -n "$hub" ]] && docker logs --tail 60 "$hub" 2>&1 || true
+              [[ -n "$reader" ]] && docker logs --tail 30 "$reader" 2>&1 || true
+            fi
+            [[ -n "$hub" ]] && docker rm -fv "$hub" >/dev/null 2>&1 || true
+            [[ -n "$reader" ]] && docker rm -fv "$reader" >/dev/null 2>&1 || true
+            [[ "$fixture" == "$RUNNER_TEMP"/oasis-native.* ]] && sudo rm -rf -- "$fixture"
+            [[ "$disk" == "$RUNNER_TEMP"/gaia-disk.* ]] && sudo rm -rf -- "$disk"
+            exit "$status"
+          }
+          trap cleanup EXIT
+          # Gaia v2.8.1 hub and reader (disk driver), pinned by digest; both read and write the same directory.
+          echo '{"port":8008,"diskSettings":{"storageRootDirectory":"/gaia-disk"}}' > "$fixture/reader.json"
+          echo '{"port":4000,"serverName":"127.0.0.1:4000","driver":"disk","readURL":"http://127.0.0.1:8008/","diskSettings":{"storageRootDirectory":"/gaia-disk"},"proofsConfig":{"proofsRequired":0},"requireCorrectHubUrl":false}' > "$fixture/hub.json"
+          reader="$(docker run -d --network host -v "$disk:/gaia-disk" -v "$fixture/reader.json:/config.json:ro" -e CONFIG_PATH=/config.json             blockstack/gaia-reader@sha256:11c3be163e58b9ebc4b99f00dbb43395f20019ee576da69348f09f560f7b30eb)"
+          hub="$(docker run -d --network host -v "$disk:/gaia-disk" -v "$fixture/hub.json:/config.json:ro" -e CONFIG_PATH=/config.json             blockstack/gaia-hub@sha256:3da1e0d8b5e323cb1df49d604f1b320942a0978dea9b3cf62e8d2b683131de6d)"
+          for attempt in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:4000/hub_info >/dev/null 2>&1 && curl -sS -o /dev/null http://127.0.0.1:8008/ 2>/dev/null; then break; fi
+            [[ "$attempt" != 60 ]]; sleep 1
+          done
+          curl -fsS http://127.0.0.1:4000/hub_info
+          export OASIS_NATIVE_STORAGE_FIXTURE="$fixture" OASIS_GAIA_HUB="http://127.0.0.1:4000"
+          dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BlockStackOASIS.IntegrationTests" \
+            -m:2 -nr:false -p:UseSharedCompilation=false \
+            --logger "trx;LogFileName=blockstack.trx" --results-directory "$fixture/results" --logger "console;verbosity=normal"
+          python3 - "$fixture/results/blockstack.trx" <<'PY'
+          import sys
+          import xml.etree.ElementTree as ET
+          results = ET.parse(sys.argv[1]).findall(".//{*}UnitTestResult")
+          assert len(results) == 2 and all(r.get("outcome") == "Passed" for r in results), [(r.get("testName"), r.get("outcome")) for r in results]
+          print("Both BlockStack Gaia storage modes passed with zero skips.")
+          PY

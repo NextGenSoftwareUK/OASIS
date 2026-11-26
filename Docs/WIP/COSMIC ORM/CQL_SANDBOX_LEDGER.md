@@ -30,3 +30,9 @@ Branch `work/cql-sandbox-providers` (worktree `C:\Source\OASIS2-cql-sandbox`). T
 - Result: 411/412 first pass and 412/412 after one retry. The single miss was ArweaveOASIS `public-records`, which hit its 5-second budget once on a slow public gateway (CQL_QUERY_CANCELLED); three retries took 2.1-2.3 s each.
 - The earlier 129-ok / 79-bad sweep came from the sweep script's sandbox token expiring mid-run (every later call was a 401), not from the service. The script now refreshes the token every 4 minutes and after any 401.
 - I1 (Neo4j->SQLite sequence 14): David chose to keep SQLite's v18. A one-shot `--cosmic-retire-held` command is on `work/i1-retire-held`. It waits for David's approval of the exact request before its single run on dev.
+- Legacy Neo4j->SQLite backlog (25 Nov): after I1, sequences 15-40 were frozen to the pre-V2 target id and held one at a
+  time as COSMIC_REPLICATION_ROUTE_UNBOUND. With Development 091b3998 deployed, all 26 were resolved on dev, oldest first,
+  through the reviewed commands. 15 were retired because SQLite already held newer versions (roots 715eb09e at v18 and
+  8a5b0867 at v13). 11 were installed as baselines because SQLite did not have the root (seq 18-23, 26-28, 34, 37). Every
+  run exited 0. Re-inspection shows them Completed, with the installed roots present in SQLite. Requests are kept on the
+  dev volume under /data/COSMIC/ReplicaRepair/legacy/. 535/543 untouched.

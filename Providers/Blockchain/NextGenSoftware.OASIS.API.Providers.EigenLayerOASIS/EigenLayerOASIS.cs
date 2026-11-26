@@ -1,258 +1,231 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
-using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.EigenLayerOASIS
 {
+    /// <summary>
+    /// Read-only EigenLayer adapter over the DelegationManager contract on Ethereum mainnet: for an address it reads
+    /// <c>isOperator(address)</c> and <c>delegatedTo(address)</c> with eth_call. Avatar = staker or operator address;
+    /// holon = registered operator. EigenLayer runs no keyless public REST API (the former default host no longer
+    /// resolves), and enumerating stakers, operators or AVS registrations needs an event indexer, so list reads and
+    /// every write fail explicitly.
+    /// </summary>
     public class EigenLayerOASIS : OASISStorageProviderBase, IOASISStorageProvider
     {
-        private readonly HttpClient _http;
+        /// <summary>EigenLayer DelegationManager proxy on Ethereum mainnet.</summary>
+        public const string MainnetDelegationManager = "0x39053d51b77dc0d36036fc1fcc8cb819df8ef37a";
+        private const string IsOperatorSelector = "0x6d70f7ae";
+        private const string DelegatedToSelector = "0x65da1264";
+        private const string ZeroAddress = "0x0000000000000000000000000000000000000000";
+        private const string NeedsIndexer = "Listing EigenLayer stakers, operators or AVS registrations needs an event indexer; load an address instead.";
+        private const string ReadOnly = "EigenLayerOASIS is read-only: delegation and operator registration change only through on-chain transactions.";
 
-        public EigenLayerOASIS(string baseUrl = "https://api.eigenlayer.xyz/api/v1")
+        private readonly HttpClient _http;
+        private readonly string _delegationManager;
+
+        public EigenLayerOASIS(string rpcUrl = "https://ethereum-rpc.publicnode.com", string delegationManager = MainnetDelegationManager)
+            : this(rpcUrl, delegationManager, null) { }
+
+        internal EigenLayerOASIS(string rpcUrl, string delegationManager, HttpMessageHandler handler)
         {
-            _http = new HttpClient { BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/") };
+            if (string.IsNullOrWhiteSpace(rpcUrl)) throw new ArgumentException("A JSON-RPC endpoint is required.", nameof(rpcUrl));
+            if (!IsAddress(delegationManager)) throw new ArgumentException("A 20-byte DelegationManager address is required.", nameof(delegationManager));
+            _http = handler == null ? new HttpClient() : new HttpClient(handler, disposeHandler: false);
+            _http.BaseAddress = new Uri(rpcUrl);
+            _http.DefaultRequestHeaders.UserAgent.ParseAdd("NextGenSoftware-OASIS-EigenLayerOASIS/2.0");
+            _delegationManager = delegationManager.ToLowerInvariant();
             ProviderName = "EigenLayerOASIS";
-            ProviderDescription = "EigenLayer restaking protocol staker and operator data provider.";
+            ProviderDescription = "EigenLayer restaking delegation and operator registration read from the DelegationManager contract.";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.EigenLayerOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
         }
 
-        private async Task<JToken> GetAsync(string path)
+        private static bool IsAddress(string value)
         {
-            var resp = await _http.GetAsync(path);
-            resp.EnsureSuccessStatusCode();
-            return JToken.Parse(await resp.Content.ReadAsStringAsync());
+            if (string.IsNullOrWhiteSpace(value) || value.Length != 42 || !value.StartsWith("0x", StringComparison.OrdinalIgnoreCase)) return false;
+            foreach (var c in value.AsSpan(2)) if (!Uri.IsHexDigit(c)) return false;
+            return true;
+        }
+
+        private static string Canonical(string address)
+        {
+            if (!IsAddress(address)) throw new ArgumentException("An EigenLayer account is a 20-byte Ethereum address (0x + 40 hex digits).", nameof(address));
+            return address.ToLowerInvariant();
+        }
+
+        private async Task<string> CallAsync(string selector, string address)
+        {
+            var data = selector + address[2..].PadLeft(64, '0');
+            var body = JsonSerializer.Serialize(new { jsonrpc = "2.0", id = 1, method = "eth_call", @params = new object[] { new { to = _delegationManager, data }, "latest" } });
+            using var response = await _http.PostAsync("", new StringContent(body, Encoding.UTF8, "application/json"));
+            var text = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode) throw new HttpRequestException($"JSON-RPC eth_call failed: {(int)response.StatusCode} {response.ReasonPhrase}");
+            using var document = JsonDocument.Parse(text);
+            if (document.RootElement.TryGetProperty("error", out var error))
+                throw new InvalidOperationException("DelegationManager call reverted: " + (error.TryGetProperty("message", out var m) ? m.GetString() : error.GetRawText()));
+            var result = document.RootElement.GetProperty("result").GetString();
+            if (result == null || result.Length != 66) throw new InvalidOperationException("The DelegationManager returned an unexpected word.");
+            return result[2..];
+        }
+
+        internal sealed record Delegation(string Address, bool IsOperator, string DelegatedTo);
+
+        private async Task<Delegation> ReadAsync(string address)
+        {
+            var account = Canonical(address);
+            var isOperator = await CallAsync(IsOperatorSelector, account);
+            var delegatedTo = "0x" + (await CallAsync(DelegatedToSelector, account))[24..];
+            return new Delegation(account, isOperator[^1] == '1' && isOperator.TrimStart('0') == "1", delegatedTo);
+        }
+
+        private void Describe(Dictionary<string, object> metaData, Delegation d)
+        {
+            metaData["address"] = d.Address;
+            metaData["is_operator"] = d.IsOperator ? "true" : "false";
+            metaData["delegated_to"] = d.DelegatedTo == ZeroAddress ? "" : d.DelegatedTo;
+            metaData["delegation_manager"] = _delegationManager;
+        }
+
+        private static OASISResult<T> Unsupported<T>(string message)
+        {
+            var r = new OASISResult<T>();
+            OASISErrorHandling.HandleError(ref r, message);
+            return r;
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
             var r = new OASISResult<bool>();
-            try { await GetAsync("operators?limit=1"); r.Result = true; r.Message = "EigenLayerOASIS activated."; }
+            try
+            {
+                // A zero-address probe proves the endpoint and contract answer the DelegationManager interface.
+                await CallAsync(IsOperatorSelector, ZeroAddress);
+                IsProviderActivated = true;
+                r.Result = true;
+                r.Message = "EigenLayerOASIS activated against the DelegationManager.";
+            }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"EigenLayer activation failed: {ex.Message}", ex); }
             return r;
         }
 
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync() { _http.Dispose(); return new OASISResult<bool> { Result = true, Message = "EigenLayerOASIS deactivated." }; }
+        public override Task<OASISResult<bool>> DeActivateProviderAsync()
+        {
+            IsProviderActivated = false;
+            return Task.FromResult(new OASISResult<bool> { Result = true, Message = "EigenLayerOASIS deactivated." });
+        }
+
         public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
         public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
 
-        // Avatar = EigenLayer staker
+        // Avatar = staker or operator address
         public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string address, int v = 0)
         {
             var r = new OASISResult<IAvatar>();
             try
             {
-                var json = await GetAsync($"stakers/{address}");
-                var avatar = new Avatar { Username = address };
-                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.EigenLayerOASIS] = address;
-                avatar.MetaData["address"] = address;
-                avatar.MetaData["total_shares"] = json["totalShares"]?.ToString() ?? "0";
-                avatar.MetaData["shares"] = json["shares"]?.ToString(Formatting.None) ?? "[]";
-                avatar.MetaData["withdrawals"] = json["withdrawals"]?.ToString(Formatting.None) ?? "[]";
+                var d = await ReadAsync(address);
+                var avatar = new Avatar { Username = d.Address };
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.EigenLayerOASIS] = d.Address;
+                Describe(avatar.MetaData, d);
                 r.Result = avatar;
+                r.IsLoaded = true;
             }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"EigenLayer LoadAvatarByProviderKey failed: {ex.Message}", ex); }
             return r;
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string u, int v = 0) => await LoadAvatarByProviderKeyAsync(u, v);
-        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int v = 0) { var r = new OASISResult<IAvatar>(); OASISErrorHandling.HandleError(ref r, "EigenLayer stakers are identified by Ethereum address, not OASIS GUID."); return r; }
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string e, int v = 0) { var r = new OASISResult<IAvatar>(); OASISErrorHandling.HandleError(ref r, "EigenLayer does not support email-based lookup."); return r; }
+        public override Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string u, int v = 0) => LoadAvatarByProviderKeyAsync(u, v);
+        public override Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int v = 0) => Task.FromResult(Unsupported<IAvatar>("EigenLayer accounts are Ethereum addresses, not OASIS GUIDs."));
+        public override Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string e, int v = 0) => Task.FromResult(Unsupported<IAvatar>("EigenLayer accounts have no email."));
+        public override Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int v = 0) => Task.FromResult(Unsupported<IEnumerable<IAvatar>>(NeedsIndexer));
+        public override Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar a) => Task.FromResult(Unsupported<IAvatar>(ReadOnly));
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool s = true) => Task.FromResult(Unsupported<bool>(ReadOnly));
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(string k, bool s = true) => Task.FromResult(Unsupported<bool>(ReadOnly));
+        public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string e, bool s = true) => Task.FromResult(Unsupported<bool>(ReadOnly));
+        public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string u, bool s = true) => Task.FromResult(Unsupported<bool>(ReadOnly));
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int v = 0) => Task.FromResult(Unsupported<IAvatarDetail>("EigenLayer accounts are Ethereum addresses, not OASIS GUIDs."));
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int v = 0) => Task.FromResult(Unsupported<IAvatarDetail>("EigenLayer accounts have no email."));
 
-        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int v = 0)
-        {
-            var r = new OASISResult<IEnumerable<IAvatar>>();
-            try
-            {
-                var json = await GetAsync("stakers?limit=50");
-                var stakers = (json["stakers"] as JArray) ?? (json as JArray);
-                var avatars = new List<IAvatar>();
-                if (stakers != null)
-                    foreach (var s in stakers)
-                    {
-                        var addr = s["address"]?.ToString() ?? "";
-                        var avatar = new Avatar { Username = addr };
-                        avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.EigenLayerOASIS] = addr;
-                        avatar.MetaData["address"] = addr;
-                        avatar.MetaData["total_shares"] = s["totalShares"]?.ToString() ?? "0";
-                        avatars.Add(avatar);
-                    }
-                r.Result = avatars;
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"EigenLayer LoadAllAvatars failed: {ex.Message}", ex); }
-            return r;
-        }
-
-        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar a) { var r = new OASISResult<IAvatar>(); OASISErrorHandling.HandleError(ref r, "EigenLayer is a read-only data provider. Staking requires on-chain transactions via smart contract."); return r; }
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool s = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "EigenLayer staker accounts are on-chain and cannot be deleted."); return r; }
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string k, bool s = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "EigenLayer staker accounts are on-chain and cannot be deleted."); return r; }
-        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string e, bool s = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "EigenLayer does not support email-based operations."); return r; }
-        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string u, bool s = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "EigenLayer staker accounts are on-chain and cannot be deleted."); return r; }
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int v = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "EigenLayer avatar detail requires an Ethereum address."); return r; }
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int v = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "EigenLayer does not support email-based lookup."); return r; }
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string address, int v = 0)
         {
             var r = new OASISResult<IAvatarDetail>();
             try
             {
-                var json = await GetAsync($"stakers/{address}");
-                var detail = new AvatarDetail { Username = address };
-                detail.MetaData["address"] = address;
-                detail.MetaData["total_shares"] = json["totalShares"]?.ToString() ?? "0";
-                detail.MetaData["shares"] = json["shares"]?.ToString(Formatting.None) ?? "[]";
-                detail.MetaData["delegated_to"] = json["delegatedTo"]?.ToString() ?? "";
+                var d = await ReadAsync(address);
+                var detail = new AvatarDetail { Username = d.Address };
+                Describe(detail.MetaData, d);
                 r.Result = detail;
+                r.IsLoaded = true;
             }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"EigenLayer LoadAvatarDetailByUsername failed: {ex.Message}", ex); }
             return r;
         }
-        public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail ad) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "EigenLayer is a read-only data provider."); return r; }
-        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int v = 0)
-        {
-            var r = new OASISResult<IEnumerable<IAvatarDetail>>();
-            try
-            {
-                var json = await GetAsync("stakers?limit=50");
-                var stakers = (json["stakers"] as JArray) ?? (json as JArray);
-                var details = new List<IAvatarDetail>();
-                if (stakers != null)
-                    foreach (var s in stakers)
-                    {
-                        var detail = new AvatarDetail { Username = s["address"]?.ToString() ?? "" };
-                        detail.MetaData["address"] = s["address"]?.ToString() ?? "";
-                        detail.MetaData["total_shares"] = s["totalShares"]?.ToString() ?? "0";
-                        details.Add(detail);
-                    }
-                r.Result = details;
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"EigenLayer LoadAllAvatarDetails failed: {ex.Message}", ex); }
-            return r;
-        }
 
-        // Holon = EigenLayer operator
+        public override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail ad) => Task.FromResult(Unsupported<IAvatarDetail>(ReadOnly));
+        public override Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int v = 0) => Task.FromResult(Unsupported<IEnumerable<IAvatarDetail>>(NeedsIndexer));
+
+        // Holon = registered operator
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(string key, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0)
         {
             var r = new OASISResult<IHolon>();
             try
             {
-                var json = await GetAsync($"operators/{key}");
-                var holon = new Holon { Name = json["name"]?.ToString() ?? key };
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.EigenLayerOASIS] = key;
-                holon.MetaData["address"] = key;
-                holon.MetaData["name"] = json["name"]?.ToString() ?? "";
-                holon.MetaData["total_stakers"] = json["totalStakers"]?.ToString() ?? "0";
-                holon.MetaData["tvl_eth"] = json["tvl"]?.ToString() ?? "0";
-                holon.MetaData["website"] = json["website"]?.ToString() ?? "";
-                holon.MetaData["description"] = json["description"]?.ToString() ?? "";
+                var d = await ReadAsync(key);
+                if (!d.IsOperator) { OASISErrorHandling.HandleError(ref r, $"{d.Address} is not a registered EigenLayer operator."); return r; }
+                var holon = new Holon { Name = d.Address };
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.EigenLayerOASIS] = d.Address;
+                Describe(holon.MetaData, d);
                 r.Result = holon;
+                r.IsLoaded = true;
             }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"EigenLayer LoadHolon failed: {ex.Message}", ex); }
             return r;
         }
 
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r, "EigenLayer operators are identified by Ethereum address, not OASIS GUID."); return r; }
+        public override Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0) => Task.FromResult(Unsupported<IHolon>("EigenLayer operators are Ethereum addresses, not OASIS GUIDs."));
+        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon h, bool sc = true, bool rec = true, int md = 0, bool coe = true, bool scop = false) => Task.FromResult(Unsupported<IHolon>(ReadOnly));
+        public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool sc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool scop = false) => Task.FromResult(Unsupported<IEnumerable<IHolon>>(ReadOnly));
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType ht = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => Task.FromResult(Unsupported<IEnumerable<IHolon>>(NeedsIndexer));
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id) => Task.FromResult(Unsupported<IHolon>(ReadOnly));
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(string k) => Task.FromResult(Unsupported<IHolon>(ReadOnly));
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => Task.FromResult(Unsupported<IEnumerable<IHolon>>(NeedsIndexer));
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string operatorAddress, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => Task.FromResult(Unsupported<IEnumerable<IHolon>>(NeedsIndexer));
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string mk, string mv, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => Task.FromResult(Unsupported<IEnumerable<IHolon>>(NeedsIndexer));
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> m, MetaKeyValuePairMatchMode mm, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => Task.FromResult(Unsupported<IEnumerable<IHolon>>(NeedsIndexer));
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType ht = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0)
-        {
-            var r = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                var json = await GetAsync("operators?limit=50");
-                var operators = (json["operators"] as JArray) ?? (json as JArray);
-                var holons = new List<IHolon>();
-                if (operators != null)
-                    foreach (var op in operators)
-                    {
-                        var h = new Holon { Name = op["name"]?.ToString() ?? op["address"]?.ToString() ?? "" };
-                        h.ProviderUniqueStorageKey[Core.Enums.ProviderType.EigenLayerOASIS] = op["address"]?.ToString() ?? "";
-                        h.MetaData["address"] = op["address"]?.ToString() ?? "";
-                        h.MetaData["name"] = op["name"]?.ToString() ?? "";
-                        h.MetaData["total_stakers"] = op["totalStakers"]?.ToString() ?? "0";
-                        h.MetaData["tvl_eth"] = op["tvl"]?.ToString() ?? "0";
-                        holons.Add(h);
-                    }
-                r.Result = holons;
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"EigenLayer LoadAllHolons failed: {ex.Message}", ex); }
-            return r;
-        }
-
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon h, bool sc = true, bool rec = true, int md = 0, bool coe = true, bool scop = false) { var r = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r, "EigenLayer is a read-only data provider. Operator registration requires on-chain transactions."); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> h, bool sc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool scop = false) { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, "EigenLayer is a read-only data provider."); return r; }
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id) { var r = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r, "EigenLayer on-chain data is immutable."); return r; }
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string k) { var r = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r, "EigenLayer on-chain data is immutable."); return r; }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, "Use LoadHolonsForParent(string operatorAddress) to load AVS list for an operator."); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string operatorAddress, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0)
-        {
-            var r = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                var json = await GetAsync($"operators/{operatorAddress}/avs");
-                var avsList = (json["avs"] as JArray) ?? (json as JArray);
-                var holons = new List<IHolon>();
-                if (avsList != null)
-                    foreach (var avs in avsList)
-                    {
-                        var h = new Holon { Name = avs["name"]?.ToString() ?? avs["address"]?.ToString() ?? "" };
-                        h.MetaData["address"] = avs["address"]?.ToString() ?? "";
-                        h.MetaData["name"] = avs["name"]?.ToString() ?? "";
-                        h.MetaData["operator"] = operatorAddress;
-                        holons.Add(h);
-                    }
-                r.Result = holons;
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"EigenLayer LoadHolonsForParent failed: {ex.Message}", ex); }
-            return r;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string mk, string mv, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0)
-        {
-            if (mk == "address") { var h = await LoadHolonAsync(mv); return new OASISResult<IEnumerable<IHolon>> { Result = h.Result != null ? new List<IHolon> { h.Result } : new List<IHolon>(), IsError = h.IsError, Message = h.Message }; }
-            var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, $"EigenLayer does not support metadata search by '{mk}'. Supported: address."); return r;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> m, MetaKeyValuePairMatchMode mm, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0)
-        { foreach (var kv in m) { var p = await LoadHolonsByMetaDataAsync(kv.Key, kv.Value, t); if (!p.IsError) return p; } return new OASISResult<IEnumerable<IHolon>> { Result = new List<IHolon>() }; }
-
+        /// <summary>Search by address (FilterByMetaData["query"]).</summary>
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams sp, bool lc = true, bool rec = true, int md = 0, bool coe = true, int v = 0)
         {
             var r = new OASISResult<ISearchResults>();
-            try
-            {
-                var results = new SearchResults();
-                string query = sp?.FilterByMetaData?.ContainsKey("query") == true ? sp.FilterByMetaData["query"] : "";
-                if (!string.IsNullOrEmpty(query))
-                {
-                    try { var op = await LoadHolonAsync(query); if (!op.IsError) results.SearchResultHolons = new List<IHolon> { op.Result }; } catch { }
-                    try { var staker = await LoadAvatarByProviderKeyAsync(query); if (!staker.IsError) results.SearchResultAvatars = new List<IAvatar> { staker.Result }; } catch { }
-                }
-                r.Result = results;
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"EigenLayer Search failed: {ex.Message}", ex); }
+            var query = sp?.FilterByMetaData?.ContainsKey("query") == true ? sp.FilterByMetaData["query"] : "";
+            if (string.IsNullOrEmpty(query)) { OASISErrorHandling.HandleError(ref r, "Search needs an Ethereum address in FilterByMetaData[\"query\"]."); return r; }
+            var account = await LoadAvatarByProviderKeyAsync(query);
+            if (account.IsError) { OASISErrorHandling.HandleError(ref r, account.Message); return r; }
+            r.Result = new SearchResults { SearchResultAvatars = new List<IAvatar> { account.Result } };
             return r;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid id, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, "EigenLayer export requires an Ethereum address."); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string address, int v = 0) => await LoadHolonsForParentAsync(address);
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string e, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, "EigenLayer does not support email-based export."); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int v = 0) => await LoadAllHolonsAsync();
-        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> h) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "EigenLayer is a read-only data provider. Operator registration requires on-chain transactions."); return r; }
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid id, int v = 0) => Task.FromResult(Unsupported<IEnumerable<IHolon>>(NeedsIndexer));
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string address, int v = 0) => Task.FromResult(Unsupported<IEnumerable<IHolon>>(NeedsIndexer));
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string e, int v = 0) => Task.FromResult(Unsupported<IEnumerable<IHolon>>(NeedsIndexer));
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int v = 0) => Task.FromResult(Unsupported<IEnumerable<IHolon>>(NeedsIndexer));
+        public override Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> h) => Task.FromResult(Unsupported<bool>(ReadOnly));
 
-        // Sync wrappers
+        // Synchronous members delegate to the async reads.
         public override OASISResult<IAvatar> LoadAvatar(Guid id, int v = 0) => LoadAvatarAsync(id, v).Result;
         public override OASISResult<IAvatar> LoadAvatarByProviderKey(string k, int v = 0) => LoadAvatarByProviderKeyAsync(k, v).Result;
         public override OASISResult<IAvatar> LoadAvatarByUsername(string u, int v = 0) => LoadAvatarByUsernameAsync(u, v).Result;

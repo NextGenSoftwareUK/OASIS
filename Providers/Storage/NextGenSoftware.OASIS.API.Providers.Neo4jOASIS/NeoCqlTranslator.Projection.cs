@@ -27,6 +27,15 @@ internal sealed partial class NeoCqlTranslator
             return (utcSource.State,"CASE WHEN ("+utcSource.State+")=2 THEN "+
                 NeoCqlUtcDateParts.Value(column.Function,"datetime("+utcSource.Value+")")+" ELSE null END");
         }
+        if (column.Function == CosmicProjectionFunction.Int32ToTextCase)
+        {
+            if(column.Path.ValueType != typeof(int) || column.ValueType != typeof(string) || column.Int32TextCases == null || column.Int32TextCases.Count == 0 || column.WhenFalse == null)
+                throw new System.NotSupportedException("Native Int32 CASE requires an exact Int32 path and captured literal branches.");
+            var integerSource=TranslateProjectionPath(column.Path);
+            var integerBranches=string.Concat(System.Linq.Enumerable.Select(column.Int32TextCases,entry=>" WHEN "+Bind((long)entry.Key)+" THEN "+Bind(entry.Value)));
+            return ("CASE WHEN ("+integerSource.State+")=2 THEN 2 ELSE 3 END",
+                "CASE WHEN ("+integerSource.State+")=2 THEN CASE ("+integerSource.Value+")"+integerBranches+" ELSE "+Bind(column.WhenFalse)+" END ELSE NULL END");
+        }
         if (column.Function == CosmicProjectionFunction.Int64Affine)
         {
             if(column.Path.ValueType != typeof(long) || column.ValueType != typeof(long) || !column.Int64Multiplier.HasValue || !column.Int64Offset.HasValue)

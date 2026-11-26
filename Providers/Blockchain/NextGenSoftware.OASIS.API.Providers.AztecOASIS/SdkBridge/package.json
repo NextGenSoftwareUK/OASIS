@@ -1,0 +1,10 @@
+{
+  "name": "oasis-aztec-sdk-bridge",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@aztec/accounts": "5.3.0",
+    "@aztec/aztec.js": "5.3.0",
+    "@aztec/wallets": "5.3.0"
+  }
+}

@@ -38,12 +38,26 @@ using NBitcoin;
 
 namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 {
-    public partial class BlockStackOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISBlockchainStorageProvider, IOASISNETProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar
+    public partial class BlockStackOASIS : NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.KeyValueStorageProviderBase, IOASISBlockchainStorageProvider, IOASISNETProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar
     {
         private readonly BlockStackClient _blockStackClient;
         private readonly string _contractAddress;
 
+        /// <summary>Unconfigured provider: storage and Gaia NFT paths fail explicitly until a hub, bucket key and record
+        /// encryption key are supplied.</summary>
         public BlockStackOASIS(string contractAddress = null)
+            : this(new BlockStackClient(), null, contractAddress) { }
+
+        /// <param name="gaiaHubUrl">Gaia hub write endpoint, for example https://hub.blockstack.org.</param>
+        /// <param name="bucketPrivateKeyHex">secp256k1 key that owns the Gaia bucket; it signs every hub auth token.</param>
+        /// <param name="encryptionKey">32-byte record encryption key: Gaia reads are public, so records are stored encrypted.</param>
+        public BlockStackOASIS(string gaiaHubUrl, string bucketPrivateKeyHex, byte[] encryptionKey, string contractAddress = null)
+            : this(new BlockStackClient(gaiaHubUrl, bucketPrivateKeyHex), encryptionKey ?? throw new ArgumentNullException(nameof(encryptionKey)), contractAddress) { }
+
+        private BlockStackOASIS(BlockStackClient client, byte[] encryptionKey, string contractAddress)
+            : base(encryptionKey == null
+                ? new UnconfiguredGaiaBackend()
+                : new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PrivateKeyValueBackend(new GaiaHubKeyValueBackend(client), encryptionKey, compress: true))
         {
             this.ProviderName = "BlockStackOASIS";
             this.ProviderDescription = "BlockStack Provider";
@@ -53,10 +67,22 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
             this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
             this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
-            _blockStackClient = new BlockStackClient();
+            _blockStackClient = client;
             _contractAddress = contractAddress ?? Environment.GetEnvironmentVariable("BLOCKSTACK_CONTRACT_ADDRESS") ?? "SP000000000000000000002Q6VF78";
         }
 
-        
+        /// <summary>Gaia bucket address that holds this provider's records.</summary>
+        public string GaiaBucketAddress => _blockStackClient.BucketAddress;
+
+        private sealed class UnconfiguredGaiaBackend : NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.IKeyValueBackend
+        {
+            private static Exception Missing() => new InvalidOperationException(
+                "BlockStack storage requires an explicit Gaia hub URL, bucket key and record encryption key.");
+            public Task<string> GetAsync(string key, CancellationToken cancellationToken = default) => Task.FromException<string>(Missing());
+            public Task PutAsync(string key, string value, CancellationToken cancellationToken = default) => Task.FromException(Missing());
+            public Task DeleteAsync(string key, CancellationToken cancellationToken = default) => Task.FromException(Missing());
+            public Task<IReadOnlyList<string>> ListKeysAsync(string prefix, CancellationToken cancellationToken = default) => Task.FromException<IReadOnlyList<string>>(Missing());
+            public Task VerifyAsync(CancellationToken cancellationToken = default) => Task.FromException(Missing());
+        }
     }
 }
