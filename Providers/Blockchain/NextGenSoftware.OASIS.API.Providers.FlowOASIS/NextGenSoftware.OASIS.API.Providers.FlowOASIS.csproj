@@ -39,4 +39,11 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="SdkBridge\bridge.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="FlowSdkBridge\bridge.mjs" />
+    <None Include="SdkBridge\OasisKv.cdc" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="FlowSdkBridge\OasisKv.cdc" />
+    <None Include="SdkBridge\package.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="FlowSdkBridge\package.json" />
+    <None Include="SdkBridge\package-lock.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="FlowSdkBridge\package-lock.json" />
+  </ItemGroup>
+
 </Project>

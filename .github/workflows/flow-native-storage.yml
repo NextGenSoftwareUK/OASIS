@@ -1,0 +1,98 @@
+name: Flow native storage
+
+on:
+  push:
+    branches: [work/blockstack-gaia]
+    paths:
+      - '.github/workflows/flow-native-storage.yml'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.FlowOASIS/**'
+      - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.FlowOASIS.IntegrationTests/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  storage:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: OASIS
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Install the pinned Flow SDK bridge and run its unit tests
+        working-directory: OASIS/Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.FlowOASIS/SdkBridge
+        run: |
+          npm ci --no-audit --no-fund
+          node --test bridge.test.mjs
+      - name: Run the shared core storage suite against a disposable Flow emulator
+        run: |
+          fixture="$(mktemp -d "$RUNNER_TEMP/oasis-native.XXXXXXXX")"
+          cli="$(mktemp -d "$RUNNER_TEMP/flow-cli.XXXXXXXX")"
+          emulator=""
+          cleanup() {
+            status=$?
+            [[ -n "$emulator" ]] && kill "$emulator" 2>/dev/null || true
+            if (( status != 0 )); then tail -n 80 "$fixture/emulator.log" 2>/dev/null || true; fi
+            [[ "$fixture" == "$RUNNER_TEMP"/oasis-native.* ]] && rm -rf -- "$fixture"
+            [[ "$cli" == "$RUNNER_TEMP"/flow-cli.* ]] && rm -rf -- "$cli"
+            exit "$status"
+          }
+          trap cleanup EXIT
+          curl -fsSL https://github.com/onflow/flow-cli/releases/download/v2.19.0/flow-cli-v2.19.0-linux-amd64.tar.gz -o "$cli/flow.tgz"
+          echo "6d9cf90011b91cceaa193b7e864be991f343066babd3c4c5f67c4fa0f7813d88  $cli/flow.tgz" | sha256sum -c
+          tar -xzf "$cli/flow.tgz" -C "$cli"
+          flow="$(find "$cli" -type f -name 'flow*' -perm -u+x | head -n 1)"
+          "$flow" version
+          key="$(openssl rand -hex 32)"
+          echo "::add-mask::$key"
+          address=f8d6e0586b0a20c7
+          printf '{"networks":{"emulator":"127.0.0.1:3569"},"accounts":{"emulator-account":{"address":"%s","key":"%s"}}}\n' "$address" "$key" > "$fixture/flow.json"
+          (cd "$fixture" && "$flow" emulator --service-priv-key "$key" --service-sig-algo ECDSA_P256 --service-hash-algo SHA3_256 \
+            --rest-port 8888 > "$fixture/emulator.log" 2>&1) &
+          emulator=$!
+          for attempt in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:8888/v1/blocks?height=sealed >/dev/null 2>&1; then break; fi
+            [[ "$attempt" != 60 ]]; sleep 1
+          done
+          bridge=Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.FlowOASIS/SdkBridge/bridge.mjs
+          printf '{"operation":"deploy","endpoint":"http://127.0.0.1:8888","signer":{"address":"%s","privateKey":"%s","keyId":0,"algorithm":"ECDSA_P256"}}' "$address" "$key" \
+            | node "$bridge" | tee "$fixture/deploy.json" | python3 -c "import json,sys; d=json.load(sys.stdin); assert d['ok'], d.get('error'); print('OasisKv deployed:', d['result'])"
+          export OASIS_NATIVE_STORAGE_FIXTURE="$fixture" OASIS_FLOW_ACCESS_NODE="http://127.0.0.1:8888" \
+            OASIS_FLOW_SERVICE_ADDRESS="$address" OASIS_FLOW_SERVICE_KEY="$key" OASIS_FLOW_SDK_BRIDGE="$PWD/$bridge"
+          dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.FlowOASIS.IntegrationTests" \
+            -m:2 -nr:false -p:UseSharedCompilation=false \
+            --logger "trx;LogFileName=flow.trx" --results-directory "$fixture/results" --logger "console;verbosity=normal"
+          python3 - "$fixture/results/flow.trx" <<'PY'
+          import sys
+          import xml.etree.ElementTree as ET
+          results = ET.parse(sys.argv[1]).findall(".//{*}UnitTestResult")
+          assert len(results) == 2 and all(r.get("outcome") == "Passed" for r in results), [(r.get("testName"), r.get("outcome")) for r in results]
+          print("Both Flow emulator storage modes passed with zero skips.")
+          PY

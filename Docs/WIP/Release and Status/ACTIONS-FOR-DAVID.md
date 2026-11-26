@@ -1550,6 +1550,7 @@ Still not enabled: router models such as `openrouter/auto` and per-request fees,
   - Fly.io: create an app `oasis-ci` with the storage the FlyIOOASIS provider uses (Postgres/LiteFS per its README), a deploy token; secrets `FLY_CI_APP`, `FLY_CI_TOKEN`.
   - Neo4j Aura: create a free AuraDB instance `oasis-ci`; secrets `NEO4J_AURA_CI_URI`, `NEO4J_AURA_CI_USER`, `NEO4J_AURA_CI_PASSWORD`. (Neo4jOASIS itself already passes on a local Neo4j; Aura only adds the hosted path.)
   - LanceDB Cloud: create a project and API key; secrets `LANCEDB_CLOUD_URI`, `LANCEDB_CLOUD_API_KEY`.
+  - Lens v2 (LensV2OASIS): a Lens profile on a test wallet and an access token from Lens auth; secrets `LENS_CI_PROFILE_ID`, `LENS_CI_ACCESS_TOKEN`. Not verified: the Lens v2 API may have been replaced by Lens Chain (LensOASIS already reads Lens Chain 232 publicly); if so, retire LensV2OASIS instead.
 - Decision needed, services that appear to be discontinued: Fauna (FaunaDB shut down in 2025), Vercel KV (sunset; existing stores moved to Upstash, which UpstashOASIS already covers) and Polybase (testnet no longer reachable; please confirm). Options: (a) mark FaunaOASIS, VercelKVOASIS and PolybaseOASIS as retired and remove them from the provider matrix, or (b) keep them as historical code with no test target. Engineering's recommendation is (a).
 - Reason: without these, these providers cannot be marked done; every self-hostable provider is being done meanwhile.
 - Status: OPEN 2026-11-25. Claims marked BLOCKED in WORK-CLAIMS.md.
