@@ -23,15 +23,15 @@ The goal David set on 2026-11-26: one full end-to-end demo of everything OASIS h
 | WEB4 sandbox | 107 sources live on dev | CQL sandbox session |
 | WEB6 sandbox | to be made fully working end to end | to start |
 | HoloNET sandbox | to be made fully working end to end | to start |
-| Our World (Unity) | code clean-up and OASIS integration; visual checks by David | to start |
-| OASIS Omniverse Hub/HUD | to be defined and built | to start |
-| ODOOM / OQUAKE via OGEngine | quests and GeoNFTs in-game; cross-game quest line | to start |
+| Our World (Unity) | working, with demo videos already made (per David) | keep working through the demo script |
+| OASIS Omniverse Hub/HUD | working, with demo videos already made (per David) | keep working through the demo script |
+| ODOOM / OQUAKE via OGEngine | working, quests and GeoNFTs in-game, with demo videos already made (per David) | the cross-game quest line for the demo |
 
 ## Order of work
 
 1. Finish what's close: COSMIC 164/164 and the SQL-like/free-text endpoints; the STARNET store pass; the HyperDrive release gates.
-2. The quest pipeline end to end: STARNET quest and GeoNFT creation → OGEngine → ODOOM and OQUAKE → progress in OPORTAL. This is the spine of the demo; prove it with one quest first, then the cross-game line.
-3. Our World and the Omniverse Hub/HUD on the same pipeline.
+2. The quest pipeline already works end to end (STARNET → OGEngine → ODOOM, OQUAKE and Our World → OPORTAL), with videos. Re-check it against the latest Development after the COSMIC, HyperDrive and OPORTAL changes, then write the cross-game quest line for the demo.
+3. Re-check Our World and the Omniverse Hub/HUD against the latest Development.
 4. The WEB6 and HoloNET sandboxes working end to end, alongside the WEB4 sandbox.
 5. A scripted demo run-through, rehearsed on dev, then the cross-game quest line written for it.
 
