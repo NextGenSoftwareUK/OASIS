@@ -41,9 +41,13 @@ public sealed partial class CqlV1Controller : ControllerBase
         if (catalogue == null)
             return StatusCode(503, new NextGenSoftware.OASIS.Common.OASISResult<object>
                 { IsError = true, ErrorCode = "CQL_SOURCE_CATALOGUE_UNAVAILABLE" });
-        return Ok(new NextGenSoftware.OASIS.Common.OASISResult<object>(
-            WithExampleTexts(catalogue.Describe(includeFederationExamples: examplesVersion == 2))));
+        var sources = catalogue.Describe(includeFederationExamples: examplesVersion == 2);
+        AddExampleTexts(ref sources);
+        return Ok(new NextGenSoftware.OASIS.Common.OASISResult<object>(sources));
     }
+
+    // Implemented by the text routes; test projects that link only this file have no SQL-like language.
+    partial void AddExampleTexts(ref System.Collections.Generic.IReadOnlyList<CqlHostedSourceDescription> sources);
 
     [HttpPost]
     [RequestSizeLimit(32768)]

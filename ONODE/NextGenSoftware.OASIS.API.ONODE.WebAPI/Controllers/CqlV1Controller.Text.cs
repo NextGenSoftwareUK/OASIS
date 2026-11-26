@@ -54,12 +54,12 @@ public sealed partial class CqlV1Controller
         };
     }
 
-    private IReadOnlyList<CqlHostedSourceDescription> WithExampleTexts(IReadOnlyList<CqlHostedSourceDescription> sources)
+    partial void AddExampleTexts(ref IReadOnlyList<CqlHostedSourceDescription> sources)
     {
         var compiler = HttpContext.RequestServices.GetService<CqlTextCompiler>();
-        if (compiler == null) return sources;
+        if (compiler == null) return;
         var texts = compiler.ExampleTexts(JsonSerializer.Serialize(sources, new JsonSerializerOptions(JsonSerializerDefaults.Web)));
-        return sources.Select(source => source.Examples == null ? source : source with
+        sources = sources.Select(source => source.Examples == null ? source : source with
         {
             Examples = source.Examples.Select(example =>
                 texts.TryGetValue(source.Provider + "/" + example.Id, out var text) ? example with { Text = text } : example).ToArray()
