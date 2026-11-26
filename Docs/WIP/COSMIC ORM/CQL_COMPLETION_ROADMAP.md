@@ -1,3 +1,26 @@
+## Next phases (set by David, 2026-11-26)
+
+Phase 1 is the COSMIC ORM parity checklist (`CQL_PARITY_CHECKLIST.md`): Entity Framework and NHibernate features working natively on MongoDB, SQLite and Neo4j. Status: 130/164.
+
+### Phase 2a: every parity feature on every provider
+
+- Goal: every checklist feature works on all OASIS providers (about 234 provider projects), not just the three.
+- Native translation where the provider can express it; otherwise a clearly flagged fallback (OASIS reads the records through the provider and evaluates the query in memory). No silent emulation.
+- Providers that cannot store data (read-only chain adapters, "no record store" service providers) support the read-only query kinds only.
+- Tracked as a provider x feature matrix in done/total form. Priority providers first, breadth first. Depends on HyperDrive native storage (about 115/234 providers so far).
+
+### Phase 2b: SQL-like and free-text queries as API endpoints
+
+Today the WEB4 sandbox offers three query modes, but only JSON CQL is a server endpoint:
+
+| Mode | Today | Target |
+|---|---|---|
+| JSON CQL | `POST /api/data/query-cql*` | unchanged |
+| SQL-like | browser only (Web4Site `cql-text.js` compiles it to JSON CQL) | `POST /api/data/query-cql/sql`: a server-side parser that compiles to the existing CQL requests |
+| Free text (Ask) | browser only (Web4Site `cql-ask.js`; WEB6 `/v1/complete` turns the question into SQL-like) | `POST /api/data/query-cql/ask`: WEB6 translates on the server, then runs it as SQL-like |
+
+Both new endpoints get the same validation, size limits, idempotency and usage metering as JSON CQL. They are added to the WEB4 SDK, the Postman collection, the Docs site and the STAR CLI (`cql run sql`, `cql ask`). The sandbox page then calls them instead of doing the work in the browser.
+
 2026-11-19 DAVID CLARIFICATION — DEVELOPMENT ROLLOUTS AUTHORIZED: David clarified that the restriction concerned heavy shared MongoDB Atlas testing, not Development pushes/deployments. Atlas is usable again for small, paced, bounded checks; database qualification should continue in isolated CI containers to avoid Atlas charges and laptop disk use. The earlier blanket deployment/live-call stand-down recorded by this session was an incorrect interpretation and is superseded. Resume scoped verified Development batches on the existing COSMIC branch cadence (coordination review every30minutes; normal Dev integration at most hourly, critical fixes sooner). Staging/production remain approval-gated; do not change load-balancing/replication/worker settings or touch PIPER data. Unfinished mixed HTTP tests are excluded from the first Dev batch. This records authorization, not a completed deployment.
 
 2026-11-19 GROUPED DISTINCT SCOPED NATIVE AND ASK REVIEW ACCEPTED:44581607449/job135763435090 SUCCESS on exactaa72afcac352fcf3d45e865a1eeb6cd347554e40/Core8cffa72d. Actual WEB4 build,6 new three-provider admission controls,4 new SQLite SDK guards and3 real Mongo/SQLite/Neo CQL cases passed. Strict6512byte artifact14560496208 RAM-verified: exactly3TRX+3reports,12 owned writes/store,4 groups/all8 flags and exact cleanup; temporary Mongo/Neo stopped. Runtime proof is STRING/nullable Int64, not every declared primitive domain. Full fixture elapsed Mongo881ms/SQLite1744ms/Neo4548ms includes writes/queries/cleanup, not query latency. Ask review44583096959 SUCCESS on d6f9c885/frozenWebsite485cb86e; strict773byte14560631016 verifies ONLY2 new mocked-model client cases,0 unrelated cases executed. Prior parser12 (44580490179/1027byte14558667321), wire11 and Core/mixed12 retained without rerun. Next actual mixed/native WEB4 HTTP, remaining bool/int32/Single/Double runtime proof, normalized Guid/date/decimal/UInt64 domains, computed selectors/larger sources and hosted/free-model demo acceptance. No full parity credit:61/168 EF plus4/13 separate extensions. No shared Atlas/live/PIPER/DNA/queues/deployment/local build/runtime/database/archive. Source/Git/compact reports retained; temporary indexes self-remove.
