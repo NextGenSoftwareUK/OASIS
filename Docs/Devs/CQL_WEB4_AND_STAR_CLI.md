@@ -67,6 +67,26 @@ curl -X POST "https://api.web4.oasisomniverse.one/api/data/query-cql" \
   -d @query.json
 ```
 
+## SQL-like and free-text queries
+
+WEB4 also accepts text. `Services/Cql/Text/cql-text.js` (parser) and `cql-ask.js` (drafting rules), embedded in the
+WebAPI and run with Jint, are the single source of truth. Do not extend the browser copies in Web4Site.
+
+| Route | Body | Result |
+|---|---|---|
+| `POST /api/data/query-cql/sql` (16 KB) | `{ "query": "SELECT * FROM MongoDBOASIS LIMIT 5", "parameters": {} }` | The typed endpoint's response. `X-OASIS-CQL-Path` names it. |
+| `POST /api/data/query-cql/ask` (4 KB) | `{ "question": "...", "execute": true }` | As above plus `X-OASIS-CQL-Text` (URL-encoded SQL), or `{ sql }` when `execute` is false. |
+
+`X-OASIS-CQL-Scalar-Alias` carries the `AS` name of a scalar result. Errors: 400 `CQL_SQL_INVALID`, 422
+`CQL_ASK_UNSUPPORTED`, 502 `CQL_ASK_DRAFT_FAILED`.
+
+`ask` calls WEB6 `/v1/complete` with the caller's `Authorization` header. The base URL is the environment variable
+`OASIS_WEB6_BASE_URL`; when unset, hosts starting `dev.` use `https://dev.api.web6.oasisomniverse.one` and all others
+`https://api.web6.oasisomniverse.one`.
+
+`CqlTextMiddleware` compiles before usage admission and gives the request the compiled query's path, so the existing
+admission routes and tariffs apply and no new `PREPARED_STORAGE_ADMISSION_JSON` entries are needed.
+
 ## From the STAR CLI
 
 Beam in first (`avatar beamin <username> <password>`); `cql` runs as that avatar with its JWT.
