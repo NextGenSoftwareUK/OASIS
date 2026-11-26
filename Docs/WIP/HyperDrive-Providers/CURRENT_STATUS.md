@@ -22,7 +22,7 @@ OPORTAL, the ONODE popup and billing UI are now owned by a different session. CQ
 - Next 3: Ceramic signed commits (DID), BlockStack Gaia auth tokens, Aztec/Miden real storage designs.
 - Blockers: ACTIONS-FOR-DAVID I1 and the hosted-account providers.
 
-## Progress (cloud-hyperdrive-A, updated 2026-11-25 23:40 UTC)
+## Progress (cloud-hyperdrive-A, updated 2026-11-26 02:25 UTC)
 
 Done in CI (native core-storage suite 26/26, sync + async, against real backends):
 - TelosOASIS and SEEDSOASIS: storage through the EOSIO (Antelope) implementation; `antelope-family-native-storage.yml`, run 45518765561.
@@ -42,9 +42,10 @@ Done in CI (native core-storage suite 26/26, sync + async, against real backends
   Tor network; popular-providers run 45711682481.
 - SignProtocolOASIS: records as attestations on the real Sign Protocol SP contract (local Hardhat), revocation as delete,
   other attesters ignored; popular-providers run 45713760017.
+- HoloOASIS.Desktop: shared suite on the same Holochain 0.7.1 conductor as canonical HoloOASIS; holo-desktop-provider-build.yml
+  storage run 45723092086 (workflow baseline and hApp provenance pins fixed).
 
 EclipseOASIS: done by the hyperdrive-triad session (f2717b1b); the duplicate `work/cloud-hd-eclipse` branch is not merged.
-Passing locally, CI pending: HoloOASIS.Desktop (same conductor as canonical HoloOASIS; first CI run failed, being fixed).
 
 Classified non-storage: LoomOASIS (PLAN_LOOM_CLASSIFICATION_2026-11-25.md) and FarcasterOASIS (no keyed, durable app-data message type; see FARCASTER_STORAGE_CLASSIFICATION_2026-11-25.md).
 
@@ -170,6 +171,7 @@ Partly done, with open items:
 - HoloOASIS.Edge: cross-agent replication on a live conductor is still open. The shared core-storage suite does not apply
   (2026-11-25): HoloOASIS.Edge and EdgeSQLiteOASIS are Edge Runtime replication/sync components, not storage providers;
   their unit tests run in `edge-runtime-validation.yml`.
+- HoloOASIS.Desktop: done 2026-11-25. The Desktop adapter is a thin subclass of canonical HoloOASIS (same storage code and zome calls), and now runs the shared suite itself: 26/26 in both modes on a Holochain 0.7.1 conductor (`HoloOASISDesktopNativeStorageConformanceTests`, run by the `storage` mode of `.github/workflows/holo-desktop-provider-build.yml` next to canonical HoloOASIS). No provider change was needed. The two suites share one conductor and one agent, so they now run serially: a concurrent hApp install by both failed on the conductor with "head moved".
 - HoloOASIS.Unity: the Android conductor device lifecycle is still open.
 - Algorand: done 2026-11-25. Passes the shared suite 26/26 in both modes against its native record-box application on a disposable LocalNet (`.github/workflows/algorand-native-storage.yml`). Fixes: detail lookups by username/email read the stored detail record; holon graphs are saved (children were refused); batch saves acknowledge counts; Import and owner export work on enrolled records; metadata queries select from the decrypted records instead of public Indexer fields; an unversioned save publishes the next revision instead of failing the predecessor check. The suite needs the application funded for its box storage (fixture `OASIS_ALGORAND_RECORD_APP_FUNDING`).
 
