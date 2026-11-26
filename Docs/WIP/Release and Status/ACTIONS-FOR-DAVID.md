@@ -103,7 +103,7 @@ Last updated 31 October 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (mer
 | 11 | Messaging programme: review and push the `work/oasis-messaging` branches (parent, API.Core, STAR ODK, 7 npm repos), publish the npm packages, physical-device Bluetooth tests, HerzApp/Our World wiring decisions | G |
 | 10 | COSMIC/CQL: decide follow-up Default-routing fix publication; hosted Azure/Oracle remain deferred | F |
 | 12 | **Post-release 2026-11-24: production SQLite replication held (BINDING_MISMATCH), WEB9 fix to release, test records left on prod/dev** | POST-RELEASE-2026-11-24 |
-| 11 | **WEB6 model catalogue (G1, G2)** (v11 live on Development; prices reviewed, OpenRouter bills reported cost; nothing needed) | G |
+| 11 | **WEB6 model catalogue (G1, G2)** (v12 live on Development; prices reviewed, OpenRouter bills reported cost; nothing needed) | G |
 | 12 | HyperDrive on dev: Neo4j to SQLite hold at sequence 14 — repair ran once and was refused (no write); **decision pending**: the same holon reaches SQLite from both Mongo and Neo4j | I |
 | 13 | **Railway dev: add one DNA key so IPFS keeps its catalogue across restarts** (`IPFSOASIS.CatalogueRootPointerPath`) | I |
 
@@ -1437,7 +1437,7 @@ Links: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44675640513
 
 ## Part G — WEB6 model catalogue (22 November 2026)
 
-### G1. Estimated prices in the catalogue (now v11)
+### G1. Estimated prices in the catalogue (now v12)
 
 **Status:** reviewed by the WEB6 session on 25 November 2026 on your "whatever you recommend"; nothing is needed from you. Catalogue v10/v11 correct the two prices that differed from the providers' published lists.
 
@@ -1445,7 +1445,9 @@ Links: https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44675640513
 - ElevenLabs `eleven_multilingual_v2`: $0.30 -> $0.08 per 1,000 characters (elevenlabs.io/pricing/api: same dollar price on every plan). WEB6 was charging nearly four times cost.
 - Pika: the old integration called an endpoint and 3s duration Pika no longer offers. v11 moves it to Pika's current media API (Pika 2.5, 720p, 5 seconds, `pika-2.5:720p:5s`) at the listed $0.04 per second = $0.20. Untested live until a `PIKA_API_KEY` is configured.
 
-**Match published list prices:** StabilityAI stable-image-core $0.03 (3 credits), OpenAI gpt-image-1 1024x1024 medium $0.042, Runway gen3a_turbo 5s $0.25 (5 credits per second at $0.01), AssemblyAI nano $0.12 per hour, Deepgram nova-3 $0.0043 per minute, Writer palmyra-x-004 $5/$12 per million tokens.
+- v12, API shapes checked against the providers' current docs: Runway `gen3a_turbo` is no longer offered and the request used the wrong field (`textPrompt`) and no `ratio`; WEB6 now uses `gen4_turbo` for image-to-video ($0.25 per 5s, unchanged) and `gen4.5` on `text_to_video` for text-only prompts ($0.12/s = $0.60 per 5s). Luma requests now name `ray-2` at 720p, 5s ($0.40 still an estimate: Luma prices in credits only). AssemblyAI `nano` and `speech_model` are gone; WEB6 now sends `speech_models: [assemblyai-stt-3-7]` at the published $0.21 per hour. Stability, ElevenLabs and Deepgram requests match their docs; Kling's docs could not be read.
+
+**Match published list prices:** StabilityAI stable-image-core $0.03 (3 credits), OpenAI gpt-image-1 1024x1024 medium $0.042, Runway gen4_turbo 5s $0.25 (5 credits per second at $0.01), AssemblyAI assemblyai-stt-3-7 $0.21 per hour, Deepgram nova-3 $0.0043 per minute, Writer palmyra-x-004 $5/$12 per million tokens.
 
 **No public price to check against, kept as estimates:** Luma (prices only in credits, with no dollar rate published), Kling v1.5 standard 5s $0.14 (the pricing page renders no prices), Reka Core $2/$2 (prices only in the logged-in developer console), Meta Llama API Maverick $0.27/$0.85 (the old Llama API page now redirects to a different Meta product), NVIDIA NIM llama-3.3-70b $0.40/$0.40 (no price on the model page), AI71 Falcon 180B $0.50/$0.50 and JAIS 30B $1/$1 (no public price). These cost nothing until a key for the provider is configured; check them against your invoice when one is.
 
