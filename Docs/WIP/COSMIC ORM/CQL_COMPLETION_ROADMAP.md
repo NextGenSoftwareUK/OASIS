@@ -2,14 +2,7 @@
 
 Phase 1 is the COSMIC ORM parity checklist (`CQL_PARITY_CHECKLIST.md`): Entity Framework and NHibernate features working natively on MongoDB, SQLite and Neo4j. Status: 130/164.
 
-### Phase 2a: every parity feature on every provider
-
-- Goal: every checklist feature works on all OASIS providers (about 234 provider projects), not just the three.
-- Native translation where the provider can express it; otherwise a clearly flagged fallback (OASIS reads the records through the provider and evaluates the query in memory). No silent emulation.
-- Providers that cannot store data (read-only chain adapters, "no record store" service providers) support the read-only query kinds only.
-- Tracked as a provider x feature matrix in done/total form. Priority providers first, breadth first. Depends on HyperDrive native storage (about 115/234 providers so far).
-
-### Phase 2b: SQL-like and free-text queries as API endpoints
+### Phase 2a: SQL-like and free-text queries as API endpoints (do first)
 
 Today the WEB4 sandbox offers three query modes, but only JSON CQL is a server endpoint:
 
@@ -21,6 +14,13 @@ Today the WEB4 sandbox offers three query modes, but only JSON CQL is a server e
 
 Both new endpoints get the same validation, size limits, idempotency and usage metering as JSON CQL. They are added to the WEB4 SDK, the Postman collection, the Docs site and the STAR CLI (`cql run sql`, `cql ask`). The sandbox page then calls them instead of doing the work in the browser.
 
+### Phase 2b: every parity feature on every provider
+
+- Goal: every checklist feature works on all OASIS providers (about 234 provider projects), not just the three.
+- Native translation where the provider can express it; otherwise a clearly flagged fallback (OASIS reads the records through the provider and evaluates the query in memory). No silent emulation.
+- Providers that cannot store data (read-only chain adapters, "no record store" service providers) support the read-only query kinds only.
+- Tracked as a provider x feature matrix in done/total form. Priority providers first, breadth first. Depends on HyperDrive native storage (about 115/234 providers so far).
+
 ### Phase 2c: native data import and virtual holon mappings on every provider
 
 See `Docs/Devs/NATIVE_DATA_IMPORT.md`.
@@ -30,7 +30,7 @@ See `Docs/Devs/NATIVE_DATA_IMPORT.md`.
 | Native data import (`INativeDataImportProvider`: list sources, read pages, holonize with stable ids) | 8/234 providers: MongoDB, SQLite, Neo4j, Azure Cosmos DB, SOLID, ActivityPub, IPFS, Solana | every provider that can expose its own data |
 | Virtual holon mappings (`/api/native-data/{provider}/virtual-mappings/prepare`, `/{id}/query`, `/{id}/snapshot`): query native data in place without importing | 3/234 providers (MongoDB, SQLite, Neo4j), and only whitelisted sandbox demo sources (`CqlV1Providers.VirtualMappings.cs`) | every provider, on any source the user maps (not just the demo sources) |
 
-Same rules as phase 2a: native where possible, a clearly flagged fallback otherwise, tracked as done/total.
+Same rules as phase 2b: native where possible, a clearly flagged fallback otherwise, tracked as done/total.
 
 ### Coordination
 
