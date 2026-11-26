@@ -23,27 +23,23 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using Newtonsoft.Json;
-using NextGenSoftware.OASIS.API.Providers.AztecOASIS.Infrastructure.Repositories;
 using NextGenSoftware.OASIS.API.Providers.AztecOASIS.Infrastructure.Services.Aztec;
 using NextGenSoftware.OASIS.API.Providers.AztecOASIS.Models;
 using Nethereum.Signer;
 using Nethereum.Hex.HexConvertors.Extensions;
 using System.Linq;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
 {
-    public partial class AztecOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISBlockchainStorageProvider, IOASISNETProvider, IOASISSmartContractProvider
+    /// <summary>
+    /// Aztec provider. OASIS storage is committed to Aztec public state: each record is an encrypted envelope on a Kubo
+    /// node, and the OasisKv Noir contract holds its SHA-256 under the record id, written by the storage account through
+    /// the pinned aztec.js worker (see <see cref="AztecLedgerKeyValueBackend"/>). Avatar, avatar-detail and holon semantics
+    /// come from <see cref="KeyValueStorageProviderBase"/>. Private notes, proofs and the bridge use the Aztec services.
+    /// </summary>
+    public partial class AztecOASIS : KeyValueStorageProviderBase, IOASISStorageProvider, IOASISBlockchainStorageProvider, IOASISNETProvider, IOASISSmartContractProvider
     {
-        /// <summary>Aztec stores private state in Noir contract notes reached through a PXE (JSON-RPC); there is no OASIS record
-        /// store yet. The storage members used a REST API (/api/holons) that no Aztec node serves and reported success on null
-        /// results, so they now fail explicitly until a Noir storage contract exists.</summary>
-        private static OASISResult<T> NoRecordStore<T>()
-        {
-            var result = new OASISResult<T>();
-            OASISErrorHandling.HandleError(ref result, "AztecOASIS has no OASIS record store yet; Aztec storage requires a Noir storage contract reached through a PXE.");
-            return result;
-        }
-
         private readonly AztecAPIClient _apiClient;
         private readonly string _apiBaseUrl;
         private readonly string _apiKey;
@@ -52,16 +48,23 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
         private readonly string _operatorAccountAlias;
         private readonly string _stablecoinContractAddress;
 
-        private IAztecService _aztecService;
-        private IAztecBridgeService _bridgeService;
-        private IAztecRepository _aztecRepository;
+        private readonly IAztecService _aztecService;
+        private readonly IAztecBridgeService _bridgeService;
 
+        /// <param name="storageContract">Address of the deployed OasisKv contract that holds this provider's record commitments.</param>
+        /// <param name="storageSecret">Storage account secret (Fr hex); the account must own the OasisKv contract.</param>
+        /// <param name="storageSalt">Storage account deployment salt (Fr hex).</param>
+        /// <param name="storageSigningKey">Storage account Schnorr signing key (Fq hex).</param>
+        /// <param name="kuboApi">Kubo HTTP API that holds the encrypted record envelopes.</param>
+        /// <param name="encryptionKey">32-byte record encryption key; envelopes are compressed then encrypted.</param>
         public AztecOASIS(string apiBaseUrl = null, string apiKey = null, string network = "sandbox",
             string bridgeContractAddress = "", string operatorAccountAlias = "oasis_operator",
-            string stablecoinContractAddress = "")
+            string stablecoinContractAddress = "", string storageContract = null, string storageSecret = null,
+            string storageSalt = null, string storageSigningKey = null, string kuboApi = null, byte[] encryptionKey = null)
+            : base(CreateBackend(apiBaseUrl ?? "http://localhost:8080", storageContract, storageSecret, storageSalt, storageSigningKey, kuboApi, encryptionKey))
         {
             ProviderName = nameof(AztecOASIS);
-            ProviderDescription = "Aztec Privacy Provider";
+            ProviderDescription = "Aztec provider - public-state committed, encrypted record storage and private notes";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.AztecOASIS);
             this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
             this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
@@ -77,6 +80,33 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
             _stablecoinContractAddress = stablecoinContractAddress ?? "";
 
             _apiClient = new AztecAPIClient(_apiBaseUrl, _apiKey);
+            _aztecService = new AztecService(_apiClient, _stablecoinContractAddress);
+            _bridgeService = new AztecBridgeService(_apiClient, _bridgeContractAddress, _operatorAccountAlias);
+        }
+
+        private static IKeyValueBackend CreateBackend(string nodeUrl, string contract, string secret, string salt, string signingKey,
+            string kuboApi, byte[] encryptionKey)
+        {
+            if (contract == null && secret == null && salt == null && signingKey == null && kuboApi == null && encryptionKey == null)
+                return new UnconfiguredAztecStorageBackend();
+            if (string.IsNullOrWhiteSpace(contract) || string.IsNullOrWhiteSpace(secret) || string.IsNullOrWhiteSpace(salt)
+                || string.IsNullOrWhiteSpace(signingKey) || string.IsNullOrWhiteSpace(kuboApi))
+                throw new ArgumentException("Aztec storage requires the OasisKv contract, the storage account's secret, salt and signing key, and a Kubo endpoint.");
+            if (encryptionKey == null || encryptionKey.Length != 32)
+                throw new ArgumentException("Aztec storage requires an explicit 32-byte record encryption key.", nameof(encryptionKey));
+            var ledger = new AztecLedgerKeyValueBackend(new AztecSdkBridge(), nodeUrl, contract, secret, salt, signingKey, kuboApi);
+            return new PrivateKeyValueBackend(ledger, encryptionKey, compress: true);
+        }
+
+        private sealed class UnconfiguredAztecStorageBackend : IKeyValueBackend
+        {
+            private static Exception Missing() => new InvalidOperationException(
+                "Aztec storage requires an explicit OasisKv contract, storage account, Kubo endpoint and record encryption key.");
+            public Task<string> GetAsync(string key, CancellationToken cancellationToken = default) => Task.FromException<string>(Missing());
+            public Task PutAsync(string key, string value, CancellationToken cancellationToken = default) => Task.FromException(Missing());
+            public Task DeleteAsync(string key, CancellationToken cancellationToken = default) => Task.FromException(Missing());
+            public Task<IReadOnlyList<string>> ListKeysAsync(string prefix, CancellationToken cancellationToken = default) => Task.FromException<IReadOnlyList<string>>(Missing());
+            public Task VerifyAsync(CancellationToken cancellationToken = default) => Task.FromException(Missing());
         }
     }
 }

@@ -23,7 +23,6 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using Newtonsoft.Json;
-using NextGenSoftware.OASIS.API.Providers.AztecOASIS.Infrastructure.Repositories;
 using NextGenSoftware.OASIS.API.Providers.AztecOASIS.Infrastructure.Services.Aztec;
 using NextGenSoftware.OASIS.API.Providers.AztecOASIS.Models;
 using Nethereum.Signer;
@@ -34,48 +33,6 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
 {
     public partial class AztecOASIS
     {
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) { await Task.CompletedTask; return NoRecordStore<IEnumerable<IHolon>>(); }
-
-        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NoRecordStore<IEnumerable<IHolon>>();
-
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) { await Task.CompletedTask; return NoRecordStore<IHolon>(); }
-
-        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => NoRecordStore<IHolon>();
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) { await Task.CompletedTask; return NoRecordStore<IEnumerable<IHolon>>(); }
-
-        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => NoRecordStore<IEnumerable<IHolon>>();
-
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id) { await Task.CompletedTask; return NoRecordStore<IHolon>(); }
-
-        public override OASISResult<IHolon> DeleteHolon(Guid id) => NoRecordStore<IHolon>();
-
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey) { await Task.CompletedTask; return NoRecordStore<IHolon>(); }
-
-        public override OASISResult<IHolon> DeleteHolon(string providerKey) => NoRecordStore<IHolon>();
-
-        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons) { await Task.CompletedTask; return NoRecordStore<bool>(); }
-
-        public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => NoRecordStore<bool>();
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0) { await Task.CompletedTask; return NoRecordStore<IEnumerable<IHolon>>(); }
-
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0) => NoRecordStore<IEnumerable<IHolon>>();
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0) { await Task.CompletedTask; return NoRecordStore<IEnumerable<IHolon>>(); }
-
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0) => NoRecordStore<IEnumerable<IHolon>>();
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0) { await Task.CompletedTask; return NoRecordStore<IEnumerable<IHolon>>(); }
-
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0) => NoRecordStore<IEnumerable<IHolon>>();
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) { await Task.CompletedTask; return NoRecordStore<IEnumerable<IHolon>>(); }
-
-        public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => NoRecordStore<IEnumerable<IHolon>>();
-
-
-
         public OASISResult<ITransactionResponse> SendToken(ISendWeb3TokenRequest request)
         {
             return SendTokenAsync(request).Result;

@@ -23,7 +23,6 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using Newtonsoft.Json;
-using NextGenSoftware.OASIS.API.Providers.AztecOASIS.Infrastructure.Repositories;
 using NextGenSoftware.OASIS.API.Providers.AztecOASIS.Infrastructure.Services.Aztec;
 using NextGenSoftware.OASIS.API.Providers.AztecOASIS.Models;
 using Nethereum.Signer;
@@ -34,46 +33,6 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
 {
     public partial class AztecOASIS
     {
-        public override async Task<OASISResult<bool>> ActivateProviderAsync()
-        {
-            var result = new OASISResult<bool>();
-            try
-            {
-                _aztecService = new AztecService(_apiClient, _stablecoinContractAddress);
-                _bridgeService = new AztecBridgeService(_apiClient, _bridgeContractAddress, _operatorAccountAlias);
-                _aztecRepository = new AztecRepository(_apiClient);
-
-                IsProviderActivated = true;
-                result.Result = true;
-                result.Message = "Aztec provider activated successfully";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Failed to activate Aztec provider: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        public override OASISResult<bool> ActivateProvider()
-        {
-            return ActivateProviderAsync().Result;
-        }
-
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
-        {
-            _aztecService = null;
-            _bridgeService = null;
-            _aztecRepository = null;
-            IsProviderActivated = false;
-            return new OASISResult<bool>(true);
-        }
-
-        public override OASISResult<bool> DeActivateProvider()
-        {
-            return DeActivateProviderAsync().Result;
-        }
-
-
         public async Task<OASISResult<PrivateNote>> CreatePrivateNoteAsync(decimal value, string ownerPublicKey, string metadata = null)
         {
             var result = new OASISResult<PrivateNote>();
@@ -244,33 +203,6 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
 
 
 
-        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0) { await Task.CompletedTask; return NoRecordStore<IEnumerable<IAvatar>>(); }
-
-        public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0) => NoRecordStore<IEnumerable<IAvatar>>();
-
-        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0) { await Task.CompletedTask; return NoRecordStore<IAvatar>(); }
-
-        public override OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0) => NoRecordStore<IAvatar>();
-
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0) { await Task.CompletedTask; return NoRecordStore<IAvatar>(); }
-
-        public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0) => NoRecordStore<IAvatar>();
-
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0) { await Task.CompletedTask; return NoRecordStore<IAvatar>(); }
-
-        public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0) => NoRecordStore<IAvatar>();
-
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0) { await Task.CompletedTask; return NoRecordStore<IAvatar>(); }
-
-        public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0) => NoRecordStore<IAvatar>();
-
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0) { await Task.CompletedTask; return NoRecordStore<IAvatarDetail>(); }
-
-        public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) => NoRecordStore<IAvatarDetail>();
-
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0) { await Task.CompletedTask; return NoRecordStore<IAvatarDetail>(); }
-
-        public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0) => NoRecordStore<IAvatarDetail>();
 
     }
 }
