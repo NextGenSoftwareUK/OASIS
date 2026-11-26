@@ -150,3 +150,4 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | BittensorOASIS: replace token-gated taostats API with keyless subtensor JSON-RPC (Finney genesis check; SS58 + Substrate storage hashing for accounts/subnets) + capability-v1 probe | HyperDrive providers (non-storage) | local: testharness-build-fix | work/tracker-capability-probes | 2026-11-26 | IN PROGRESS |
 
 - CLAIMED 2026-11-25 by CQL sandbox session (local_b7903255): AFTER_DEMO_BACKLOG "Read-source operational recovery after bounded startup exhaustion" - authorized serialized reactivation of an exhausted CQL read source (Blockscout live case).
+| KeyDBOASIS and DragonflyOASIS native storage (full shared suite on local containers, Valkey pattern) | HyperDrive providers | local: HyperDrive provider programme | work/blockstack-gaia | 2026-11-26 03:40 | IN PROGRESS |
