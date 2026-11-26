@@ -7,7 +7,7 @@
 import { readFileSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import { createInterface } from 'node:readline';
-import { AccountId, AuthSecretKey, MidenClient, StorageMap, StorageSlot, Word } from '@miden-sdk/miden-sdk';
+import { AccountId, AuthSecretKey, MidenClient, Note, StorageMap, StorageSlot, Word } from '@miden-sdk/miden-sdk';
 
 const REPLY_PREFIX = '@@OASIS-MIDEN@@';
 const SLOT = 'oasis::kv';
@@ -45,9 +45,32 @@ async function deploy({ rpcUrl, accountSeed, keySeed, faucetUrl }) {
   const { client, component } = await openClient(rpcUrl);
   const auth = AuthSecretKey.rpoFalconWithRNG(seedBytes(keySeed));
   const account = await client.accounts.create({ seed: seedBytes(accountSeed), auth, components: [component], storage: 'public' });
-  const funded = await client.accounts.fundAccount(account, { faucetUrl });
+  const note = await requestFunding(faucetUrl, account.id().toString());
+  // The node may not have committed the funding note yet; consuming retries until it does (bounded).
+  let consumed;
+  for (let attempt = 1; ; attempt++) {
+    try { consumed = await client.transactions.consume({ account, notes: [note], waitForConfirmation: true, timeout: 300_000 }); break; }
+    catch (error) { if (attempt >= 20) throw error; await new Promise((resolve) => setTimeout(resolve, 6_000)); await client.sync(); }
+  }
   state = { client, component, accountId: account.id() };
-  return { accountId: account.id().toString(), balance: funded.balance.toString() };
+  return { accountId: account.id().toString(), funded: true, transaction: consumed?.toString?.() ?? null };
+}
+
+/** Fixture only: asks the local miden-node funding service (POST /request-funds) for a public fee-asset note. */
+async function requestFunding(fundingUrl, accountId) {
+  const base = fundingUrl.replace(/\/$/, '');
+  const status = await fetch(`${base}/status`);
+  if (!status.ok) throw new Error(`funding status failed: HTTP ${status.status}`);
+  const snapshot = await status.json();
+  const amount = Number(snapshot.max_amount ?? snapshot.maxAmount);
+  if (!Number.isSafeInteger(amount) || amount <= 0) throw new Error(`funding status carries no usable max_amount: ${JSON.stringify(snapshot)}`);
+  const response = await fetch(`${base}/request-funds`, {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ account_id: accountId, amount }),
+  });
+  const text = await response.text();
+  if (!response.ok) throw new Error(`funding request failed: HTTP ${response.status} ${text}`);
+  return Note.deserialize(new Uint8Array(Buffer.from(JSON.parse(text).note, 'hex')));
 }
 
 async function init({ rpcUrl, accountId, keySeed }) {
