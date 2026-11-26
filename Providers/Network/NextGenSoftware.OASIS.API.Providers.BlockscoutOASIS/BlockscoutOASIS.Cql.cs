@@ -59,7 +59,10 @@ public partial class BlockscoutOASIS : ICosmicQueryStorageProvider, ICosmicReadO
             throw new ArgumentException("Exact anonymous Blockscout source schema required; signer/billing fields forbidden.");
         var handler = (SocketsHttpHandler)NativeConnectionGuard.CreateGuardedHttpHandler();
         handler.UseCookies = false;
-        var client = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(15) };
+        // ReadAsync's linked 30-second deadline is the only time budget. A shorter
+        // client timeout cancelled slow-but-valid explorer reads before the declared
+        // query budget (live: 504 CQL_QUERY_CANCELLED at 15.5s of a 30s budget).
+        var client = new HttpClient(handler) { Timeout = System.Threading.Timeout.InfiniteTimeSpan };
         try
         {
             return new BlockscoutOASIS(client, new Uri(root.GetProperty("apiUrl").GetString(), UriKind.Absolute),
