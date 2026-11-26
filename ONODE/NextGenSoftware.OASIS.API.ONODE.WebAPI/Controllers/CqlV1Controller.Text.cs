@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -29,7 +31,8 @@ public sealed partial class CqlV1Controller
         if (outcome.Query == null) return TextFailure(outcome.Status, outcome.Code, outcome.Message);
         Response.Headers["X-OASIS-CQL-Parse-Ms"] = outcome.ParseMilliseconds.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture);
         if (!outcome.Execute)
-            return Ok(new NextGenSoftware.OASIS.Common.OASISResult<object>(new { sql = outcome.Sql }));
+            return Ok(new NextGenSoftware.OASIS.Common.OASISResult<object>(new
+            { sql = outcome.Sql, path = outcome.Query.Path, body = outcome.Query.Body, scalarAlias = outcome.Query.ScalarAlias }));
 
         Response.Headers["X-OASIS-CQL-Path"] = outcome.Query.Path;
         if (outcome.Query.ScalarAlias != null) Response.Headers["X-OASIS-CQL-Scalar-Alias"] = outcome.Query.ScalarAlias;
@@ -49,6 +52,18 @@ public sealed partial class CqlV1Controller
             "data/query-cql/federation" => await Typed<CqlFederationV1Request>(outcome, r => CqlV1Endpoint.ExecuteFederationAsync(HttpContext, r, providers)),
             _ => TextFailure(400, "CQL_SQL_UNSUPPORTED", "This statement has no WEB4 query endpoint.")
         };
+    }
+
+    private IReadOnlyList<CqlHostedSourceDescription> WithExampleTexts(IReadOnlyList<CqlHostedSourceDescription> sources)
+    {
+        var compiler = HttpContext.RequestServices.GetService<CqlTextCompiler>();
+        if (compiler == null) return sources;
+        var texts = compiler.ExampleTexts(JsonSerializer.Serialize(sources, new JsonSerializerOptions(JsonSerializerDefaults.Web)));
+        return sources.Select(source => source.Examples == null ? source : source with
+        {
+            Examples = source.Examples.Select(example =>
+                texts.TryGetValue(source.Provider + "/" + example.Id, out var text) ? example with { Text = text } : example).ToArray()
+        }).ToArray();
     }
 
     // Binds the compiled body exactly as the typed action would, including model validation.

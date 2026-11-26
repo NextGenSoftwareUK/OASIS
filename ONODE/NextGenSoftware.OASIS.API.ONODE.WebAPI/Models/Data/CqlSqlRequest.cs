@@ -7,4 +7,6 @@ public sealed class CqlSqlRequest
 {
     public string Query { get; set; }
     public JsonElement? Parameters { get; set; }
+    /// <summary>False only compiles: the result is { sql, path, body, scalarAlias }.</summary>
+    public bool Execute { get; set; } = true;
 }

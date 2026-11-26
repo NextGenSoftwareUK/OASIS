@@ -11,7 +11,11 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
 public sealed record CqlHostedQueryExample(string Id, string Label, JsonElement Request,
-    string Operation = "Rows", bool Available = true, string ErrorCode = null);
+    string Operation = "Rows", bool Available = true, string ErrorCode = null)
+{
+    /// <summary>The SQL-like form of a public row example, when there is one.</summary>
+    public string Text { get; init; }
+}
 
 public sealed record CqlDemoMappedIdentity(Guid Id, string NativeKey, IReadOnlyDictionary<string, string> Metadata);
 public sealed record CqlDemoIdentityResult(Guid OwnerId, string Provider, IReadOnlyList<CqlDemoMappedIdentity> Records);

@@ -59,6 +59,8 @@ public sealed class CqlTextMiddleware
 
         string text = null, parameters = null;
         var execute = true;
+        string provider = null, mapping = null;
+        var publicExample = false;
         try
         {
             using var document = JsonDocument.Parse(body);
@@ -66,7 +68,10 @@ public sealed class CqlTextMiddleware
             {
                 if (property.Name.Equals(ask ? "question" : "query", StringComparison.OrdinalIgnoreCase)) text = property.Value.GetString();
                 else if (!ask && property.Name.Equals("parameters", StringComparison.OrdinalIgnoreCase)) parameters = property.Value.GetRawText();
-                else if (ask && property.Name.Equals("execute", StringComparison.OrdinalIgnoreCase)) execute = property.Value.GetBoolean();
+                else if (property.Name.Equals("execute", StringComparison.OrdinalIgnoreCase)) execute = property.Value.GetBoolean();
+                else if (ask && property.Name.Equals("provider", StringComparison.OrdinalIgnoreCase)) provider = property.Value.GetString();
+                else if (ask && property.Name.Equals("virtualMappingId", StringComparison.OrdinalIgnoreCase)) mapping = property.Value.GetString();
+                else if (ask && property.Name.Equals("publicExample", StringComparison.OrdinalIgnoreCase)) publicExample = property.Value.GetBoolean();
             }
         }
         catch (Exception error) when (error is JsonException or InvalidOperationException)
@@ -87,12 +92,21 @@ public sealed class CqlTextMiddleware
             {
                 var started = System.Diagnostics.Stopwatch.GetTimestamp();
                 var compiled = compiler.Compile(text, parameters, sources ?? "[]");
-                return new CqlTextOutcome { Query = compiled, Sql = text, Execute = true, ParseMilliseconds = Elapsed(started) };
+                return new CqlTextOutcome { Query = compiled, Sql = text, Execute = execute, ParseMilliseconds = Elapsed(started) };
             }
             catch (CqlTextException error) { return CqlTextOutcome.Fail(400, "CQL_SQL_INVALID", error.Message); }
         }
 
-        var prompt = sources == null ? null : compiler.SystemPrompt(sources);
+        mapping = string.IsNullOrWhiteSpace(mapping) ? null : mapping.Trim().ToLowerInvariant();
+        if (mapping != null && (!Guid.TryParseExact(mapping, "D", out var mappingId) || mappingId == Guid.Empty
+                || provider is not ("MongoDBOASIS" or "SQLLiteDBOASIS" or "Neo4jOASIS")))
+            return CqlTextOutcome.Fail(400, "CQL_REQUEST_INVALID", "A saved virtual mapping needs its ID and MongoDBOASIS, SQLLiteDBOASIS or Neo4jOASIS as provider.");
+        if (publicExample && string.IsNullOrEmpty(provider))
+            return CqlTextOutcome.Fail(400, "CQL_REQUEST_INVALID", "A public example needs its provider.");
+        // The provider only narrows drafting for a mapping or a public example.
+        var only = mapping != null || publicExample ? provider : null;
+
+        var prompt = sources == null ? null : compiler.SystemPrompt(sources, only, mapping, publicExample);
         if (prompt == null)
             return CqlTextOutcome.Fail(503, "CQL_SOURCE_CATALOGUE_UNAVAILABLE", "No query source is ready on this host.");
 
@@ -105,8 +119,11 @@ public sealed class CqlTextMiddleware
             var started = System.Diagnostics.Stopwatch.GetTimestamp();
             var query = compiler.Compile(drafted.Sql, null, sources);
             var parsed = Elapsed(started);
-            if (query.Body.TryGetProperty("virtualMappingId", out _))
-                return CqlTextOutcome.Fail(422, "CQL_ASK_UNSUPPORTED", "The draft used an unselected virtual mapping. Nothing was run.");
+            var used = query.Body.TryGetProperty("virtualMappingId", out var value) ? value.GetString()?.ToLowerInvariant() : null;
+            if (used != mapping || mapping != null && query.Body.GetProperty("provider").GetString() != provider)
+                return CqlTextOutcome.Fail(422, "CQL_ASK_UNSUPPORTED", mapping == null
+                    ? "The draft used an unselected virtual mapping. Nothing was run."
+                    : "The draft did not preserve the selected mapping and provider. Nothing was run.");
             return new CqlTextOutcome { Query = query, Sql = drafted.Sql, Execute = execute, ParseMilliseconds = parsed };
         }
         catch (CqlTextException error)
@@ -156,6 +173,14 @@ public sealed class CqlTextMiddleware
             var root = document.RootElement;
             if (root.ValueKind != JsonValueKind.Object) return Failed($"WEB6 returned an invalid response (HTTP {(int)response.StatusCode}).");
             var isError = root.TryGetProperty("isError", out var flag) && flag.ValueKind == JsonValueKind.True;
+            string Field(string name) => root.TryGetProperty(name, out var found) && found.ValueKind == JsonValueKind.String ? found.GetString() : null;
+            if (Field("code") == "MEASUREMENT_REQUIRED")
+                return Failed("WEB6 could not confirm usage for this request. Reconciliation reference: " +
+                    (Field("operationId") ?? request.Headers.GetValues("Idempotency-Key").First()));
+            if (Field("errorCode") == "WEB6_FREE_ROUTE_UNAVAILABLE")
+                return Failed("Free AI drafting is temporarily unavailable. You can still write and run CQL.");
+            if (Field("code") == "DAILY_TOKEN_LIMIT_EXCEEDED")
+                return Failed("Your remaining daily AI token allowance is too low for this draft.");
             if (!response.IsSuccessStatusCode || isError)
             {
                 var reason = root.TryGetProperty("message", out var message) && message.ValueKind == JsonValueKind.String

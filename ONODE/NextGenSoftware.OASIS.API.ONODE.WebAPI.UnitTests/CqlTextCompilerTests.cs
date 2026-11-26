@@ -63,6 +63,16 @@ public class CqlTextCompilerTests
         compiler.SystemPrompt("[]").Should().BeNull();
     }
 
+    [Fact]
+    public void SystemPromptNarrowsToAMappingProviderAndExampleTextsAreOptional()
+    {
+        const string sources = "[{\"provider\":\"MongoDBOASIS\",\"available\":true},{\"provider\":\"Neo4jOASIS\",\"available\":true}]";
+        compiler.SystemPrompt(sources, "Neo4jOASIS", "11111111-1111-1111-1111-111111111111")
+            .Should().Contain("providers: Neo4jOASIS.").And.Contain("saved virtual mapping 11111111");
+        compiler.ExampleTexts("[{\"provider\":\"MongoDBOASIS\",\"available\":true,\"examples\":[{\"id\":\"public-records\",\"operation\":\"Rows\",\"request\":{\"provider\":\"MongoDBOASIS\"}}]}]")
+            .Should().BeEmpty();
+    }
+
     [Theory]
     [InlineData("dev.api.web4.oasisomniverse.one", "https://dev.api.web6.oasisomniverse.one")]
     [InlineData("api.web4.oasisomniverse.one", "https://api.web6.oasisomniverse.one")]

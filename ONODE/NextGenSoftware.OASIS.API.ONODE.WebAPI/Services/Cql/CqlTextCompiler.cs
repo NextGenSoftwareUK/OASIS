@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -21,12 +22,15 @@ public sealed class CqlTextCompiler
   const sources = JSON.parse(sourcesJson);
   const profiles = CqlText.discoverKeyProfiles(sources);
   const ready = [...CqlText.providers, ...Object.keys(profiles)]
-    .filter(provider => sources.some(source => source.provider === provider && source.available));
+    .filter(provider => sources.some(source => source.provider === provider && source.available))
+    .filter(provider => !only || provider === only);
   if (!ready.length) return null;
-  const keys = Object.entries(profiles).map(([provider, { key, maximumKeys }]) => provider + ':metadata.' + key + '(' + maximumKeys + ')');
+  const keys = Object.entries(profiles).filter(([provider]) => !example || provider === only).map(([provider, { key, maximumKeys }]) => provider + ':metadata.' + key + '(' + maximumKeys + ')');
   return CqlAsk.queryInstructions(ready) + '\n' + 'Use only these currently available WEB4 providers: ' + ready.join(', ') + '.' +
     (keys.length ? '\nAdditional ready sources (provider:metadata key, maximum IN keys). Use SELECT * and one equality on a supplied quoted key. IN is allowed only when the bound is positive. No ORDER BY or aggregation. ' + keys.join(', ') : '') +
-    '\nNo virtual mapping is selected. Do not use WITH VIRTUAL MAPPING.';
+    (example ? '\nFor this public example, select all fields and use exactly one WHERE comparison on the supplied field. Preserve every supplied key verbatim, using IN for multiple keys. Include the requested LIMIT and, if requested, append TIMEOUT followed by the duration in milliseconds after LIMIT.' : '') +
+    (mappingId ? '\nSelected source: the visitor chose saved virtual mapping ' + mappingId + ' and target provider ' + only + '. Preserve both exactly in the statement. Use only logical metadata paths and types supplied in the question; otherwise return UNSUPPORTED.'
+      : '\nNo virtual mapping is selected. Do not use WITH VIRTUAL MAPPING.');
 })()";
 
     /// <summary>Compiles SQL-like text into the typed query-cql request it stands for.</summary>
@@ -53,12 +57,36 @@ public sealed class CqlTextCompiler
     });
 
     /// <summary>The full system prompt for a host's source catalogue, or null when no source is ready.</summary>
-    public string SystemPrompt(string sourcesJson) => Run(engine =>
+    public string SystemPrompt(string sourcesJson, string provider = null, string virtualMappingId = null, bool publicExample = false) => Run(engine =>
     {
         engine.SetValue("sourcesJson", sourcesJson);
+        engine.SetValue("only", provider ?? "");
+        engine.SetValue("mappingId", virtualMappingId ?? "");
+        engine.SetValue("example", publicExample);
         var value = engine.Evaluate(SystemPromptScript);
         return value.IsNull() ? null : value.AsString();
     });
+
+    /// <summary>SQL-like text for the sources' public row examples, keyed "provider/exampleId".</summary>
+    public IReadOnlyDictionary<string, string> ExampleTexts(string sourcesJson) => JsonSerializer.Deserialize<Dictionary<string, string>>(Run(engine =>
+    {
+        engine.SetValue("sourcesJson", sourcesJson);
+        return engine.Evaluate(ExampleTextScript).AsString();
+    }));
+
+    private const string ExampleTextScript = @"(() => {
+  const sources = JSON.parse(sourcesJson);
+  const profiles = CqlText.discoverKeyProfiles(sources);
+  const texts = {};
+  for (const source of sources) for (const row of source.examples ?? []) {
+    if (!['public-records', 'public-posts', 'public-subset'].includes(row.id) || row.operation !== 'Rows') continue;
+    try {
+      const text = CqlText.publicExample(source.provider, row.request, profiles);
+      if (text) texts[source.provider + '/' + row.id] = text;
+    } catch (error) { /* an example with no SQL-like form simply has no text */ }
+  }
+  return JSON.stringify(texts);
+})()";
 
     private static T Run<T>(Func<Engine, T> evaluate)
     {
