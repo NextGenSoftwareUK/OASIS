@@ -157,6 +157,8 @@ Partly done, with open items:
 - Turso: managed Turso and hosted WEB4 activation are still open.
 - HoloOASIS.Edge: the shared suite and cross-agent replication are still open.
 - HoloOASIS.Unity: the Android conductor device lifecycle is still open.
+- Aztec: done 2026-11-26. Passes the shared suite 26/26 in both modes on a disposable Aztec 5.3.0 local network (`.github/workflows/aztec-native-storage.yml`). Records are Kubo raw blocks committed by the OasisKv Noir contract (public state, owner-only writes) through a pinned aztec.js worker. The fake REST storage was removed.
+
 - Algorand: done 2026-11-25. Passes the shared suite 26/26 in both modes against its native record-box application on a disposable LocalNet (`.github/workflows/algorand-native-storage.yml`). Fixes: detail lookups by username/email read the stored detail record; holon graphs are saved (children were refused); batch saves acknowledge counts; Import and owner export work on enrolled records; metadata queries select from the decrypted records instead of public Indexer fields; an unversioned save publishes the next revision instead of failing the predecessor check. The suite needs the application funded for its box storage (fixture `OASIS_ALGORAND_RECORD_APP_FUNDING`).
 
 Next, breadth first, in order of popularity (shared suite not yet run):
