@@ -13,7 +13,7 @@ Branch `work/cql-sql-ask`. Written 26 Nov 2026.
 | 3 | JavaScript SDK `oasis.data.sql` / `oasis.data.ask` | done, 10/10 tests, main `c3ace9c` |
 | 4 | STAR CLI `cql sql` / `cql ask [--no-run]` | done, 7/7 tests, STAR-ODK Development `b8e4f78` |
 | 5 | Docs site, Learn site, `Docs/Devs/CQL_WEB4_AND_STAR_CLI.md` | done (sites: main `11153de`, `71def41`) |
-| 6 | Sandbox page | left unchanged, as asked |
+| 6 | Sandbox page calls the server only (Web4Site; `cql-text.js` and the browser prompt removed) | done; server adds `execute:false`, example `text` and ask mapping/example options |
 
 Not covered by tests: the controller dispatch to the typed endpoints over real HTTP with usage admission, and a live
 WEB6 draft.
@@ -29,7 +29,6 @@ gives the request the compiled query's path. No Railway or admission configurati
 
 ## Left to do after this branch
 
-- Switch the Web4Site sandbox to `/sql` and `/ask` once they are deployed, then drop its copies of `cql-text.js` and
-  the prompt in `cql-ask.js`.
 - Check both endpoints on the deployed Development API (not verified live; no live WEB6 call has been made).
-- `ask` does not take a saved virtual mapping or the sandbox's reviewed public-example constraints.
+- Run the sandbox page's preview, run and ask buttons in a signed-in demo session (not clicked through yet).
+- Text and ask on the page work against the Development API; the Production option needs these routes promoted to master.
