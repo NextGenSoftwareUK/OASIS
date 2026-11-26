@@ -18,6 +18,7 @@
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.deBridgeOASIS\NextGenSoftware.OASIS.API.Providers.deBridgeOASIS.csproj" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.ChainflipOASIS\NextGenSoftware.OASIS.API.Providers.ChainflipOASIS.csproj" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.ChainlinkFunctionsOASIS\NextGenSoftware.OASIS.API.Providers.ChainlinkFunctionsOASIS.csproj" />
+    <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.EigenLayerOASIS\NextGenSoftware.OASIS.API.Providers.EigenLayerOASIS.csproj" />
     <ProjectReference Include="..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
     <Compile Include="../../../Shared/TestSupport/NonStorageConformance.cs" Link="TestSupport/NonStorageConformance.cs" />
   </ItemGroup>

@@ -35,4 +35,7 @@
   <ItemGroup>
     <ProjectReference Include="../../Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="NextGenSoftware.OASIS.Providers.CrossChainTrackers.CapabilityTests" />
+  </ItemGroup>
 </Project>

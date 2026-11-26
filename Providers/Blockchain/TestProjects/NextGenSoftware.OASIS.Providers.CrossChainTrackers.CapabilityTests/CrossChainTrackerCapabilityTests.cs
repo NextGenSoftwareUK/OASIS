@@ -6,6 +6,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.AxelarOASIS;
 using NextGenSoftware.OASIS.API.Providers.ChainflipOASIS;
 using NextGenSoftware.OASIS.API.Providers.ChainlinkFunctionsOASIS;
+using NextGenSoftware.OASIS.API.Providers.EigenLayerOASIS;
 using NextGenSoftware.OASIS.API.Providers.deBridgeOASIS;
 using NextGenSoftware.OASIS.API.Providers.HyperlaneOASIS;
 using NextGenSoftware.OASIS.API.Providers.LayerZeroV2OASIS;
@@ -204,6 +205,30 @@ public sealed class CrossChainTrackerCapabilityTests
             Assert.IsFalse(loaded.IsError, loaded.Message);
             Assert.IsTrue(Same(loaded.Result.MetaData["owner"]?.ToString(), owner), "The provider's subscription owner differs from the router's.");
             return new NonStorageConformance.Probe(host, "RouterGetSubscription", guard.Requests - before, true, true);
+        });
+    }
+
+    [TestMethod]
+    public async Task EigenLayerReadsARegisteredOperatorFromTheDelegationManager()
+    {
+        const string host = "ethereum-rpc.publicnode.com";
+        const string operatorAddress = "0xdbed88d83176316fc46797b43adee927dc2ff2f5"; // a registered mainnet operator
+        var guard = new PublicReadGuard(host, (HttpMethod.Post, "/"));
+        using var native = new HttpClient(new PublicReadGuard(host, (HttpMethod.Post, "/")));
+        var provider = new EigenLayerOASIS($"https://{host}", EigenLayerOASIS.MainnetDelegationManager, guard);
+        await RunAsync(provider, "EigenLayerOASIS", async () =>
+        {
+            // delegatedTo(operator) read directly: a registered operator is delegated to itself.
+            var call = JsonSerializer.Serialize(new { jsonrpc = "2.0", id = 1, method = "eth_call",
+                @params = new object[] { new { to = EigenLayerOASIS.MainnetDelegationManager, data = "0x65da1264" + operatorAddress[2..].PadLeft(64, '0') }, "latest" } });
+            using var raw = await ReadJsonAsync(native, HttpMethod.Post, $"https://{host}/", call);
+            var delegatedTo = "0x" + raw.RootElement.GetProperty("result").GetString()![26..];
+            var before = guard.Requests;
+            var loaded = await provider.LoadHolonAsync(operatorAddress).WaitAsync(TimeSpan.FromSeconds(60));
+            Assert.IsFalse(loaded.IsError, loaded.Message);
+            Assert.AreEqual("true", loaded.Result.MetaData["is_operator"]?.ToString());
+            Assert.IsTrue(Same(loaded.Result.MetaData["delegated_to"]?.ToString(), delegatedTo), "The provider's delegation differs from the DelegationManager's.");
+            return new NonStorageConformance.Probe(host, "DelegationManagerOperatorRead", guard.Requests - before, true, true);
         });
     }
 }
