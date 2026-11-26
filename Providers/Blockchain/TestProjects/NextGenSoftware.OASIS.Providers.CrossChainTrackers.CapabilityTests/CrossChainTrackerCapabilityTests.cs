@@ -4,6 +4,7 @@ using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.AxelarOASIS;
+using NextGenSoftware.OASIS.API.Providers.BittensorOASIS;
 using NextGenSoftware.OASIS.API.Providers.ChainflipOASIS;
 using NextGenSoftware.OASIS.API.Providers.ChainlinkFunctionsOASIS;
 using NextGenSoftware.OASIS.API.Providers.EigenLayerOASIS;
@@ -254,6 +255,34 @@ public sealed class CrossChainTrackerCapabilityTests
             Assert.IsTrue(Same(loaded.Result.MetaData["from"]?.ToString(), from), "The provider's transaction sender differs from the chain's.");
             Assert.AreEqual("1", loaded.Result.MetaData["block_number"]?.ToString());
             return new NonStorageConformance.Probe(host, "TransactionByHash", guard.Requests - before, true, true);
+        });
+    }
+
+    [TestMethod]
+    public async Task BittensorReadsAFundedAccountFromSubtensorStorage()
+    {
+        const string host = "entrypoint-finney.opentensor.ai";
+        const string systemAccount = "0x26aa394eea5630e07c48ae0c9558cef7b99d880ec681799c0cf30e8886371da9";
+        var guard = new PublicReadGuard(host, (HttpMethod.Post, "/"));
+        using var native = new HttpClient(new PublicReadGuard(host, (HttpMethod.Post, "/")));
+        var provider = new BittensorOASIS($"https://{host}", guard);
+        await RunAsync(provider, "BittensorOASIS", async () =>
+        {
+            // The first System.Account entry, read natively: its key ends with the account id, its value holds the balance.
+            var keys = JsonSerializer.Serialize(new { jsonrpc = "2.0", id = 1, method = "state_getKeysPaged", @params = new object?[] { systemAccount, 1, null } });
+            using var listed = await ReadJsonAsync(native, HttpMethod.Post, $"https://{host}/", keys);
+            var key = listed.RootElement.GetProperty("result")[0].GetString()!;
+            var read = JsonSerializer.Serialize(new { jsonrpc = "2.0", id = 1, method = "state_getStorage", @params = new object[] { key } });
+            using var stored = await ReadJsonAsync(native, HttpMethod.Post, $"https://{host}/", read);
+            var value = Convert.FromHexString(stored.RootElement.GetProperty("result").GetString()![2..]);
+            var free = BitConverter.ToUInt64(value, 16).ToString(System.Globalization.CultureInfo.InvariantCulture);
+            var accountId = "0x" + key[^64..];
+            var before = guard.Requests;
+            var loaded = await provider.LoadAvatarByProviderKeyAsync(accountId).WaitAsync(TimeSpan.FromSeconds(60));
+            Assert.IsFalse(loaded.IsError, loaded.Message);
+            Assert.AreEqual(key, loaded.Result.MetaData["storage_key"]?.ToString(), "The provider derived a different System.Account storage key.");
+            Assert.AreEqual(free, loaded.Result.MetaData["free_rao"]?.ToString(), "The provider's free balance differs from the chain's.");
+            return new NonStorageConformance.Probe(host, "SystemAccountStorageRead", guard.Requests - before, true, true);
         });
     }
 }

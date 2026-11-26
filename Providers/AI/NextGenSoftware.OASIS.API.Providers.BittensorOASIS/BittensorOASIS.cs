@@ -1,39 +1,106 @@
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Net.Http;
+using System.Numerics;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
-using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.BittensorOASIS
 {
+    /// <summary>
+    /// Read-only Bittensor adapter over the subtensor node's public JSON-RPC (Finney). The former default, the taostats.io
+    /// REST API, now refuses requests without a bot-gate token. Activation checks the pinned Finney genesis. Avatar = account
+    /// (SS58 address or 0x account id): System.Account nonce and TAO balances (rao). Holon = block by number. Listings and every
+    /// write fail explicitly: enumerating accounts or subnets needs an indexer, and staking or registration needs signed extrinsics.
+    /// </summary>
     public class BittensorOASIS : OASISStorageProviderBase, IOASISStorageProvider
     {
+        /// <summary>Genesis block hash of Bittensor Finney (mainnet).</summary>
+        public const string FinneyGenesisHash = "0x2f0555cc76fc2840a25a6ea3b9637146806f1f44b090c175ffde2a7e5ab36c03";
+        private const string NoListing = "Listing Bittensor accounts or subnets needs an indexer; load an account address or a block number.";
+        private const string ReadOnly = "BittensorOASIS is read-only: staking, registration and transfers need signed extrinsics.";
+        private static readonly byte[] SystemAccountPrefix = [.. SubstrateHashing.Twox128("System"), .. SubstrateHashing.Twox128("Account")];
+
         private readonly HttpClient _http;
 
-        public BittensorOASIS(string baseUrl = "https://taostats.io/api/v1")
+        public BittensorOASIS(string rpcUrl = "https://entrypoint-finney.opentensor.ai") : this(rpcUrl, null) { }
+
+        internal BittensorOASIS(string rpcUrl, HttpMessageHandler handler)
         {
-            _http = new HttpClient { BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/") };
+            if (string.IsNullOrWhiteSpace(rpcUrl)) throw new ArgumentException("A subtensor JSON-RPC endpoint is required.", nameof(rpcUrl));
+            _http = handler == null ? new HttpClient() : new HttpClient(handler, disposeHandler: false);
+            _http.BaseAddress = new Uri(rpcUrl);
+            _http.DefaultRequestHeaders.UserAgent.ParseAdd("NextGenSoftware-OASIS-BittensorOASIS/2.0");
             ProviderName = "BittensorOASIS";
-            ProviderDescription = "Bittensor decentralised AI network account and subnet data provider.";
+            ProviderDescription = "Bittensor accounts and blocks read from the subtensor node's public JSON-RPC.";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.BittensorOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.AI);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.AI));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
         }
 
-        private async Task<JToken> GetAsync(string path)
+        private async Task<JsonElement> RpcAsync(string method, params object[] parameters)
         {
-            var resp = await _http.GetAsync(path);
-            resp.EnsureSuccessStatusCode();
-            return JToken.Parse(await resp.Content.ReadAsStringAsync());
+            var body = JsonSerializer.Serialize(new { jsonrpc = "2.0", id = 1, method, @params = parameters });
+            using var response = await _http.PostAsync("", new StringContent(body, Encoding.UTF8, "application/json"));
+            var text = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode) throw new HttpRequestException($"Subtensor {method} failed: {(int)response.StatusCode} {response.ReasonPhrase}");
+            using var document = JsonDocument.Parse(text);
+            if (document.RootElement.TryGetProperty("error", out var error))
+                throw new InvalidOperationException($"Subtensor {method} failed: " + (error.TryGetProperty("message", out var m) ? m.GetString() : error.GetRawText()));
+            return document.RootElement.GetProperty("result").Clone();
+        }
+
+        private static OASISResult<T> Unsupported<T>(string message)
+        {
+            var r = new OASISResult<T>();
+            OASISErrorHandling.HandleError(ref r, message);
+            return r;
+        }
+
+        /// <summary>The 32-byte account id from an SS58 address (network prefix 42) or a 0x-prefixed hex id.</summary>
+        internal static byte[] AccountId(string account)
+        {
+            if (string.IsNullOrWhiteSpace(account)) throw new ArgumentException("A Bittensor account is required.", nameof(account));
+            if (account.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+            {
+                var bytes = Convert.FromHexString(account[2..]);
+                if (bytes.Length != 32) throw new ArgumentException("A hex Bittensor account id is 32 bytes.", nameof(account));
+                return bytes;
+            }
+            return SubstrateHashing.DecodeSs58(account);
+        }
+
+        /// <summary>System.Account storage key: twox128("System") ++ twox128("Account") ++ blake2_128_concat(account id).</summary>
+        internal static string AccountStorageKey(byte[] accountId) =>
+            "0x" + Convert.ToHexString([.. SystemAccountPrefix, .. SubstrateHashing.Blake2_128Concat(accountId)]).ToLowerInvariant();
+
+        /// <summary>Decodes subtensor's AccountInfo: nonce, consumers, providers, sufficients (u32 each), then AccountData
+        /// free, reserved, frozen (u64 each, rao) and flags (u128).</summary>
+        internal static Dictionary<string, object> DecodeAccountInfo(string hex)
+        {
+            var v = Convert.FromHexString(hex.StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? hex[2..] : hex);
+            if (v.Length < 40) throw new FormatException($"Unexpected subtensor AccountInfo length {v.Length}.");
+            return new Dictionary<string, object>
+            {
+                ["nonce"] = BinaryPrimitives.ReadUInt32LittleEndian(v).ToString(CultureInfo.InvariantCulture),
+                ["providers"] = BinaryPrimitives.ReadUInt32LittleEndian(v.AsSpan(8)).ToString(CultureInfo.InvariantCulture),
+                ["free_rao"] = BinaryPrimitives.ReadUInt64LittleEndian(v.AsSpan(16)).ToString(CultureInfo.InvariantCulture),
+                ["reserved_rao"] = BinaryPrimitives.ReadUInt64LittleEndian(v.AsSpan(24)).ToString(CultureInfo.InvariantCulture),
+                ["frozen_rao"] = BinaryPrimitives.ReadUInt64LittleEndian(v.AsSpan(32)).ToString(CultureInfo.InvariantCulture),
+            };
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
@@ -41,396 +108,149 @@ namespace NextGenSoftware.OASIS.API.Providers.BittensorOASIS
             var r = new OASISResult<bool>();
             try
             {
-                await GetAsync("blockchain/latest");
+                var genesis = (await RpcAsync("chain_getBlockHash", 0)).GetString();
+                if (!string.Equals(genesis, FinneyGenesisHash, StringComparison.OrdinalIgnoreCase))
+                {
+                    OASISErrorHandling.HandleError(ref r, $"The endpoint is not Bittensor Finney (genesis {genesis}).");
+                    return r;
+                }
+                IsProviderActivated = true;
                 r.Result = true;
-                r.Message = "BittensorOASIS activated successfully.";
+                r.Message = "BittensorOASIS activated against Bittensor Finney.";
             }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"Bittensor activation failed: {ex.Message}", ex); }
             return r;
         }
 
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
+        public override Task<OASISResult<bool>> DeActivateProviderAsync()
         {
-            _http.Dispose();
-            return new OASISResult<bool> { Result = true, Message = "BittensorOASIS deactivated." };
+            IsProviderActivated = false;
+            return Task.FromResult(new OASISResult<bool> { Result = true, Message = "BittensorOASIS deactivated." });
         }
 
         public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
         public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
 
-        // ─── Avatar: maps to Bittensor wallet/account ────────────────────────
+        private async Task<Dictionary<string, object>> ReadAccountAsync(string account)
+        {
+            var id = AccountId(account);
+            var key = AccountStorageKey(id);
+            var stored = await RpcAsync("state_getStorage", key);
+            // An account that never received funds has no System.Account entry: it exists with zero balances.
+            var data = stored.ValueKind == JsonValueKind.String
+                ? DecodeAccountInfo(stored.GetString()!)
+                : new Dictionary<string, object> { ["nonce"] = "0", ["providers"] = "0", ["free_rao"] = "0", ["reserved_rao"] = "0", ["frozen_rao"] = "0" };
+            data["account_id"] = "0x" + Convert.ToHexString(id).ToLowerInvariant();
+            data["storage_key"] = key;
+            data["chain"] = "bittensor-finney";
+            return data;
+        }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string address, int version = 0)
+        // Avatar = Bittensor account
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string account, int v = 0)
         {
             var r = new OASISResult<IAvatar>();
             try
             {
-                var json = await GetAsync($"account/{Uri.EscapeDataString(address)}");
-                var acct = json["data"] ?? json;
-                var avatar = new Avatar { Username = address };
-                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.BittensorOASIS] = address;
-                avatar.MetaData["address"] = address;
-                avatar.MetaData["balance_tao"] = acct["balance"]?.ToString() ?? "0";
-                avatar.MetaData["stake_tao"] = acct["stake"]?.ToString() ?? "0";
-                avatar.MetaData["type"] = acct["type"]?.ToString() ?? "";
-                avatar.MetaData["coldkey"] = acct["coldkey"]?.ToString() ?? "";
-                avatar.MetaData["hotkey"] = acct["hotkey"]?.ToString() ?? "";
+                var data = await ReadAccountAsync(account);
+                var avatar = new Avatar { Username = account };
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.BittensorOASIS] = (string)data["account_id"];
+                foreach (var kv in data) avatar.MetaData[kv.Key] = kv.Value;
                 r.Result = avatar;
+                r.IsLoaded = true;
             }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"Bittensor LoadAvatarByProviderKey failed: {ex.Message}", ex); }
             return r;
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string username, int version = 0)
-            => await LoadAvatarByProviderKeyAsync(username, version);
+        public override Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string u, int v = 0) => LoadAvatarByProviderKeyAsync(u, v);
+        public override Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int v = 0) => Task.FromResult(Unsupported<IAvatar>("Bittensor accounts are SS58 addresses, not OASIS GUIDs."));
+        public override Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string e, int v = 0) => Task.FromResult(Unsupported<IAvatar>("Bittensor accounts have no email."));
+        public override Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int v = 0) => Task.FromResult(Unsupported<IEnumerable<IAvatar>>(NoListing));
+        public override Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar a) => Task.FromResult(Unsupported<IAvatar>(ReadOnly));
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool s = true) => Task.FromResult(Unsupported<bool>(ReadOnly));
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(string k, bool s = true) => Task.FromResult(Unsupported<bool>(ReadOnly));
+        public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string e, bool s = true) => Task.FromResult(Unsupported<bool>(ReadOnly));
+        public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string u, bool s = true) => Task.FromResult(Unsupported<bool>(ReadOnly));
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int v = 0) => Task.FromResult(Unsupported<IAvatarDetail>("Bittensor accounts are SS58 addresses, not OASIS GUIDs."));
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int v = 0) => Task.FromResult(Unsupported<IAvatarDetail>("Bittensor accounts have no email."));
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
-        {
-            var r = new OASISResult<IAvatar>();
-            OASISErrorHandling.HandleError(ref r, "Bittensor does not support loading avatars by OASIS GUID. Use LoadAvatarByProviderKey with a TAO wallet address.");
-            return r;
-        }
-
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string email, int version = 0)
-        {
-            var r = new OASISResult<IAvatar>();
-            OASISErrorHandling.HandleError(ref r, "Bittensor does not support email-based avatar lookup.");
-            return r;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
-        {
-            var r = new OASISResult<IEnumerable<IAvatar>>();
-            OASISErrorHandling.HandleError(ref r, "Bittensor does not support bulk account enumeration. Use LoadAvatarByProviderKey with a specific TAO address.");
-            return r;
-        }
-
-        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
-        {
-            var r = new OASISResult<IAvatar>();
-            OASISErrorHandling.HandleError(ref r, "BittensorOASIS is a read-only data provider. Avatar data cannot be written to the Bittensor network via this provider.");
-            return r;
-        }
-
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
-        {
-            var r = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref r, "BittensorOASIS is a read-only data provider. Avatars cannot be deleted.");
-            return r;
-        }
-
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
-        {
-            var r = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref r, "BittensorOASIS is a read-only data provider. Avatars cannot be deleted.");
-            return r;
-        }
-
-        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string email, bool softDelete = true)
-        {
-            var r = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref r, "BittensorOASIS is a read-only data provider.");
-            return r;
-        }
-
-        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string username, bool softDelete = true)
-        {
-            var r = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref r, "BittensorOASIS is a read-only data provider.");
-            return r;
-        }
-
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
-        {
-            var r = new OASISResult<IAvatarDetail>();
-            OASISErrorHandling.HandleError(ref r, "Bittensor does not support loading avatar details by OASIS GUID.");
-            return r;
-        }
-
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string email, int version = 0)
-        {
-            var r = new OASISResult<IAvatarDetail>();
-            OASISErrorHandling.HandleError(ref r, "Bittensor does not support email-based avatar detail lookup.");
-            return r;
-        }
-
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string username, int version = 0)
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string account, int v = 0)
         {
             var r = new OASISResult<IAvatarDetail>();
             try
             {
-                var json = await GetAsync($"account/{Uri.EscapeDataString(username)}");
-                var acct = json["data"] ?? json;
-                var detail = new AvatarDetail { Username = username };
-                detail.MetaData["address"] = username;
-                detail.MetaData["balance_tao"] = acct["balance"]?.ToString() ?? "0";
-                detail.MetaData["stake_tao"] = acct["stake"]?.ToString() ?? "0";
-                detail.MetaData["rank"] = acct["rank"]?.ToString() ?? "";
-                detail.MetaData["trust"] = acct["trust"]?.ToString() ?? "";
-                detail.MetaData["consensus"] = acct["consensus"]?.ToString() ?? "";
+                var data = await ReadAccountAsync(account);
+                var detail = new AvatarDetail { Username = account };
+                foreach (var kv in data) detail.MetaData[kv.Key] = kv.Value;
                 r.Result = detail;
+                r.IsLoaded = true;
             }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"Bittensor LoadAvatarDetailByUsername failed: {ex.Message}", ex); }
             return r;
         }
 
-        public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
-        {
-            var r = new OASISResult<IAvatarDetail>();
-            OASISErrorHandling.HandleError(ref r, "BittensorOASIS is a read-only data provider.");
-            return r;
-        }
+        public override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail ad) => Task.FromResult(Unsupported<IAvatarDetail>(ReadOnly));
+        public override Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int v = 0) => Task.FromResult(Unsupported<IEnumerable<IAvatarDetail>>(NoListing));
 
-        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
-        {
-            var r = new OASISResult<IEnumerable<IAvatarDetail>>();
-            OASISErrorHandling.HandleError(ref r, "Bittensor does not support bulk avatar detail enumeration.");
-            return r;
-        }
-
-        // ─── Holon: maps to Bittensor subnet ─────────────────────────────────
-
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string key, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        // Holon = block by number
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string blockNumber, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0)
         {
             var r = new OASISResult<IHolon>();
             try
             {
-                var json = await GetAsync($"subnet/{Uri.EscapeDataString(key)}");
-                var subnet = json["data"] ?? json;
-                r.Result = MapSubnetToHolon(subnet, key);
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"Bittensor LoadHolon (subnet {key}) failed: {ex.Message}", ex); }
-            return r;
-        }
-
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var r = new OASISResult<IHolon>();
-            OASISErrorHandling.HandleError(ref r, "Bittensor holons (subnets) are identified by netuid string key, not OASIS GUID. Use LoadHolon(string key).");
-            return r;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int currentDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var r = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                var json = await GetAsync("subnet/list");
-                var subnets = (json["data"] as JArray) ?? (json as JArray);
-                var holons = new List<IHolon>();
-                if (subnets != null)
-                    foreach (var s in subnets)
-                        holons.Add(MapSubnetToHolon(s, s["netuid"]?.ToString() ?? ""));
-                r.Result = holons;
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"Bittensor LoadAllHolons failed: {ex.Message}", ex); }
-            return r;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int currentDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var r = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref r, "Bittensor LoadHolonsForParent requires a netuid string key, not OASIS GUID.");
-            return r;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string key, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int currentDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var r = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                // Load validators for a given subnet netuid
-                var json = await GetAsync($"validator/list?netuid={Uri.EscapeDataString(key)}");
-                var validators = (json["data"] as JArray) ?? (json as JArray);
-                var holons = new List<IHolon>();
-                if (validators != null)
+                if (!ulong.TryParse(blockNumber, NumberStyles.None, CultureInfo.InvariantCulture, out var number))
                 {
-                    foreach (var v in validators)
-                    {
-                        var h = new Holon { Name = v["hotkey"]?.ToString() ?? "validator" };
-                        h.MetaData["hotkey"] = v["hotkey"]?.ToString() ?? "";
-                        h.MetaData["coldkey"] = v["coldkey"]?.ToString() ?? "";
-                        h.MetaData["stake"] = v["stake"]?.ToString() ?? "0";
-                        h.MetaData["rank"] = v["rank"]?.ToString() ?? "";
-                        h.MetaData["trust"] = v["trust"]?.ToString() ?? "";
-                        h.MetaData["netuid"] = key;
-                        h.ProviderUniqueStorageKey[Core.Enums.ProviderType.BittensorOASIS] = v["hotkey"]?.ToString() ?? "";
-                        holons.Add(h);
-                    }
+                    OASISErrorHandling.HandleError(ref r, "A Bittensor holon is a block number.");
+                    return r;
                 }
-                r.Result = holons;
+                var hash = await RpcAsync("chain_getBlockHash", number);
+                if (hash.ValueKind != JsonValueKind.String) { OASISErrorHandling.HandleError(ref r, $"Bittensor block {number} does not exist yet."); return r; }
+                var header = await RpcAsync("chain_getHeader", hash.GetString());
+                var holon = new Holon { Name = $"Bittensor block {number}" };
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.BittensorOASIS] = hash.GetString();
+                holon.MetaData["block_number"] = number.ToString(CultureInfo.InvariantCulture);
+                holon.MetaData["block_hash"] = hash.GetString();
+                holon.MetaData["parent_hash"] = header.GetProperty("parentHash").GetString();
+                holon.MetaData["state_root"] = header.GetProperty("stateRoot").GetString();
+                holon.MetaData["extrinsics_root"] = header.GetProperty("extrinsicsRoot").GetString();
+                r.Result = holon;
+                r.IsLoaded = true;
             }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"Bittensor LoadHolonsForParent (subnet {key}) failed: {ex.Message}", ex); }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"Bittensor LoadHolon failed: {ex.Message}", ex); }
             return r;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int currentDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var r = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (metaKey == "netuid" || metaKey == "subnet_uid")
-                    return await LoadHolonsForParentAsync(metaValue, type);
-                // Generic metadata search falls back to listing all and filtering
-                var allResult = await LoadAllHolonsAsync(type);
-                if (allResult.IsError) return allResult;
-                var filtered = new List<IHolon>();
-                foreach (var h in allResult.Result)
-                    if (h.MetaData.ContainsKey(metaKey) && h.MetaData[metaKey]?.ToString() == metaValue)
-                        filtered.Add(h);
-                r.Result = filtered;
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"Bittensor LoadHolonsByMetaData failed: {ex.Message}", ex); }
-            return r;
-        }
+        public override Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0) => Task.FromResult(Unsupported<IHolon>("Bittensor blocks are numbers, not OASIS GUIDs."));
+        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon h, bool sc = true, bool rec = true, int md = 0, bool coe = true, bool scop = false) => Task.FromResult(Unsupported<IHolon>(ReadOnly));
+        public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool sc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool scop = false) => Task.FromResult(Unsupported<IEnumerable<IHolon>>(ReadOnly));
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType ht = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => Task.FromResult(Unsupported<IEnumerable<IHolon>>(NoListing));
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id) => Task.FromResult(Unsupported<IHolon>(ReadOnly));
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(string k) => Task.FromResult(Unsupported<IHolon>(ReadOnly));
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => Task.FromResult(Unsupported<IEnumerable<IHolon>>(NoListing));
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string operatorAddress, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => Task.FromResult(Unsupported<IEnumerable<IHolon>>(NoListing));
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string mk, string mv, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => Task.FromResult(Unsupported<IEnumerable<IHolon>>(NoListing));
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> m, MetaKeyValuePairMatchMode mm, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => Task.FromResult(Unsupported<IEnumerable<IHolon>>(NoListing));
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaData, MetaKeyValuePairMatchMode matchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int currentDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var r = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                var allResult = await LoadAllHolonsAsync(type);
-                if (allResult.IsError) return allResult;
-                var filtered = new List<IHolon>();
-                foreach (var h in allResult.Result)
-                {
-                    bool match = matchMode == MetaKeyValuePairMatchMode.All;
-                    foreach (var kv in metaData)
-                    {
-                        bool has = h.MetaData.ContainsKey(kv.Key) && h.MetaData[kv.Key]?.ToString() == kv.Value;
-                        if (matchMode == MetaKeyValuePairMatchMode.Any && has) { match = true; break; }
-                        if (matchMode == MetaKeyValuePairMatchMode.All && !has) { match = false; break; }
-                    }
-                    if (match) filtered.Add(h);
-                }
-                r.Result = filtered;
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"Bittensor LoadHolonsByMetaData failed: {ex.Message}", ex); }
-            return r;
-        }
-
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        {
-            var r = new OASISResult<IHolon>();
-            OASISErrorHandling.HandleError(ref r, "BittensorOASIS is a read-only data provider. Holons cannot be written to the Bittensor network via this provider.");
-            return r;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int currentDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        {
-            var r = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref r, "BittensorOASIS is a read-only data provider. Holons cannot be written to the Bittensor network via this provider.");
-            return r;
-        }
-
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
-        {
-            var r = new OASISResult<IHolon>();
-            OASISErrorHandling.HandleError(ref r, "BittensorOASIS is a read-only data provider. Holons cannot be deleted.");
-            return r;
-        }
-
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string key)
-        {
-            var r = new OASISResult<IHolon>();
-            OASISErrorHandling.HandleError(ref r, "BittensorOASIS is a read-only data provider. Holons cannot be deleted.");
-            return r;
-        }
-
-        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        /// <summary>Search by address (FilterByMetaData["query"]).</summary>
+        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams sp, bool lc = true, bool rec = true, int md = 0, bool coe = true, int v = 0)
         {
             var r = new OASISResult<ISearchResults>();
-            try
-            {
-                var results = new SearchResults();
-                string query = searchParams?.FilterByMetaData?.ContainsKey("query") == true
-                    ? searchParams.FilterByMetaData["query"] : "";
-
-                if (!string.IsNullOrEmpty(query))
-                {
-                    // Search for a specific account by address
-                    try
-                    {
-                        var acctJson = await GetAsync($"account/{Uri.EscapeDataString(query)}");
-                        var acct = acctJson["data"] ?? acctJson;
-                        var avatar = new Avatar { Username = query };
-                        avatar.MetaData["address"] = query;
-                        avatar.MetaData["balance_tao"] = acct["balance"]?.ToString() ?? "0";
-                        results.SearchResultAvatars = new List<IAvatar> { avatar };
-                    }
-                    catch { /* not a valid account address, skip */ }
-
-                    // Search for a subnet by netuid
-                    try
-                    {
-                        var subnetJson = await GetAsync($"subnet/{Uri.EscapeDataString(query)}");
-                        var subnet = subnetJson["data"] ?? subnetJson;
-                        results.SearchResultHolons = new List<IHolon> { MapSubnetToHolon(subnet, query) };
-                    }
-                    catch { /* not a valid netuid, skip */ }
-                }
-
-                r.Result = results;
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"Bittensor Search failed: {ex.Message}", ex); }
+            var query = sp?.FilterByMetaData?.ContainsKey("query") == true ? sp.FilterByMetaData["query"] : "";
+            if (string.IsNullOrEmpty(query)) { OASISErrorHandling.HandleError(ref r, "Search needs a Bittensor account in FilterByMetaData[\"query\"]."); return r; }
+            var account = await LoadAvatarByProviderKeyAsync(query);
+            if (account.IsError) { OASISErrorHandling.HandleError(ref r, account.Message); return r; }
+            r.Result = new SearchResults { SearchResultAvatars = new List<IAvatar> { account.Result } };
             return r;
         }
 
-        // ─── Export / Import ──────────────────────────────────────────────────
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid id, int v = 0) => Task.FromResult(Unsupported<IEnumerable<IHolon>>(NoListing));
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string address, int v = 0) => Task.FromResult(Unsupported<IEnumerable<IHolon>>(NoListing));
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string e, int v = 0) => Task.FromResult(Unsupported<IEnumerable<IHolon>>(NoListing));
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int v = 0) => Task.FromResult(Unsupported<IEnumerable<IHolon>>(NoListing));
+        public override Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> h) => Task.FromResult(Unsupported<bool>(ReadOnly));
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid id, int version = 0)
-        {
-            var r = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref r, "Bittensor does not support export by OASIS GUID. Use ExportAllDataForAvatarByUsername with a TAO address.");
-            return r;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string username, int version = 0)
-        {
-            var r = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                var transfers = await GetAsync($"transfer?account={Uri.EscapeDataString(username)}");
-                var items = (transfers["data"] as JArray) ?? (transfers as JArray);
-                var holons = new List<IHolon>();
-                if (items != null)
-                {
-                    foreach (var tx in items)
-                    {
-                        var h = new Holon { Name = $"TAO Transfer {tx["extrinsic_id"]}" };
-                        h.MetaData["extrinsic_id"] = tx["extrinsic_id"]?.ToString() ?? "";
-                        h.MetaData["from"] = tx["from"]?.ToString() ?? "";
-                        h.MetaData["to"] = tx["to"]?.ToString() ?? "";
-                        h.MetaData["amount"] = tx["amount"]?.ToString() ?? "0";
-                        h.MetaData["block"] = tx["block"]?.ToString() ?? "";
-                        holons.Add(h);
-                    }
-                }
-                r.Result = holons;
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"Bittensor ExportAllDataForAvatarByUsername failed: {ex.Message}", ex); }
-            return r;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string email, int version = 0)
-        {
-            var r = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref r, "Bittensor does not support email-based export.");
-            return r;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
-            => await LoadAllHolonsAsync();
-
-        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
-        {
-            var r = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref r, "BittensorOASIS is a read-only data provider. Import is not supported.");
-            return r;
-        }
-
-        // ─── Sync wrappers ────────────────────────────────────────────────────
-
+        // Synchronous members delegate to the async reads.
         public override OASISResult<IAvatar> LoadAvatar(Guid id, int v = 0) => LoadAvatarAsync(id, v).Result;
         public override OASISResult<IAvatar> LoadAvatarByProviderKey(string k, int v = 0) => LoadAvatarByProviderKeyAsync(k, v).Result;
         public override OASISResult<IAvatar> LoadAvatarByUsername(string u, int v = 0) => LoadAvatarByUsernameAsync(u, v).Result;
@@ -463,21 +283,5 @@ namespace NextGenSoftware.OASIS.API.Providers.BittensorOASIS
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string u, int v = 0) => ExportAllDataForAvatarByUsernameAsync(u, v).Result;
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string e, int v = 0) => ExportAllDataForAvatarByEmailAsync(e, v).Result;
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int v = 0) => ExportAllAsync(v).Result;
-
-        // ─── Helper ───────────────────────────────────────────────────────────
-
-        private static IHolon MapSubnetToHolon(JToken subnet, string key)
-        {
-            var holon = new Holon { Name = subnet["name"]?.ToString() ?? $"Bittensor Subnet {key}" };
-            holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.BittensorOASIS] = key;
-            holon.MetaData["netuid"] = subnet["netuid"]?.ToString() ?? key;
-            holon.MetaData["name"] = subnet["name"]?.ToString() ?? "";
-            holon.MetaData["active_validators"] = subnet["activeValidators"]?.ToString() ?? "0";
-            holon.MetaData["active_miners"] = subnet["activeMiners"]?.ToString() ?? "0";
-            holon.MetaData["emission"] = subnet["emission"]?.ToString() ?? "0";
-            holon.MetaData["tempo"] = subnet["tempo"]?.ToString() ?? "";
-            holon.MetaData["owner"] = subnet["owner"]?.ToString() ?? "";
-            return holon;
-        }
     }
 }
