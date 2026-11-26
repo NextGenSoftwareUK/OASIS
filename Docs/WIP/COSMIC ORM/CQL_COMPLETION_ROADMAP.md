@@ -21,6 +21,21 @@ Today the WEB4 sandbox offers three query modes, but only JSON CQL is a server e
 
 Both new endpoints get the same validation, size limits, idempotency and usage metering as JSON CQL. They are added to the WEB4 SDK, the Postman collection, the Docs site and the STAR CLI (`cql run sql`, `cql ask`). The sandbox page then calls them instead of doing the work in the browser.
 
+### Phase 2c: native data import and virtual holon mappings on every provider
+
+See `Docs/Devs/NATIVE_DATA_IMPORT.md`.
+
+| Capability | Status | Target |
+|---|---|---|
+| Native data import (`INativeDataImportProvider`: list sources, read pages, holonize with stable ids) | 8/234 providers: MongoDB, SQLite, Neo4j, Azure Cosmos DB, SOLID, ActivityPub, IPFS, Solana | every provider that can expose its own data |
+| Virtual holon mappings (`/api/native-data/{provider}/virtual-mappings/prepare`, `/{id}/query`, `/{id}/snapshot`): query native data in place without importing | 3/234 providers (MongoDB, SQLite, Neo4j), and only whitelisted sandbox demo sources (`CqlV1Providers.VirtualMappings.cs`) | every provider, on any source the user maps (not just the demo sources) |
+
+Same rules as phase 2a: native where possible, a clearly flagged fallback otherwise, tracked as done/total.
+
+### Coordination
+
+Claude and GPT agents share this roadmap. Claim each item on the `claims` branch first (`Docs/WIP/Release and Status/WORK-CLAIMS.md`, commit `claim: <item> [skip ci]`), push to Development at most once every 30 minutes as one batch, take the recommended option on any decision and log it, and report progress as done/total.
+
 2026-11-19 CURRENT DELIVERY: Development rollout authorized by David; heavy database tests remain isolated, paced Atlas checks allowed. Frozen verified merge38d4320ef7cffa3ce8d6c77cb312dee3f42acb9d (base18675, qualified checkpoint80a87, Core8cffa) is building in44593951627. Teaching runtime retained; verifier flavor fix7d28 passed3 new stdlib contracts and cloud controls44595842845. After immutable CQL package verification, normally push exact merge to Dev, then observe running revision and a few paced checks. No Dev push yet. Primitive SDK3 accepted44586155910/2918byte14561588731: nullable Boolean/Int32/Single/Double metadata across all3 stores, signed-zero/adjacent-Single/subnormal/extrema/null proof and cleanup. Cold single-sample Neo Single3562ms needs warm/profile follow-up; no benchmark claim. Corrected NEW mixed HTTP3 active44598328056 on eee085aea78985460dbaec7cf22a0dd89bf73af3; source canonical Take1 preserves complete union, stale cache remains unchanged, owner denial/usage/physical cleanup required; not accepted yet and excluded from Dev batch. Original invalid-fixture run44597170428 cancelled. No PIPER writes, routing/worker/DNA changes, staging/production rollout or local runtime/environment/database/image/archive downloads. EF coverage61/168 plus4/13 separate extensions unchanged.
 
 2026-11-19 MIXED DISTINCT HTTP3 QUALIFICATION PREPARED: only3 new main-provider HTTP cases, two owner queries plus foreign-owner denial per store, complete stored/native union with stale cache winner, differing ordinary/distinct counts, HAVING/page and real usage outbox. Native source byte/property fingerprints and stored stale cache must remain unchanged. Neo raw-label cleanup now requires an absence-proven ownership grant; observer tracks all4 stored IDs for physical cleanup. Primitive3 accepted44586155910/2918byte14561588731: Boolean/Int32/Single/Double nullable metadata,22 writes/store/all10 flags. Single-sample query times recorded, including Neo Single3562ms; warm/profile work remains before performance acceptance. New HTTP source is uncompiled/unaccepted and excluded from pending Dev batch38d4320e. Dev image44593951627 continues; no blanket Dev hold. No Atlas qualification loops, PIPER writes, source DNA change, staging/prod rollout or local runtime/build/database/archive.
