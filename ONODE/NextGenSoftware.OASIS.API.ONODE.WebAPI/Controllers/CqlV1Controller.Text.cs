@@ -27,6 +27,7 @@ public sealed partial class CqlV1Controller
         if (HttpContext.Items[CqlTextMiddleware.OutcomeKey] is not CqlTextOutcome outcome)
             return TextFailure(401, "CQL_AUTHENTICATION_REQUIRED", "Authenticate with a WEB4 bearer token.");
         if (outcome.Query == null) return TextFailure(outcome.Status, outcome.Code, outcome.Message);
+        Response.Headers["X-OASIS-CQL-Parse-Ms"] = outcome.ParseMilliseconds.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture);
         if (!outcome.Execute)
             return Ok(new NextGenSoftware.OASIS.Common.OASISResult<object>(new { sql = outcome.Sql }));
 

@@ -83,7 +83,12 @@ public sealed class CqlTextMiddleware
 
         if (!ask)
         {
-            try { return new CqlTextOutcome { Query = compiler.Compile(text, parameters, sources ?? "[]"), Sql = text, Execute = true }; }
+            try
+            {
+                var started = System.Diagnostics.Stopwatch.GetTimestamp();
+                var compiled = compiler.Compile(text, parameters, sources ?? "[]");
+                return new CqlTextOutcome { Query = compiled, Sql = text, Execute = true, ParseMilliseconds = Elapsed(started) };
+            }
             catch (CqlTextException error) { return CqlTextOutcome.Fail(400, "CQL_SQL_INVALID", error.Message); }
         }
 
@@ -97,16 +102,20 @@ public sealed class CqlTextMiddleware
             return CqlTextOutcome.Fail(422, "CQL_ASK_UNSUPPORTED", "This question cannot be expressed as a CQL query.");
         try
         {
+            var started = System.Diagnostics.Stopwatch.GetTimestamp();
             var query = compiler.Compile(drafted.Sql, null, sources);
+            var parsed = Elapsed(started);
             if (query.Body.TryGetProperty("virtualMappingId", out _))
                 return CqlTextOutcome.Fail(422, "CQL_ASK_UNSUPPORTED", "The draft used an unselected virtual mapping. Nothing was run.");
-            return new CqlTextOutcome { Query = query, Sql = drafted.Sql, Execute = execute };
+            return new CqlTextOutcome { Query = query, Sql = drafted.Sql, Execute = execute, ParseMilliseconds = parsed };
         }
         catch (CqlTextException error)
         {
             return CqlTextOutcome.Fail(422, "CQL_ASK_UNSUPPORTED", "The drafted statement is not valid CQL: " + error.Message);
         }
     }
+
+    private static double Elapsed(long started) => System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds;
 
     public static string Web6BaseUrl(string host)
         => Environment.GetEnvironmentVariable("OASIS_WEB6_BASE_URL") is { Length: > 0 } configured
@@ -182,6 +191,7 @@ internal sealed class CqlTextOutcome
 {
     public CqlTextQuery Query { get; init; }
     public string Sql { get; init; }
+    public double ParseMilliseconds { get; init; }
     public bool Execute { get; init; }
     public int Status { get; init; }
     public string Code { get; init; }

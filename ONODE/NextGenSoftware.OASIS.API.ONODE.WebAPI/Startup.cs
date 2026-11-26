@@ -33,13 +33,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
         // direct HTTP callers receive, including when the query outcome is uncertain.
         internal static void ConfigureCorsPolicy(CorsPolicyBuilder policy)
             => policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()
-                .WithExposedHeaders("X-OASIS-Operation-Id", "X-OASIS-CQL-Path", "X-OASIS-CQL-Text", "X-OASIS-CQL-Scalar-Alias");
+                .WithExposedHeaders("X-OASIS-Operation-Id", "X-OASIS-CQL-Path", "X-OASIS-CQL-Text", "X-OASIS-CQL-Scalar-Alias", "X-OASIS-CQL-Parse-Ms");
 
         internal const string SessionCookieOrigin = "https://web4.oasisomniverse.one";
 
         internal static CorsPolicyBuilder ConfigureSessionCookieCorsPolicy(CorsPolicyBuilder policy)
             => policy.WithOrigins(SessionCookieOrigin).AllowCredentials().AllowAnyMethod().AllowAnyHeader()
-                .WithExposedHeaders("X-OASIS-Operation-Id", "X-OASIS-CQL-Path", "X-OASIS-CQL-Text", "X-OASIS-CQL-Scalar-Alias");
+                .WithExposedHeaders("X-OASIS-Operation-Id", "X-OASIS-CQL-Path", "X-OASIS-CQL-Text", "X-OASIS-CQL-Scalar-Alias", "X-OASIS-CQL-Parse-Ms");
 
         internal const string DevelopmentSessionCookieOrigin = "https://sandbox.web4.oasisomniverse.one";
 
