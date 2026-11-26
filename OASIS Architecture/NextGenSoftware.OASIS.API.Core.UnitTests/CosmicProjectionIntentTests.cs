@@ -58,7 +58,9 @@ public class CosmicProjectionIntentTests
     {
         var source = CosmicQuery<Holon>.Create();
         Assert.True(source.Select(holon => new[] { holon.Name }).IsError);
-        Assert.True(source.Select(holon => new { Computed = holon.Version + 1 }).IsError);
+        // Q36 admits affine Int32 arithmetic (x*m+c) natively; non-linear computation is still refused.
+        Assert.True(source.Select(holon => new { Computed = holon.Version * holon.Version }).IsError);
+        Assert.False(source.Select(holon => new { Computed = holon.Version + 1 }).IsError);
         Assert.True(source.Select(holon => new { Constant = "coffee" }).IsError);
     }
 
