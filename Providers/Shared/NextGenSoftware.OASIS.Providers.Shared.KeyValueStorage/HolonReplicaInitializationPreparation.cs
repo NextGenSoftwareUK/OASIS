@@ -128,7 +128,7 @@ public sealed class HolonReplicaInitializationPreparation
             || source.Result.Inspection.AttemptCount!=intent.AttemptCount
             || (source.Result.Inspection.State!=HolonDeliveryState.ReconciliationRequired
                 && !(allowCompleted && source.Result.Inspection.State==HolonDeliveryState.Completed))
-            || source.Result.Inspection.ErrorCode!="COSMIC_REPLICA_LINEAGE_CONFLICT"
+            || !HolonReplicaReviewedHoldCodes.IsReviewable(source.Result.Inspection.ErrorCode)
             || source.Result.Inspection.RecoveryEvidence?.RequiresNativeReconciliation!=false
             || source.Result.PayloadDigest!=intent.SourcePayloadDigest
             || Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(source.Result.PayloadJson)))!=intent.SourcePayloadDigest)
@@ -157,9 +157,9 @@ public sealed class HolonReplicaInitializationPreparation
             if(inspection.Sequence!=sequence || inspection.TargetId!=_targetId || inspection.OperationId==Guid.Empty
                 || inspection.OperationId==initializationOperationId || (inspection.State!=HolonDeliveryState.ReconciliationRequired
                     && !(allowCompleted && inspection.State==HolonDeliveryState.Completed))
-                || inspection.AttemptCount<1 || inspection.ErrorCode!="COSMIC_REPLICA_LINEAGE_CONFLICT"
+                || inspection.AttemptCount<1 || !HolonReplicaReviewedHoldCodes.IsReviewable(inspection.ErrorCode)
                 || inspection.RecoveryEvidence==null || inspection.RecoveryEvidence.RequiresNativeReconciliation || frozen.PayloadDigest!=digest)
-                return Error("COSMIC_REPLICA_INITIALIZATION_SOURCE_INVALID","Only a bound lineage-conflict obligation without unresolved native execution is eligible.");
+                return Error("COSMIC_REPLICA_INITIALIZATION_SOURCE_INVALID","Only a reviewed lineage-conflict or unbound legacy-route obligation without unresolved native execution is eligible.");
             var original=CommittedHolonReplicaPayload.Read(frozen.PayloadJson);
             if(original.OperationId!=inspection.OperationId || original.SourceId!=_sourceId || original.SourceAuthority!=_sourceAuthority || original.ActorId==Guid.Empty)
                 return Error("COSMIC_REPLICA_INITIALIZATION_SOURCE_INVALID","The immutable payload does not belong to this source binding.");

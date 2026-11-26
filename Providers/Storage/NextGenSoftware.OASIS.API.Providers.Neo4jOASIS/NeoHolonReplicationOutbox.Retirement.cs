@@ -1,4 +1,5 @@
 using System;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -41,9 +42,9 @@ public sealed partial class NeoHolonReplicationOutbox
             }
             if(Text(row,"RetirementJson")!=null || Text(row,"InitializationCompletionJson")!=null)
                 throw new InvalidDataException("Unfinished obligation already carries an acknowledgement.");
-            if(observed.State!=HolonDeliveryState.ReconciliationRequired || Text(row,"LastErrorCode")!="COSMIC_REPLICA_LINEAGE_CONFLICT"
+            if(observed.State!=HolonDeliveryState.ReconciliationRequired || !HolonReplicaReviewedHoldCodes.IsReviewable(Text(row,"LastErrorCode"))
                 || observed.Evidence==null || observed.Evidence.RequiresNativeReconciliation)
-                throw new InvalidDataException("Only a reviewed lineage conflict without unresolved execution can be retired.");
+                throw new InvalidDataException("Only a reviewed lineage conflict or unbound legacy route without unresolved execution can be retired.");
             var heads=await(await tx.RunAsync("MATCH (o:CosmicHolonOutbox {TargetId:$target}) WHERE o.DeliveryState<>'Completed' "
                 +"RETURN o.Sequence AS sequence ORDER BY sequence LIMIT 1",new{target=Text(row,"TargetId")})
                 .ConfigureAwait(false)).ToListAsync().ConfigureAwait(false);

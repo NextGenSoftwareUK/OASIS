@@ -60,7 +60,7 @@ public sealed partial class MongoHolonReplicationOutbox
             }
 
             if (observed.State != HolonDeliveryState.ReconciliationRequired
-                || NullableString(row, "LastErrorCode") != "COSMIC_REPLICA_LINEAGE_CONFLICT"
+                || !HolonReplicaReviewedHoldCodes.IsReviewable(NullableString(row, "LastErrorCode"))
                 || observed.Evidence == null || observed.Evidence.RequiresNativeReconciliation)
                 throw new InvalidDataException("Only the reviewed lineage conflict without unresolved execution can complete.");
             var head = await _rows.Find(session, new BsonDocument

@@ -288,7 +288,7 @@ internal static class ReplicaBaselineRepairCommand
                     || context.Stage == HolonReplicaInitializationAuthorizationStage.ApproveInitialization
                     && context.SourceOperationId == request.SourceOperationId
                     && context.SourcePayloadDigest == request.SourcePayloadDigest
-                    && context.SourceErrorCode == "COSMIC_REPLICA_LINEAGE_CONFLICT"
+                    && HolonReplicaReviewedHoldCodes.IsReviewable(context.SourceErrorCode)
                     && context.Mutation != null && context.Mutation.ActorId == request.SourceActorId
                     && context.Mutation.Roots.Count == 1 && context.Mutation.Roots[0].Id == request.RootId)));
     }
