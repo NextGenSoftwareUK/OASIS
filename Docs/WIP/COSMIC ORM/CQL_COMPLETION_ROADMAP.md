@@ -34,6 +34,20 @@ See `Docs/Devs/NATIVE_DATA_IMPORT.md`.
 
 Same rules as phase 2b: native where possible, a clearly flagged fallback otherwise, tracked as done/total.
 
+### Design recommendations (26 Nov 2026)
+
+These came out of a review of the OASIS design. David reports that 4, 5 and 6 are already built; the others are open roadmap items.
+
+| # | Recommendation | Status |
+|---|---|---|
+| 1 | Publish a provider capability matrix through the API: what each provider supports natively and what uses the fallback, so developers and HyperDrive routing never assume a feature works where it does not. The phase 2b provider x feature table becomes this API. | Open |
+| 2 | Tier the providers: a certified gold tier (full storage suite, CQL, replication, monitored in CI), with the rest labelled silver or bronze, and keep removing fake implementations. | Open |
+| 3 | Make consistency explicit per route and provider (atomic, eventually replicated through the outbox, or final only once on chain), and let callers choose whether to wait for replication. | Open |
+| 4 | Route by cost and speed as well as health, so routine reads never land on an expensive or slow chain. | Done (per David) |
+| 5 | Encrypt by default on public providers (chains, IPFS), with clear key management and recovery. | Done (per David) |
+| 6 | Report where every result came from: which provider answered, native or fallback, fresh copy or replica. | Done (per David) |
+| 7 | Make SQL the front door: lead the docs and SDK with the SQL-like endpoint, JSON CQL for power users, free text for AI. | In progress (phase 2a) |
+
 ### Coordination
 
 Claude and GPT agents share this roadmap. Claim each item on the `claims` branch first (`Docs/WIP/Release and Status/WORK-CLAIMS.md`, commit `claim: <item> [skip ci]`), push to Development at most once every 30 minutes as one batch, take the recommended option on any decision and log it, and report progress as done/total.
