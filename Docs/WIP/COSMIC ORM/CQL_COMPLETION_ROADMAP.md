@@ -164,6 +164,21 @@ New scoped source1fe2ddcefdc9b8165962e43f56c02cf355b6849b combines that CQL snap
 2026-11-18 UTC — OPEN implementation cohort: computed columns across real and virtual Holons. Existing virtual queries push predicates to shipping providers but their native projection contract returns original fields only. Extend that contract with immutable typed result columns (source field, input domain, function, output domain, null/missing state and independent output alias), supporting raw and computed selections of the same field. Implement native computation on MongoDB, SQLite and Neo4j before marking this cohort accepted. Keep mapping/owner/app/connection revision and logical identity unchanged; computed cells must not overwrite source metadata or become snapshot fields. Explicit full materialization must retain original source values and current policy/permission checks. Required proof: same SQL expression/results across real-only, virtual-only and mixed sources, repeated raw/computed fields, Unicode/NUL/null/missing/invalid types, filters/order/windows/reductions, bounded bytes/cancellation and zero imports during mapped reads. No client fallback, new database copy or shared Atlas test. This cohort supplements SQL/WEB6 and EF parity priorities; it does not replace them.
 
 # CQL completion roadmap
+### Phase 2c: native data import and virtual holon mappings on every provider
+
+See `Docs/Devs/NATIVE_DATA_IMPORT.md`.
+
+| Capability | Status | Target |
+|---|---|---|
+| Native data import (`INativeDataImportProvider`: list sources, read pages, holonize with stable ids) | 8/234 providers: MongoDB, SQLite, Neo4j, Azure Cosmos DB, SOLID, ActivityPub, IPFS, Solana | every provider that can expose its own data |
+| Virtual holon mappings (`/api/native-data/{provider}/virtual-mappings/prepare`, `/{id}/query`, `/{id}/snapshot`): query native data in place without importing | 3/234 providers (MongoDB, SQLite, Neo4j), and only whitelisted sandbox demo sources (`CqlV1Providers.VirtualMappings.cs`) | every provider, on any source the user maps (not just the demo sources) |
+
+Same rules as phase 2a: native where possible, a clearly flagged fallback otherwise, tracked as done/total.
+
+### Coordination
+
+Claude and GPT agents share this roadmap. Claim each item on the `claims` branch first (`Docs/WIP/Release and Status/WORK-CLAIMS.md`, commit `claim: <item> [skip ci]`), push to Development at most once every 30 minutes as one batch, take the recommended option on any decision and log it, and report progress as done/total.
+
 
 ## Performance verification
 
