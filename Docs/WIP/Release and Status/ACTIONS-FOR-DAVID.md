@@ -1693,6 +1693,12 @@ Status: decided by David, 24 November 2026; engineering in progress (no further 
 
 ### I2. Add the IPFS catalogue pointer key to Railway dev
 
+- Update, 25 November 2026: the key is present but has the WRONG value. It reads
+  `"CatalogueRootPointerPath": "C:/Program Files/Git/data/IPFS/catalogue-root"`: Git Bash rewrote the Linux path when
+  the value was saved from Windows. The container has no such folder, so IPFS still reports "Replication source binding
+  IPFSOASIS unavailable". Fix: in the Railway dashboard (not from a Git Bash shell), edit `OASIS_DNA_JSON` on dev WEB4
+  and change that one value to exactly `/data/IPFS/catalogue-root`. The agent cannot do it: the corrected command line
+  is 35,172 characters, Windows allows 32,767, and the API refuses scripted calls.
 - Status: open, 25 November 2026.
 - What: in Railway, project OASIS, environment **dev**, service WEB4 (`5123199a-43c4-4439-9921-e10e2aec7841`), edit the
   variable `OASIS_DNA_JSON`. In `OASIS` → `StorageProviders` → `IPFSOASIS`, add
