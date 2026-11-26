@@ -46,6 +46,16 @@ Session lifecycle HTTP correction and frontend publication completed at d9332469
 ## Full native payload mapping for browser demo copies
 
 Verified1November2026 against Filecoin hosted proof: generic cql-demo-preparation.js copies source identity/name/description and mapped provenance fields into private Mongo records; FilecoinBalanceWei, FilecoinBlockHash and other native metadata remain only in native rows. Existing key-membership/federation/privacy/replica proofs remain valid within that scope; do not claim full state migration. Before full migration demos, define safe domain-payload projection distinct from reserved owner/revision/encryption/provider state, preserve exact native scalar types/observation time, and test metadata round-trip/querying. Define explicit conditional, journalled schema upgrades for existing owned copies; never silently rewrite acknowledged cohorts, clone credentials/system ownership, or backfill other avatars. This is a remaining full-goal requirement, not completed by the MVP. Evidence: TestResults/HostedCqlIntegrationCurrent/FilecoinOASIS-{native-http,client-http-flow}.json; scope recorded in immutable completion ACK.
+Status 26 Nov 2026 (Web4Site 4b6ed77): new browser demo copies carry the source row's native domain payload exactly
+(string values, the same keys, for example FilecoinBalanceWei/FilecoinBlockHash), plus `COSMIC.Demo.PayloadSchema=2` and
+`COSMIC.Demo.ObservedUtc`. Reserved `oasis.*`/`COSMIC.*` keys and Holon fields are never taken from the source. A
+field that cannot be carried exactly (non-string, bad key, over 1024 chars, over 32 fields) stops before any save.
+Existing earlier copies are acknowledged as `legacy` and never rewritten; there is no silent schema upgrade. Verified
+live on dev: Filecoin copies keep balance and block number and are queryable by native fields
+(`FilecoinCommitment = finalized` returns both copies). 62/62 preparation tests. Still open: typed (non-string) native
+scalars, which the CQL row DTO carries as strings today, and an explicit journalled upgrade path for legacy copies if
+one is wanted.
+
 
 Native diagnostic update2November: the Nostr reproduced leaf-query failure now drives shared safe diagnostics work. Activation wrappers preserve original cause; activation and leaf-query logs whitelist categories/stages/typed status only. Sixfocused tests pass; code rollout/live verification pending. Earlier XRPL operator gap is not declared fully resolved until deployed evidence proves it. See NOSTR_PUBLIC_SOURCE_STATUS.md.
 
