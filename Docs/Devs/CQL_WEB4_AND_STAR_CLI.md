@@ -77,6 +77,11 @@ WebAPI and run with Jint, are the single source of truth. Do not extend the brow
 | `POST /api/data/query-cql/sql` (16 KB) | `{ "query": "SELECT * FROM MongoDBOASIS LIMIT 5", "parameters": {} }` | The typed endpoint's response. `X-OASIS-CQL-Path` names it. |
 | `POST /api/data/query-cql/ask` (4 KB) | `{ "question": "...", "execute": true }` | As above plus `X-OASIS-CQL-Text` (URL-encoded SQL), or `{ sql }` when `execute` is false. |
 
+With `"execute": false` both routes only compile and return `{ sql, path, body, scalarAlias }`. `ask` also takes
+`provider` with `virtualMappingId` (the draft must use that saved mapping) or `publicExample: true`. The providers
+catalogue (`GET /api/data/query-cql/providers`) gives each public row example its SQL-like form in `text`. The
+WEB4 sandbox page uses only these server routes; it has no parser or prompt of its own.
+
 `X-OASIS-CQL-Parse-Ms` is the server time spent compiling the text. The scripts are parsed once per process.
 
 `X-OASIS-CQL-Scalar-Alias` carries the `AS` name of a scalar result. Errors: 400 `CQL_SQL_INVALID`, 422
