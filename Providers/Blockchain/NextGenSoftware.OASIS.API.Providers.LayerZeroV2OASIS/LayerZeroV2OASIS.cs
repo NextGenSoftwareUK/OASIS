@@ -32,6 +32,8 @@ namespace NextGenSoftware.OASIS.API.Providers.LayerZeroV2OASIS
         {
             _http = handler == null ? new HttpClient() : new HttpClient(handler, disposeHandler: false);
             _http.BaseAddress = new Uri(scanApiUrl.TrimEnd('/') + "/");
+            // LayerZero Scan sits behind CloudFront, which answers 403 to requests without a User-Agent.
+            _http.DefaultRequestHeaders.UserAgent.ParseAdd("NextGenSoftware-OASIS-LayerZeroV2OASIS/2.0");
             ProviderName = "LayerZeroV2OASIS";
             ProviderDescription = "LayerZero V2 omnichain messaging provider (LayerZero Scan API).";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.LayerZeroV2OASIS);

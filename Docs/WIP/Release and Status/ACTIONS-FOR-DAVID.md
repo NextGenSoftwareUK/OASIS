@@ -1792,3 +1792,17 @@ Status: decided by David, 24 November 2026; engineering in progress (no further 
   2. accept a Neo4j-only multi-label variant, with MongoDB and SQLite refusing TPC at model admission;
   3. mark M21 not applicable for document and graph stores, where TPH (M19, merged) covers the use case.
 - Status: OPEN 2026-11-25 23:40 UTC. The claim on the claims branch is marked BLOCKED.
+
+## GELATO-RELAY-API-KEY-2026-11-25 (open, 2026-11-25)
+
+Context: GelatoNetworkOASIS reads Gelato relay data. Its default host `relay.gelato.network` now serves an expired TLS
+certificate, the legacy keyless hosts (`relay.gelato.digital`, `api.gelato.digital`) no longer resolve, and Gelato's current
+relayer API (`https://api.gelato.cloud/rpc`) requires an `X-API-Key` from the Gelato App.
+
+What David needs to do:
+1. Create a Gelato account at https://app.gelato.cloud and generate a Relay API key (free tier).
+2. Store it as the GitHub Actions secret `GELATO_API_KEY` (never in source).
+
+Why: without a key, GelatoNetworkOASIS cannot activate, so its capability-v1 probe cannot run. The provider code moves to the
+current API either way; only the live probe waits on the key.
+Status: open. Owner of the follow-up: testharness-build-fix session (work/tracker-capability-probes).

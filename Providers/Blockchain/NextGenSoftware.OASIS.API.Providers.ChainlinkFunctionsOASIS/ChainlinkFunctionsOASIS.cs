@@ -1,72 +1,165 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Net.Http;
+using System.Numerics;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
-using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.ChainlinkFunctionsOASIS
 {
+    /// <summary>
+    /// Read-only Chainlink Functions adapter. Subscriptions live in the Functions Router contract, so they are read with
+    /// eth_call (<c>getSubscription(uint64)</c>) through a JSON-RPC endpoint; avatar = subscription. Chainlink runs no
+    /// public REST gateway for subscriptions or requests (the former default host never existed). Requests exist only as
+    /// router events and are created by LINK-funded consumer contracts, so request reads and every write fail explicitly.
+    /// </summary>
     public class ChainlinkFunctionsOASIS : OASISStorageProviderBase, IOASISStorageProvider
     {
-        private readonly HttpClient _http;
+        /// <summary>Ethereum mainnet Functions Router (typeAndVersion: "Functions Router v1.0.0").</summary>
+        public const string MainnetRouter = "0x65Dcc24F8ff9e51F10DCc7Ed1e4e2A61e6E14bd6";
+        private const string TypeAndVersionSelector = "0x181f5a77";
+        private const string GetSubscriptionSelector = "0xa47c7696";
+        private const string GetSubscriptionCountSelector = "0x66419970";
 
-        public ChainlinkFunctionsOASIS(string baseUrl = "https://functions-gateway.chain.link/")
+        private readonly HttpClient _http;
+        private readonly string _router;
+
+        public ChainlinkFunctionsOASIS(string rpcUrl = "https://ethereum-rpc.publicnode.com", string routerAddress = MainnetRouter)
+            : this(rpcUrl, routerAddress, null) { }
+
+        internal ChainlinkFunctionsOASIS(string rpcUrl, string routerAddress, HttpMessageHandler handler)
         {
-            _http = new HttpClient { BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/") };
+            if (string.IsNullOrWhiteSpace(rpcUrl)) throw new ArgumentException("A JSON-RPC endpoint is required.", nameof(rpcUrl));
+            if (string.IsNullOrWhiteSpace(routerAddress) || routerAddress.Length != 42 || !routerAddress.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+                throw new ArgumentException("A 20-byte Functions Router address is required.", nameof(routerAddress));
+            _http = handler == null ? new HttpClient() : new HttpClient(handler, disposeHandler: false);
+            _http.BaseAddress = new Uri(rpcUrl);
+            _http.DefaultRequestHeaders.UserAgent.ParseAdd("NextGenSoftware-OASIS-ChainlinkFunctionsOASIS/2.0");
+            _router = routerAddress;
             ProviderName = "ChainlinkFunctionsOASIS";
-            ProviderDescription = "Chainlink Functions serverless compute and oracle subscription provider.";
+            ProviderDescription = "Chainlink Functions subscriptions read from the Functions Router contract.";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ChainlinkFunctionsOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
         }
 
-        private async Task<JObject> GetAsync(string path)
+        private async Task<string> CallAsync(string data)
         {
-            var resp = await _http.GetAsync(path);
-            resp.EnsureSuccessStatusCode();
-            return JObject.Parse(await resp.Content.ReadAsStringAsync());
+            var body = JsonSerializer.Serialize(new
+            {
+                jsonrpc = "2.0", id = 1, method = "eth_call",
+                @params = new object[] { new { to = _router, data }, "latest" }
+            });
+            using var response = await _http.PostAsync("", new StringContent(body, Encoding.UTF8, "application/json"));
+            var text = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode) throw new HttpRequestException($"JSON-RPC eth_call failed: {(int)response.StatusCode} {response.ReasonPhrase}");
+            using var document = JsonDocument.Parse(text);
+            if (document.RootElement.TryGetProperty("error", out var error))
+                throw new InvalidOperationException("Functions Router call reverted: " + (error.TryGetProperty("message", out var m) ? m.GetString() : error.GetRawText()));
+            var result = document.RootElement.GetProperty("result").GetString();
+            if (string.IsNullOrEmpty(result) || result == "0x") throw new InvalidOperationException("The Functions Router returned no data.");
+            return result[2..];
         }
 
-        private async Task<JObject> PostAsync(string path, object body)
+        private static string Word(string hex, int index) => hex.Substring(index * 64, 64);
+        private static BigInteger Uint(string word) => BigInteger.Parse("0" + word, NumberStyles.HexNumber);
+        private static string Address(string word) => "0x" + word[24..];
+
+        internal sealed record Subscription(string Id, BigInteger Balance, string Owner, BigInteger BlockedBalance, string ProposedOwner, IReadOnlyList<string> Consumers, string Flags);
+
+        /// <summary>Decodes getSubscription's ABI tuple (uint96 balance, address owner, uint96 blockedBalance, address proposedOwner, address[] consumers, bytes32 flags).</summary>
+        internal static Subscription Decode(string id, string hex)
         {
-            var resp = await _http.PostAsync(path,
-                new StringContent(JsonConvert.SerializeObject(body), Encoding.UTF8, "application/json"));
-            resp.EnsureSuccessStatusCode();
-            return JObject.Parse(await resp.Content.ReadAsStringAsync());
+            var tuple = (int)(Uint(Word(hex, 0)) / 32);
+            var owner = Address(Word(hex, tuple + 1));
+            var consumersAt = tuple + (int)(Uint(Word(hex, tuple + 4)) / 32);
+            var count = (int)Uint(Word(hex, consumersAt));
+            var consumers = new List<string>(count);
+            for (var i = 0; i < count; i++) consumers.Add(Address(Word(hex, consumersAt + 1 + i)));
+            return new Subscription(id, Uint(Word(hex, tuple)), owner, Uint(Word(hex, tuple + 2)), Address(Word(hex, tuple + 3)), consumers, "0x" + Word(hex, tuple + 5));
         }
+
+        private async Task<Subscription> ReadSubscriptionAsync(string subscriptionId)
+        {
+            if (!ulong.TryParse(subscriptionId, NumberStyles.None, CultureInfo.InvariantCulture, out var id) || id == 0)
+                throw new ArgumentException("A Chainlink Functions subscription id is a positive integer.", nameof(subscriptionId));
+            var subscription = Decode(subscriptionId, await CallAsync(GetSubscriptionSelector + id.ToString("x64")));
+            if (subscription.Owner == "0x0000000000000000000000000000000000000000")
+                throw new KeyNotFoundException($"Chainlink Functions subscription {subscriptionId} does not exist.");
+            return subscription;
+        }
+
+        private static void Describe(Dictionary<string, object> metaData, Subscription s, string router)
+        {
+            metaData["subscription_id"] = s.Id;
+            metaData["balance"] = s.Balance.ToString(CultureInfo.InvariantCulture); // LINK juels
+            metaData["blocked_balance"] = s.BlockedBalance.ToString(CultureInfo.InvariantCulture);
+            metaData["owner"] = s.Owner;
+            metaData["proposed_owner"] = s.ProposedOwner;
+            metaData["consumers"] = JsonSerializer.Serialize(s.Consumers);
+            metaData["flags"] = s.Flags;
+            metaData["router"] = router;
+        }
+
+        private static OASISResult<T> Unsupported<T>(string message)
+        {
+            var r = new OASISResult<T>();
+            OASISErrorHandling.HandleError(ref r, message);
+            return r;
+        }
+
+        private const string RequestsAreEvents = "Chainlink Functions requests exist only as Functions Router events; this adapter reads subscriptions, not requests.";
+        private const string ReadOnly = "ChainlinkFunctionsOASIS is read-only: subscriptions and requests change only through LINK-funded on-chain transactions.";
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
             var r = new OASISResult<bool>();
             try
             {
-                await GetAsync("health");
+                var hex = await CallAsync(TypeAndVersionSelector);
+                var length = (int)Uint(Word(hex, 1));
+                var name = Encoding.UTF8.GetString(Convert.FromHexString(hex.Substring(128, length * 2)));
+                if (!name.StartsWith("Functions Router", StringComparison.Ordinal))
+                {
+                    OASISErrorHandling.HandleError(ref r, $"{_router} is not a Chainlink Functions Router ({name}).");
+                    return r;
+                }
+                IsProviderActivated = true;
                 r.Result = true;
-                r.Message = "ChainlinkFunctionsOASIS activated.";
+                r.Message = $"ChainlinkFunctionsOASIS activated against {name}.";
             }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"Chainlink Functions activation failed: {ex.Message}", ex); }
             return r;
         }
 
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
+        public override Task<OASISResult<bool>> DeActivateProviderAsync()
         {
-            _http.Dispose();
-            return new OASISResult<bool> { Result = true, Message = "ChainlinkFunctionsOASIS deactivated." };
+            IsProviderActivated = false;
+            return Task.FromResult(new OASISResult<bool> { Result = true, Message = "ChainlinkFunctionsOASIS deactivated." });
         }
 
         public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
         public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
+
+        /// <summary>Number of subscriptions the router has created.</summary>
+        public async Task<OASISResult<ulong>> GetSubscriptionCountAsync()
+        {
+            var r = new OASISResult<ulong>();
+            try { r.Result = (ulong)Uint(Word(await CallAsync(GetSubscriptionCountSelector), 0)); }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"Chainlink Functions subscription count failed: {ex.Message}", ex); }
+            return r;
+        }
 
         // Avatar = Chainlink Functions subscription
         public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string subscriptionId, int version = 0)
@@ -74,167 +167,79 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainlinkFunctionsOASIS
             var r = new OASISResult<IAvatar>();
             try
             {
-                var json = await GetAsync($"subscriptions/{subscriptionId}");
-                var avatar = new Avatar { Username = subscriptionId };
-                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.ChainlinkFunctionsOASIS] = subscriptionId;
-                avatar.MetaData["subscription_id"] = json["subscriptionId"]?.ToString() ?? subscriptionId;
-                avatar.MetaData["balance"] = json["balance"]?.ToString() ?? "0";
-                avatar.MetaData["owner"] = json["owner"]?.ToString() ?? "";
-                avatar.MetaData["consumers"] = json["consumers"]?.ToString(Formatting.None) ?? "[]";
+                var s = await ReadSubscriptionAsync(subscriptionId);
+                var avatar = new Avatar { Username = s.Id };
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.ChainlinkFunctionsOASIS] = s.Id;
+                Describe(avatar.MetaData, s, _router);
                 r.Result = avatar;
+                r.IsLoaded = true;
             }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"Chainlink Functions LoadAvatarByProviderKey failed: {ex.Message}", ex); }
             return r;
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string u, int v = 0) => await LoadAvatarByProviderKeyAsync(u, v);
-        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int v = 0) { var r = new OASISResult<IAvatar>(); OASISErrorHandling.HandleError(ref r, "Chainlink subscriptions are identified by subscription ID, not OASIS GUID."); return r; }
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string e, int v = 0) { var r = new OASISResult<IAvatar>(); OASISErrorHandling.HandleError(ref r, "Chainlink Functions does not support email-based lookup."); return r; }
-        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int v = 0) { var r = new OASISResult<IEnumerable<IAvatar>>(); OASISErrorHandling.HandleError(ref r, "Chainlink Functions does not support bulk subscription enumeration."); return r; }
-        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar a) { var r = new OASISResult<IAvatar>(); OASISErrorHandling.HandleError(ref r, "Chainlink subscription creation requires on-chain transaction with LINK tokens."); return r; }
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool s = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Chainlink subscriptions cannot be deleted via REST API."); return r; }
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string k, bool s = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Chainlink subscriptions cannot be deleted via REST API."); return r; }
-        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string e, bool s = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Chainlink does not support email-based deletion."); return r; }
-        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string u, bool s = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Chainlink subscriptions cannot be deleted via REST API."); return r; }
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int v = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "Chainlink avatar detail requires a subscription ID, not OASIS GUID."); return r; }
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int v = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "Chainlink Functions does not support email-based lookup."); return r; }
+        public override Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string u, int v = 0) => LoadAvatarByProviderKeyAsync(u, v);
+        public override Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int v = 0) => Task.FromResult(Unsupported<IAvatar>("Chainlink subscriptions are identified by subscription id, not OASIS GUID."));
+        public override Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string e, int v = 0) => Task.FromResult(Unsupported<IAvatar>("Chainlink Functions subscriptions have no email."));
+        public override Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int v = 0) => Task.FromResult(Unsupported<IEnumerable<IAvatar>>("Load subscriptions by id; GetSubscriptionCountAsync gives the id range."));
+        public override Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar a) => Task.FromResult(Unsupported<IAvatar>(ReadOnly));
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool s = true) => Task.FromResult(Unsupported<bool>(ReadOnly));
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(string k, bool s = true) => Task.FromResult(Unsupported<bool>(ReadOnly));
+        public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string e, bool s = true) => Task.FromResult(Unsupported<bool>(ReadOnly));
+        public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string u, bool s = true) => Task.FromResult(Unsupported<bool>(ReadOnly));
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int v = 0) => Task.FromResult(Unsupported<IAvatarDetail>("Chainlink subscription detail requires a subscription id, not OASIS GUID."));
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int v = 0) => Task.FromResult(Unsupported<IAvatarDetail>("Chainlink Functions subscriptions have no email."));
+
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string subscriptionId, int v = 0)
         {
             var r = new OASISResult<IAvatarDetail>();
             try
             {
-                var json = await GetAsync($"subscriptions/{subscriptionId}");
-                var detail = new AvatarDetail { Username = subscriptionId };
-                detail.MetaData["subscription_id"] = json["subscriptionId"]?.ToString() ?? subscriptionId;
-                detail.MetaData["balance"] = json["balance"]?.ToString() ?? "0";
-                detail.MetaData["owner"] = json["owner"]?.ToString() ?? "";
-                detail.MetaData["consumers"] = json["consumers"]?.ToString(Formatting.None) ?? "[]";
-                detail.MetaData["router"] = json["router"]?.ToString() ?? "";
+                var s = await ReadSubscriptionAsync(subscriptionId);
+                var detail = new AvatarDetail { Username = s.Id };
+                Describe(detail.MetaData, s, _router);
                 r.Result = detail;
+                r.IsLoaded = true;
             }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"Chainlink Functions LoadAvatarDetailByUsername failed: {ex.Message}", ex); }
             return r;
         }
-        public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail ad) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "Chainlink subscription configuration is managed on-chain."); return r; }
-        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int v = 0) { var r = new OASISResult<IEnumerable<IAvatarDetail>>(); OASISErrorHandling.HandleError(ref r, "Chainlink does not support bulk subscription detail enumeration."); return r; }
 
-        // Holon = Chainlink Functions request/job
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string requestId, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0)
-        {
-            var r = new OASISResult<IHolon>();
-            try
-            {
-                var json = await GetAsync($"requests/{requestId}");
-                var holon = new Holon { Name = $"Chainlink Request {requestId[..Math.Min(8, requestId.Length)]}..." };
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.ChainlinkFunctionsOASIS] = requestId;
-                holon.MetaData["request_id"] = requestId;
-                holon.MetaData["status"] = json["status"]?.ToString() ?? "";
-                holon.MetaData["response"] = json["response"]?.ToString() ?? "";
-                holon.MetaData["error"] = json["error"]?.ToString() ?? "";
-                holon.MetaData["subscription_id"] = json["subscriptionId"]?.ToString() ?? "";
-                r.Result = holon;
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"Chainlink Functions LoadHolon failed: {ex.Message}", ex); }
-            return r;
-        }
+        public override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail ad) => Task.FromResult(Unsupported<IAvatarDetail>(ReadOnly));
+        public override Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int v = 0) => Task.FromResult(Unsupported<IEnumerable<IAvatarDetail>>("Load subscription details by id."));
 
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r, "Chainlink requests are identified by request ID string, not OASIS GUID."); return r; }
+        // Requests are router events, not readable state.
+        public override Task<OASISResult<IHolon>> LoadHolonAsync(string requestId, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0) => Task.FromResult(Unsupported<IHolon>(RequestsAreEvents));
+        public override Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0) => Task.FromResult(Unsupported<IHolon>(RequestsAreEvents));
+        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon h, bool sc = true, bool rec = true, int md = 0, bool coe = true, bool scop = false) => Task.FromResult(Unsupported<IHolon>(ReadOnly));
+        public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool sc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool scop = false) => Task.FromResult(Unsupported<IEnumerable<IHolon>>(ReadOnly));
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType ht = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => Task.FromResult(Unsupported<IEnumerable<IHolon>>(RequestsAreEvents));
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id) => Task.FromResult(Unsupported<IHolon>(ReadOnly));
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(string k) => Task.FromResult(Unsupported<IHolon>(ReadOnly));
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => Task.FromResult(Unsupported<IEnumerable<IHolon>>(RequestsAreEvents));
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string subscriptionId, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => Task.FromResult(Unsupported<IEnumerable<IHolon>>(RequestsAreEvents));
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string mk, string mv, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => Task.FromResult(Unsupported<IEnumerable<IHolon>>(RequestsAreEvents));
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> m, MetaKeyValuePairMatchMode mm, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => Task.FromResult(Unsupported<IEnumerable<IHolon>>(RequestsAreEvents));
 
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon h, bool sc = true, bool rec = true, int md = 0, bool coe = true, bool scop = false)
-        {
-            var r = new OASISResult<IHolon>();
-            try
-            {
-                if (h.Id == Guid.Empty) h.Id = Guid.NewGuid();
-                var body = new
-                {
-                    source = h.MetaData.ContainsKey("source") ? h.MetaData["source"]?.ToString() : "return Functions.encodeString('hello')",
-                    subscriptionId = h.MetaData.ContainsKey("subscription_id") ? h.MetaData["subscription_id"]?.ToString() : "1",
-                    gasLimit = 300000
-                };
-                var json = await PostAsync("requests", body);
-                h.ProviderUniqueStorageKey[Core.Enums.ProviderType.ChainlinkFunctionsOASIS] = json["requestId"]?.ToString() ?? h.Id.ToString();
-                h.MetaData["request_id"] = json["requestId"]?.ToString() ?? "";
-                r.Result = h;
-                r.Message = $"Chainlink Functions request submitted: {json["requestId"]}";
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"Chainlink Functions SaveHolon failed: {ex.Message}", ex); }
-            return r;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool sc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool scop = false)
-        {
-            var results = new List<IHolon>();
-            var r = new OASISResult<IEnumerable<IHolon>>();
-            foreach (var h in holons) { var sr = await SaveHolonAsync(h); if (sr.Result != null) results.Add(sr.Result); else if (!coe) { OASISErrorHandling.HandleError(ref r, sr.Message); return r; } }
-            r.Result = results;
-            return r;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType ht = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, "Chainlink Functions does not support listing all requests. Use LoadHolon(requestId) for a specific request."); return r; }
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id) { var r = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r, "Chainlink Functions requests are immutable on-chain."); return r; }
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string k) { var r = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r, "Chainlink Functions requests are immutable on-chain."); return r; }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, "Use LoadHolonsForParent(string subscriptionId) to load requests for a subscription."); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string subscriptionId, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0)
-        {
-            var r = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                var json = await GetAsync($"subscriptions/{subscriptionId}/requests");
-                var reqs = json["requests"] as JArray ?? new JArray();
-                var holons = new List<IHolon>();
-                if (reqs != null)
-                    foreach (var req in reqs)
-                    {
-                        var h = new Holon { Name = $"Chainlink Request {req["requestId"]?.ToString()}" };
-                        h.MetaData["request_id"] = req["requestId"]?.ToString() ?? "";
-                        h.MetaData["status"] = req["status"]?.ToString() ?? "";
-                        h.MetaData["subscription_id"] = subscriptionId;
-                        h.ProviderUniqueStorageKey[Core.Enums.ProviderType.ChainlinkFunctionsOASIS] = req["requestId"]?.ToString() ?? "";
-                        holons.Add(h);
-                    }
-                r.Result = holons;
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"Chainlink Functions LoadHolonsForParent failed: {ex.Message}", ex); }
-            return r;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string mk, string mv, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0)
-        {
-            if (mk == "subscription_id" || mk == "subscriptionId") return await LoadHolonsForParentAsync(mv, t);
-            if (mk == "request_id") { var h = await LoadHolonAsync(mv); var r2 = new OASISResult<IEnumerable<IHolon>>(); r2.Result = h.Result != null ? new List<IHolon> { h.Result } : new List<IHolon>(); r2.IsError = h.IsError; r2.Message = h.Message; return r2; }
-            var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, $"Chainlink Functions does not support metadata search by '{mk}'. Supported: subscription_id, request_id."); return r;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> m, MetaKeyValuePairMatchMode mm, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0)
-        { foreach (var kv in m) { var p = await LoadHolonsByMetaDataAsync(kv.Key, kv.Value, t); if (!p.IsError && p.Result != null) return p; } return new OASISResult<IEnumerable<IHolon>> { Result = new List<IHolon>() }; }
-
+        /// <summary>Search by subscription id (FilterByMetaData["query"]).</summary>
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams sp, bool lc = true, bool rec = true, int md = 0, bool coe = true, int v = 0)
         {
             var r = new OASISResult<ISearchResults>();
-            try
-            {
-                var results = new SearchResults();
-                string query = sp?.FilterByMetaData?.ContainsKey("query") == true ? sp.FilterByMetaData["query"] : "";
-                if (!string.IsNullOrEmpty(query))
-                {
-                    try { var sub = await LoadAvatarByProviderKeyAsync(query); if (!sub.IsError) results.SearchResultAvatars = new List<IAvatar> { sub.Result }; } catch { }
-                    try { var req = await LoadHolonAsync(query); if (!req.IsError) results.SearchResultHolons = new List<IHolon> { req.Result }; } catch { }
-                }
-                r.Result = results;
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"Chainlink Functions Search failed: {ex.Message}", ex); }
+            var query = sp?.FilterByMetaData?.ContainsKey("query") == true ? sp.FilterByMetaData["query"] : "";
+            if (string.IsNullOrEmpty(query)) { OASISErrorHandling.HandleError(ref r, "Search needs a subscription id in FilterByMetaData[\"query\"]."); return r; }
+            var subscription = await LoadAvatarByProviderKeyAsync(query);
+            if (subscription.IsError) { OASISErrorHandling.HandleError(ref r, subscription.Message); return r; }
+            r.Result = new SearchResults { SearchResultAvatars = new List<IAvatar> { subscription.Result } };
             return r;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid id, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, "Chainlink export requires a subscription ID string."); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string subscriptionId, int v = 0) => await LoadHolonsForParentAsync(subscriptionId);
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string e, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, "Chainlink Functions does not support email-based export."); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, "Chainlink Functions does not support full data export."); return r; }
-        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> h) { var r2 = new OASISResult<bool>(); try { foreach (var holon in h) { var s = await SaveHolonAsync(holon); if (s.IsError) { OASISErrorHandling.HandleError(ref r2, s.Message); return r2; } } r2.Result = true; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r2, ex.Message, ex); } return r2; }
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid id, int v = 0) => Task.FromResult(Unsupported<IEnumerable<IHolon>>(RequestsAreEvents));
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string subscriptionId, int v = 0) => Task.FromResult(Unsupported<IEnumerable<IHolon>>(RequestsAreEvents));
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string e, int v = 0) => Task.FromResult(Unsupported<IEnumerable<IHolon>>(RequestsAreEvents));
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int v = 0) => Task.FromResult(Unsupported<IEnumerable<IHolon>>(RequestsAreEvents));
+        public override Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> h) => Task.FromResult(Unsupported<bool>(ReadOnly));
 
-        // Sync wrappers
+        // Synchronous members delegate to the async reads.
         public override OASISResult<IAvatar> LoadAvatar(Guid id, int v = 0) => LoadAvatarAsync(id, v).Result;
         public override OASISResult<IAvatar> LoadAvatarByProviderKey(string k, int v = 0) => LoadAvatarByProviderKeyAsync(k, v).Result;
         public override OASISResult<IAvatar> LoadAvatarByUsername(string u, int v = 0) => LoadAvatarByUsernameAsync(u, v).Result;
