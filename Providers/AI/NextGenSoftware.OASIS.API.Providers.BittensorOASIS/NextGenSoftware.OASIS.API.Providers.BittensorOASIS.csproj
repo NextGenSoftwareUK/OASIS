@@ -36,4 +36,8 @@
   <ItemGroup>
     <None Update="README.md"><PackagePath>\</PackagePath><Pack>True</Pack></None>
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="NextGenSoftware.OASIS.API.Providers.BittensorOASIS.UnitTests" />
+    <InternalsVisibleTo Include="NextGenSoftware.OASIS.Providers.CrossChainTrackers.CapabilityTests" />
+  </ItemGroup>
 </Project>
