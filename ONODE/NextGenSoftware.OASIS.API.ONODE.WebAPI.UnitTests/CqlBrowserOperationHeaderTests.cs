@@ -25,7 +25,8 @@ public class CqlBrowserOperationHeaderTests
         service.ApplyResult(result, context.Response);
 
         Assert.True(result.IsOriginAllowed);
-        Assert.Equal("X-OASIS-Operation-Id", context.Response.Headers.AccessControlExposeHeaders.ToString());
+        Assert.Equal("X-OASIS-Operation-Id,X-OASIS-CQL-Path,X-OASIS-CQL-Text,X-OASIS-CQL-Scalar-Alias,X-OASIS-CQL-Parse-Ms",
+            context.Response.Headers.AccessControlExposeHeaders.ToString());
         Assert.Equal(operation, context.Response.Headers["X-OASIS-Operation-Id"].ToString());
         Assert.False(result.SupportsCredentials);
     }
