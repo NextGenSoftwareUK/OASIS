@@ -155,3 +155,5 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | capability-v1 probes: BlockscoutOASIS, ENSOASIS, MapLibreOASIS (keyless public endpoints) | HyperDrive providers (non-storage) | local: testharness-build-fix | work/tracker-capability-probes | 2026-11-26 | IN PROGRESS |
 | HoloNET holonet-nativeaot template: make Native AOT publish work (drop experimental label) | HoloNET templates | local: HoloNET templates session (b6c3e7db) | holochain-client-csharp Development | 2026-11-25 | IN PROGRESS |
 | capability-v1 probe: DecentralandOASIS (public catalyst peer); findings: Akash api host gone, ReadyPlayerMe api host gone, Ankr multichain needs key | HyperDrive providers (non-storage) | local: testharness-build-fix | work/tracker-capability-probes | 2026-11-26 | IN PROGRESS |
+
+- DONE 2026-11-26 (Web4Site 4b6ed77; docs Development e35bfad9, master e55de16c) by CQL sandbox session (local_b7903255): AFTER_DEMO_BACKLOG "Full native payload mapping for browser demo copies" - string native payload carried exactly with PayloadSchema 2; typed scalars and legacy-copy upgrade remain open.
