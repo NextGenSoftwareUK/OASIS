@@ -70,7 +70,8 @@ public partial class Neo4jOASIS
         return rows.AsReadOnly();
     }
 
-    private static async Task<IReadOnlyList<IHolon>> ReadCqlRowsAsync(IResultCursor cursor,int maximumRows,NeoCqlReadBudget budget, CosmicEntityCompositionOptions entityOptions=null, Action<long> observeEntityCount=null,int? maximumEntityInputRows=null)
+    private static async Task<IReadOnlyList<IHolon>> ReadCqlRowsAsync(IResultCursor cursor,int maximumRows,NeoCqlReadBudget budget, CosmicEntityCompositionOptions entityOptions=null, Action<long> observeEntityCount=null,int? maximumEntityInputRows=null,
+        List<IHolon> joinedChildren=null)
     {
         var rows=new List<IHolon>();
         var inputProofOwner=entityOptions==null ? null : new NeoCqlEntityInputProof(entityOptions,maximumEntityInputRows);
@@ -98,6 +99,19 @@ public partial class Neo4jOASIS
             }
             budget.Reserve(snapshot);
             rows.Add(ReadCqlCanonicalSnapshot(row,snapshot));
+            if(joinedChildren!=null)
+            {
+                // A join-fetch row carries its authorized direct children from the same command.
+                if(row["children"] is not IList<object> children)throw new InvalidDataException("Neo4j join fetch returned a root without its child list.");
+                foreach(var item in children)
+                {
+                    budget.Check();
+                    if(item is not IReadOnlyDictionary<string,object> child)throw new InvalidDataException("Neo4j join-fetch child is not a record map.");
+                    var childSnapshot=child["snapshot"].As<string>();
+                    budget.Reserve(childSnapshot);
+                    joinedChildren.Add(ReadCqlCanonicalSnapshot(child,childSnapshot));
+                }
+            }
         }
         budget.Check();
         if (observeEntityCount != null && !countSeen)

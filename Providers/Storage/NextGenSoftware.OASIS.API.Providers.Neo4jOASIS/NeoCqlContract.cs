@@ -29,11 +29,11 @@ internal static class NeoCqlContract
                 metadata.Add(new(declared,ordered,supportsMembership:true));
         foreach(var type in new[]{typeof(Guid),typeof(Guid?)}) metadata.Add(new(type,equality,supportsMembership:true));
         foreach(var type in new[]{typeof(DateTime),typeof(DateTime?)}) metadata.Add(new(type,ordered,supportsMembership:true));
-        return new(CosmicQueryFeatures.StringTransform | CosmicQueryFeatures.FullText | CosmicQueryFeatures.MetadataArrayContains | CosmicQueryFeatures.StringLength | CosmicQueryFeatures.AncestorExists | CosmicQueryFeatures.And | CosmicQueryFeatures.Or | CosmicQueryFeatures.Not | CosmicQueryFeatures.Metadata |
+        return new(CosmicQueryFeatures.StringTransform | CosmicQueryFeatures.FullText | CosmicQueryFeatures.UserFunction | CosmicQueryFeatures.MetadataArrayContains | CosmicQueryFeatures.StringLength | CosmicQueryFeatures.AncestorExists | CosmicQueryFeatures.And | CosmicQueryFeatures.Or | CosmicQueryFeatures.Not | CosmicQueryFeatures.Metadata |
             CosmicQueryFeatures.NullLiteral | CosmicQueryFeatures.BooleanConstant | CosmicQueryFeatures.MetadataExists |
             CosmicQueryFeatures.MetadataNull | CosmicQueryFeatures.StringContains | CosmicQueryFeatures.StringStartsWith |
             CosmicQueryFeatures.StringEndsWith | CosmicQueryFeatures.Membership | CosmicQueryFeatures.FieldComparison |
-            CosmicQueryFeatures.Ordering | CosmicQueryFeatures.Paging | CosmicQueryFeatures.TailPaging | CosmicQueryFeatures.GraphExpansion|CosmicQueryFeatures.GraphReadAccess|CosmicQueryFeatures.ChildExists|CosmicQueryFeatures.DescendantExists | CosmicQueryFeatures.SourceRelationshipComposition | CosmicQueryFeatures.PostWindowElementPredicate,
+            CosmicQueryFeatures.Ordering | CosmicQueryFeatures.Paging | CosmicQueryFeatures.TailPaging | CosmicQueryFeatures.GraphExpansion|CosmicQueryFeatures.GraphReadAccess|CosmicQueryFeatures.ChildExists|CosmicQueryFeatures.ChildAggregate|CosmicQueryFeatures.DescendantExists | CosmicQueryFeatures.SourceRelationshipComposition | CosmicQueryFeatures.PostWindowElementPredicate,
             fields.Select(field=>new CosmicQueryFieldCapability(field.Name,field.ValueType,field.Comparisons.ToArray(),
                 field.StringOperations.ToArray(),supportsOrdering:true)).ToArray(),
             metadata.Select(type=>new CosmicQueryMetadataCapability(type.ValueType,type.Comparisons.ToArray(),

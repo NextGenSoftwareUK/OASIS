@@ -26,14 +26,28 @@ public class RadixOASISConfig
     public string PrivateKey { get; set; } = string.Empty;
     
     /// <summary>
-    /// OASIS blueprint/component address for storage operations (optional - if not set, storage operations will delegate to ProviderManager)
+    /// Component used by the token and lock operations when a request names no token address. Core storage does not use it.
     /// </summary>
     public string? OasisBlueprintAddress { get; set; }
 
-    /// <summary>
-    /// Owner badge resource of the OasisStorage component (returned by its <c>instantiate</c>). Writes prove this badge
-    /// from <see cref="AccountAddress"/>, so the badge must be held by that account. Reads don't need it.
-    /// </summary>
-    public string? OasisStorageOwnerBadgeAddress { get; set; }
-}
+    /// <summary>Node Core API root used for storage transactions, for example <c>http://127.0.0.1:3333/core/</c>.</summary>
+    public string? CoreApiUri { get; set; }
 
+    /// <summary>Node Engine State API root used for storage reads, for example <c>http://127.0.0.1:3336/engine-state/</c>.</summary>
+    public string? EngineStateApiUri { get; set; }
+
+    /// <summary>Logical network name the node expects (mainnet, stokenet, localnet).</summary>
+    public string? NetworkName { get; set; }
+
+    /// <summary>
+    /// <c>OasisKeyValueStore</c> component (contracts/src/oasis_key_value_store.rs) that holds this provider's records.
+    /// It must be owned by the signature badge of <see cref="PrivateKey"/>, whose account pays the fees.
+    /// </summary>
+    public string? KeyValueStoreComponentAddress { get; set; }
+
+    /// <summary>
+    /// 32-byte record encryption key (hex). Ledger state is public, so records are compressed and encrypted before
+    /// they are written. Required for storage.
+    /// </summary>
+    public string? StorageEncryptionKey { get; set; }
+}

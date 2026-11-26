@@ -1,7 +1,7 @@
 #!/bin/bash
-# NOTE (2026-10): written for the earlier u64-keyed contract. The current OasisStorage takes GUID string keys and
-# instantiate() returns an owner badge that must sit in the RadixOASIS account. See "On-ledger storage" in the provider
-# README; StokenetOnLedgerStorageTests shows the full publish + instantiate flow.
+# NOTE (2026-11): written for the earlier u64-keyed contract. RadixOASIS core storage now uses the OasisKeyValueStore
+# blueprint; see "Core storage" in the provider README. RadixLedgerClient (PublishPackageAsync,
+# InstantiateKeyValueStoreAsync) and the IntegrationTests fixture show the full build, publish and instantiate flow.
 # Deployment script for OASIS Storage Scrypto component
 
 set -e

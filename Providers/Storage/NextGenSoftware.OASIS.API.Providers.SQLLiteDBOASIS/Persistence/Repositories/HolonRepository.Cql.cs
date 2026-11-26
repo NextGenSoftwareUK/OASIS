@@ -71,7 +71,8 @@ public partial class HolonRepository
 
     private async Task<OASISResult<CqlReadOutcome>> ExecuteCqlReadAsync<T>(CosmicQueryPlan<T> plan,
         int maximumResults, CancellationToken cancellationToken, CosmicEntityCompositionPlan<T> composition = null,
-        bool countOnly=false,CosmicSetQueryPlan<T> set=null,Action<string,IEnumerable<string>> explain=null) where T : IHolon
+        bool countOnly=false,CosmicSetQueryPlan<T> set=null,Action<string,IEnumerable<string>> explain=null,
+        SqliteJoinFetch joinFetch=null) where T : IHolon
     {
         OASISResult<CqlReadOutcome> Error(string code,string message,Exception cause=null)
             => new() { IsError=true,ErrorCount=1,ErrorCode=code,Message=message,Exception=cause };
@@ -148,6 +149,15 @@ public partial class HolonRepository
             }
             var hasRelationship = translator.HasRelationship || terminalTranslator?.HasRelationship == true
                 || entitySql?.HasRelationship == true;
+            if (joinFetch != null)
+            {
+                // Join fetch reuses this one root compiler; only a plain scalar root window joins in one statement.
+                if (plan.TailIndex.HasValue || plan.PostWindowPredicate != null || composition != null || set != null || countOnly
+                    || plan.Query.GraphOptions != null || hasRelationship)
+                    throw new NotSupportedException("SQLite join fetch requires a plain root window without relationship predicates.");
+                sql = joinFetch.Compile(translator, predicate, ordering);
+                joinFetch.Command = sql;
+            }
             cancellationToken.ThrowIfCancellationRequested();
             if(explain!=null){explain(sql,translator.Parameters.Select(parameter=>parameter.ParameterName));return new OASISResult<CqlReadOutcome>(new CqlReadOutcome(Array.Empty<IHolon>())){IsLoaded=true};}
             if(composition == null && set == null && fetch==0 && !translator.HasRelationship)return new OASISResult<CqlReadOutcome>(new CqlReadOutcome(Array.Empty<IHolon>())){IsLoaded=true};
@@ -202,6 +212,11 @@ public partial class HolonRepository
                         budget.Check(); traversal?.Check();
                         graphTransaction?.Commit();
                         return new OASISResult<CqlReadOutcome>(new CqlReadOutcome(count:count)){IsLoaded=true};
+                    }
+                    if (joinFetch != null)
+                    {
+                        var joinedRoots = await ReadJoinFetchAsync(connection, sql, translator.Parameters, joinFetch, budget, cancellationToken).ConfigureAwait(false);
+                        return new OASISResult<CqlReadOutcome>(new CqlReadOutcome(joinedRoots)){IsLoaded=true};
                     }
                     var query=_dbContext.Holons.FromSqlRaw(sql,
                         translator.Parameters.Cast<object>().ToArray()).AsNoTracking();
@@ -462,6 +477,7 @@ public partial class HolonRepository
         {
             if(predicate is CosmicQueryAnyDescendant descendant)return TranslateDescendant(descendant);
             if(predicate is CosmicQueryAnyAncestor ancestor)return TranslateAncestor(ancestor);
+            if(predicate is CosmicQueryChildAggregate aggregate)return TranslateChildAggregate(aggregate);
             if(predicate is CosmicQueryAnyChild child)
             {
                 HasRelationship=true;
@@ -521,6 +537,20 @@ public partial class HolonRepository
                     || lengthField.ValueType != typeof(string))
                     throw new NotSupportedException("SQLite CQL string length path is unsupported.");
                 return StringLength(CanonicalColumn(lengthField.Name), length);
+            }
+            if (predicate is CosmicQueryFunctionComparison userFunction)
+            {
+                // Q56: the registered SQLite template; literals are bound, never concatenated.
+                if (userFunction.Function.SqliteTemplate == null)
+                    throw new NotSupportedException("CQL_CAPABILITY_UNSUPPORTED: the user-defined function has no SQLite translation.");
+                string Applied(string operand) => "(" + CosmicQueryFunction.Substitute(userFunction.Function.SqliteTemplate, operand,
+                    index => Bind(userFunction.Arguments[index])) + ")" + ComparisonSymbol(userFunction.Operator) + Bind(userFunction.Value);
+                if (userFunction.Path.IsMetadata)
+                    return MetadataPredicate(userFunction.Path.Segments, alias => "(" + MetadataTypeGuard(userFunction.Path.ValueType, alias) + " AND coalesce(" + Applied(alias + ".value") + ",0))");
+                if (userFunction.Path.Segments.Count != 1 || !SqliteCqlContract.Fields.TryGetValue(userFunction.Path.Segments[0], out var functionField))
+                    throw new NotSupportedException("SQLite CQL user-defined function path is unsupported.");
+                var functionColumn = CanonicalColumn(functionField.Name);
+                return "(" + functionColumn + " IS NOT NULL AND coalesce(" + Applied(functionColumn) + ",0))";
             }
             if (predicate is CosmicQueryFullText fullText)
             {

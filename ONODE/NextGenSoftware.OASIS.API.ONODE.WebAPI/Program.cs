@@ -127,6 +127,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                 Environment.ExitCode = await Services.HyperDrive.ReplicaHeldObligationInspectCommand.RunAsync(args);
                 return;
             }
+            if (args.Length > 0 && args[0] == "--cosmic-retire-held")
+            {
+                Environment.ExitCode = await Services.HyperDrive.ReplicaRetireHeldCommand.RunAsync(args);
+                return;
+            }
             if (args.Length > 0 && args[0] == "--cosmic-rearm-held-head")
             {
                 Environment.ExitCode = await Services.HyperDrive.HeldHeadRearmCommand.RunAsync(args);

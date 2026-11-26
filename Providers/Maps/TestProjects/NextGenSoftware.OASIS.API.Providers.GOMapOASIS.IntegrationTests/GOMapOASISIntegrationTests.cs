@@ -5,7 +5,9 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Contracts.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.GOMapOASIS.Directions;
-using NextGenSoftware.OASIS.API.Providers.GOMapOASIS.Geocoding;
+using NextGenSoftware.OASIS.Providers.Shared.Maps.Models;
+using NextGenSoftware.OASIS.Providers.Shared.Maps.Routing;
+using NextGenSoftware.OASIS.Providers.Shared.Maps.Search;
 
 namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.IntegrationTests
 {
@@ -36,17 +38,13 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.IntegrationTests
                     + "routing and geocoding services.");
             }
 
-            _provider = new GOMapOASIS();
+            string? osrm = Environment.GetEnvironmentVariable("GOMAP_OSRM_URL");
+            string? nominatim = Environment.GetEnvironmentVariable("GOMAP_NOMINATIM_URL");
+            _provider = new GOMapOASIS(
+                string.IsNullOrWhiteSpace(osrm) ? OsrmRoutingService.PublicDemoBaseUrl : osrm!,
+                string.IsNullOrWhiteSpace(nominatim) ? NominatimPlaceSearchService.PublicBaseUrl : nominatim!);
             _provider.Initialize(null);
             _provider.SetOrigin(StPauls);
-
-            string? osrm = Environment.GetEnvironmentVariable("GOMAP_OSRM_URL");
-            if (!string.IsNullOrWhiteSpace(osrm))
-                _provider.DirectionsAPI = new OSRMDirectionsProvider { BaseUrl = osrm! };
-
-            string? nominatim = Environment.GetEnvironmentVariable("GOMAP_NOMINATIM_URL");
-            if (!string.IsNullOrWhiteSpace(nominatim))
-                _provider.GeocodingProvider = new NominatimGeocodingProvider { BaseUrl = nominatim! };
         }
 
         [TestMethod]
@@ -108,12 +106,13 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.IntegrationTests
         }
 
         [TestMethod]
-        public async Task CreateAndDrawRoutedPathAsync_ShouldQueueTheRealRouteGeometry()
+        public async Task CreateAndDrawRouteAsync_ShouldQueueTheRealRouteGeometry()
         {
-            Assert.IsTrue(await _provider.CreateAndDrawRoutedPathAsync(StPauls, TowerOfLondon, RoutingType.Driving));
+            var drawn = await _provider.CreateAndDrawRouteAsync(new[] { StPauls, TowerOfLondon }, RoutingType.Driving);
+            Assert.IsFalse(drawn.IsError, drawn.Message);
 
             var command = _provider.DrainCommands()
-                .Single(c => c.CommandType == Bridge.GOMapCommandType.DrawRoute);
+                .Single(c => c.CommandType == MapCommandType.DrawRoute);
 
             var waypoints = (List<Geolocation>)command.Parameters["waypoints"];
 
@@ -125,7 +124,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.IntegrationTests
         {
             ForwardGeocodingResponse<IPointOfInterest> response =
                 await _provider.GeocodingProvider.POISearchAsync(
-                    new POISearchRequest("Tower of London", StPauls, 5));
+                    new MapPlaceSearchRequest("Tower of London", StPauls, 5));
 
             Assert.IsTrue(response.Success);
             Assert.IsTrue(response.Data.Count > 0, "Expected at least one match.");
@@ -141,7 +140,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.IntegrationTests
         {
             ForwardGeocodingResponse<IPointOfInterest> response =
                 await _provider.GeocodingProvider.POISearchAsync(
-                    new POISearchRequest("Tower of London", StPauls, 5));
+                    new MapPlaceSearchRequest("Tower of London", StPauls, 5));
 
             Assert.IsTrue(response.Data.All(p => p.Distance > 0f));
             Assert.IsTrue(response.Data.Zip(response.Data.Skip(1), (a, b) => a.Distance <= b.Distance).All(x => x),
@@ -153,7 +152,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.IntegrationTests
         {
             ForwardGeocodingResponse<IPointOfInterest> response =
                 await _provider.GeocodingProvider.POISearchAsync(
-                    new POISearchRequest("zzqxwvunlikelyplacename12345"));
+                    new MapPlaceSearchRequest("zzqxwvunlikelyplacename12345"));
 
             Assert.IsTrue(response.Success);
             Assert.AreEqual(0, response.Data.Count);
@@ -162,8 +161,11 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.IntegrationTests
         [TestMethod]
         public async Task BatchPOISearchAsync_ShouldReturnResultsForEveryQuery()
         {
-            BatchPOISearchRequest batch = new BatchPOISearchRequest(
-                new[] { "Tower of London", "St Pauls Cathedral" }, StPauls, 3);
+            MapBatchPlaceSearchRequest batch = new MapBatchPlaceSearchRequest(new[]
+            {
+                new MapPlaceSearchRequest("Tower of London", StPauls, 3),
+                new MapPlaceSearchRequest("St Pauls Cathedral", StPauls, 3)
+            });
 
             ForwardGeocodingResponse<IPointOfInterest> response =
                 await _provider.GeocodingProvider.BatchPOISearchAsync(batch);

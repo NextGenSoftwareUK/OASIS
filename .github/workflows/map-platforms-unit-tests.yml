@@ -15,6 +15,8 @@ on:
       - 'Providers/Maps/NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS/**'
       - 'Providers/Maps/TestProjects/NextGenSoftware.OASIS.API.Providers.MapboxOASIS.UnitTests/**'
       - 'Providers/Maps/TestProjects/NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS.UnitTests/**'
+      - 'Providers/Maps/NextGenSoftware.OASIS.API.Providers.GOMapOASIS/**'
+      - 'Providers/Maps/TestProjects/NextGenSoftware.OASIS.API.Providers.GOMapOASIS.UnitTests/**'
       - 'OASIS Architecture/NextGenSoftware.OASIS.API.Contracts/**'
   pull_request:
     branches: [Development, master]
@@ -57,7 +59,7 @@ jobs:
           /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
 
   maplibre:
-    name: MapLibre, Mapbox and WRLD3D providers (controlled tests)
+    name: MapLibre, Mapbox, WRLD3D and GO Map providers (controlled tests)
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -95,4 +97,10 @@ jobs:
         working-directory: OASIS
         run: >
           dotnet test Providers/Maps/TestProjects/NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS.UnitTests
+          /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+      - name: Test GO Map
+        working-directory: OASIS
+        # Cloud-qualified native route tests report inconclusive without their qualification variables.
+        run: >
+          dotnet test Providers/Maps/TestProjects/NextGenSoftware.OASIS.API.Providers.GOMapOASIS.UnitTests
           /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"

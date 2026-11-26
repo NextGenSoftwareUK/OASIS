@@ -13,8 +13,8 @@ public sealed class OSRMNativeRouteTests
     [TestMethod]
     public async Task ThreeFixedPublicBerlinRoutesUseActualClient()
     {
-        Assert.AreEqual("fixed-public-berlin",Environment.GetEnvironmentVariable("COSMIC_GOMAP_NATIVE_ROUTE"),
-            "Native routing requires explicit cloud qualification; never run as part of the controlled suite.");
+        if (Environment.GetEnvironmentVariable("COSMIC_GOMAP_NATIVE_ROUTE") != "fixed-public-berlin")
+            Assert.Inconclusive("Native routing requires explicit cloud qualification (COSMIC_GOMAP_NATIVE_ROUTE=fixed-public-berlin); never run as part of the controlled suite.");
         Assert.AreEqual("true",Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
         var points=new[]{new Geolocation(52.517037,13.388860),new Geolocation(52.529407,13.397634),new Geolocation(52.523219,13.428555)};
         var directory=Path.GetFullPath(Environment.GetEnvironmentVariable("COSMIC_GOMAP_NATIVE_EVIDENCE_DIRECTORY")!);

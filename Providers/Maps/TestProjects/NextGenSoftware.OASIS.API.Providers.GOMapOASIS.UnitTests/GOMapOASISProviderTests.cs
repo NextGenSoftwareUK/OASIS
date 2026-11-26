@@ -4,8 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Contracts.Enums;
 using NextGenSoftware.OASIS.API.Contracts.Interfaces;
-using NextGenSoftware.OASIS.API.Providers.GOMapOASIS.Bridge;
-using NextGenSoftware.OASIS.API.Providers.GOMapOASIS.Models;
+using NextGenSoftware.OASIS.Providers.Shared.Maps.Models;
 
 namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.UnitTests
 {
@@ -26,7 +25,9 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.UnitTests
         [TestInitialize]
         public void Setup()
         {
-            _provider = new GOMapOASIS();
+            // Offline OSRM: route drawing is exercised without reaching the network.
+            _provider = new GOMapOASIS("https://osrm.test", "https://nominatim.test",
+                new System.Net.Http.HttpClient(new StraightLineOsrmHandler()));
             _provider.Initialize(null);
             _provider.SetOrigin(StPauls);
         }
@@ -99,9 +100,9 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.UnitTests
         }
 
         [TestMethod]
-        public void CalculateDistance_WithInvalidCoordinates_ShouldBeZero()
+        public void CalculateDistance_WithInvalidCoordinates_ShouldBeRefused()
         {
-            Assert.AreEqual(0f, _provider.CalculateDistance(new Geolocation(200.0, 0.0), StPauls), 0.001f);
+            Assert.ThrowsException<ArgumentException>(() => _provider.CalculateDistance(new Geolocation(200.0, 0.0), StPauls));
         }
 
         [TestMethod]
@@ -127,7 +128,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.UnitTests
         [TestMethod]
         public void ConvertToWorldPosition_AtTheOrigin_ShouldBeZero()
         {
-            GOMapWorldPosition position = _provider.ConvertToWorldPosition(StPauls.Latitude, StPauls.Longitude);
+            MapWorldPosition position = _provider.ToWorldPosition(StPauls, 0.0);
 
             Assert.IsNotNull(position);
             Assert.AreEqual(0.0, position!.X, 0.001);
@@ -137,8 +138,8 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.UnitTests
         [TestMethod]
         public void ConvertToWorldPosition_ThenBack_ShouldRoundTrip()
         {
-            GOMapWorldPosition position =
-                _provider.ConvertToWorldPosition(TowerOfLondon.Latitude, TowerOfLondon.Longitude)!;
+            MapWorldPosition position =
+                _provider.ToWorldPosition(TowerOfLondon, 0.0)!;
 
             Geolocation back = (Geolocation)_provider.ConvertWorldPositionToLatLong(position)!;
 
@@ -149,8 +150,8 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.UnitTests
         [TestMethod]
         public void ConvertToWorldPosition_ShouldBeConsistentWithGroundDistance()
         {
-            GOMapWorldPosition position =
-                _provider.ConvertToWorldPosition(TowerOfLondon.Latitude, TowerOfLondon.Longitude)!;
+            MapWorldPosition position =
+                _provider.ToWorldPosition(TowerOfLondon, 0.0)!;
 
             double planar = Math.Sqrt(position.X * position.X + position.Z * position.Z);
             double ground = _provider.CalculateDistance(StPauls, TowerOfLondon);
@@ -164,8 +165,8 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.UnitTests
         [TestMethod]
         public void ConvertWorldPositionToLatLong_ShouldAcceptAnXYZObject()
         {
-            GOMapWorldPosition position =
-                _provider.ConvertToWorldPosition(TowerOfLondon.Latitude, TowerOfLondon.Longitude)!;
+            MapWorldPosition position =
+                _provider.ToWorldPosition(TowerOfLondon, 0.0)!;
 
             // Stands in for a UnityEngine.Vector3, which is read reflectively.
             object vector = new { x = position.X, y = 0.0, z = position.Z };
@@ -180,7 +181,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.UnitTests
             GOMapOASIS unpositioned = new GOMapOASIS();
             unpositioned.Initialize(null);
 
-            Assert.IsNull(unpositioned.ConvertToWorldPosition(StPauls.Latitude, StPauls.Longitude));
+            Assert.IsNull(unpositioned.ToWorldPosition(StPauls, 0.0));
         }
 
         [TestMethod]
@@ -204,21 +205,21 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.UnitTests
 
             Assert.IsTrue(_provider.ZoomMapIn(2f));
             Assert.AreEqual(before + 2.0, _provider.Camera.Zoom, 0.001);
-            Assert.IsTrue(_provider.PendingCommands.Any(c => c.CommandType == GOMapCommandType.Zoom));
+            Assert.IsTrue(_provider.DrainCommands().Any(c => c.CommandType == MapCommandType.SetCamera));
         }
 
         [TestMethod]
         public void ZoomMapOut_ShouldNotFallBelowTheMinimum()
         {
             _provider.ZoomMapOut(500f);
-            Assert.AreEqual(GOMapCameraState.MinZoom, _provider.Camera.Zoom, 0.001);
+            Assert.AreEqual(MapCameraState.MinZoom, _provider.Camera.Zoom, 0.001);
         }
 
         [TestMethod]
         public void ZoomMapIn_ShouldNotExceedTheMaximum()
         {
             _provider.ZoomMapIn(500f);
-            Assert.AreEqual(GOMapCameraState.MaxZoom, _provider.Camera.Zoom, 0.001);
+            Assert.AreEqual(MapCameraState.MaxZoom, _provider.Camera.Zoom, 0.001);
         }
 
         [TestMethod]
@@ -272,7 +273,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.UnitTests
         public void UpdateOrbitValue_ShouldNormaliseToZeroThreeSixty()
         {
             Assert.IsTrue(_provider.UpdateOrbitValue(-90f));
-            Assert.AreEqual(270.0, _provider.Camera.Orbit, 0.001);
+            Assert.AreEqual(270.0, _provider.Camera.Bearing, 0.001);
         }
 
         #endregion
@@ -326,7 +327,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.UnitTests
         {
             Assert.IsTrue(_provider.PlaceQuestOnMap("quest", StPauls.Latitude, StPauls.Longitude));
 
-            Assert.AreEqual(1, _provider.GetPlacements(GOMapPlacementKind.Quest).Count);
+            Assert.AreEqual(1, _provider.GetPlacements(MapPlacementKind.Quest).Count);
         }
 
         [TestMethod]
@@ -334,7 +335,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.UnitTests
         {
             Assert.IsTrue(_provider.PlaceGeoNFTOnMap("nft", StPauls.Latitude, StPauls.Longitude));
 
-            Assert.AreEqual(1, _provider.GetPlacements(GOMapPlacementKind.GeoNFT).Count);
+            Assert.AreEqual(1, _provider.GetPlacements(MapPlacementKind.GeoNFT).Count);
         }
 
         [TestMethod]
@@ -383,7 +384,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.UnitTests
             _provider.ZoomMapIn(1f);
 
             Assert.AreEqual(2, _provider.DrainCommands().Count);
-            Assert.AreEqual(0, _provider.PendingCommands.Count);
+            Assert.AreEqual(0, _provider.PendingCommandCount);
         }
 
         [TestMethod]
@@ -391,23 +392,14 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.UnitTests
         {
             _provider.DropPin(StPauls, new object());
 
-            Assert.IsFalse(_provider.DrainCommands().Single().AppliedToLiveMap);
-        }
-
-        [TestMethod]
-        public void ClearCommands_ShouldDiscardEverythingQueued()
-        {
-            _provider.ZoomMapIn(1f);
-            _provider.ClearCommands();
-
-            Assert.AreEqual(0, _provider.PendingCommands.Count);
+            Assert.IsFalse(_provider.DrainCommands().Single().AppliedToRenderer);
         }
 
         [TestMethod]
         public void SelectHolonOnMap_ShouldRecordTheSelection()
         {
             Assert.IsTrue(_provider.SelectHolonOnMap("holon"));
-            Assert.AreEqual("holon", _provider.SelectedHolon);
+            Assert.AreEqual("holon", _provider.SelectedEntity);
         }
 
         [TestMethod]
@@ -430,8 +422,8 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.UnitTests
         {
             Assert.IsTrue(_provider.CreateAndDrawRouteOnMapBetweenHolons(StPauls, TowerOfLondon));
 
-            GOMapCommand route = _provider.DrainCommands()
-                .Single(c => c.CommandType == GOMapCommandType.DrawRoute);
+            MapCommand route = _provider.DrainCommands()
+                .Single(c => c.CommandType == MapCommandType.DrawRoute);
 
             Assert.AreEqual(2, ((System.Collections.Generic.List<Geolocation>)route.Parameters["waypoints"]).Count);
         }

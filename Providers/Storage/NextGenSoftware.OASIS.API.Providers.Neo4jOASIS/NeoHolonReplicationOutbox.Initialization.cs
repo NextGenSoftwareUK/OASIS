@@ -47,7 +47,7 @@ public sealed partial class NeoHolonReplicationOutbox
             }
             if(Text(row,"InitializationCompletionJson")!=null || Text(row,"InitializationCompletionDigest")!=null)
                 throw new InvalidDataException("Unfinished obligation has an initialization acknowledgement.");
-            if(observed.State!=HolonDeliveryState.ReconciliationRequired || Text(row,"LastErrorCode")!="COSMIC_REPLICA_LINEAGE_CONFLICT"
+            if(observed.State!=HolonDeliveryState.ReconciliationRequired || !HolonReplicaReviewedHoldCodes.IsReviewable(Text(row,"LastErrorCode"))
                 || observed.Evidence==null || observed.Evidence.RequiresNativeReconciliation)
                 throw new InvalidDataException("Only a reviewed lineage conflict without unresolved execution can complete.");
             var heads=await(await tx.RunAsync("MATCH (o:CosmicHolonOutbox {TargetId:$target}) WHERE o.DeliveryState<>'Completed' "
