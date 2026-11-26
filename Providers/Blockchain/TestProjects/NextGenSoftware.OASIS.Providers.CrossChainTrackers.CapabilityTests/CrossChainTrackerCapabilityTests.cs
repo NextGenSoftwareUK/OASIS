@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.Providers.EigenLayerOASIS;
 using NextGenSoftware.OASIS.API.Providers.deBridgeOASIS;
 using NextGenSoftware.OASIS.API.Providers.HyperlaneOASIS;
 using NextGenSoftware.OASIS.API.Providers.LayerZeroV2OASIS;
+using NextGenSoftware.OASIS.API.Providers.RitualOASIS;
 using NextGenSoftware.OASIS.Providers.Shared.CrossChain;
 using NextGenSoftware.OASIS.Providers.TestSupport;
 
@@ -231,6 +232,28 @@ public sealed class CrossChainTrackerCapabilityTests
             Assert.AreEqual("true", loaded.Result.MetaData["is_operator"]?.ToString());
             Assert.IsTrue(Same(loaded.Result.MetaData["delegated_to"]?.ToString(), delegatedTo), "The provider's delegation differs from the DelegationManager's.");
             return new NonStorageConformance.Probe(host, "DelegationManagerOperatorRead", guard.Requests - before, true, true);
+        });
+    }
+
+    [TestMethod]
+    public async Task RitualReadsBlockOnesTransactionFromRitualChain()
+    {
+        const string host = "rpc.ritualfoundation.org";
+        const string hash = "0xe75b763b5719cebca9b144beb67cabec9d2eb447f2f6da3e1b8eab571875c829"; // the transaction in block 1
+        var guard = new PublicReadGuard(host, (HttpMethod.Post, "/"));
+        using var native = new HttpClient(new PublicReadGuard(host, (HttpMethod.Post, "/")));
+        var provider = new RitualOASIS($"https://{host}", guard);
+        await RunAsync(provider, "RitualOASIS", async () =>
+        {
+            var call = JsonSerializer.Serialize(new { jsonrpc = "2.0", id = 1, method = "eth_getTransactionByHash", @params = new object[] { hash } });
+            using var expected = await ReadJsonAsync(native, HttpMethod.Post, $"https://{host}/", call);
+            var from = expected.RootElement.GetProperty("result").GetProperty("from").GetString();
+            var before = guard.Requests;
+            var loaded = await provider.LoadHolonAsync(hash).WaitAsync(TimeSpan.FromSeconds(60));
+            Assert.IsFalse(loaded.IsError, loaded.Message);
+            Assert.IsTrue(Same(loaded.Result.MetaData["from"]?.ToString(), from), "The provider's transaction sender differs from the chain's.");
+            Assert.AreEqual("1", loaded.Result.MetaData["block_number"]?.ToString());
+            return new NonStorageConformance.Probe(host, "TransactionByHash", guard.Requests - before, true, true);
         });
     }
 }
