@@ -5,8 +5,6 @@
 // followed by {id, ok, result | error, txId?}. Other output is SDK logging and is ignored by the host. Seeds (the
 // account's secrets) arrive only on stdin.
 import { readFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { createInterface } from 'node:readline';
 import { AccountId, AuthSecretKey, MidenClient, StorageMap, StorageSlot, Word } from '@miden-sdk/miden-sdk';
@@ -31,7 +29,7 @@ const toWord = (limbs) => new Word(BigUint64Array.from(limbs.map((limb) => BigIn
 const fromWord = (word) => Array.from(word.toU64s(), (limb) => limb.toString());
 
 async function openClient(rpcUrl) {
-  const client = await MidenClient.create({ rpcUrl, storeName: join(tmpdir(), `oasis-miden-${randomUUID()}`), autoSync: false });
+  const client = await MidenClient.create({ rpcUrl, storeName: `oasis-miden-${randomUUID()}`, autoSync: false });
   await client.sync();
   const component = await client.compile.component({
     code: COMPONENT_CODE,
