@@ -1,3 +1,26 @@
+## Next phases (set by David, 2026-11-26)
+
+Phase 1 is the COSMIC ORM parity checklist (`CQL_PARITY_CHECKLIST.md`): Entity Framework and NHibernate features working natively on MongoDB, SQLite and Neo4j. Status: 130/164.
+
+### Phase 2a: every parity feature on every provider
+
+- Goal: every checklist feature works on all OASIS providers (about 234 provider projects), not just the three.
+- Native translation where the provider can express it; otherwise a clearly flagged fallback (OASIS reads the records through the provider and evaluates the query in memory). No silent emulation.
+- Providers that cannot store data (read-only chain adapters, "no record store" service providers) support the read-only query kinds only.
+- Tracked as a provider x feature matrix in done/total form. Priority providers first, breadth first. Depends on HyperDrive native storage (about 115/234 providers so far).
+
+### Phase 2b: SQL-like and free-text queries as API endpoints
+
+Today the WEB4 sandbox offers three query modes, but only JSON CQL is a server endpoint:
+
+| Mode | Today | Target |
+|---|---|---|
+| JSON CQL | `POST /api/data/query-cql*` | unchanged |
+| SQL-like | browser only (Web4Site `cql-text.js` compiles it to JSON CQL) | `POST /api/data/query-cql/sql`: a server-side parser that compiles to the existing CQL requests |
+| Free text (Ask) | browser only (Web4Site `cql-ask.js`; WEB6 `/v1/complete` turns the question into SQL-like) | `POST /api/data/query-cql/ask`: WEB6 translates on the server, then runs it as SQL-like |
+
+Both new endpoints get the same validation, size limits, idempotency and usage metering as JSON CQL. They are added to the WEB4 SDK, the Postman collection, the Docs site and the STAR CLI (`cql run sql`, `cql ask`). The sandbox page then calls them instead of doing the work in the browser.
+
 2026-11-19 CURRENT DELIVERY: Development rollout authorized by David; heavy database tests remain isolated, paced Atlas checks allowed. Frozen verified merge38d4320ef7cffa3ce8d6c77cb312dee3f42acb9d (base18675, qualified checkpoint80a87, Core8cffa) is building in44593951627. Teaching runtime retained; verifier flavor fix7d28 passed3 new stdlib contracts and cloud controls44595842845. After immutable CQL package verification, normally push exact merge to Dev, then observe running revision and a few paced checks. No Dev push yet. Primitive SDK3 accepted44586155910/2918byte14561588731: nullable Boolean/Int32/Single/Double metadata across all3 stores, signed-zero/adjacent-Single/subnormal/extrema/null proof and cleanup. Cold single-sample Neo Single3562ms needs warm/profile follow-up; no benchmark claim. Corrected NEW mixed HTTP3 active44598328056 on eee085aea78985460dbaec7cf22a0dd89bf73af3; source canonical Take1 preserves complete union, stale cache remains unchanged, owner denial/usage/physical cleanup required; not accepted yet and excluded from Dev batch. Original invalid-fixture run44597170428 cancelled. No PIPER writes, routing/worker/DNA changes, staging/production rollout or local runtime/environment/database/image/archive downloads. EF coverage61/168 plus4/13 separate extensions unchanged.
 
 2026-11-19 MIXED DISTINCT HTTP3 QUALIFICATION PREPARED: only3 new main-provider HTTP cases, two owner queries plus foreign-owner denial per store, complete stored/native union with stale cache winner, differing ordinary/distinct counts, HAVING/page and real usage outbox. Native source byte/property fingerprints and stored stale cache must remain unchanged. Neo raw-label cleanup now requires an absence-proven ownership grant; observer tracks all4 stored IDs for physical cleanup. Primitive3 accepted44586155910/2918byte14561588731: Boolean/Int32/Single/Double nullable metadata,22 writes/store/all10 flags. Single-sample query times recorded, including Neo Single3562ms; warm/profile work remains before performance acceptance. New HTTP source is uncompiled/unaccepted and excluded from pending Dev batch38d4320e. Dev image44593951627 continues; no blanket Dev hold. No Atlas qualification loops, PIPER writes, source DNA change, staging/prod rollout or local runtime/build/database/archive.
