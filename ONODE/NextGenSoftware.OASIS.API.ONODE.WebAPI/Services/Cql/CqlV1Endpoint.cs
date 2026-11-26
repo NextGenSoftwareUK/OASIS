@@ -72,10 +72,12 @@ public static partial class CqlV1Endpoint
             deadline.CancelAfter(request.MaximumDurationMilliseconds);
             var manager = providers.CreateManager(storage);
             http.Items[CqlV1ResourceFilter.DispatchedKey] = true;
+            var started = System.Diagnostics.Stopwatch.GetTimestamp();
             var result = await manager.ExecuteQueryAsync(plan.Result, new[] { adapter }, maximumResults: request.Take, cancellationToken: deadline.Token);
             if (result.IsError)
             {
-                CqlNativeFailureDiagnostics.Query(http, selected, result.Exception);
+                CqlNativeFailureDiagnostics.Query(http, selected, result.Exception,
+                    (long)System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds);
                 return QueryFailure(http, result.ErrorCode);
             }
 

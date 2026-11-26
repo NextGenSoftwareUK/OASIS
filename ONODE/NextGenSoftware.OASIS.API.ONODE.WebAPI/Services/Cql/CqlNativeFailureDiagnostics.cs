@@ -62,9 +62,9 @@ internal static class CqlNativeFailureDiagnostics
             summary.HoloOasisStartup?.AppInterfaces, summary.HoloOasisStartup?.CellListReplies, summary.HoloOasisStartup?.RunningCells, summary.MongoCommandCode);
     }
 
-    internal static void Query(HttpContext context, ProviderType provider, Exception error)
+    internal static void Query(HttpContext context, ProviderType provider, Exception error, long elapsedMilliseconds)
     {
         var logger = context.RequestServices?.GetService<ILoggerFactory>()?.CreateLogger("OASIS.CQL.NativeFailure");
-        if (logger != null) Record(logger, provider, false, error);
+        if (logger != null) Record(logger, provider, false, error, elapsedMilliseconds);
     }
 }
