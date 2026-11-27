@@ -73,3 +73,15 @@ Setting every `OASIS_SANDBOX_*` flag to `false` in production crashed WEB4 at st
 its flag. WEB4 production returned 502 for a few minutes (deployment 02:07:52 UTC, restored about 02:19 UTC by
 restoring the flags and rolling back). Production has no deploy health check configured, so a crashing
 deployment replaced the working one. `ONODE/.../railway.json` declares `/api/health`, but it is not applied.
+
+## Resume after the weekly usage reset (29 November 2026)
+
+Decision (Tech Lead): stop now and finish on-demand sidecars after the reset.
+
+- Fix the restart-on-query gap first.
+- Build in CI. The local build failed with errors in the HoloNET ORM project only, before reaching WEB4, so the
+  C# in `2ed1c759663` is unverified.
+- Then DNA settings, `SIDECAR` logs, status endpoint and tests.
+- Roll out to development first and verify there, then production and staging. Never take production down.
+
+State at stop: no code from this branch is merged or deployed. Production sidecar flags are back to `true`.
