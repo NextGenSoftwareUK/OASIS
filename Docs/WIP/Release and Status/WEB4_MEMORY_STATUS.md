@@ -154,3 +154,23 @@ Inference: the seeded records were encrypted with the development keys, so produ
 Fix options: (a) generate production's own seed bundles with production's keys and set its catalogue ID, or
 (b) give production the development keys and catalogue ID. Before (b), check that nothing in production's sandbox
 IPFS or SOLID volumes is encrypted with the current production keys, because it would become unreadable.
+
+### IPFS and SOLID production queries fixed (27 November 2026)
+
+Confirmed cause: the seed records were encrypted with development's keys (production's key failed authentication on
+them), and production's catalogue ID did not exist in its IPFS store. Fix: the same records re-encrypted with
+production's own keys, and `OASIS_SANDBOX_IPFS_BOOTSTRAP_JSON`, `OASIS_SANDBOX_SOLID_BOOTSTRAP_JSON`,
+`IPFSOASIS.LookUpIPFSAddress` (now `QmQMABFPm1ZbeTysKfLECNnE2a7kFQ89jShsyWUZKfudpG`) and
+`CQL_HOSTED_QUERY_EXAMPLES_JSON` updated. Both example queries on both sources return rows on production.
+The old stores are kept on the volume as `/data/COSMIC/SandboxIPFS.pre-reseed` and `SandboxSOLID.pre-reseed`
+(about 3 MB); delete them once no longer wanted.
+
+### Next improvements requested by the owner (0 of 3 done; stopped at 96% weekly usage)
+
+1. Holochain conductor on demand (start on first use, stop after 10 idle minutes), unless production needs it for
+   real data. It is the main idle CPU cost on development and about 200 MB.
+2. Build sandbox-only components into the development image only, behind a build argument.
+3. `HostProfile` and per-provider `ConnectionMode` from `Docs/Devs/ONODE_HOST_PROFILES_AND_PROVIDER_HOSTING.md`,
+   then move production sources to External where a free option exists. New external accounts or keys need the owner.
+
+Roll out each to development first, then staging and production behind the health check.
