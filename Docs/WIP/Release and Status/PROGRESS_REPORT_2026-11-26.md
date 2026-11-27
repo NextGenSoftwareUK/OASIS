@@ -45,7 +45,7 @@ The checklist is `Docs/WIP/COSMIC ORM/CQL_PARITY_CHECKLIST.md`. A row counts as 
 - 107 sources are available in the dev sandbox, including Blockscout and HoloOASIS.
 - Priority providers: 14/15. TRON needs a TronGrid key.
 - Recent fixes: Blockscout timeout, CQL diagnostics.
-- Query modes in the sandbox: JSON CQL, SQL-like, and free text (AI). Only JSON CQL is an API endpoint today. The other two run in the browser (`cql-text.js`, `cql-ask.js`). Making them API endpoints is now phase 2a (below).
+- Query modes in the sandbox: JSON CQL, SQL-like, and free text (AI). SQL-like and free text are now API endpoints on Development too (phase 2a, done).
 
 ## Native data import and virtual holon mappings
 
@@ -57,9 +57,17 @@ The checklist is `Docs/WIP/COSMIC ORM/CQL_PARITY_CHECKLIST.md`. A row counts as 
 Recorded at the top of `Docs/WIP/COSMIC ORM/CQL_COMPLETION_ROADMAP.md`.
 
 1. Phase 1: COSMIC ORM parity checklist to 164/164.
-2. Phase 2a (do first): SQL-like and free-text queries as WEB4 API endpoints (`/api/data/query-cql/sql` and `/ask`), plus the SDK, Postman, docs, Learn site and STAR CLI. **In progress now.**
+2. Phase 2a: **done.** SQL-like and free-text endpoints (`POST /api/data/query-cql/sql` and `/ask`) are on Development, and the SDK, STAR CLI, docs and sandbox page use them. Production needs the next promotion.
 3. Phase 2b: every parity feature on all 234 providers (native where possible, clearly flagged fallback otherwise), tracked as a provider x feature table.
 4. Phase 2c: native data import and virtual holon mappings on every provider, and virtual mappings on any source the user maps.
+
+## Hosting and cost
+
+- Railway runs WEB4 to WEB10 in production, development and staging. Neo4j's Railway deployments are stopped (volume kept); HyperDrive fail-over routes around it.
+- All WEB services: `DOTNET_gcServer=0`, `DOTNET_GCConserveMemory=5`, app sleeping, Watch Paths that skip docs, memory limits (WEB4 3 GB, WEB5/6 1 GB, WEB7 to WEB10 0.5 GB).
+- Production memory: about 4.6 GB to about 2.5 GB.
+- WEB4 sandbox sidecars can now run on demand (stopped after 10 idle minutes). Development measured 1,481 MB to 974 MB.
+- Next (proposed, phase 2d): host profiles and per-provider connection modes in the DNA, and providers on free tiers. See `Docs/Devs/ONODE_HOST_PROFILES_AND_PROVIDER_HOSTING.md`.
 
 ## Design recommendations (26 Nov 2026)
 
@@ -73,7 +81,7 @@ These came out of a review of the OASIS design. David reports that 4, 5 and 6 ar
 | 4 | Route by cost and speed as well as health, so routine reads never land on an expensive or slow chain. | Done (per David) |
 | 5 | Encrypt by default on public providers (chains, IPFS), with clear key management and recovery. | Done (per David) |
 | 6 | Report where every result came from: which provider answered, native or fallback, fresh copy or replica. | Done (per David) |
-| 7 | Make SQL the front door: lead the docs and SDK with the SQL-like endpoint, JSON CQL for power users, free text for AI. | In progress (phase 2a) |
+| 7 | Make SQL the front door: lead the docs and SDK with the SQL-like endpoint, JSON CQL for power users, free text for AI. | Endpoints done (phase 2a) |
 
 ## Docs, SDKs and sites (done)
 
@@ -100,7 +108,7 @@ These came out of a review of the OASIS design. David reports that 4, 5 and 6 ar
 ## Needs David
 
 - Publish the updated WEB4 to WEB10 SDKs to npm.
-- Railway: set Watch Paths on WEB4 to WEB10 to skip `Docs/**` and `*.md`.
+- Railway Watch Paths on WEB4 to WEB10: done 26 Nov.
 - GitHub Actions: check billing or capacity.
 - TronGrid key for TRON, and accounts for the hosted-account providers.
 - Cloud workers: give them the git identity line and the claims and CI rules.

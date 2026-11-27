@@ -34,6 +34,17 @@ See `Docs/Devs/NATIVE_DATA_IMPORT.md`.
 
 Same rules as phase 2b: native where possible, a clearly flagged fallback otherwise, tracked as done/total.
 
+### Phase 2d: ONODE host profiles and provider hosting
+
+Design (PROPOSED, not built): `Docs/Devs/ONODE_HOST_PROFILES_AND_PROVIDER_HOSTING.md`. Each ONODE starts only what its host supports, and providers are hosted wherever is cheapest.
+
+| Step | Status |
+|---|---|
+| (a) On-demand sidecars (`OASIS.Sandbox.Sidecars`) | Built on Development; rollout in progress |
+| (b) `ONODE.HostProfile` and per-provider `ConnectionMode` in the DNA, typed C# defaults, every DNA copy synced | Open |
+| (c) Move stateful services off Railway to free tiers, so Railway runs only the thin APIs | Open |
+| (d) Node-profile setup guide with sample DNA for Railway, Holo, ThreeFold, Akash and Raspberry Pi | Open |
+
 ### Design recommendations (26 Nov 2026)
 
 These came out of a review of the OASIS design. David reports that 4, 5 and 6 are already built; the others are open roadmap items.
