@@ -95,3 +95,52 @@ stopped mid-request. Logs start with `SIDECAR` (start, ready, stop, crash, failu
 always-on or shutdown). Wizard-only status: `GET /api/admin/cql/sidecars`. The catalogue still reports a verified
 source as available while its sidecar is stopped (it has no separate "on demand" state). Start-up verification
 starts every enrolled sidecar once; they stop after the idle period. Holochain is not covered. No real-sidecar CI test yet.
+
+## Final status (27 November 2026). This supersedes the earlier sections
+
+On-demand sidecars are live on production and development (`OnDemand: true`, `IdleMinutes: 10`, `AlwaysOn: ""`).
+Code: `Development` 094477f302 and a3cb4dc0e2; `master` c28cf1718c. Start-up launches no sidecar; a query starts the
+one it needs; idle stops it.
+
+| WEB4 memory (Railway) | Before | After, idle |
+|---|---|---|
+| Production | about 1,765 MB | about 795 MB |
+| Development | 1,600 to 1,730 MB | 780 to 840 MB |
+
+Left at idle: the API (about 630 to 645 MB resident), Holochain (180 to 205 MB) and the supervisor (67 MB).
+Production CPU at idle was 0.03 to 0.05 vCPU. Development varied from 0.17 to 0.93 vCPU; one earlier sample showed
+Holochain at 86% of a core. Railway's memory figure includes file cache. Memory rises while sidecars are in use
+(SOLID alone about 690 MB); production's container total was 2,141 MB just after all had been queried.
+
+Real queries returned rows on both environments for PouchDB, GUN, Dapr, NATS, Waku, OrbitDB and OpenVINO, and on
+development for IPFS and SOLID.
+
+### Open defect: IPFS and SOLID example queries fail on production
+
+- Symptom: `POST /api/data/query-cql` with each catalogue example returns 503 `CQL_QUERY_FAILED`, repeatably.
+  The catalogue still lists both as available. The same examples return 3 rows on development.
+- Errors in production logs: `CQL native failure provider=IPFSOASIS phase=query category=http` and
+  `provider=SOLIDOASIS phase=query category=other`. Also `Replication source binding IPFSOASIS unavailable`
+  / `Could not capture the IPFS catalogue identity`, and `Connection refused (127.0.0.1:5001)` from
+  `IPFSOASIS.ActivateProviderAsync` (seen while the sidecar was stopped).
+- Ruled out as the likely cause: on-demand. With `AlwaysOn: "IPFSOASIS,SOLIDOASIS"` (sidecars started with the API,
+  sources activated at boot, as before) both still failed. A slow first start is also ruled out: retries with the
+  sidecars running failed.
+- Not ruled out: these queries were not tested on production before this change, so an old failure is not proven.
+  Production source data and settings for the two (volume contents, catalogue CID, SOLID records) were not compared
+  with development.
+- Related: HyperDrive code outside CQL queries can try to activate IPFSOASIS without starting its sidecar.
+  IPFSOASIS is in the production failover and load-balance lists.
+
+### Other follow-ups
+
+- Holochain is not on demand (started by `HoloOasisDevelopmentConductor`).
+- No .NET or real-sidecar CI test; supervisor tests are in `Scripts/Sandbox/test_on_demand_sidecars.cjs`.
+- Staging has no sidecars and was not redeployed; its Railway DNA and the STAR ODK DNA template lack
+  `OASIS.Sandbox.Sidecars` (`{"OnDemand": false, "IdleMinutes": 10, "AlwaysOn": ""}`).
+- The catalogue has no separate "available on demand" state.
+- The REST index line for the status route is on `Development` only (conflict on `master`). The npm SDK change
+  (`main` 8b3c134) is not published. The MCP, gRPC and GraphQL surfaces were not checked for the new route.
+- Production and staging now have the `/api/health` deploy check (600 s). Neither deploys on push; a variable
+  change builds the latest `master`.
+- The Railway guide still says on-demand "is on `Development`"; it is on `master` too.
