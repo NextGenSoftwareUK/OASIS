@@ -42,3 +42,24 @@ Check: `Scripts/check_api_surface_sync.py` (workflow `.github/workflows/api-surf
 - CI uses no secrets, so it cannot read the private WEB6 and STAR ODK submodules: WEB5/WEB6 routes are checked only when
   the script runs locally with them checked out. MCP is checked in CI from the committed `api_surface_mcp_index.json`.
 - Running the same check inside the STAR-ODK and OASIS-WEB6 repositories is the follow-up that closes that hole.
+
+## PAUSED 2026-11-27 (David) - resume from here
+
+Branch `claude/api-surface-sync` (OASIS). Nothing from this work is on OASIS `Development` or `master`.
+
+| Step | State |
+| --- | --- |
+| 1 Audit | done for REST vs SDK, MCP, Postman (7/7 APIs); gRPC and GraphQL counted only |
+| 2 Close gaps | CQL MCP 3/3; SDK 1/1; Postman complete (7/7 APIs); other MCP gaps 0 closed (see "Left") |
+| 3 CI check | written, passes locally; never run on GitHub Actions |
+| 4 Push | SDK main 1/1 and WEB6 Development 1/1 pushed; OASIS Development and master 0/2 |
+| 5 Report | this file |
+
+Remaining:
+- Rebase on `origin/Development`, check the CI queue is under 35 (runs from the last 12 hours), push as one batch.
+- Put the docs (this file, ACTIONS-FOR-DAVID entry, Postman collections, MCP catalogue) on `master` too.
+- Not verified: the MCP test project was not built or run (restore fails in this worktree: `Chaos.NaCl` not found);
+  the three new tool methods were compiled against stubs only. Check the OASIS-WEB6 CI on `06649bf`.
+- `scripts/extract-endpoints.js` in the WEB4 SDK skips routes written as `"~" + Constant`; teach it before the next regeneration.
+- A temporary detached worktree of each of the 7 SDK repos remains under this session's scratchpad (`sdk/`); remove with
+  `git worktree remove`.
