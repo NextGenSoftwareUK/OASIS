@@ -45,19 +45,17 @@ Check: `Scripts/check_api_surface_sync.py` (workflow `.github/workflows/api-surf
 
 ## PAUSED 2026-11-27 (David) - resume from here
 
-Branch `claude/api-surface-sync` (OASIS). Nothing from this work is on OASIS `Development` or `master`.
+Merged into OASIS `Development` on 2026-11-27 at David's request (branch `claude/api-surface-sync`).
 
 | Step | State |
 | --- | --- |
 | 1 Audit | done for REST vs SDK, MCP, Postman (7/7 APIs); gRPC and GraphQL counted only |
 | 2 Close gaps | CQL MCP 3/3; SDK 1/1; Postman complete (7/7 APIs); other MCP gaps 0 closed (see "Left") |
 | 3 CI check | written, passes locally; never run on GitHub Actions |
-| 4 Push | SDK main 1/1 and WEB6 Development 1/1 pushed; OASIS Development and master 0/2 |
+| 4 Push | SDK main 1/1 and WEB6 Development 1/1 pushed; OASIS Development merged; docs copied to master |
 | 5 Report | this file |
 
 Remaining:
-- Rebase on `origin/Development`, check the CI queue is under 35 (runs from the last 12 hours), push as one batch.
-- Put the docs (this file, ACTIONS-FOR-DAVID entry, Postman collections, MCP catalogue) on `master` too.
 - Not verified: the MCP test project was not built or run (restore fails in this worktree: `Chaos.NaCl` not found);
   the three new tool methods were compiled against stubs only. Check the OASIS-WEB6 CI on `06649bf`.
 - `scripts/extract-endpoints.js` in the WEB4 SDK skips routes written as `"~" + Constant`; teach it before the next regeneration.
