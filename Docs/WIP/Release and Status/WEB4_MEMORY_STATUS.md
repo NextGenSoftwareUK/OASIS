@@ -45,3 +45,31 @@ The 12 sidecar processes hold about 670 MB of private memory, more than the API 
    `Docker/host-sandbox-*.cjs` and the source health checks.
 
 Recommendation: option 1, tried on development first, then option 4 if the sources must stay live in production.
+
+## On-demand sidecars: where work stopped (27 November 2026)
+
+**Do not merge commit `2ed1c759663` as it stands.** `CqlHostedSources` activates every enrolled source at start-up
+through `ActivateReadSourceAsync`, and query execution does not call it again. With that commit and
+`OASIS_SANDBOX_IDLE_MINUTES` set, sidecars would start at boot, stop when idle and not restart for a query.
+Without that variable behaviour is unchanged. Its WEB4 build had not finished, so the C# part is unverified.
+
+Done: `Docker/host-sandbox-ondemand.cjs` (start on request, one shared start, idle stop) and
+`Scripts/Sandbox/test_on_demand_sidecars.cjs` (passes).
+
+Remaining:
+1. Take a lease around each query's execution (acquire before, release after), so a stopped sidecar restarts
+   and is never stopped mid-request. Decide whether start-up verification starts then idles them, or is deferred.
+2. DNA `OASIS.Sandbox.Sidecars` (OnDemand, IdleMinutes default 10 and minimum 2, AlwaysOn) with typed defaults,
+   every OASIS_DNA copy and Railway `OASIS_DNA_JSON`.
+3. `SIDECAR` log lines, Wizard status endpoint `GET /api/admin/cql/sidecars`, "available on demand" in the catalogue.
+4. Fake-clock tests for in-flight, crash restart and always-on; one CI test with a real sidecar.
+5. Holochain is started by WEB4 itself (`HoloOasisDevelopmentConductor`) and needs its own idle stop.
+6. Roll out to dev, then production and staging (staging currently has no sidecars).
+
+## Production outage, 27 November 2026
+
+Setting every `OASIS_SANDBOX_*` flag to `false` in production crashed WEB4 at start-up
+("PouchDB CQL requires its owned native runtime to be enabled"): each source's settings must be removed with
+its flag. WEB4 production returned 502 for a few minutes (deployment 02:07:52 UTC, restored about 02:19 UTC by
+restoring the flags and rolling back). Production has no deploy health check configured, so a crashing
+deployment replaced the working one. `ONODE/.../railway.json` declares `/api/health`, but it is not applied.
