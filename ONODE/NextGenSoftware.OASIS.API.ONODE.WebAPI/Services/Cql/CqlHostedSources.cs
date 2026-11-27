@@ -21,6 +21,8 @@ public interface ICqlHostedSourceRegistry
     IOASISProvider Find(ProviderType provider);
     bool HasIndependentActivation(ProviderType provider) => false;
     Task ActivateReadSourceAsync(ProviderType provider, CancellationToken cancellationToken);
+    /// <summary>Make the source's adapter findable without contacting or activating the source.</summary>
+    Task PrepareReadSourceAsync(ProviderType provider, CancellationToken cancellationToken) => Task.CompletedTask;
 }
 
 public sealed record CqlHostedTextKeyProfile(string MetadataKey, int MaximumKeyCharacters, int MaximumSetKeys);
@@ -120,6 +122,16 @@ public sealed class CqlHostedSources : BackgroundService
         var started = Stopwatch.GetTimestamp();
         try
         {
+            if (CqlSandboxSidecar.IsDeferred(provider))
+            {
+                // Available on demand: described from its configuration; the first query starts and activates it.
+                await registry.PrepareReadSourceAsync(provider, token);
+                verified[provider] = true;
+                failures.TryRemove(provider, out _);
+                if (ReadyAdapter(provider) == null)
+                    throw new InvalidOperationException("CQL_SOURCE_ADAPTER_INVALID");
+                return null;
+            }
             await registry.ActivateReadSourceAsync(provider, token);
             token.ThrowIfCancellationRequested();
             verified[provider] = true;
@@ -230,7 +242,7 @@ public sealed class CqlHostedSources : BackgroundService
         var adapter = storage as ICosmicQueryStorageProvider;
         var active = storage is ICosmicReadOnlyQueryActivation readSource
             ? readSource.IsQuerySourceActivated : storage?.IsProviderActivated == true;
-        return active && storage.ProviderType?.Value == type
+        return (active || storage != null && CqlSandboxSidecar.IsDeferred(type)) && storage.ProviderType?.Value == type
             && adapter?.QueryProviderType == type && adapter.QueryCapabilities != null
             && CqlV1Compiler.SupportedReadProfile(type) ? adapter : null;
     }

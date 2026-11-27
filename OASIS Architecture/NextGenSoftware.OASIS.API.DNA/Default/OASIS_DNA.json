@@ -780,6 +780,7 @@
       "GroupCacheSeconds": 15
     },
     "Sandbox": {
+      "Sidecars": { "OnDemand": false, "IdleMinutes": 10, "AlwaysOn": "" },
       "EnableDevelopmentWeb4Preview": false,
       "Enabled": false,
       "Providers": "MongoDBOASIS, SQLLiteDBOASIS, Neo4jOASIS",

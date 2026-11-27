@@ -29,7 +29,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 public sealed partial class CqlV1Providers : ICqlV1Providers, ICqlVirtualMappingReader
 {
     private readonly ICqlHostedSourceRegistry sources;
-    public CqlV1Providers(ICqlHostedSourceRegistry sources = null) => this.sources = sources;
+    private readonly Microsoft.AspNetCore.Http.IHttpContextAccessor http;
+    public CqlV1Providers(ICqlHostedSourceRegistry sources = null, Microsoft.AspNetCore.Http.IHttpContextAccessor http = null)
+    {
+        this.sources = sources;
+        this.http = http;
+    }
 
     public IOASISProvider Resolve(ProviderType? requested)
     {
@@ -37,7 +42,22 @@ public sealed partial class CqlV1Providers : ICqlV1Providers, ICqlVirtualMapping
         var provider = requested.HasValue
             ? sources == null ? registry.GetStorageProvider(requested.Value) : sources.Find(requested.Value)
             : registry.CurrentStorageProvider;
-        if (provider == null || !provider.IsProviderActivated
+        if (provider == null)
+            throw new InvalidOperationException("Provider unavailable.");
+        // Start the source's sidecar if it is stopped, and keep it until this request's response has been sent.
+        var release = requested.HasValue ? CqlSandboxSidecar.Acquire(requested.Value) : null;
+        if (release != null)
+        {
+            var response = http?.HttpContext?.Response;
+            if (response == null) release();
+            else response.OnCompleted(() => { release(); return System.Threading.Tasks.Task.CompletedTask; });
+        }
+        // A deferred source was not activated at start-up: activate it now that its sidecar is running.
+        // ASP.NET Core has no synchronization context, so waiting here cannot deadlock.
+        if (release != null && sources != null && provider is ICosmicReadOnlyQueryActivation { IsQuerySourceActivated: false }
+            && CqlSandboxSidecar.IsDeferred(requested.Value))
+            sources.ActivateReadSourceAsync(requested.Value, System.Threading.CancellationToken.None).GetAwaiter().GetResult();
+        if (!provider.IsProviderActivated
             && (provider is not ICosmicReadOnlyQueryActivation readSource || !readSource.IsQuerySourceActivated))
             throw new InvalidOperationException("Provider unavailable.");
         return provider;
@@ -111,9 +131,20 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
         => profiles.TryGetValue(provider, out var profile) ? profile.Storage
             : ProviderManager.Instance.GetStorageProvider(provider);
 
+    public async Task PrepareReadSourceAsync(ProviderType provider, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (profiles.ContainsKey(provider)) return;
+        var registration = await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(provider,
+            activateProviderIfOASISProviderBootTypeIsHot: false);
+        if (registration == null || registration.IsError || registration.Result == null)
+            throw new InvalidOperationException("CQL_SOURCE_REGISTRATION_FAILED");
+    }
+
     public async Task ActivateReadSourceAsync(ProviderType provider, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        await using var sidecar = await CqlSandboxSidecar.AcquireAsync(provider, cancellationToken);
         IOASISProvider storage;
         if (profiles.TryGetValue(provider, out var profile)) storage = profile.Storage;
         else
