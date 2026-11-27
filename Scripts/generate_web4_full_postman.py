@@ -64,16 +64,26 @@ CONCAT = re.compile(r'"~"\s*\+\s*(\w+)\.(\w+)')
 
 
 def resolve_constants(src: str) -> str:
-    """Expand [HttpPost("~" + Routes.Name)] to the literal route; fail rather than emit "~"."""
+    """Expand [HttpPost("~" + Routes.Name)] to the literal route; fail rather than emit "~".
+
+    The constants live in the private API Core submodule, so their values are recorded in
+    api_surface_route_constants.json. Wherever the source is checked out, the record must match it.
+    """
+    recorded = json.loads((ROOT / "Scripts/api_surface_route_constants.json").read_text(encoding="utf-8"))
+
     def literal(match):
         owner, member = match.groups()
+        name = f"{owner}.{member}"
+        value = recorded.get(name)
         for root in CONSTANT_ROOTS:
             for path in (ROOT / root).rglob("*.cs"):
                 text = path.read_text(encoding="utf-8-sig", errors="replace")
-                found = re.search(rf'class {owner}\b[^{{]*\{{[^}}]*?const string {member}\s*=\s*"([^"]*)"', text)
-                if found:
-                    return f'"~{found.group(1)}"'
-        raise SystemExit(f"cannot resolve route constant {owner}.{member}")
+                found = re.search(rf'class {owner}[^{{]*\{{[^}}]*?const string {member}\s*=\s*"([^"]*)"', text)
+                if found and found.group(1) != value:
+                    raise SystemExit(f"record {name} = {found.group(1)!r} in Scripts/api_surface_route_constants.json")
+        if value is None:
+            raise SystemExit(f"add route constant {name} to Scripts/api_surface_route_constants.json")
+        return f'"~{value}"'
     return CONCAT.sub(literal, src)
 
 
