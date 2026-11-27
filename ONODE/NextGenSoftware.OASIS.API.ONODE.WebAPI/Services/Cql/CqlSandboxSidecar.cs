@@ -21,6 +21,33 @@ internal static class CqlSandboxSidecar
         return string.IsNullOrEmpty(control) ? null : new Uri(new Uri(control), path);
     }
 
+    private static readonly object Sync = new();
+    private static System.Collections.Generic.HashSet<string> deferred;
+
+    /// <summary>
+    /// True when this source's sidecar starts only for a real query: the supervisor runs it on demand and it is not
+    /// always on. Start-up must then neither start the sidecar nor activate the source.
+    /// </summary>
+    public static bool IsDeferred(ProviderType provider)
+    {
+        var status = Control("status");
+        if (status == null) return false;
+        lock (Sync)
+        {
+            if (deferred == null)
+            {
+                using var response = Client.Send(new HttpRequestMessage(HttpMethod.Get, status));
+                Require(response);
+                using var json = System.Text.Json.JsonDocument.Parse(response.Content.ReadAsStream());
+                var names = new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
+                foreach (var item in json.RootElement.EnumerateArray())
+                    if (!item.GetProperty("alwaysOn").GetBoolean()) names.Add(item.GetProperty("name").GetString());
+                deferred = names;
+            }
+            return deferred.Contains(provider.ToString());
+        }
+    }
+
     /// <summary>For the synchronous source resolver. Returns the action that releases the lease, or null if none was taken.</summary>
     public static Action Acquire(ProviderType provider)
     {
