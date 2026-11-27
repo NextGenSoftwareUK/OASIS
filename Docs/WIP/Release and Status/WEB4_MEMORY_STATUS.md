@@ -144,3 +144,13 @@ development for IPFS and SOLID.
 - Production and staging now have the `/api/health` deploy check (600 s). Neither deploys on push; a variable
   change builds the latest `master`.
 - The Railway guide still says on-demand "is on `Development`"; it is on `master` too.
+
+### Cause of the IPFS and SOLID production failures (found 27 November 2026, not fixed)
+
+Production has the same `OASIS_SANDBOX_IPFS_BOOTSTRAP_JSON` and `OASIS_SANDBOX_SOLID_BOOTSTRAP_JSON` as development,
+but different `OASIS_IPFS_STORAGE_ENCRYPTION_KEY` and `OASIS_SOLID_STORAGE_KEY`. Its DNA
+`IPFSOASIS.LookUpIPFSAddress` is `QmV7AwEX…`, while the seeded catalogue (and development) is `QmXZ6Sh7…`.
+Inference: the seeded records were encrypted with the development keys, so production cannot read them.
+Fix options: (a) generate production's own seed bundles with production's keys and set its catalogue ID, or
+(b) give production the development keys and catalogue ID. Before (b), check that nothing in production's sandbox
+IPFS or SOLID volumes is encrypted with the current production keys, because it would become unreadable.
