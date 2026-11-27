@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "WEB4 OASIS API (all routes)",
-    "description": "Every WEB4 OASIS API route (851 requests), generated from the ONODE WebAPI controllers by Scripts/generate_web4_full_postman.py. Set web4BaseUrl (production https://api.web4.oasisomniverse.one, dev https://dev.api.web4.oasisomniverse.one) and bearerToken (from POST /api/avatar/authenticate). Most request bodies are left as {}; see the controller or Swagger for each model. Do not run money, crypto or minting requests against production.",
+    "description": "Every WEB4 OASIS API route (852 requests), generated from the ONODE WebAPI controllers by Scripts/generate_web4_full_postman.py. Set web4BaseUrl (production https://api.web4.oasisomniverse.one, dev https://dev.api.web4.oasisomniverse.one) and bearerToken (from POST /api/avatar/authenticate). Most request bodies are left as {}; see the controller or Swagger for each model. Do not run money, crypto or minting requests against production.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -3803,6 +3803,28 @@
               }
             ],
             "url": "{{web4BaseUrl}}/api/Clan/{{clanId}}/members/{{avatarId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cql Sidecars",
+      "item": [
+        {
+          "name": "Get  [GET /api/admin/cql/sidecars]",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/admin/cql/sidecars"
           }
         }
       ]
