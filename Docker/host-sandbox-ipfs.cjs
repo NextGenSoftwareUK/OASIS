@@ -174,19 +174,21 @@ function assertSandbox(text) {
 async function main() {
   assertSandbox(process.env.OASIS_DNA_JSON);
   const services = [];
+  const groups = {}; // The same services keyed by provider, for on-demand starts.
+  const add = (provider, ...configured) => { groups[provider] = configured; services.push(...configured); };
   if (process.env.OASIS_SANDBOX_OPENVINO === 'true')
-    services.push(await require('./host-sandbox-openvino.cjs').serviceConfiguration(process.env,
+    add('IntelOpenVINOOASIS', await require('./host-sandbox-openvino.cjs').serviceConfiguration(process.env,
       require('./openvino-model-server-pins.json')));
   if (process.env.OASIS_SANDBOX_NATS === 'true')
-    services.push(await require('./host-sandbox-nats.cjs').serviceConfiguration(process.env));
+    add('NATSJetStreamOASIS', await require('./host-sandbox-nats.cjs').serviceConfiguration(process.env));
   if (process.env.OASIS_SANDBOX_DAPR === 'true')
-    services.push(...await require('./host-sandbox-dapr.cjs').serviceConfigurations(process.env));
+    add('DaprOASIS', ...await require('./host-sandbox-dapr.cjs').serviceConfigurations(process.env));
   if (process.env.OASIS_SANDBOX_DUCKDB === 'true')
     await require('./host-sandbox-duckdb.cjs').prepareEnvironment(process.env);
   if (process.env.OASIS_SANDBOX_IPFS === 'true') {
     const bundle = captureBundle(process.env.OASIS_SANDBOX_IPFS_BOOTSTRAP_JSON);
     const native = await bootstrap({ bundle, directory: '/data/COSMIC/SandboxIPFS', binary: '/usr/local/bin/ipfs' });
-    services.push({ command: '/usr/local/bin/ipfs', args: ['daemon', '--offline', '--migrate=false'],
+    add('IPFSOASIS', { command: '/usr/local/bin/ipfs', args: ['daemon', '--offline', '--migrate=false'],
       env: native.nativeEnv, check: signal => waitForNative(signal, native.peerId) });
   }
   if (process.env.OASIS_SANDBOX_SOLID === 'true') {
@@ -194,26 +196,29 @@ async function main() {
     const { Parser } = require('/opt/solid/node_modules/n3');
     const bundle = solid.captureBundle(process.env.OASIS_SANDBOX_SOLID_BOOTSTRAP_JSON);
     const native = await solid.prepare({ bundle, directory: '/data/COSMIC/SandboxSOLID' });
-    services.push({ ...native, check: signal => solid.verify(native, signal, Parser) });
+    add('SOLIDOASIS', { ...native, check: signal => solid.verify(native, signal, Parser) });
   }
   if (process.env.OASIS_SANDBOX_POUCHDB === 'true') {
     const pouch = require('./host-sandbox-pouchdb.cjs');
-    services.push(pouch.serviceConfiguration(process.env));
+    add('PouchDBOASIS', pouch.serviceConfiguration(process.env));
   }
   if (process.env.OASIS_SANDBOX_WAKU === 'true') {
     const waku = require('./host-sandbox-waku.cjs');
-    services.push(await waku.serviceConfiguration(process.env));
+    add('WakuOASIS', await waku.serviceConfiguration(process.env));
   }
   if (process.env.OASIS_SANDBOX_ORBITDB === 'true' || process.env.OASIS_SANDBOX_GUN === 'true') {
     const teaching = require('./host-sandbox-teaching.cjs');
     if (process.env.OASIS_SANDBOX_ORBITDB === 'true')
-      services.push(await teaching.serviceConfiguration(process.env, 'OrbitDBOASIS'));
+      add('OrbitDBOASIS', await teaching.serviceConfiguration(process.env, 'OrbitDBOASIS'));
     if (process.env.OASIS_SANDBOX_GUN === 'true')
-      services.push(await teaching.serviceConfiguration(process.env, 'GUNOASIS'));
+      add('GUNOASIS', await teaching.serviceConfiguration(process.env, 'GUNOASIS'));
   }
   if (!services.length && process.env.OASIS_SANDBOX_DUCKDB !== 'true')
     throw Error('No native sandbox source was explicitly enabled.');
-  return supervise({ services });
+  const idle = process.env.OASIS_SANDBOX_IDLE_MINUTES;
+  if (idle === undefined || idle === '') return supervise({ services });
+  if (!/^[1-9][0-9]{0,3}$/.test(idle)) throw Error('OASIS_SANDBOX_IDLE_MINUTES must be a whole number of minutes.');
+  return require('./host-sandbox-ondemand.cjs').superviseOnDemand({ groups, idleMilliseconds: Number(idle) * 60000 });
 }
 
 module.exports = { captureBundle, bootstrap, supervise, waitForNative, assertSandbox };

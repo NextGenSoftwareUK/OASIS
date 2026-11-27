@@ -114,6 +114,7 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
     public async Task ActivateReadSourceAsync(ProviderType provider, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        await CqlSandboxSidecar.EnsureAsync(provider, cancellationToken);
         IOASISProvider storage;
         if (profiles.TryGetValue(provider, out var profile)) storage = profile.Storage;
         else
