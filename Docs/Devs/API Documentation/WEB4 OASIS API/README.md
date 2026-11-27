@@ -53,6 +53,7 @@ Welcome to the WEB4 OASIS API documentation. This API provides the foundational 
 
 ### Admin APIs
 - [OLand Unit API](OLand-Unit-API.md) - OLand unit management (`/api/admin/olandunit`)
+- CQL sandbox sidecar status (Wizard only): `GET /api/admin/cql/sidecars` lists each on-demand sidecar's state, active requests, last use, uptime and memory. See [Railway deployment](../../RAILWAY_DEPLOYMENT.md#web4-sidecars).
 
 ### Disabled APIs
 - [OAPP API](OAPP-API.md) - OASIS Application management (`/api/oapp`) - *Currently commented out*
