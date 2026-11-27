@@ -59,7 +59,7 @@ Production memory went from about 4.6 GB to about 2.5 GB.
 
 ## WEB4 sidecars
 
-Sidecars are helper processes inside the WEB4 container that serve CQL sandbox sources (for example NATS JetStream). On demand, a sidecar starts on the first query for its source and stops after the idle period. Start-up launches none. This is on `Development`.
+Sidecars are helper processes inside the WEB4 container that serve CQL sandbox sources (for example NATS JetStream). On demand, a sidecar starts on the first query for its source and stops after the idle period. Start-up launches none. This is on `Development` and `master`.
 
 DNA `OASIS.Sandbox.Sidecars`: `OnDemand` (default `false`), `IdleMinutes` (default 10, minimum 2; 2 was used while testing on dev), `AlwaysOn` (comma-separated source providers).
 
