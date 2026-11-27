@@ -85,3 +85,13 @@ Decision (Tech Lead): stop now and finish on-demand sidecars after the reset.
 - Roll out to development first and verify there, then production and staging. Never take production down.
 
 State at stop: no code from this branch is merged or deployed. Production sidecar flags are back to `true`.
+
+## On-demand sidecars built (27 November 2026)
+
+Resumed on the owner's instruction. Settings: `OASIS.Sandbox.Sidecars` in the DNA: `OnDemand` (default `false`),
+`IdleMinutes` (default 10, minimum 2), `AlwaysOn` (comma-separated source providers, for example `SOLIDOASIS, GUNOASIS`).
+`CqlV1Providers.Resolve` and source activation lease the sidecar, so a stopped one restarts on a query and is not
+stopped mid-request. Logs start with `SIDECAR` (start, ready, stop, crash, failure; reason first-use, idle, crash,
+always-on or shutdown). Wizard-only status: `GET /api/admin/cql/sidecars`. The catalogue still reports a verified
+source as available while its sidecar is stopped (it has no separate "on demand" state). Start-up verification
+starts every enrolled sidecar once; they stop after the idle period. Holochain is not covered. No real-sidecar CI test yet.

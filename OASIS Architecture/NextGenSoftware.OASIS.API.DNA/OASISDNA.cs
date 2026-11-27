@@ -140,6 +140,16 @@ namespace NextGenSoftware.OASIS.API.DNA
         public int GroupCacheSeconds { get; set; } = 15;
     }
 
+    public class SandboxSidecarSettings
+    {
+        /// <summary>Start each sidecar when its source is first used and stop it when idle, instead of running all of them all the time.</summary>
+        public bool OnDemand { get; set; } = false;
+        /// <summary>Minutes without a request before a sidecar is stopped. At least 2.</summary>
+        public int IdleMinutes { get; set; } = 10;
+        /// <summary>Comma-separated source providers whose sidecars always run, for example during a live demo.</summary>
+        public string AlwaysOn { get; set; } = "";
+    }
+
     /// <summary>The public sandbox: whether this node is one, how its throwaway demo avatars are named, limited and cleaned up.</summary>
     public class SandboxSettings
     {
@@ -148,6 +158,8 @@ namespace NextGenSoftware.OASIS.API.DNA
 
         /// <summary>Turns the sandbox endpoints and the demo avatar cleanup on. Only the sandbox deployment sets this.</summary>
         public bool Enabled { get; set; } = false;
+        /// <summary>How the container runs the sandbox source sidecars. Read by Docker/host-sandbox-ondemand.cjs.</summary>
+        public SandboxSidecarSettings Sidecars { get; set; } = new SandboxSidecarSettings();
         /// <summary>The providers a demo avatar's HyperDrive settings route across, comma-separated.</summary>
         public string Providers { get; set; } = "MongoDBOASIS, SQLLiteDBOASIS, Neo4jOASIS";
 

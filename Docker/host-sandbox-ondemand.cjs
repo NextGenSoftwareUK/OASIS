@@ -1,17 +1,38 @@
 /* Sidecars start when WEB4 asks for their source and stop after an idle period.
-   Enabled by OASIS_SANDBOX_IDLE_MINUTES; without it the supervisor starts everything up front. */
+   Enabled by OASIS.Sandbox.Sidecars.OnDemand in the DNA; otherwise the supervisor starts everything up front.
+   Every lifecycle log line starts with "SIDECAR". */
 'use strict';
 const http = require('node:http');
 const crypto = require('node:crypto');
 const { spawn } = require('node:child_process');
+const { readFileSync } = require('node:fs');
+
+// Resident memory of the group's processes (Linux), for logs and the status endpoint.
+function memoryMegabytes(children) {
+  let kilobytes = 0;
+  for (const owned of children) {
+    try { kilobytes += Number(/VmRSS:\s+(\d+)/.exec(readFileSync(`/proc/${owned.process.pid}/status`, 'utf8'))?.[1] ?? 0); }
+    catch { /* The process has exited, or this host has no /proc. */ }
+  }
+  return Math.round(kilobytes / 1024);
+}
+
+function settings(dnaText) {
+  const value = JSON.parse(dnaText || '{}')?.OASIS?.Sandbox?.Sidecars ?? {};
+  const minutes = value.IdleMinutes ?? 10;
+  if (!Number.isInteger(minutes) || minutes < 2) throw Error('OASIS.Sandbox.Sidecars.IdleMinutes must be a whole number of at least 2.');
+  return { onDemand: value.OnDemand === true, idleMilliseconds: minutes * 60000,
+    alwaysOn: String(value.AlwaysOn ?? '').split(',').map(name => name.trim()).filter(Boolean) };
+}
 
 async function superviseOnDemand({ groups, idleMilliseconds, launch = spawn, signals = process, stopMilliseconds = 10000,
   sweepMilliseconds = 30000, now = Date.now, api = { command: 'dotnet', args: ['NextGenSoftware.OASIS.API.ONODE.WebAPI.dll'] },
-  environment = process.env }) {
+  environment = process.env, alwaysOn = [], log = line => console.log(line) }) {
   const token = crypto.randomBytes(24).toString('hex');
   const shutdown = new AbortController();
   const state = new Map(Object.entries(groups).map(([name, services]) =>
-    [name, { name, services, children: [], running: false, lastUsed: 0, queue: Promise.resolve() }]));
+    [name, { name, services, children: [], running: false, starting: false, active: 0, startedAt: 0, lastUsed: 0,
+      queue: Promise.resolve() }]));
   // One lifecycle operation per group at a time: a start never overlaps a stop.
   const serial = (group, operation) => {
     const result = group.queue.then(operation);
@@ -28,7 +49,8 @@ async function superviseOnDemand({ groups, idleMilliseconds, launch = spawn, sig
     });
     return owned;
   }
-  async function stop(group) {
+  async function stop(group, reason) {
+    if (group.running && reason) log(`SIDECAR stop name=${group.name} reason=${reason} memoryFreedMb=${memoryMegabytes(group.children)}`);
     const children = group.children.splice(0);
     group.running = false;
     // Dependents stop before what they depend on (daprd before its state store).
@@ -40,11 +62,15 @@ async function superviseOnDemand({ groups, idleMilliseconds, launch = spawn, sig
       clearTimeout(timer);
     }
   }
-  async function ensure(group) {
+  async function ensure(group, reason) {
     group.lastUsed = now();
     if (group.running && group.children.every(owned => !owned.finished)) return;
+    if (group.running) { log(`SIDECAR crash name=${group.name}`); reason = 'crash'; }
     await stop(group);
     shutdown.signal.throwIfAborted();
+    const began = Date.now();
+    group.starting = true;
+    log(`SIDECAR start name=${group.name} reason=${reason}`);
     try {
       for (const source of group.services) {
         const owned = own(source.command, source.args, { stdio: 'inherit', env: source.env, cwd: source.cwd });
@@ -54,18 +80,37 @@ async function superviseOnDemand({ groups, idleMilliseconds, launch = spawn, sig
         await source.check(AbortSignal.any([shutdown.signal, exited.signal]));
         if (owned.finished) throw Error('Sidecar exited during startup.');
       }
-    } catch (error) { await stop(group); throw error; }
+    } catch (error) {
+      log(`SIDECAR failure name=${group.name} reason=${reason} startupMs=${Date.now() - began} error=${JSON.stringify(error.message)}`);
+      await stop(group);
+      throw error;
+    } finally { group.starting = false; }
     group.running = true;
-    group.lastUsed = now();
-    console.log(`Sidecar ${group.name} started on demand.`);
+    group.startedAt = group.lastUsed = now();
+    log(`SIDECAR ready name=${group.name} reason=${reason} startupMs=${Date.now() - began} memoryUsedMb=${memoryMegabytes(group.children)}`);
   }
+  const status = () => [...state.values()].map(group => {
+    const up = group.running && group.children.every(owned => !owned.finished);
+    return { name: group.name, state: group.starting ? 'starting' : up ? 'running' : 'stopped', alwaysOn: alwaysOn.includes(group.name),
+      activeRequests: group.active, lastUsed: group.lastUsed ? new Date(group.lastUsed).toISOString() : null,
+      uptimeSeconds: up ? Math.round((now() - group.startedAt) / 1000) : 0, memoryMb: up ? memoryMegabytes(group.children) : 0 };
+  });
+  // ensure takes a lease that release returns; a sidecar with a lease is never stopped for being idle.
   const server = http.createServer((request, response) => {
-    const match = /^\/([a-f0-9]{48})\/ensure\/([A-Za-z0-9]+)$/.exec(request.url);
-    if (request.method !== 'POST' || !match || match[1] !== token) { response.writeHead(404).end(); return; }
-    const group = state.get(match[2]);
+    const match = /^\/([a-f0-9]{48})\/(?:(ensure|release)\/([A-Za-z0-9]+)|status)$/.exec(request.url);
+    if (!match || match[1] !== token) { response.writeHead(404).end(); return; }
+    if (!match[2]) { response.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify(status())); return; }
+    const group = state.get(match[3]);
     if (!group) { response.writeHead(204).end(); return; } // This source has no sidecar.
-    serial(group, () => ensure(group)).then(() => response.writeHead(204).end(), error => {
-      console.error(`Sidecar ${group.name} failed to start: ${error.message}`);
+    if (match[2] === 'release') {
+      group.active = Math.max(0, group.active - 1);
+      group.lastUsed = now();
+      response.writeHead(204).end();
+      return;
+    }
+    group.active++;
+    serial(group, () => ensure(group, 'first-use')).then(() => response.writeHead(204).end(), () => {
+      group.active--;
       response.writeHead(503).end();
     });
   });
@@ -73,9 +118,12 @@ async function superviseOnDemand({ groups, idleMilliseconds, launch = spawn, sig
   const sweep = setInterval(() => {
     for (const group of state.values())
       serial(group, async () => {
-        if (!group.running || now() - group.lastUsed < idleMilliseconds) return;
-        await stop(group);
-        console.log(`Sidecar ${group.name} stopped after being idle.`);
+        if (alwaysOn.includes(group.name)) {
+          await ensure(group, 'always-on').catch(() => {});
+          return;
+        }
+        if (!group.running || group.active > 0 || now() - group.lastUsed < idleMilliseconds) return;
+        await stop(group, 'idle');
       });
   }, sweepMilliseconds);
   let interrupt;
@@ -83,6 +131,8 @@ async function superviseOnDemand({ groups, idleMilliseconds, launch = spawn, sig
   signals.on('SIGTERM', interrupt); signals.on('SIGINT', interrupt);
   let web4;
   try {
+    for (const group of state.values())
+      if (alwaysOn.includes(group.name)) await serial(group, () => ensure(group, 'always-on'));
     web4 = own(api.command, api.args, { stdio: 'inherit',
       env: { ...environment, OASIS_SIDECAR_CONTROL: `http://127.0.0.1:${server.address().port}/${token}/` } });
     return await Promise.race([web4.done, interrupted]);
@@ -91,9 +141,9 @@ async function superviseOnDemand({ groups, idleMilliseconds, launch = spawn, sig
     clearInterval(sweep);
     shutdown.abort();
     server.close(); server.closeAllConnections();
-    await Promise.all([...state.values()].map(group => serial(group, () => stop(group))));
+    await Promise.all([...state.values()].map(group => serial(group, () => stop(group, 'shutdown'))));
     if (web4 && !web4.finished) { web4.process.kill('SIGTERM'); await web4.done; }
   }
 }
 
-module.exports = { superviseOnDemand };
+module.exports = { superviseOnDemand, settings };

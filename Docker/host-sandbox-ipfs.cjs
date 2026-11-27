@@ -215,10 +215,10 @@ async function main() {
   }
   if (!services.length && process.env.OASIS_SANDBOX_DUCKDB !== 'true')
     throw Error('No native sandbox source was explicitly enabled.');
-  const idle = process.env.OASIS_SANDBOX_IDLE_MINUTES;
-  if (idle === undefined || idle === '') return supervise({ services });
-  if (!/^[1-9][0-9]{0,3}$/.test(idle)) throw Error('OASIS_SANDBOX_IDLE_MINUTES must be a whole number of minutes.');
-  return require('./host-sandbox-ondemand.cjs').superviseOnDemand({ groups, idleMilliseconds: Number(idle) * 60000 });
+  const onDemand = require('./host-sandbox-ondemand.cjs');
+  const sidecars = onDemand.settings(process.env.OASIS_DNA_JSON);
+  if (!sidecars.onDemand) return supervise({ services });
+  return onDemand.superviseOnDemand({ groups, idleMilliseconds: sidecars.idleMilliseconds, alwaysOn: sidecars.alwaysOn });
 }
 
 module.exports = { captureBundle, bootstrap, supervise, waitForNative, assertSandbox };
