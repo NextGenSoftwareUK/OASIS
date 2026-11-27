@@ -1521,6 +1521,7 @@ Still not enabled: router models such as `openrouter/auto` and per-request fees,
 
 ## Stop docs-only pushes from redeploying WEB4-WEB10 (Railway Watch Paths)
 
+- **DONE** (set 26 Nov 2026): Watch Paths `["**","!Docs/**","!**/*.md","!.github/**"]` on the WEB services. Nothing more needed.
 - Open 2026-11-25. Every push to `Development` rebuilds the dev WEB4-WEB10 services, even when only docs change. The new WORK-CLAIMS rule makes every session push `claim:` commits to Development: 11 of about 22 commits in the last two hours were docs-only claims, and 7 WEB4 dev deploys were queued at once. The sandbox keeps restarting, live checks can't find a stable window, and builds pile up.
 - What David needs to do: in the Railway dashboard, for each dev service WEB4-WEB10 (Settings, then Build, then Watch Paths), add patterns so changes that touch only docs never deploy, for example `**` plus the exclusions `!Docs/**`, `!**/*.md` and `!.github/**`. The same setting can be applied to production too.
 - Why David: this changes Railway service settings, which agents must not change on their own.
