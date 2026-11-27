@@ -174,3 +174,13 @@ The old stores are kept on the volume as `/data/COSMIC/SandboxIPFS.pre-reseed` a
    then move production sources to External where a free option exists. New external accounts or keys need the owner.
 
 Roll out each to development first, then staging and production behind the health check.
+
+### Paused (27 November 2026)
+
+Owner paused this work. Improvements: 0 of 3 done; nothing started. Weekly usage stop is 98%.
+
+Idle check on production after the reseed: about 1,150 MB while four sidecars ran, about 878 MB after all four
+stopped as idle (05:25 to 05:26 UTC). No sidecar was stuck. The earlier idle reading was about 795 MB.
+
+Before improvement 2: production serves the sidecar sources itself, so removing them from its image would stop
+those queries working there. Decide whether production keeps its sandbox sources first.
