@@ -29,7 +29,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 public sealed partial class CqlV1Providers : ICqlV1Providers, ICqlVirtualMappingReader
 {
     private readonly ICqlHostedSourceRegistry sources;
-    public CqlV1Providers(ICqlHostedSourceRegistry sources = null) => this.sources = sources;
+    private readonly Microsoft.AspNetCore.Http.IHttpContextAccessor http;
+    public CqlV1Providers(ICqlHostedSourceRegistry sources = null, Microsoft.AspNetCore.Http.IHttpContextAccessor http = null)
+    {
+        this.sources = sources;
+        this.http = http;
+    }
 
     public IOASISProvider Resolve(ProviderType? requested)
     {
@@ -40,6 +45,14 @@ public sealed partial class CqlV1Providers : ICqlV1Providers, ICqlVirtualMapping
         if (provider == null || !provider.IsProviderActivated
             && (provider is not ICosmicReadOnlyQueryActivation readSource || !readSource.IsQuerySourceActivated))
             throw new InvalidOperationException("Provider unavailable.");
+        // Start the source's sidecar if it is stopped, and keep it until this request's response has been sent.
+        var release = requested.HasValue ? CqlSandboxSidecar.Acquire(requested.Value) : null;
+        if (release != null)
+        {
+            var response = http?.HttpContext?.Response;
+            if (response == null) release();
+            else response.OnCompleted(() => { release(); return System.Threading.Tasks.Task.CompletedTask; });
+        }
         return provider;
     }
 
@@ -120,6 +133,7 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
     public async Task ActivateReadSourceAsync(ProviderType provider, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        await using var sidecar = await CqlSandboxSidecar.AcquireAsync(provider, cancellationToken);
         IOASISProvider storage;
         if (profiles.TryGetValue(provider, out var profile)) storage = profile.Storage;
         else

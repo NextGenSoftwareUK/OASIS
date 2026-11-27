@@ -180,6 +180,7 @@ RUN test -s /app/runtimes/linux-x64/native/libduckdb.so \
     && rm /tmp/duckdb-libraries.txt
 COPY Docker/entrypoint.onode.sh /entrypoint.sh
 COPY Docker/host-sandbox-ipfs.cjs /app/host-sandbox-ipfs.cjs
+COPY Docker/host-sandbox-ondemand.cjs /app/host-sandbox-ondemand.cjs
 COPY Docker/host-sandbox-solid.cjs /app/host-sandbox-solid.cjs
 COPY Docker/host-sandbox-pouchdb.cjs /app/host-sandbox-pouchdb.cjs
 COPY Docker/host-sandbox-teaching.cjs /app/host-sandbox-teaching.cjs

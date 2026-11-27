@@ -45,3 +45,53 @@ The 12 sidecar processes hold about 670 MB of private memory, more than the API 
    `Docker/host-sandbox-*.cjs` and the source health checks.
 
 Recommendation: option 1, tried on development first, then option 4 if the sources must stay live in production.
+
+## On-demand sidecars: where work stopped (27 November 2026)
+
+**Do not merge commit `2ed1c759663` as it stands.** `CqlHostedSources` activates every enrolled source at start-up
+through `ActivateReadSourceAsync`, and query execution does not call it again. With that commit and
+`OASIS_SANDBOX_IDLE_MINUTES` set, sidecars would start at boot, stop when idle and not restart for a query.
+Without that variable behaviour is unchanged. Its WEB4 build had not finished, so the C# part is unverified.
+
+Done: `Docker/host-sandbox-ondemand.cjs` (start on request, one shared start, idle stop) and
+`Scripts/Sandbox/test_on_demand_sidecars.cjs` (passes).
+
+Remaining:
+1. Take a lease around each query's execution (acquire before, release after), so a stopped sidecar restarts
+   and is never stopped mid-request. Decide whether start-up verification starts then idles them, or is deferred.
+2. DNA `OASIS.Sandbox.Sidecars` (OnDemand, IdleMinutes default 10 and minimum 2, AlwaysOn) with typed defaults,
+   every OASIS_DNA copy and Railway `OASIS_DNA_JSON`.
+3. `SIDECAR` log lines, Wizard status endpoint `GET /api/admin/cql/sidecars`, "available on demand" in the catalogue.
+4. Fake-clock tests for in-flight, crash restart and always-on; one CI test with a real sidecar.
+5. Holochain is started by WEB4 itself (`HoloOasisDevelopmentConductor`) and needs its own idle stop.
+6. Roll out to dev, then production and staging (staging currently has no sidecars).
+
+## Production outage, 27 November 2026
+
+Setting every `OASIS_SANDBOX_*` flag to `false` in production crashed WEB4 at start-up
+("PouchDB CQL requires its owned native runtime to be enabled"): each source's settings must be removed with
+its flag. WEB4 production returned 502 for a few minutes (deployment 02:07:52 UTC, restored about 02:19 UTC by
+restoring the flags and rolling back). Production has no deploy health check configured, so a crashing
+deployment replaced the working one. `ONODE/.../railway.json` declares `/api/health`, but it is not applied.
+
+## Resume after the weekly usage reset (29 November 2026)
+
+Decision (Tech Lead): stop now and finish on-demand sidecars after the reset.
+
+- Fix the restart-on-query gap first.
+- Build in CI. The local build failed with errors in the HoloNET ORM project only, before reaching WEB4, so the
+  C# in `2ed1c759663` is unverified.
+- Then DNA settings, `SIDECAR` logs, status endpoint and tests.
+- Roll out to development first and verify there, then production and staging. Never take production down.
+
+State at stop: no code from this branch is merged or deployed. Production sidecar flags are back to `true`.
+
+## On-demand sidecars built (27 November 2026)
+
+Resumed on the owner's instruction. Settings: `OASIS.Sandbox.Sidecars` in the DNA: `OnDemand` (default `false`),
+`IdleMinutes` (default 10, minimum 2), `AlwaysOn` (comma-separated source providers, for example `SOLIDOASIS, GUNOASIS`).
+`CqlV1Providers.Resolve` and source activation lease the sidecar, so a stopped one restarts on a query and is not
+stopped mid-request. Logs start with `SIDECAR` (start, ready, stop, crash, failure; reason first-use, idle, crash,
+always-on or shutdown). Wizard-only status: `GET /api/admin/cql/sidecars`. The catalogue still reports a verified
+source as available while its sidecar is stopped (it has no separate "on demand" state). Start-up verification
+starts every enrolled sidecar once; they stop after the idle period. Holochain is not covered. No real-sidecar CI test yet.
