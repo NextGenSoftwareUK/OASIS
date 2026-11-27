@@ -106,3 +106,15 @@ Then, for example, `dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.Uni
 The OASIS shared Atlas cluster used by dev, staging and production is not a test backend. Do not run provider tests, benchmarks, stress/soak loops, replication/sync tests or diagnostic polling against it. Reuse isolated local/CI Mongo containers (real-provider acceptance) or unit-test in-memory substitutes; never substitute mocks for shipping provider implementations. A separate throwaway Atlas project requires its own explicitly identified disposable configuration.
 
 Any exceptional shared-cluster test must be announced to David before it starts, with an explicit small operation bound, pauses between calls and capped retries. Client HTTP timeouts do not bound server-side operations or cancel background work. Do not infer permission from access to deployed credentials. Never copy secrets into source/evidence. Preserve blocked replication deliveries, including535/543; do not replay, clear, reauthorize or advance them to reduce load. Operational worker pauses must be explicit and preserve durable queues. Read Docs/WIP/HyperDrive-Providers/SHARED_MONGO_STANDDOWN_2026-11-18.md before resuming shared diagnostics.
+
+## Keep every API surface in sync (required)
+
+Whenever you add, change or remove an endpoint, operation or tool in any OASIS API (WEB4 to WEB10, STAR/WEB5, ONODE/ONET, REST, gRPC or GraphQL), update every surface that exposes or documents it in the same piece of work. They must never be stale:
+
+- REST controllers, gRPC services and protos, GraphQL schema and resolvers, kept consistent with each other.
+- The npm SDKs (`@oasisomniverse/web4-api` to `web10-api`): methods, `.d.ts` types, docs and tests.
+- MCP tools (`@oasisomniverse/mcp-server` and the WEB6 MCP tool catalogue).
+- Postman collections (`Scripts/generate_web4_full_postman.py`; the STAR `generate_postman_collection.py`).
+- Docs: `Docs/Devs/API Documentation`, the OASISDocsWebsite REST reference and SDK pages, the OASISLearnWebsite tutorials that use the endpoint, and the STAR CLI if it wraps the endpoint.
+
+List every surface you updated in your final report.
