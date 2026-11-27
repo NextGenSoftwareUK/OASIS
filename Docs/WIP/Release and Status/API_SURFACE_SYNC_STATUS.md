@@ -51,13 +51,13 @@ Merged into OASIS `Development` on 2026-11-27 at David's request (branch `claude
 | --- | --- |
 | 1 Audit | done for REST vs SDK, MCP, Postman (7/7 APIs); gRPC and GraphQL counted only |
 | 2 Close gaps | CQL MCP 3/3; SDK 1/1; Postman complete (7/7 APIs); other MCP gaps 0 closed (see "Left") |
-| 3 CI check | written, passes locally; never run on GitHub Actions |
+| 3 CI check | passing on GitHub Actions |
 | 4 Push | SDK main 1/1 and WEB6 Development 1/1 pushed; OASIS Development merged; docs copied to master |
 | 5 Report | this file |
 
 Remaining:
-- Not verified: the MCP test project was not built or run (restore fails in this worktree: `Chaos.NaCl` not found);
-  the three new tool methods were compiled against stubs only. Check the OASIS-WEB6 CI on `06649bf`.
+- Verified after the merge: the MCP server builds on all 5 platforms (run 45963273350) and the API surface check passes on
+  GitHub Actions (run 45963550336; first run failed because the API Core submodule is private, fixed by recording the
+  route constant in `Scripts/api_surface_route_constants.json`). The MCP unit test project has still not been run, and the
+  three new tools have not been called against a live API.
 - `scripts/extract-endpoints.js` in the WEB4 SDK skips routes written as `"~" + Constant`; teach it before the next regeneration.
-- A temporary detached worktree of each of the 7 SDK repos remains under this session's scratchpad (`sdk/`); remove with
-  `git worktree remove`.
