@@ -3,6 +3,7 @@
 ## Hosting
 
 - **[ONODE host profiles and provider hosting](ONODE_HOST_PROFILES_AND_PROVIDER_HOSTING.md)** (proposed design; on-demand sidecars built)
+- **[Railway deployment: operations guide](RAILWAY_DEPLOYMENT.md)** (environments, configuration, cost, sidecars, incidents)
 
 ## Subscription protocol update (2026-09-22)
 
