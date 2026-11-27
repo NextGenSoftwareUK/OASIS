@@ -1,0 +1,13 @@
+{
+ "intentional": {
+  "sdk": {},
+  "mcp": {
+   "WEB4 * /api/stripe/webhook*": "payment provider callback",
+   "WEB4 * /api/subscription/webhook*": "payment provider callback",
+   "WEB6 * /v1/channels/webhooks/{provider}*": "inbound channel webhook",
+   "WEB6 GET /.well-known/*": "discovery document"
+  },
+  "postman": {}
+ },
+ "mcpToolMap": {}
+}

@@ -1,0 +1,46 @@
+name: API surface sync
+
+# Fails when a REST route has no matching SDK method, MCP tool or Postman request. Uses no secrets:
+# WEB5/WEB6 controllers are in private submodules, so run the script locally with them checked out.
+
+on:
+  pull_request:
+    branches: [Development, master]
+    paths: &paths
+      - "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/**"
+      - "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Protos/**"
+      - "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/GraphQL/**"
+      - "WEB*/**/Controllers/**"
+      - "WEB*/**/Protos/**"
+      - "WEB*/**/GraphQL/**"
+      - "WEB6"
+      - "STAR ODK"
+      - "Docs/Devs/API Documentation/**/*.postman_collection.json"
+      - "Scripts/api_surface_*.json"
+      - "Scripts/check_api_surface_sync.py"
+      - "Scripts/generate_web*postman.py"
+      - ".github/workflows/api-surface-sync.yml"
+  push:
+    branches: [Development, master]
+    paths: *paths
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+      - name: Fetch the public API Core submodule and SDK repositories
+        run: |
+          git submodule update --init --depth 1 "OASIS Architecture/NextGenSoftware.OASIS.API.Core"
+          mkdir -p "$RUNNER_TEMP/sdk"
+          for repo in OASIS-API-Javascipt-Package-WEB4 OASIS-API-Javascript-Package-WEB{5,6,7,8,9,10}; do
+            git clone -q --depth 1 "https://github.com/NextGenSoftwareUK/$repo.git" "$RUNNER_TEMP/sdk/$repo"
+          done
+      - run: python3 Scripts/check_api_surface_sync.py --sdk-root "$RUNNER_TEMP/sdk"

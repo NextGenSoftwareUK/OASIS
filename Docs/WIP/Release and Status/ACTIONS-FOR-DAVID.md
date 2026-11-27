@@ -1806,3 +1806,13 @@ What David needs to do:
 Why: without a key, GelatoNetworkOASIS cannot activate, so its capability-v1 probe cannot run. The provider code moves to the
 current API either way; only the live probe waits on the key.
 Status: open. Owner of the follow-up: testharness-build-fix session (work/tracker-capability-probes).
+
+## API-SURFACE-PUBLISH-2026-11-27 - Publish the WEB4 SDK fix and the MCP server with the CQL tools
+
+Status: OPEN (2026-11-27). Details: `API_SURFACE_SYNC_STATUS.md`. npm publishing needs your account.
+
+1. WEB4 SDK (repo main `4e49abe`, package 2.0.18, npm has 2.0.17). In an up-to-date checkout of main:
+   `git checkout main && git pull && npm publish --access public`
+2. MCP server with 511 tools (adds web4_cql_sql, web4_cql_ask, web4_admin_cql_sidecars): run the "Build and Publish MCP
+   Server" workflow with the next version and publish=true: `gh workflow run publish-mcp.yml -R NextGenSoftwareUK/OASIS -f version=<next> -f publish=true`
+   (needs the change on the branch the workflow builds from).

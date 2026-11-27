@@ -5506,6 +5506,36 @@
           }
         },
         {
+          "name": "Recover Conditional Operation  [POST /api/data/recover-conditional-operation]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/data/recover-conditional-operation",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
           "name": "Save Data  [POST /api/data/save-data]",
           "request": {
             "method": "POST",
@@ -5969,36 +5999,6 @@
               }
             ],
             "url": "{{web4BaseUrl}}/api/data/search-holons/{{searchTerm}}/{{holonType}}"
-          }
-        },
-        {
-          "name": "Recover Conditional Operation  [POST /api/data/~]",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{bearerToken}}"
-              },
-              {
-                "key": "Idempotency-Key",
-                "value": "{{$guid}}"
-              }
-            ],
-            "url": "{{web4BaseUrl}}/api/data/~",
-            "body": {
-              "mode": "raw",
-              "raw": "{}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
           }
         }
       ]

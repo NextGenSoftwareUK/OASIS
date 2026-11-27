@@ -59,10 +59,28 @@ def strip_comments(src: str) -> str:
     return "".join(out)
 
 
+CONSTANT_ROOTS = ("ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI", "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Services")
+CONCAT = re.compile(r'"~"\s*\+\s*(\w+)\.(\w+)')
+
+
+def resolve_constants(src: str) -> str:
+    """Expand [HttpPost("~" + Routes.Name)] to the literal route; fail rather than emit "~"."""
+    def literal(match):
+        owner, member = match.groups()
+        for root in CONSTANT_ROOTS:
+            for path in (ROOT / root).rglob("*.cs"):
+                text = path.read_text(encoding="utf-8-sig", errors="replace")
+                found = re.search(rf'class {owner}\b[^{{]*\{{[^}}]*?const string {member}\s*=\s*"([^"]*)"', text)
+                if found:
+                    return f'"~{found.group(1)}"'
+        raise SystemExit(f"cannot resolve route constant {owner}.{member}")
+    return CONCAT.sub(literal, src)
+
+
 def collect():
     controllers = OrderedDict()
     for path in sorted(CONTROLLERS.rglob("*.cs")):
-        src = strip_comments(path.read_text(encoding="utf-8-sig", errors="replace"))
+        src = resolve_constants(strip_comments(path.read_text(encoding="utf-8-sig", errors="replace")))
         cls = CLASS.search(src)
         if not cls:
             continue
