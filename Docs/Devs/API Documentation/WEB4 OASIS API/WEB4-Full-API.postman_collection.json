@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "WEB4 OASIS API (all routes)",
-    "description": "Every WEB4 OASIS API route (849 requests), generated from the ONODE WebAPI controllers by Scripts/generate_web4_full_postman.py. Set web4BaseUrl (production https://api.web4.oasisomniverse.one, dev https://dev.api.web4.oasisomniverse.one) and bearerToken (from POST /api/avatar/authenticate). Request bodies are left as {}; see the controller or Swagger for each model. Do not run money, crypto or minting requests against production.",
+    "description": "Every WEB4 OASIS API route (852 requests), generated from the ONODE WebAPI controllers by Scripts/generate_web4_full_postman.py. Set web4BaseUrl (production https://api.web4.oasisomniverse.one, dev https://dev.api.web4.oasisomniverse.one) and bearerToken (from POST /api/avatar/authenticate). Most request bodies are left as {}; see the controller or Swagger for each model. Do not run money, crypto or minting requests against production.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -3808,6 +3808,28 @@
       ]
     },
     {
+      "name": "Cql Sidecars",
+      "item": [
+        {
+          "name": "Get  [GET /api/admin/cql/sidecars]",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/admin/cql/sidecars"
+          }
+        }
+      ]
+    },
+    {
       "name": "Cql Source Recovery",
       "item": [
         {
@@ -3867,6 +3889,36 @@
             "body": {
               "mode": "raw",
               "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Ask  [POST /api/data/query-cql/ask]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/data/query-cql/ask",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"Show five records from MongoDB\",\n  \"execute\": false\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -4214,6 +4266,36 @@
             "body": {
               "mode": "raw",
               "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Sql  [POST /api/data/query-cql/sql]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/data/query-cql/sql",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"SELECT * FROM MongoDBOASIS WHERE Version >= @minimum LIMIT 5\",\n  \"parameters\": {\n    \"minimum\": 1\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -5424,6 +5506,36 @@
           }
         },
         {
+          "name": "Recover Conditional Operation  [POST /api/data/recover-conditional-operation]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/data/recover-conditional-operation",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
           "name": "Save Data  [POST /api/data/save-data]",
           "request": {
             "method": "POST",
@@ -5887,36 +5999,6 @@
               }
             ],
             "url": "{{web4BaseUrl}}/api/data/search-holons/{{searchTerm}}/{{holonType}}"
-          }
-        },
-        {
-          "name": "Recover Conditional Operation  [POST /api/data/~]",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{bearerToken}}"
-              },
-              {
-                "key": "Idempotency-Key",
-                "value": "{{$guid}}"
-              }
-            ],
-            "url": "{{web4BaseUrl}}/api/data/~",
-            "body": {
-              "mode": "raw",
-              "raw": "{}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
           }
         }
       ]

@@ -15,10 +15,11 @@ This catalog is generated from the `[McpServerTool]` registrations in the OASIS 
 
 All commands are exposed over MCP stdio. Most return a JSON-serialized `OASISResult<T>` envelope: successful calls set `isError` to `false` and place data in `result`; failures set `isError` to `true` and explain the cause in `message`.
 
-## WEB4 commands (356)
+## WEB4 commands (359)
 
 | Command | Description |
 |---|---|
+| `web4_admin_cql_sidecars` | WEB4 (Wizard only): state, last use, uptime and memory of the on-demand CQL sandbox sidecars. |
 | `web4_avatar_add_karma` | WEB4: adds positive karma to an avatar via AvatarManager. karmaType is KarmaTypePositive (e.g. 'JoinOASIS'), sourceType is KarmaSourceType (e.g. 'API'). |
 | `web4_avatar_add_karma_to_avatar` | WEB4: adds positive karma to an avatar. karmaType is a KarmaTypePositive value (e.g. 'JoinOASIS'). karmaSourceType is a KarmaSourceType value (e.g. 'API'). karmaSourceTitle and karmaSourceDesc are free-text labels. |
 | `web4_avatar_add_xp` | WEB4: adds experience points (XP) to an avatar. avatarId is the GUID of the avatar. amount must be >= 0 (0 returns current XP without changing it). |
@@ -106,6 +107,8 @@ All commands are exposed over MCP stdio. Most return a JSON-serialized `OASISRes
 | `web4_competition_rank` | WEB4: gets a specific avatar's rank in a competition. Returns their leaderboard entry with rank, score and stats. |
 | `web4_competition_stats` | WEB4: gets competition statistics for an avatar — their rank entry plus their league for a given competition and season. |
 | `web4_competition_tournaments` | WEB4: gets active tournaments for a competition type. competitionType defaults to Karma. |
+| `web4_cql_ask` | WEB4 COSMIC: drafts CQL from a plain-language question using WEB6 and runs it unless execute is false. provider and virtualMappingId optionally scope the question. |
+| `web4_cql_sql` | WEB4 COSMIC: runs a SQL-like CQL statement, e.g. SELECT * FROM MongoDBOASIS LIMIT 5. parametersJson is an optional JSON object of named parameters. Set execute to false to return the compiled query without running it. |
 | `web4_data_get_provider_key` | WEB4: loads a holon by its provider-specific storage key (e.g. a Holochain DNA hash). Returns the holon or an error. |
 | `web4_data_load` | WEB4: loads a custom value by key from the current avatar's data store. avatarId must match the authenticated avatar. |
 | `web4_data_load_all_holons` | WEB4 COSMIC ORM: loads every holon of a given type from the OASIS network. holonType defaults to 'All'. loadChildren and recursive control child loading. |
@@ -402,11 +405,11 @@ All commands are exposed over MCP stdio. Most return a JSON-serialized `OASISRes
 | `web5_geo_hotspot_load` | WEB5 STARNET: loads a single geo hotspot by its GUID id. |
 | `web5_geo_hotspot_load_all_for_avatar` | WEB5 STARNET: loads every geo hotspot published by or accessible to an avatar. |
 | `web5_geo_hotspot_search` | WEB5 STARNET: searches geo hotspots on STARNET by a free-text search term. |
-| `web5_holon_download` | WEB5 STARNET: downloads a Smart Brick by id and version to a local path. |
-| `web5_holon_download_and_install` | WEB5 STARNET: downloads and installs a Smart Brick in one step. fullInstallPath is the local installation directory. |
-| `web5_holon_load` | WEB5 STARNET: loads a single Smart Brick by its GUID id. |
-| `web5_holon_load_all_for_avatar` | WEB5 STARNET: loads every Smart Brick published by or accessible to an avatar. |
-| `web5_holon_search` | WEB5 STARNET: searches Smart Bricks by a free-text search term. |
+| `web5_holon_download` | WEB5 STARNET: downloads a STARNET holon by id and version to a local path. |
+| `web5_holon_download_and_install` | WEB5 STARNET: downloads and installs a STARNET holon in one step. fullInstallPath is the local installation directory. |
+| `web5_holon_load` | WEB5 STARNET: loads a single STARNET holon by its GUID id. |
+| `web5_holon_load_all_for_avatar` | WEB5 STARNET: loads every STARNET holon published by or accessible to an avatar. |
+| `web5_holon_search` | WEB5 STARNET: searches STARNET holons by a free-text search term. |
 | `web5_inventory_item_download` | WEB5 STARNET: downloads an inventory item definition from STARNET to a local path. |
 | `web5_inventory_item_load` | WEB5 STARNET: loads a single inventory item by its GUID id. |
 | `web5_inventory_item_load_all_for_avatar` | WEB5 STARNET: loads every inventory item owned by or accessible to an avatar. |
@@ -497,7 +500,7 @@ All commands are exposed over MCP stdio. Most return a JSON-serialized `OASISRes
 | `web6_get_avatar_context` | WEB6: assembles and returns a rich context block for an OASIS avatar — karma, karma level, active quests, world memberships — assembled from Web4 and Web5 in parallel. Use this to ground AI prompts in the avatar's real OASIS state. |
 | `web6_get_model` | WEB6: returns full detail for a single model by its ID (e.g. 'gpt-4o', 'claude-sonnet-5', 'llama3.3'). |
 | `web6_get_usage` | WEB6: returns the calling avatar's usage summary — daily calls used, effective daily limit (plan × karma multiplier), monthly token spend, and remaining quota today. |
-| `web6_health` | WEB6: returns API status, version and UTC timestamp. No authentication required. Use to verify the WEB6 API is reachable before making authenticated calls. |
+| `web6_health` | WEB6: returns API status, version and UTC timestamp. Use to verify the WEB6 API is reachable. On the hosted /mcp endpoint every tool call, this one included, needs an OASIS bearer token; for an unauthenticated check call GET /v1/health directly. |
 | `web6_list_models` | WEB6: returns the full WEB6 model catalogue — all available models with provider, tier, context window, pricing and capabilities. Optionally filter by plan (Free/Bronze/Silver/Gold). |
 | `web6_list_openserv_models` | WEB6: lists every model reachable through the OpenServ provider (provider: "openserv") - the full SERV catalog spanning OpenAI, Anthropic, Google, xAI, Qwen and DeepSeek behind a single SERV_API_KEY. |
 | `web6_list_providers` | WEB6: returns all 98 AI providers integrated in WEB6 with their minimum plan requirement, supported endpoint types, and operational status. |
