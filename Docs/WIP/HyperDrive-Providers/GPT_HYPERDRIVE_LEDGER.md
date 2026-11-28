@@ -29,3 +29,7 @@
 ## 2026-11-28 — Miden native lifecycle accepted
 
 Reused Claude0289f57c; completed locked SDK installation in all7shipping API images and normal constructor configuration. CI46106768815 on6fd58ec3 passed26sync+26async and one real worker-loss/reopen/disposal case, zero skips. Disposable ledger/Kubo volumes, SDK fixture stores and published output removed. Runtime signing journals intentionally retained in deterministic account namespaces. No laptop runtime/build/download/output or shared Atlas operation. Rechecks3/3; programme estimate about115/234 unchanged pending consolidated recount. Hosted admission remains MIDEN-HOSTED1. Concurrent COSMIC Core5e8f22d preserved.
+
+## 2026-11-28 — canonical provider switching (verification pending)
+
+Core907cd4b preserves COSMIC5e8f22d and replaces duplicate registry/selection state with the canonical manager. Activation must succeed before global selection is published; failed activation preserves the healthy borrowed provider and global default. Helper selection delegates to the shared engine. Successful telemetry failures remain explicit warnings rather than falsely reporting an uncommitted transition. Public method manifest synchronized. Compile-only CI first; native control acceptance remains pending. No local build outputs or shared Atlas operations.
