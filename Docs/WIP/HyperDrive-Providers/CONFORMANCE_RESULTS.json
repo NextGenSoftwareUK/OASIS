@@ -650,6 +650,19 @@
       "blockers": [
         "Current exact Development native core-storage baseline; no new provider source fix, no mock, no shared Atlas. Hosted/full-interface and global routing acceptance remain separate."
       ]
+    },
+    {
+      "provider": "WeaviateOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/weaviateoasis-development-2026-11-28.json",
+      "sha256": "bf8ff1e10450c6dda7b7d0fd3717a4cb8ed0d1cbb70dfcdbde6edb3ce647bd82",
+      "blockers": [
+        "Hosted/full-interface/global routing acceptance remains separate",
+        "Original12Nov evidence retained historically; not counted twice"
+      ]
     }
   ],
   "providerBlockers": {

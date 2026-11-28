@@ -91,3 +91,5 @@ Recovered4/4green native receipts with explicit26checks per mode, zero skips, ow
 ## 2026-11-28 — Meilisearch and Solr current native gates accepted
 
 CI46117709175and46117714885passed26sync+26async each, zero skips, both exact Development67663f814422 treeb026c3db/Core0fd03dede3f2. Existing Corec19b8e1 interface-value creation fix resolves the earlier detail-id failures; no duplicate implementation. Both suites independently emptied native fixtures; owned node/volumes/fixture removed per mode. Recorded native baseline tally121/163; hosted/full-interface/global gates stay open. No unchanged OpenSearch or other provider suite rerun. No local environment/build/download/database/results; private indexes self-remove. Latest observed C:free34.23GiB is a measurement, not space reclaimed by this session.
+
+- Weaviate changed-source qualification46118279343passed52/52 on exact67663f814422 tree, both native stores emptied and nodes/volumes/fixtures removed. Original12Nov source difference now qualified; no duplicate12Nov credit. Matrix122/163native baselines. No hosted/full-interface/global reliability claim or new owner action.

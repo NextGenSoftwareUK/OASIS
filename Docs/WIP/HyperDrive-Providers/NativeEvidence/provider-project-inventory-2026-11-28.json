@@ -5,7 +5,7 @@
     "projects": 238,
     "nonStorage": 75,
     "storage": 163,
-    "nativeRows": 121
+    "nativeRows": 122
   },
   "providers": [
     {
@@ -1368,7 +1368,7 @@
       "provider": "WeaviateOASIS",
       "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.WeaviateOASIS/NextGenSoftware.OASIS.API.Providers.WeaviateOASIS.csproj",
       "family": "Search/vector storage",
-      "nativeBaseline": false
+      "nativeBaseline": true
     },
     {
       "provider": "XataOASIS",
