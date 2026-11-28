@@ -7,3 +7,7 @@ Goal: complete nested native entity and visible-tuple set trees with each node's
 Progress: four parent rows remain OPEN; current maintained main checklist144/168 plus extension4/13. Source implementation/investigation just starting; no additional full row credited. No new David action.
 
 Cleanup: source-only branch reuse. No local .NET build/runtime/database/env/container/image/install/download/archive; shared Atlas/PIPER untouched. C last measured34.65GiB free, no reclamation claim. Existing M04 compact evidence/drafts remain accounted in that ledger. Temporary alternate index is removed in finally.
+
+### Existing implementation boundary identified
+
+Core entity and projected set intents/plans are structurally two-input, and the LINQ set owner only admits entity stages after a set. Query dispatch replans from the left source and providers expose independent set/count capabilities. A true nested extension must preserve actor/model/authority admission for every leaf, per-node stages and complete native proofs; it cannot be implemented by reading rows and combining them in managed code. Preserve accepted cohorts and extend these common owners with matching shipping-engine support. No new row credit from source inspection.
