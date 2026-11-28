@@ -47,3 +47,9 @@ Shared Atlas/PIPER calls0; no data changes, retries or diagnostic polling. No lo
 - Set+Columns now means an identity-set subtree selected after its own membership/entity stages, followed by selected Stages before outer tuple equality. Source leaf settings remain disallowed on the envelope; selected subtrees cannot acquire a second entity selection. Recursive capture/depth/leaf bounds and one actor/provider/model policy are unchanged.
 - Server SQL lowering now retains this shape for derived/WITH identity results used as selected operands;47 parser controls passed in RAM. WEB6 server drafting guidance and Postman examples updated; browser engines untouched. Existing generic SDK/MCP JSON forwarding uses the same endpoint; dedicated typed gRPC/GraphQL set operations remain OPEN.
 - Representative HTTP journey adds owner/foreign/anonymous requests through both typed and direct SQL paths:14groups/37timings,24authenticated settlements, same1owned record/1write per store. Compiler20/native15/WEB4/cleanup gate pending. Main144/168 extension4/13 unchanged; full parent rows OPEN.
+
+
+### 2026-11-28 — late identity operands native-qualified3/3
+- Exact Rootb23498a594e3d8d27be0d3cc01b4233b2142b09e/Coreb4ddeb4a89482f985a46946116dd5e42a27a45e5 passed46151376266:18compiler/15native, actualWEB4 build and exactcleanup. Selected journey27groups/41timings allthree. Independent owner reviews found no blockers.
+- Artifact15265873063,18,041B/18entries, SHA2563983a7d8f92ee3c05520a6031fe5d5f45090d73b8f90f782c426673f05fa556d inspected in RAM and released. Shared databasecalls0. Native source/occurrence/caller/bound-before-empty checks passed; timings are observations, not benchmarks.
+- Backend JSON/SQL0ce39fef/Coree7dbd42d CI46152193758 remains pending; parser47/review passed. No full-parent credit or new live acceptance yet. Main144/168 extension4/13 unchanged. Hold next Dev batch for the combined qualified source.
