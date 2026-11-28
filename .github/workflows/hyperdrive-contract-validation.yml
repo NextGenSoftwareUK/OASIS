@@ -38,7 +38,7 @@ on:
       native_project:
         description: Native fixture project
         type: choice
-        options: [integration, subscription_ledger]
+        options: [integration, subscription_ledger, storage_controls]
         default: integration
       native_test_filter:
         description: 'Select the changed real-provider test.'
@@ -147,7 +147,7 @@ jobs:
           }
 
       - name: Start owned native seal routing fixture
-        if: ${{ inputs.native_seal }}
+        if: ${{ inputs.native_seal && inputs.native_project != 'storage_controls' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -178,7 +178,7 @@ jobs:
           }
 
       - name: Stop owned native seal routing fixture
-        if: ${{ always() && inputs.native_seal }}
+        if: ${{ always() && inputs.native_seal && inputs.native_project != 'storage_controls' }}
         shell: bash
         run: docker rm --force --volumes seal-routing-mongo
 
