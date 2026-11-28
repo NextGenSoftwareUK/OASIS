@@ -186,7 +186,7 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 
 | Diagnose WEB6/WEB7/WEB9 failed8c7a3148deployments; preserve running configurations | Railway shipping gate | local: gpt-hyperdrive | work/gpt-railway-build-repair | 2026-11-28 05:32 UTC | DONE 03bf0ef24bcf; CI46113637170 packaging2/2 and Railway dev7/7 SUCCESS |
 
-| COSMIC Q50/Q51/Q53/Q54 nested set composition and scalar terminals | COSMIC ORM | local: gpt-cosmic | work/gpt-q50 | 2026-11-28T07:23:56.046Z | IN PROGRESS — entity trees/LINQ/late selection native6/6 + WEB446119647384 on c0fa8364/Core39488eac, pushed Development00a7be99 at07:15 (next>=07:45). Selected-tuple tree Corea72edb89 + Mongo35b889d2 runs46121003806; SQLitecea851e0 source gate pending, native trees2+flat3+entity/count6 required11. Neo selected recursion next; backend/wire open. Main144/168 + extension4/13. |
+| COSMIC Q50/Q51/Q53/Q54 nested set composition and scalar terminals | COSMIC ORM | local: gpt-cosmic | work/gpt-q50 | 2026-11-28T08:45:09.379Z | IN PROGRESS — native selected/entity/scalar cohort12/12 + WEB4 verified CI46125116033, Root88fcf333/Corea5ba51b3; peer auth merged Core1b24c629 and exact paired Root233d9f1c running CI46126840806. Backend-only recursive SQL/selected-count API work active; browser engines untouched. Full parent rows OPEN; main144/168 + extension4/13. |
 
 | OPORTAL existing signed-in breadth suite: inspect isolated real-API harness and fill demonstrated screen gaps | OPORTAL | local: gpt-hyperdrive | work/gpt-oportal-isolated-breadth | 2026-11-28T06:20:52.225Z | DONE f6bd091d; router compatibility recheck2/2 CI46118199642; prior45172482199found later, no new-screen credit |
 
