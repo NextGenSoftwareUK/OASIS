@@ -8,7 +8,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 internal sealed partial class MongoCqlTranslator
 {
     private const string SetPositionField="__cosmicSetPosition";
-    internal MongoCqlCommand CompileSet<T>(CosmicSetQueryPlan<T> plan,int maximumResults) where T:IHolon
+    internal MongoCqlCommand CompileSet<T>(CosmicSetQueryPlan<T> plan,int maximumResults,bool applyPublicationLimit=true) where T:IHolon
     {
         if(plan==null || maximumResults<1 || maximumResults>10000)
             throw new ArgumentException("An admitted bounded native set plan is required.");
@@ -71,6 +71,6 @@ internal sealed partial class MongoCqlTranslator
         var source=new MongoCqlCommand(clean.ToArray(),maximum+1,membership);
         var options=new CosmicEntityCompositionOptions(Math.Min(maximum,10000),plan.Options.MaximumInputPayloadBytes);
         return CompileEntityStages(source,plan.Query.Output.Source,plan.Query.Output.Stages,options,maximumResults,
-            pipeline.ToArray(),SetPositionField,new[]{left,right},maximum);
+            pipeline.ToArray(),SetPositionField,new[]{left,right},maximum,applyPublicationLimit);
     }
 }
