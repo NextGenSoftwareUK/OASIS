@@ -8,7 +8,7 @@ Main **144/168**, extension **4/13**. Full rows completed this session: O07, M01
 
 ## Development
 
-Running WEB4: **13a6e23326aa2a774e3280abf493d7d3cf3fd7cb / Core0a4074ecf6e82196d757e7f657e51780b7525eb7**, own push11:46:53UTC. Railway deployment a426a71c-b9db-4f4d-9cad-efd80049ed79 reports **SUCCESS**. This includes qualified backend aggregates, canonical XML Version and registered XML scalar converters. Metadata verified; no new hosted browser/data walkthrough claimed. Peer docs through7c70ffcb preserved. New qualified backend entity-input/SQL batch **60b0ca66/Corecf34fb1a** published12:17:31UTC; rollout pending. Runtime sources match accepted5e07576b exactly, with documentation-only differences. Pending endpoint-host fixture is excluded. Next normal own Dev push **>=12:47:31UTC**, qualified scoped batch only. No staging/production deployment.
+Running WEB4: **13a6e23326aa2a774e3280abf493d7d3cf3fd7cb / Core0a4074ecf6e82196d757e7f657e51780b7525eb7**, own push11:46:53UTC. Railway deployment a426a71c-b9db-4f4d-9cad-efd80049ed79 reports **SUCCESS**. This includes qualified backend aggregates, canonical XML Version and registered XML scalar converters. Metadata verified; no new hosted browser/data walkthrough claimed. Peer docs through7c70ffcb preserved. New qualified backend entity-input/SQL batch **60b0ca66/Corecf34fb1a** published12:17:31UTC; Railway049b0485-c87b-42f3-9f10-dc8124fc1055 now reports **SUCCESS**. Revision metadata verified; no shared DB/browser calls. Runtime sources match accepted5e07576b exactly, with documentation-only differences. Pending endpoint-host fixture is excluded. Next normal own Dev push **>=12:47:31UTC**, qualified scoped batch only. No staging/production deployment.
 
 ## Latest native acceptance
 
@@ -23,7 +23,7 @@ Each latest artifact has18entries inspected in RAM, hash-bound compact acceptanc
 
 ## Current gate
 
-Ordinary-class fluent/XML scalar converters and explicit native XML scalar bags/sets: Core**fa4ea2e254b59e55ab4c5f4fa031199b887ecabb**, combined native gate pending. Previous POCO46144735944 passed10/11; corrected SQLite fixture raw-value decoding (canonical serializer, strict numeric JSON). No provider workaround. Expected XML12native/2controls, actualWEB4 and exact cleanup. Core conversion review passed; full M04 remains open.
+Ordinary-class fluent/XML scalar converters and explicit native XML scalar bags/sets: Core**fa4ea2e254b59e55ab4c5f4fa031199b887ecabb**, combined native gates **46145616196 (XML12native/2controls)** and **46145616238 (CQL18compiler/15native)** pending on Root52110089. Previous POCO46144735944 passed10/11; corrected SQLite fixture raw-value decoding (canonical serializer, strict numeric JSON). No provider workaround. Expected XML12native/2controls, actualWEB4 and exact cleanup. Core conversion review passed; full M04 remains open.
 
 Direct shipping SQL endpoint **1b18b510 / Corecf34fb1a** is accepted **46143984744**:18compiler/15native/WEB4/cleanup. HTTP12groups/31timings per store,20 settled operations each with1 native attempt/receipt. Anonymous queries reserve nothing. Artifact18entries inspected in RAM; receipt Q50_SHIPPING_SQL_HTTP_NATIVE_ACCEPTANCE_2026-11-28.json. This qualifies the isolated endpoint flow, not a hosted browser walkthrough.
 

@@ -891,3 +891,6 @@ Native semantics are described in
 
 
 2026-11-28 M04 ordinary-class custom scalar increment: Core5e83d6733da2726e2677f8649521b419c7ab68be source and representative3-store native fixture added; CI pending. Main144/168, extension4/13 unchanged. Full M04 remains OPEN.
+
+
+2026-11-28 M04 combined XML increment: Root52110089/Corefa4ea2e2 adds ordinary-class fluent/XML scalar conversions and explicit scalar bag/set mappings. XML46145616196 and paired CQL46145616238 pending; independent review passed. Previous XML46144735944 passed10/11 (SQLite fixture raw JsonElement assertion corrected). Main144/168 and extension4/13 unchanged; no full M04 credit.
