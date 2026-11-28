@@ -3125,3 +3125,13 @@ Native/browser46130012906passed1/1provider migration journey: actual password-is
 ## 2026-11-28 — real OAPP error acceptance
 
 CI46132041520passed1/1new API contract probe through the actual current WEB5 SDK and shipping WEB5 source2e8ae614, ONODE.Coref2c6b219/STARfdc8e3a3. A cold missing-ID read returns declared400, IsError=true, OASIS_RECORD_NOT_FOUND and No Holon Found even with the isolated legacy test-data setting enabled. Original populated Map/Launcher46126474607was not rerun. Artifact15257639687(3232bytes) inspected in RAM: all5Startup cleanup conditions true; publish/browser/cache/TLS outputs absent. No shared Atlas, source DNA/Railway settings change, local runtime/download/build/database/results or new owner action. Native storage baseline123/163unchanged. Whole OPORTAL and global HyperDrive gates remain open.
+
+
+## 2026-11-28 — ONET breadth in progress
+
+Claimed unaccepted ONET popup scope before implementation; CI46132765901runs one real local read/start/stop journey on immutable fbea API and portalfe794415. Existing ONODE native/config tests not repeated. Local browser JavaScript and Python syntax checks passed. No local runtime/download/build/database/results; only source Git objects/private index, index removed immediately. Existing disposable native Mongo/Wizard provider bootstrap and finally cleanup reused. Public discovery/bootstrap/HyperDrive workers disabled in isolated fixture; no shared Atlas or source/deployed DNA changes. No acceptance until native result/cleanup. Native123/163unchanged; OPORTAL/global HyperDrive open.
+
+
+## 2026-11-28 — ONET native browser acceptance
+
+CI46133501110passed1/1new ONET journey on real immutable fbea WEB4/native Mongo and portalfe794415: password-issued Wizard, initial status/statistics, empty peer list, active ONODE/topology reads, one actual local start and stop with independent status reads, normal close. Artifact15259220405(4838bytes) inspected in RAM: all5Startup cleanup conditions true, package container absent. Workflow runtime/cache/TLS absence check passed; bootstrap private outputs removed immediately and copied entry DLL removed with owned API. No shared Atlas, public peer, source/deployed DNA change, local runtime/download/build/database/result or new owner action. Peer connect/disconnect/broadcast, HoloNET mode and hosted deployment remain separate. Native storage baseline123/163unchanged; whole OPORTAL and automatic HyperDrive gates open.

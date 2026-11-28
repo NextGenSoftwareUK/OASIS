@@ -9,10 +9,11 @@ async function main(){
  const api=new URL(process.env.OASIS_STARTUP_API_URL);assert.equal(api.hostname,'127.0.0.1');assert.equal(api.protocol,'http:');
  const api5=process.env.OASIS_STARTUP_WEB5_URL?new URL(process.env.OASIS_STARTUP_WEB5_URL):null;
  const popupGroup=process.env.OASIS_STARTUP_POPUP_GROUP||'none';
- assert.ok(['none','web5-errors','provider-migration','web5-depth','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data','social-activity','account-recovery'].includes(popupGroup));
- const selectedPopups=popupGroup==='web5-errors'?['CatalogueErrors']:popupGroup==='provider-migration'?['Migration']:popupGroup==='web5-depth'?['OappMap','Launcher']:popupGroup==='account-recovery'?['AccountRecovery']:popupGroup==='social-activity'?['SocialGraph','ActivityFeed']:popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
+ assert.ok(['none','onet','web5-errors','provider-migration','web5-depth','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data','social-activity','account-recovery'].includes(popupGroup));
+ const selectedPopups=popupGroup==='onet'?['ONET']:popupGroup==='web5-errors'?['CatalogueErrors']:popupGroup==='provider-migration'?['Migration']:popupGroup==='web5-depth'?['OappMap','Launcher']:popupGroup==='account-recovery'?['AccountRecovery']:popupGroup==='social-activity'?['SocialGraph','ActivityFeed']:popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
   popupGroup==='data-messaging'?['Data','Messaging']:
   popupGroup==='none'?[]:[{nft:'NFT',data:'Data','data-crud':'DataWrite','data-edit':'DataWrite','files-write':'FilesWrite','map-route':'MapRoute',messaging:'Messaging','messaging-read':'MessagingRead',chat:'Chat','directory-message':'DirectoryMessage',clan:'Clan'}[popupGroup]];
+ const onetWrites={};
  let migrationRootId,migrationChildId;const migrationReads={MongoDBOASIS:0,SQLLiteDBOASIS:0};let migrationCopies=0;
  let catalogueAppId,catalogueIdentity;const catalogueName='Owned depth catalogue';
  let recoveryToken,recoveryPassword;const recoveryRequests={forgot:0,reset:0,login:0};
@@ -37,13 +38,13 @@ async function main(){
   const native=JSON.parse(execFileSync('docker',['exec',mongo,'mongosh','--quiet','--eval',query],{encoding:'utf8',timeout:15000}));
   assert.equal(typeof native.token,'string');assert.ok(native.token.length>=32);return native.token;
  }
- async function prepareOwnedWizard(account){
+ async function prepareOwnedWizard(account,privilegedPath='/api/data/copy-holon/providers'){
   const owner='oasis_startup_'+process.env.GITHUB_RUN_ID+'_'+process.env.GITHUB_RUN_ATTEMPT;
   assert.match(owner,/^oasis_startup_[0-9]+_[0-9]+$/);assert.match(account.username,/^startup_[a-f0-9]{20}$/);
   const mongo=owner+'_mongo',apiName=owner+'_api',database=owner+'_avatars';
   for(const name of [mongo,apiName])assert.equal(execFileSync('docker',['inspect','--format','{{ index .Config.Labels "oasis.startup.owner" }}',name],{encoding:'utf8',timeout:15000}).trim(),owner);
   const ordinary=await account.call('ordinary migration sign-in','POST','/api/avatar/authenticate',{username:account.username,password:account.password},undefined,true);
-  const refused=await fetch(api.origin+'/api/data/copy-holon/providers',{headers:{Authorization:'Bearer '+ordinary.jwtToken},signal:AbortSignal.timeout(20000)});
+  const refused=await fetch(api.origin+privilegedPath,{headers:{Authorization:'Bearer '+ordinary.jwtToken},signal:AbortSignal.timeout(20000)});
   assert.equal(refused.status,403,'Ordinary role cannot enumerate admin copy providers');await refused.arrayBuffer();
   stage='Owned Wizard native provider bootstrap';
   try{
@@ -93,7 +94,7 @@ async function main(){
   const origin='http://127.0.0.1:'+server.address().port,proxyOrigin='https://127.0.0.1:'+proxy.address().port;
   const proxy5Origin=proxy5?'https://127.0.0.1:'+proxy5.address().port:null;
   stage='owned registration';const account=await createOwnedAvatar(api.href,readOwnedVerificationToken);
-  if(popupGroup==='provider-migration')await prepareOwnedWizard(account);
+  if(['provider-migration','onet'].includes(popupGroup))await prepareOwnedWizard(account,popupGroup==='onet'?'/api/v1/onet/network/status':'/api/data/copy-holon/providers');
   async function admitFree(owned){
    const signed=await owned.call('free account sign-in','POST','/api/avatar/authenticate',{username:owned.username,password:owned.password},undefined,true);
    await owned.call('free subscription','POST','/api/subscription/checkout/session',{planId:'free',successUrl:origin+'/subscription?tab=mysubs',cancelUrl:origin+'/'},signed.jwtToken);
@@ -199,6 +200,10 @@ async function main(){
       assert.equal(body.providerType,'MongoDBOASIS');assert.deepEqual(Object.keys(body.expectedRevisions),[savedHolonId]);
       assert.match(body.expectedRevisions[savedHolonId],/^[0-9a-f-]{36}$/i);ownedOperation=true;
      }
+    }
+    if(popupGroup==='onet'&&request.method()==='POST'&&url.pathname.startsWith('/api/v1/onet/')){
+     assert.ok(['/api/v1/onet/network/start','/api/v1/onet/network/stop'].includes(url.pathname),'Only owned local ONET lifecycle writes');
+     assert.equal(onetWrites[url.pathname]=(onetWrites[url.pathname]||0)+1,1,'One explicit lifecycle command');ownedOperation=true;
     }
     if(popupGroup==='provider-migration'&&request.method()==='POST'){
      const body=request.postDataJSON();
@@ -388,6 +393,28 @@ async function main(){
     }catch(error){console.error('PORTAL_STARTUP_POPUP_CLOSE_FAILURE:'+JSON.stringify({name,errorType:error.name,path:new URL(page.url()).pathname}));closePassed=false;passed=false;if(observedStage===name)observedStage=name+' close';}
     outcomes.push({name,passed,stage:observedStage,closePassed});
    }
+   await checkPopup('ONET','#onet-close-btn',async()=>{
+    stage='ONET real initial reads';await page.evaluate(()=>window.openONETModal());
+    await page.waitForFunction(()=>['ONLINE','OFFLINE'].includes(document.getElementById('onet-status-label')?.textContent));
+    await page.waitForFunction(()=>document.getElementById('onet-stats-grid')?.textContent.includes('Network Running'));
+    const before=await context.request.get(proxyOrigin+'/api/v1/onet/network/status',{headers:{Authorization:'Bearer '+ownedToken}});
+    assert.equal(before.status(),200);const initial=await before.json();assert.equal(initial.isError,false);assert.equal(initial.result.isRunning,false);
+    await page.locator('#onet-modal-block [data-tab="nodes"]').click();
+    await page.waitForFunction(()=>document.getElementById('onet-active-onodes')?.textContent==='No ONODEs have synced recently.');
+    assert.ok((await page.locator('#onet-nodes-list').textContent()).includes('No nodes found'));
+    await page.locator('#onet-modal-block [data-tab="topology"]').click();
+    await page.waitForFunction(()=>{try{const t=JSON.parse(document.getElementById('onet-topology').textContent);return Array.isArray(t.nodes)&&Array.isArray(t.connections);}catch{return false;}});
+    await page.locator('#onet-modal-block [data-tab="actions"]').click();
+    stage='ONET real local start';await page.locator('#onet-start-btn').click();
+    await page.waitForFunction(()=>document.getElementById('onet-modal-status').textContent==='Start successful.'&&document.getElementById('onet-status-label').textContent==='ONLINE');
+    const started=await context.request.get(proxyOrigin+'/api/v1/onet/network/status',{headers:{Authorization:'Bearer '+ownedToken}});
+    assert.equal(started.status(),200);const live=await started.json();assert.equal(live.isError,false);assert.equal(live.result.isRunning,true);
+    stage='ONET real local stop';await page.locator('#onet-stop-btn').click();
+    await page.waitForFunction(()=>document.getElementById('onet-modal-status').textContent==='Stop successful.'&&document.getElementById('onet-status-label').textContent==='OFFLINE');
+    const stopped=await context.request.get(proxyOrigin+'/api/v1/onet/network/status',{headers:{Authorization:'Bearer '+ownedToken}});
+    assert.equal(stopped.status(),200);const off=await stopped.json();assert.equal(off.isError,false);assert.equal(off.result.isRunning,false);
+    assert.deepEqual(onetWrites,{'/api/v1/onet/network/start':1,'/api/v1/onet/network/stop':1});
+   });
    await checkPopup('Migration','#provider-migration-modal-close-btn',async()=>{
     stage='Migration registered real providers';await page.evaluate(()=>window.openProviderMigrationModal());
     await page.locator('#pmig-form:not([hidden])').waitFor({state:'visible'});

@@ -1,0 +1,12 @@
+# ONET native browser breadth
+
+Pending one new selected journey: real shipping password-issued Wizard, initial status/statistics/empty peers/active ONODEs/topology, one local network start and one stop with independent actual status reads, normal close. Reuses existing immutable image, native disposable Mongo and actual portal dev. Existing ONODE bridge/config proof is not repeated. Public discovery/bootstrap and HyperDrive workers disabled in this disposable fixture; no shared Atlas, public peers, source DNA/Railway change, synthetic JWT or mocks. Local source remains untouched; no downloads/runtime/build/results on laptop. Remote owned bootstrap DLL refs/project/output are immediately removed and API/Mongo/network/volumes/browser outputs have existing finally cleanup. Whole screen/global HyperDrive claims remain open pending result and remaining peer/broadcast flows.
+
+First46132765901stopped in the fixture admission guard during normal password login: the new lifecycle assertion incorrectly matched all POSTs. Narrow it to the ONET namespace; the existing global mutation gate still blocks unrelated writes. No ONET behavior was exercised or accepted. Owned cleanup is retained; only this uncovered flow is retried.
+
+46133157766reached the browser outcome parser, which omitted ONET from its admitted outcome names. The raw browser outcome is not retained after that parser assertion, so no inferred pass is recorded. Add ONET to that existing strict list; cleanup artifact15258965096confirms all5owned resources absent. Repeat only this uncovered selected journey.
+
+
+## 2026-11-28 — ONET native browser acceptance
+
+CI46133501110passed1/1new ONET journey on real immutable fbea WEB4/native Mongo and portalfe794415: password-issued Wizard, initial status/statistics, empty peer list, active ONODE/topology reads, one actual local start and stop with independent status reads, normal close. Artifact15259220405(4838bytes) inspected in RAM: all5Startup cleanup conditions true, package container absent. Workflow runtime/cache/TLS absence check passed; bootstrap private outputs removed immediately and copied entry DLL removed with owned API. No shared Atlas, public peer, source/deployed DNA change, local runtime/download/build/database/result or new owner action. Peer connect/disconnect/broadcast, HoloNET mode and hosted deployment remain separate. Native storage baseline123/163unchanged; whole OPORTAL and automatic HyperDrive gates open.
