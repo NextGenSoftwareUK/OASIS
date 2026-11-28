@@ -1,6 +1,6 @@
 # Ordinary classes in COSMIC ORM
 
-Qualification: native MongoDB, SQLite and Neo4j acceptance plus actual WEB4 build passed46104535369 on Core0623246c. Development integration/deployment remains pending. Exact evidence belongs in Docs/WIP/COSMIC ORM/GPT_M01_LEDGER_2026-11-28.md.
+Qualification: native MongoDB, SQLite and Neo4j acceptance plus actual WEB4 build passed46104535369 on Core0623246c. Included in this qualified Development batch; running deployment acceptance remains pending. Exact evidence belongs in Docs/WIP/COSMIC ORM/GPT_M01_LEDGER_2026-11-28.md.
 
 Business classes need no Holon base, IHolon interface, OASIS attributes or generic new() constraint. An immutable CosmicPocoModel<T> describes stored properties. CosmicPocoContext<T> binds that model to one actor and one shipping provider. Internal canonical Holon envelopes own native identities, audit and accepted revisions; business values use declared metadata fields. Existing native CQL and transaction owners enforce queries, permissions and acknowledged writes.
 
@@ -66,3 +66,9 @@ SaveChangesAsync captures getters before native dispatch and retains native revi
 Supported fields use existing native scalar metadata domains and required, length and precision rules. Unsupported members require explicit Ignore or a separately implemented mapping feature; nothing is silently dropped. Relationship/value-object collections, inheritance, XML and provider-specific capabilities retain their own checklist scope. Project grouped/joined business records to scalar or DTO values before materializing shapes containing mapped entities.
 
 SQL and AI engines remain backend-owned at POST /api/data/query-cql/sql and /ask. This .NET API introduces no browser engine or new HTTP endpoint.
+
+## NHibernate XML ordinary-class increment
+
+ImportNHibernateXml(xml, explicitClassName) imports one allowed ordinary-class mapping using the shared bounded, DTD-prohibited reader. Build must succeed before the destination mapping changes. Omitted properties stay unmapped; previously built models remain immutable. Native3/3 and WEB4 acceptance46105933887 covers scalar aliases/constraints, generated canonical Guid, assigned scalar and composite logical keys, code-supplied constructor factories and mutable=false model policy. Assigned/composite identities use FindByPrimaryKeyAsync with values in declaration order. For a factory with an assigned logical key, read the business key by its mapped property name; CosmicPocoValues.Id remains the private storage GUID.
+
+Only assigned and guid generator policies are currently enrolled for this ordinary-class importer. Relationship, inheritance/table/schema/catalog, custom user types and remaining generator XML are still open under full M04 and return explicit unsupported errors. This native-qualified increment does not establish full NHibernate XML parity. SQL/AI engine changes still belong in backend endpoints.
