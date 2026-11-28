@@ -9,10 +9,11 @@ async function main(){
  const api=new URL(process.env.OASIS_STARTUP_API_URL);assert.equal(api.hostname,'127.0.0.1');assert.equal(api.protocol,'http:');
  const api5=process.env.OASIS_STARTUP_WEB5_URL?new URL(process.env.OASIS_STARTUP_WEB5_URL):null;
  const popupGroup=process.env.OASIS_STARTUP_POPUP_GROUP||'none';
- assert.ok(['none','map-geo','map-places','onet','web5-diff','web5-errors','provider-migration','web5-depth','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data','social-activity','account-recovery'].includes(popupGroup));
- const selectedPopups=popupGroup==='map-geo'?['MapGeo']:popupGroup==='map-places'?['MapPlaces']:popupGroup==='onet'?['ONET']:popupGroup==='web5-diff'?['HolonDiff']:popupGroup==='web5-errors'?['CatalogueErrors']:popupGroup==='provider-migration'?['Migration']:popupGroup==='web5-depth'?['OappMap','Launcher']:popupGroup==='account-recovery'?['AccountRecovery']:popupGroup==='social-activity'?['SocialGraph','ActivityFeed']:popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
+ assert.ok(['none','map-renderer','map-geo','map-places','onet','web5-diff','web5-errors','provider-migration','web5-depth','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data','social-activity','account-recovery'].includes(popupGroup));
+ const selectedPopups=popupGroup==='map-renderer'?['MapRenderer']:popupGroup==='map-geo'?['MapGeo']:popupGroup==='map-places'?['MapPlaces']:popupGroup==='onet'?['ONET']:popupGroup==='web5-diff'?['HolonDiff']:popupGroup==='web5-errors'?['CatalogueErrors']:popupGroup==='provider-migration'?['Migration']:popupGroup==='web5-depth'?['OappMap','Launcher']:popupGroup==='account-recovery'?['AccountRecovery']:popupGroup==='social-activity'?['SocialGraph','ActivityFeed']:popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
   popupGroup==='data-messaging'?['Data','Messaging']:
   popupGroup==='none'?[]:[{nft:'NFT',data:'Data','data-crud':'DataWrite','data-edit':'DataWrite','files-write':'FilesWrite','map-route':'MapRoute',messaging:'Messaging','messaging-read':'MessagingRead',chat:'Chat','directory-message':'DirectoryMessage',clan:'Clan'}[popupGroup]];
+ let mapRendererRecordId;
  let mapGeoVisibleId,mapGeoHiddenId,mapGeoQuestId;
  let expectedPlaceObservation=null,placeObservationCount=0,mapPlaceId=null,mapKarmaBefore=null;const mapVisitIds=[];
  const onetWrites={};
@@ -124,8 +125,9 @@ async function main(){
    incomingNotificationIds=notifications.filter(row=>row.avatarId===account.avatar.id&&row.isRead===false).map(row=>row.id);
    assert.ok(incomingNotificationIds.length>0);
   }
-  browser=await chromium.launch({channel:'chrome',headless:true});
+  browser=await chromium.launch({channel:'chrome',headless:true,...(popupGroup==='map-renderer'?{args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']}: {})});
   context=await browser.newContext({serviceWorkers:'block',ignoreHTTPSErrors:true});
+  if(popupGroup==='map-renderer')await context.addInitScript(()=>{window.portalMapStyle={version:8,sources:{},layers:[{id:'background',type:'background',paint:{'background-color':'#102030'}}]};});
   const errors=[],otherServices=[],reads=[];
   await context.route('**/*',async route=>{
    try {
@@ -254,6 +256,7 @@ async function main(){
     if(request.method()!=='GET'&&request.method()!=='OPTIONS'){otherServices.push('unadmitted WEB5 mutation');return route.abort();}
     return route.continue({url:proxy5Origin+url.pathname+url.search});
    }
+   if(popupGroup==='map-renderer'&&url.origin==='https://unpkg.com'&&['/maplibre-gl@6.19.0/dist/maplibre-gl.mjs','/maplibre-gl@6.19.0/dist/maplibre-gl.css','/maplibre-gl@6.19.0/dist/maplibre-gl-csp-worker.js'].includes(url.pathname))return route.continue();
    if(url.origin===origin||['data:','blob:'].includes(url.protocol)||['fonts.googleapis.com','fonts.gstatic.com'].includes(url.hostname))return route.continue();
    otherServices.push(request.method()+' '+url.origin+url.pathname);return route.abort();
    } catch (error) {
@@ -387,6 +390,23 @@ async function main(){
    }
    assert.equal(new Set(diffStoredIds).size,2,'Two independently stored published versions');
   }
+  if(popupGroup==='map-renderer'){
+   stage='Create actual stored map location';
+   mapRendererRecordId=require('node:crypto').randomUUID();
+   const operationId=require('node:crypto').randomUUID(),bytes=require('node:crypto').createHash('sha256').update('oasis:map-locations:v1').digest().subarray(0,16);
+   const catalogueId=[bytes.readUInt32LE(0).toString(16).padStart(8,'0'),bytes.readUInt16LE(4).toString(16).padStart(4,'0'),bytes.readUInt16LE(6).toString(16).padStart(4,'0'),bytes.subarray(8,10).toString('hex'),bytes.subarray(10).toString('hex')].join('-');
+   const created=await context.request.post(proxyOrigin+'/api/data/save-holon',{headers:{Authorization:'Bearer '+ownedToken,'Idempotency-Key':operationId,'X-COSMIC-Operation-Id':operationId},
+    data:{holon:{id:mapRendererRecordId,name:'Owned renderer point',description:'Real API location for browser map controls',holonType:'Custom',customHolonType:'OASIS.MapLocation',parentHolonId:catalogueId,
+     metaData:{mapLocation:JSON.stringify({Latitude:46.98,Longitude:8.25,Type:6,IsActive:true,Metadata:{sourceApp:'Shared Places CI'}})}},
+     saveChildren:false,recursive:false,providerType:'MongoDBOASIS',operationId,expectedRevisions:{[mapRendererRecordId]:null}}});
+   const envelope=await created.json(),saved=envelope.result;
+   let diagnostic=String(saved?.message||envelope.message||'').replace(/(?:https?|mongodb(?:\+srv)?):\/\/[^\s]+/gi,'[URI]').replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g,'[JWT]');
+   if(/password|secret|credential|connectionstring|refresh.?token/i.test(diagnostic))diagnostic='Sensitive detail withheld';
+   httpFacts.push({path:'/api/data/save-holon',status:created.status(),isError:saved?.isError===true,routingMessage:diagnostic.slice(0,320)});
+   assert.equal(created.status(),200);assert.equal(saved.isError,false);assert.equal(saved.result.id,mapRendererRecordId);
+   const response=await context.request.get(proxyOrigin+'/api/map/nearby?latitude=46.98&longitude=8.25&radiusKm=5',{headers:{Authorization:'Bearer '+ownedToken}});
+   const nearby=await response.json();assert.equal(response.status(),200);assert.equal(nearby.isError,false);assert.equal(nearby.result.length,1);assert.equal(nearby.result[0].id,mapRendererRecordId);
+  }
   if(popupGroup==='map-geo'){
    async function createGeo(path,body){
     const operationId=require('node:crypto').randomUUID();
@@ -477,6 +497,47 @@ async function main(){
      }
     }catch(error){console.error('PORTAL_STARTUP_POPUP_CLOSE_FAILURE:'+JSON.stringify({name,errorType:error.name,path:new URL(page.url()).pathname}));closePassed=false;passed=false;if(observedStage===name)observedStage=name+' close';}
     outcomes.push({name,passed,stage:observedStage,closePassed});
+   }
+   await checkPopup('MapRenderer','#map-close-btn',async()=>{
+    stage='Map real stored location';
+    await page.locator('#dashboard button.dash-panel-link').filter({hasText:'View Map'}).click();
+    await page.locator('#map-latitude').fill('46.98');await page.locator('#map-longitude').fill('8.25');await page.locator('#map-radius').fill('5');
+    await page.locator('#map-refresh-btn').click();
+    await page.waitForFunction(()=>document.getElementById('map-target')?.options.length===2);
+    stage='Real MapLibre renderer';
+    await page.evaluate(async()=>{
+     const library=await import('https://unpkg.com/maplibre-gl@6.19.0/dist/maplibre-gl.mjs'),original=library.Map.prototype.addControl;
+     library.Map.prototype.addControl=function(...args){window.__ownedRealMap=this;library.Map.prototype.addControl=original;return original.apply(this,args);};
+    });
+    await page.locator('#map-show-interactive').click();
+    await page.waitForFunction(()=>window.__ownedRealMap?.isStyleLoaded()&&window.__ownedRealMap.getLayer('selected-item'));
+    assert.equal(await page.evaluate(()=>window.__ownedRealMap.getCanvas().getContext('webgl2')?.drawingBufferWidth>0),true,'Actual WebGL2 context');
+    await page.locator('#map-modal-block [data-tab="controls"]').click();
+    const target=await page.locator('#map-target option').filter({hasText:'Owned renderer point'}).getAttribute('value');assert.ok(target);
+    await page.locator('#map-target').selectOption(target);
+    stage='Map actual item selection';await page.locator('#map-select-holon-btn').click();
+    await page.waitForFunction(()=>document.querySelector('.maplibregl-popup-content')?.textContent.includes('Owned renderer point'));
+    const selected=await page.evaluate(()=>({lat:window.__ownedRealMap.getCenter().lat,lng:window.__ownedRealMap.getCenter().lng,zoom:window.__ownedRealMap.getZoom()}));
+    assert.ok(Math.abs(selected.lat-46.98)<1e-6&&Math.abs(selected.lng-8.25)<1e-6);
+    stage='Map actual zoom controls';await page.locator('#map-zoom-value').fill('1');
+    await page.locator('#map-zoom-in-btn').click();assert.equal(await page.evaluate(()=>window.__ownedRealMap.getZoom()),selected.zoom+1);
+    await page.locator('#map-zoom-out-btn').click();assert.equal(await page.evaluate(()=>window.__ownedRealMap.getZoom()),selected.zoom);
+    stage='Map actual pan controls';await page.locator('#map-pan-value').fill('100');
+    for(const [direction,axis,sign] of [['up','lat',1],['down','lat',-1],['left','lng',-1],['right','lng',1]]){
+     const before=await page.evaluate(axis=>window.__ownedRealMap.getCenter()[axis],axis);
+     await page.locator('#map-pan-'+direction+'-btn').click();
+     const after=await page.evaluate(axis=>window.__ownedRealMap.getCenter()[axis],axis);assert.ok((after-before)*sign>0.001,'Actual '+direction+' pan');
+    }
+    stage='Map actual target zoom';await page.locator('#map-zoom-holon-btn').click();
+    assert.equal(await page.evaluate(()=>window.__ownedRealMap.getZoom()),15);
+    stage='Map actual pin highlight';await page.locator('#map-highlight-building-btn').click();
+    await page.waitForFunction(id=>window.__ownedRealMap.isSourceLoaded('selected-item')&&window.__ownedRealMap.queryRenderedFeatures({layers:['selected-item']}).some(feature=>feature.properties.identity===id),mapRendererRecordId);
+    assert.ok(!reads.some(read=>/^\/api\/map\/(Zoom|Pam|Select|Highlight)/.test(read.path)),'No legacy server camera command');
+   });
+   if(popupGroup==='map-renderer'){
+    assert.equal(await page.evaluate(()=>window.__ownedRealMap.getCanvas().isConnected),false,'Real renderer disposed');
+    assert.equal(await page.locator('#map-target option').count(),1,'Private loaded targets cleared');
+    assert.equal(await page.locator('#map-zoom-in-btn').isDisabled(),true);
    }
    await checkPopup('MapGeo','#map-close-btn',async()=>{
     stage='Map actual hotspot and quest layers';
