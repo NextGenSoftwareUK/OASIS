@@ -35,3 +35,10 @@ Preserve full provider parity, import, full/virtual/hybrid holons and per-avatar
 ## Cleanup and isolation
 
 No local .NET builds, runtime installs, environments, databases, containers, worktrees or retained artifact downloads created. CI owns isolated Mongo/Neo4j/SQLite fixtures and exact cleanup. Artifact ZIPs inspected in RAM/released; compact evidence retained, artifacts expire2days. Existing Node parser checks produce no output files. Latest measured **32.33GiB free**, no reclamation claim. Temporary scoped Git indexes removed; unrelated source/credentials/user data preserved. **No shared Atlas/PIPER tests, polling or data changes.**
+
+
+## 2026-11-28 M04 registered XML custom scalar types (qualification pending)
+
+Added ImportNHibernateXml overload with a bounded explicit name-to-CosmicValueConverter registry. XML never loads a type/assembly; unknown names, mismatched CLR types and canonical Holon-field conversion overrides fail atomically. The isolated import copies its frozen conversion bindings into the destination model. Scalar property mappings reuse native storage/query/projection/session conversion and declared equality/ordering semantics; components and full NHibernate IUserType/relational SQL type contracts are not claimed.
+
+Representative qualification reuses the real conversion journey on MongoDB/SQLite/Neo4j (native save/representation, filter/order/projection/membership/set, caller isolation, acknowledged mutable update and frozen model) plus an atomic registry control. Together with accepted XML Version regression the gate is native6 +admission2, actual WEB4 and exact cleanup. Source pending, main144/168 extension4/13; full M04 OPEN. No local builds/installs/DBs/artifact downloads or shared Atlas/PIPER operations.
