@@ -11597,3 +11597,5 @@ New backend SQL lowering preserves bounded plain entity sources and post-page en
 2026-11-28 gpt-cosmic: backend native artifact15267090010 (18,455B) verified in RAM and released; compact18-entry receipt retained, owned CI cleanup passed, shared databasecalls0. Disk31.86GiB free. No new local build/env/install/database/worktree/download outputs.
 
 2026-11-28 gpt-cosmic: ordinary-class XML collection source/fixture generated only as Git objects/RAM; runner parsed with Python-B without build. Existing reusable CI stores only. No local environments/downloads/build/testoutputs created; scoped index removed. O03 design investigation created no runtime/resources.
+
+2026-11-28 gpt-cosmic: XML15266572043(11,113B)/CQL15266539517(18,526B) archives inspected in RAM and released;35entries retained as compact receipts. CI exactcleanup passed. Active Core source Queries/CosmicNativeTransaction.cs is unfinished source, not disposable build output, and is excluded from pinnedCoree31af3c1/Root19bb49f6. No local env/database/install/build/worktree/archive output.

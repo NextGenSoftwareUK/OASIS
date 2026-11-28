@@ -1,0 +1,250 @@
+{
+  "date": "2026-11-28",
+  "root": "19bb49f6b256708e9c4ccba30ff1e6afb58083d3",
+  "core": "e31af3c198d4e8374a1b3dabc269d3d75485f428",
+  "mainDone": 148,
+  "mainTotal": 168,
+  "extensionDone": 4,
+  "extensionTotal": 13,
+  "xml": {
+    "run": 46153501315,
+    "artifact": 15266572043,
+    "artifactBytes": 11113,
+    "receipt": {
+      "sha256": "ef7dcf07ef07b539ec170efd175b0c0df92e3adc674fdf60d381c071c00e261a",
+      "entries": 17,
+      "reports": {
+        "MongoDBOASIS-poco-xml-conversion-native.json": 9,
+        "MongoDBOASIS-poco-xml-scalar-collection-native.json": 6,
+        "MongoDBOASIS-xml-scalar-collection-native.json": 6,
+        "MongoDBOASIS-xml-user-type-native.json": 8,
+        "MongoDBOASIS-xml-version-native.json": 5,
+        "Neo4jOASIS-poco-xml-conversion-native.json": 9,
+        "Neo4jOASIS-poco-xml-scalar-collection-native.json": 6,
+        "Neo4jOASIS-xml-scalar-collection-native.json": 6,
+        "Neo4jOASIS-xml-user-type-native.json": 8,
+        "Neo4jOASIS-xml-version-native.json": 5,
+        "SQLLiteDBOASIS-poco-xml-conversion-native.json": 9,
+        "SQLLiteDBOASIS-poco-xml-scalar-collection-native.json": 6,
+        "SQLLiteDBOASIS-xml-scalar-collection-native.json": 6,
+        "SQLLiteDBOASIS-xml-user-type-native.json": 8,
+        "SQLLiteDBOASIS-xml-version-native.json": 5
+      },
+      "source": {
+        "source": "19bb49f6b256708e9c4ccba30ff1e6afb58083d3",
+        "core": "e31af3c198d4e8374a1b3dabc269d3d75485f428",
+        "nativePassed": 15,
+        "ordinaryClassXmlScalarCollectionsVerified": true,
+        "xmlScalarCollectionsVerified": true,
+        "ordinaryClassXmlConversionsVerified": true,
+        "admissionControlsPassed": 2,
+        "registeredXmlUserTypesVerified": true,
+        "canonicalXmlVersionVerified": true,
+        "nativeStaleWritesRejected": true,
+        "fullNhXmlComplete": false,
+        "actualWeb4Compiled": true,
+        "ownedFixturesAbsent": true,
+        "sharedDatabaseCalls": 0,
+        "deployed": false
+      },
+      "newJourneyTimingsMilliseconds": {
+        "MongoDBOASIS-poco-xml-conversion-native.json": {
+          "poco-converted-create": 484,
+          "poco-converted-storage": 13,
+          "poco-converted-native-projection": 139,
+          "poco-converted-roundtrip": 45,
+          "poco-converted-update": 57,
+          "poco-converted-foreign": 4,
+          "poco-converted-model-constraint": 6,
+          "poco-converted-preserved": 5,
+          "poco-converted-frozen-model": 5
+        },
+        "MongoDBOASIS-poco-xml-scalar-collection-native.json": {
+          "poco-collection-create": 19,
+          "poco-collection-roundtrip": 3,
+          "poco-collection-update": 9,
+          "poco-collection-updated-read": 3,
+          "poco-collection-foreign": 1
+        },
+        "MongoDBOASIS-xml-scalar-collection-native.json": {
+          "xml-collection-create": 35,
+          "xml-collection-roundtrip": 4,
+          "xml-collection-update": 12,
+          "xml-collection-updated-read": 1,
+          "xml-collection-foreign": 1
+        },
+        "Neo4jOASIS-poco-xml-conversion-native.json": {
+          "poco-converted-create": 801,
+          "poco-converted-storage": 48,
+          "poco-converted-native-projection": 747,
+          "poco-converted-roundtrip": 416,
+          "poco-converted-update": 420,
+          "poco-converted-foreign": 21,
+          "poco-converted-model-constraint": 29,
+          "poco-converted-preserved": 19,
+          "poco-converted-frozen-model": 486
+        },
+        "Neo4jOASIS-poco-xml-scalar-collection-native.json": {
+          "poco-collection-create": 33,
+          "poco-collection-roundtrip": 11,
+          "poco-collection-update": 70,
+          "poco-collection-updated-read": 17,
+          "poco-collection-foreign": 8
+        },
+        "Neo4jOASIS-xml-scalar-collection-native.json": {
+          "xml-collection-create": 32,
+          "xml-collection-roundtrip": 8,
+          "xml-collection-update": 43,
+          "xml-collection-updated-read": 7,
+          "xml-collection-foreign": 6
+        },
+        "SQLLiteDBOASIS-poco-xml-conversion-native.json": {
+          "poco-converted-create": 353,
+          "poco-converted-storage": 13,
+          "poco-converted-native-projection": 19,
+          "poco-converted-roundtrip": 22,
+          "poco-converted-update": 25,
+          "poco-converted-foreign": 1,
+          "poco-converted-model-constraint": 3,
+          "poco-converted-preserved": 3,
+          "poco-converted-frozen-model": 7
+        },
+        "SQLLiteDBOASIS-poco-xml-scalar-collection-native.json": {
+          "poco-collection-create": 11,
+          "poco-collection-roundtrip": 3,
+          "poco-collection-update": 12,
+          "poco-collection-updated-read": 2,
+          "poco-collection-foreign": 1
+        },
+        "SQLLiteDBOASIS-xml-scalar-collection-native.json": {
+          "xml-collection-create": 9,
+          "xml-collection-roundtrip": 1,
+          "xml-collection-update": 8,
+          "xml-collection-updated-read": 1,
+          "xml-collection-foreign": 1
+        }
+      }
+    }
+  },
+  "cql": {
+    "run": 46153501347,
+    "artifact": 15266539517,
+    "artifactBytes": 18526,
+    "receipt": {
+      "sha256": "139d2273eb4c1710f05099fd223678133051439bf4eca674cec000e8ab4b1de9",
+      "entries": 18,
+      "reports": {
+        "MongoDBOASIS-projected-tuple-set-native.json": 4,
+        "MongoDBOASIS-recursive-selected-set-native.json": 27,
+        "MongoDBOASIS-recursive-entity-set-native.json": 14,
+        "MongoDBOASIS-recursive-set-http-native.json": 14,
+        "MongoDBOASIS-set-publication-count-native.json": 8,
+        "Neo4jOASIS-projected-tuple-set-native.json": 4,
+        "Neo4jOASIS-recursive-entity-set-native.json": 14,
+        "Neo4jOASIS-recursive-selected-set-native.json": 27,
+        "Neo4jOASIS-recursive-set-http-native.json": 14,
+        "Neo4jOASIS-set-publication-count-native.json": 8,
+        "SQLLiteDBOASIS-projected-tuple-set-native.json": 4,
+        "SQLLiteDBOASIS-recursive-entity-set-native.json": 14,
+        "SQLLiteDBOASIS-recursive-selected-set-native.json": 27,
+        "SQLLiteDBOASIS-recursive-set-http-native.json": 14,
+        "SQLLiteDBOASIS-set-publication-count-native.json": 8
+      },
+      "trx": {
+        "recursive-selected-set-native.trx": 15,
+        "recursive-set-compiler.trx": 20
+      },
+      "source": {
+        "source": "19bb49f6b256708e9c4ccba30ff1e6afb58083d3",
+        "core": "e31af3c198d4e8374a1b3dabc269d3d75485f428",
+        "compilerPassed": 20,
+        "nativeIdentitySelectedOperandProviders": [
+          "MongoDBOASIS",
+          "SQLLiteDBOASIS",
+          "Neo4jOASIS"
+        ],
+        "nativeIdentityInputHttpVerified": true,
+        "serverSqlIdentityInputsVerified": true,
+        "shippingSqlEndpointVerified": true,
+        "serverSqlEntityInputsVerified": true,
+        "nativeEntityInputHttpVerified": true,
+        "nativeEntityStageSelectedOperandsVerified": true,
+        "serverSqlSelectedValueCountsVerified": true,
+        "serverSqlSelectedSetExtremaVerified": true,
+        "typedViewsFeedFurtherNativeSetsVerified": true,
+        "typedViewScalarAndElementTerminalsVerified": true,
+        "nativePassed": 15,
+        "serverSqlSelectedSetSumAverageVerified": true,
+        "nativeRecursiveSetHttpVerified": true,
+        "nativeSetPublicationCountsVerified": true,
+        "nativeRecursiveEntitySetProviders": [
+          "MongoDBOASIS",
+          "SQLLiteDBOASIS",
+          "Neo4jOASIS"
+        ],
+        "nativeRecursiveSelectedSetProviders": [
+          "MongoDBOASIS",
+          "SQLLiteDBOASIS",
+          "Neo4jOASIS"
+        ],
+        "typedFinalSetSelectionVerified": true,
+        "nativeSelectedSetSumAverageVerified": true,
+        "nativeNumericRepresentativeDomains": [
+          "Int32Sum",
+          "Int32DoubleAverage"
+        ],
+        "nativeSelectedSetCountVerified": true,
+        "nativeSelectedSetScalarExtremaVerified": true,
+        "nestedVisibleOutputBindingsVerified": true,
+        "fullSetParentsComplete": true,
+        "completedSetParentRows": [
+          "Q50",
+          "Q51",
+          "Q53",
+          "Q54"
+        ],
+        "actualWeb4Compiled": true,
+        "ownedFixturesAbsent": true,
+        "sharedDatabaseCalls": 0,
+        "deployed": false
+      },
+      "entityTimingsMilliseconds": {
+        "MongoDBOASIS": {
+          "ordinary-entity-selected-control": 42,
+          "entity-selections-feed-native-sets": 100,
+          "entity-selected-foreign": 38,
+          "entity-source-bound-before-empty-set": 10,
+          "identity-selected-ordinary-control": 74,
+          "identity-selected-feed-native-sets": 169,
+          "identity-selected-foreign": 49,
+          "identity-source-bound-before-empty": 8
+        },
+        "Neo4jOASIS": {
+          "ordinary-entity-selected-control": 623,
+          "entity-selections-feed-native-sets": 2429,
+          "entity-selected-foreign": 1237,
+          "entity-source-bound-before-empty-set": 1372,
+          "identity-selected-ordinary-control": 1124,
+          "identity-selected-feed-native-sets": 2668,
+          "identity-selected-foreign": 1151,
+          "identity-source-bound-before-empty": 1210
+        },
+        "SQLLiteDBOASIS": {
+          "ordinary-entity-selected-control": 36,
+          "entity-selections-feed-native-sets": 70,
+          "entity-selected-foreign": 16,
+          "entity-source-bound-before-empty-set": 14,
+          "identity-selected-ordinary-control": 52,
+          "identity-selected-feed-native-sets": 130,
+          "identity-selected-foreign": 22,
+          "identity-source-bound-before-empty": 23
+        }
+      }
+    }
+  },
+  "entriesInspected": 35,
+  "scope": "Ordinary-class XML scalar bags/sets plus completed native set family and peer map/tariff/grpc changes",
+  "fullNhXmlComplete": false,
+  "hostedAcceptance": false,
+  "sharedDatabaseCalls": 0
+}

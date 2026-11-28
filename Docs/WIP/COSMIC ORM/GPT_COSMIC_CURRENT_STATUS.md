@@ -12,11 +12,11 @@ Root0ce39fef/Coree7dbd42d passed46152193758:20compiler/15native/actualWEB4/exact
 
 ## Development and coordination
 
-Last own qualified push52110089/Corefa4ea2e2 at12:48:01UTC, Railway0f3e0497 SUCCESS. Peer Developmentd22ee312/Core2d076f7c subsequently adds qualified portal maps/tariffs/gRPC framing; preserve it. The next combined batch merges peer changes, qualified set family and ordinary-class XML scalar collections; exact combined CQL/XML CI pending before Dev push. Normal own batches remain at least30minutes apart; no empty/unqualified push. No staging/production rollout. Metadata/native acceptance is separate from hosted data acceptance.
+Last own qualified push52110089/Corefa4ea2e2 at12:48:01UTC, Railway0f3e0497 SUCCESS. Peer Developmentd22ee312/Core2d076f7c subsequently adds qualified portal maps/tariffs/gRPC framing; preserve it. Combined Root19bb49f6/Coree31af3c1 passed XML46153501315(native15/admission2) and paired CQL46153501347(compiler20/native15), actualWEB4/cleanup,35artifact entries verified. Publishing this qualified scoped batch; Railway acceptance pending. Normal own batches remain at least30minutes apart; no empty/unqualified push. No staging/production rollout. Metadata/native acceptance is separate from hosted data acceptance.
 
 ## Current work
 
-M04 ordinary-class XML List/array bags and HashSet sets use the same owned codec and declaration validator; Coree31af3c1 includes peer changes. New representative native3 collection journey pending, expected XMLnative15/admission2 plus actualWEB4/cleanup; paired CQLcompiler20/native15. Existing Holon collections and ordinary scalar converters are accepted46145616196/46145616238 and preserved. Full M04 relationships, composite collection elements, full type/generator/table/schema scope remain open.
+M04 ordinary-class XML List/array bags and HashSet sets use the same owned codec and declaration validator; Coree31af3c1 includes peer changes. Ordinary-class collection journey passed native3/3: XML15native/admission2 plus actualWEB4/cleanup; paired CQL20compiler/15native. Existing Holon collections and ordinary scalar converters are accepted46145616196/46145616238 and preserved. Full M04 relationships, composite collection elements, full type/generator/table/schema scope remain open.
 
 O03 session-held transaction family claimed. Existing native write halves already accept a held transaction, but public session paths publish only committed acknowledgements. Design must keep provisional writes/accepted revisions/lifecycle notifications separate until final commit; all reads must enlist in the same actor/authority-bound native owner. Do not emulate transactions by buffering managed queries or acknowledge an uncommitted write. O03/O02/O04/O05 remain open.
 
