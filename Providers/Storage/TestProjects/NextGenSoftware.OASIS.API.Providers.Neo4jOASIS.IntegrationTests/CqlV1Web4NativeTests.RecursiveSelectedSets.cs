@@ -8,7 +8,7 @@ using NextGenSoftware.OASIS.API.DNA;
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 public sealed partial class CqlV1Web4NativeTests
 {
-    [DataTestMethod] [DataRow("MongoDBOASIS")]
+    [DataTestMethod] [DataRow("MongoDBOASIS")] [DataRow("SQLLiteDBOASIS")]
     public Task NativeRecursiveSelectedSetsUseVisibleTupleEquality(string providerName)
         =>RunGroupedDistinctNativeFixture(providerName,false,nativeJourney:VerifyNativeSelectedSetTree,
             nativeJourneySuffix:"-recursive-selected-set-native.json");
