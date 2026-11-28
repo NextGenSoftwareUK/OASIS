@@ -104,3 +104,39 @@ Exact0b8c2499/Core0534cb49 passed6/6 in46119098683, actual WEB4 build and exact 
 ### Unified compiler, nested LINQ and late selection accepted
 
 Exactc0fa8364/Core39488eac passed6/6 in46119647384, actual WEB4 and exact cleanup. Artifact15253088361 (6369B, SHA256 1e50e9b8d0541034158feca37c9f36876b8205eb8a74db2c57f6bedabccbdd9e) inspected strictly in RAM:3tree journeys each14groups/4ownedIDs/1writebatch/16timings and3unchanged count controls (8groups/7IDs/1write/12timings). This covers all4identity operations, child/parent windows, left/right nested LINQ, count without publication cap, late Name selection and protected failure before Take(0). One Neo compiler serves flat+nested. Selected-tuple recursion is now local Core work only, excluded from this qualified revision and deployment. Main144/168 + extension4/13; all4parents OPEN. No local build/runtime/database/env/download/archive or shared Atlas/PIPER call.
+
+
+### Recursive selected tuples — shared capture/proof and native Mongo candidate
+
+Shared Core adds immutable selected-set inputs, depth/leaf and cumulative source budgets, explicit recursive capability (old constructor remains false), leaf actor admission and recursive native packet validation. All source/proof/work/payload limits are accounted across children before parent stages; equality still uses only visible tuple cells. Mongo compiles child selected-stage pipelines into native parent algebra and reads every child/leaf proof under the existing single snapshot owner. No managed membership evaluation replaces the provider; existing managed invariant proof validation is recursive. SQLite/Neo remain explicitly unenrolled for selected trees. New Mongo journey9groups/10timings/4ownedIDs/1write plus3existing flat tuple controls and6entity/count controls require10cases, WEB4 and exact cleanup. Main144/168 + extension4/13; full parents OPEN.
+
+Qualified recursive entity/LINQ/late-selection batch00a7be99/Core39488eac pushed Development07:15:22 UTC; next normal push>=07:45:22. New selected tuple source is excluded. No local builds/runtime/env/database/download/artifact or shared Atlas/PIPER operations; only source and compact ledgers retained.
+
+
+### SQLite recursive selected tuples — source implemented, native gate pending
+
+SQLite recursively compiles child selected-set rows into scoped SQL subqueries, with one shared parameter owner and the existing selected-stage compiler. Every leaf and child packet is read under the same serializable transaction/deadline/traversal guard before its parent native command; only the outer owner commits. Visible-cell occurrence copies use the native membership proof, not managed set execution. SQLite recursive enrollment is explicit; Neo remains false. Shared cohort now requires11cases: selected trees2, changed-proof flat tuples3 and entity/count6, plus actual WEB4 and exact cleanup. Mongo-only candidate35b889d2/Corea72edb89 runs46121003806; no selected-tree native acceptance yet. Main144/168 + extension4/13. Qualified Development00a7be99 deploymentbb8cc6b5 BUILDING; this source is excluded. No local builds/envs/runtime/database/download/archive or shared Atlas/PIPER operations.
+
+
+### Neo4j recursive selected tuples and Core compile repair — qualification pending
+
+Neo4j now compiles both flat and recursive visible-tuple sets through one recursive command builder and one shared parameter owner. Child outputs remain native value-cell lists; immutable tagged source/set proof envelopes retain every source and stage. The existing decoder recursively validates every child under parent input limits before constructing the acknowledged packet; no additional provider session or managed set execution. All3stores explicitly enrolled in this candidate. The representative cohort requires12cases: recursive selected trees3, changed shared proof flat tuples3, entity/count6, actual WEB4 and exact cleanup.
+
+Mongo-only46121003806 failed at Core compilation: local ValidateTree input validator collided with the existing occurrence Input helper. Renamed the validator in Core32593014 and shared tree bounds now reuse the same constants. SQLite old-Core46121222759 is superseded; no native selected-tree acceptance claimed. Qualified Development00a7be99/Core39488eac remains separate; next normal push>=07:45:22 UTC. Main144/168 + extension4/13; full parent rows OPEN, backend/wire/nested selected LINQ and remaining terminals still open. No local build/env/database/runtime/download/archive/shared Atlas/PIPER operations or new David action.
+
+
+### Registered recursive selected-value LINQ — source candidate
+
+The selected LINQ provider now resolves registered leaf and set operands through the same manager/concrete adapter, retains deferred binding and explicit actor/model/shape admission, and owns a constant root per set subtree. Left/right nested selected sets use CreateTree; input comparers, indexed sources and existing unsupported entity modes still reject. Two populated anonymous two-cell journeys add left nested Union and right nested Concat (11groups/12timings per selected-tree provider), with no local Enumerable replacement. Core c75489c7ae2bbdee7651d7260bbbbf359e627e63 plus3native selected-tree providers requires12cases plus actual WEB4 and exact cleanup. Basic typed selected-tree cohort73444d05/Core32593014 runs46121528699; no selected-tree credit yet. Main144/168 + extension4/13; backend/wire, remaining terminals and output-shape scope remain open.
+
+Development00a7be99/Core39488eac deploymentbb8cc6b5 reports SUCCESS; metadata only, no new application-data/browser/shared Atlas/PIPER test. This source is feature-only. Next normal Development push>=07:45:22 UTC. No local build/env/database/runtime/download/archive or new David action.
+
+
+### Native compiler boundary correction — selected cohort still pending
+
+Typed selected-tree46121528699 reached provider compilation and found Mongo referring to the Core-internal Operand helper plus passing an array to a list-only pipeline validator. Corec14e3190 now exposes each immutable planned LeftInputOptions/RightInputOptions from the existing options owner; Mongo consumes those public plan values and validates the existing mutable pipeline list before cloning. No duplicated budget derivation or fallback. Expanded selected LINQ46121802312 uses the superseded compiler and is replaced by the corrected exact-source cohort. No native selected-tree acceptance yet; main144/168 + extension4/13. No local build/env/download/database/shared data activity.
+
+
+### Recursive selected tuples and LINQ accepted on all3 native stores
+
+Exact7f7974aa/Corec14e3190 passed12/12 in46122169495, actual WEB4 build and exact cleanup: selected-tree3 (11groups/12timings each), changed-proof flat tuples3, entity/count6. Source.json confirms all3selected providers and exact hashes. Artifact15254526014 (4442B, SHA256 70c5d139fcdc1eb8b935bdf18eeae71efdfd13f07901edf2f7669578cc8f9e3b) inspected in RAM. Retention gap: old upload patterns kept6entity/count JSONs plus source.json, omitting selected JSON/TRX despite the runner asserting them before success/source proof. Fixed upload patterns in the upcoming new count candidate; no artificial success claim about retained detailed reports. Native behavior passed and can publish as a scoped batch. Full parents remain OPEN, main144/168 + extension4/13. New count-only contracts/headers/common owner are local draft, excluded from accepted source. No local builds/downloads/envs/database/shared data operations.

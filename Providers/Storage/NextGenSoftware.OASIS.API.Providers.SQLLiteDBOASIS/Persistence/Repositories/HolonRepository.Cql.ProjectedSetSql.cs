@@ -7,22 +7,38 @@ using NextGenSoftware.OASIS.API.Core.Queries;
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Repositories;
 public partial class HolonRepository
 {
-    private static string CompileProjectedSetSql<T,TResult>(CosmicProjectedSetQuery<T,TResult> query,
-        CompositionSql left,CompositionSql right,List<SqliteParameter> parameters) where T:IHolon
+    private sealed class ProjectedSetSql
     {
+        internal string Proof,Rows,Rank;
+        internal CompositionSql Left,Right;
+        internal ProjectedSetSql LeftSet,RightSet;
+        internal bool HasRelationship;
+    }
+    private static CosmicProjectionCompositionExecutionLimits ProjectedSetInputLimits(CosmicProjectionCompositionOptions options)
+        =>new(options.MaximumInputRows,options.MaximumInputPayloadBytes,options.MaximumStageRows,
+            options.MaximumProofPayloadBytes,10000,options.MaximumInputPayloadBytes);
+    private static ProjectedSetSql CompileProjectedSetSql<T,TResult>(CosmicProjectedSetPlan<T,TResult> plan,
+        List<SqliteParameter> parameters) where T:IHolon
+    {
+        var query=plan.Query;
+        var left=plan.LeftSet==null?CompileSelectedSql(query.Left,plan.Left.Options,ProjectedSetInputLimits(plan.Left.Options),selectedSetInput:true,sharedParameters:parameters):null;
+        var right=plan.RightSet==null?CompileSelectedSql(query.Right,plan.Right.Options,ProjectedSetInputLimits(plan.Right.Options),selectedSetInput:true,sharedParameters:parameters):null;
+        var leftSet=plan.LeftSet==null?null:CompileProjectedSetSql(plan.LeftSet,parameters);
+        var rightSet=plan.RightSet==null?null:CompileProjectedSetSql(plan.RightSet,parameters);
         var definitions=new List<string>();
-        void Input(string name,CosmicProjectionQuery<T,TResult> operand,CompositionSql compiled)
+        void Input(string name,CosmicProjectionQuery<T,TResult> operand,string rows,string rank)
         {
-            var fields=new List<string>{"row_number() OVER (ORDER BY chosen."+compiled.Rank+")-1 AS occurrenceIndex"};
+            var fields=new List<string>{"row_number() OVER (ORDER BY chosen."+rank+")-1 AS occurrenceIndex"};
             for(var index=0;index<operand.OutputColumnIndices.Count;index++)
             {
                 var original=operand.OutputColumnIndices[index];
                 fields.Add("chosen.v"+original+"s AS v"+index+"s");
                 fields.Add("chosen.v"+original+"v AS v"+index+"v");
             }
-            definitions.Add(name+" AS MATERIALIZED (SELECT "+string.Join(",",fields)+" FROM ("+compiled.Rows+") AS chosen)");
+            definitions.Add(name+" AS MATERIALIZED (SELECT "+string.Join(",",fields)+" FROM ("+rows+") AS chosen)");
         }
-        Input("setLeft",query.Left,left);Input("setRight",query.Right,right);
+        Input("setLeft",query.LeftInput.Anchor,leftSet?.Rows??left.Rows,leftSet?.Rank??left.Rank);
+        Input("setRight",query.RightInput.Anchor,rightSet?.Rows??right.Rows,rightSet?.Rank??right.Rank);
         definitions.Add("setOccurrences AS MATERIALIZED (SELECT 0 AS side,* FROM setLeft UNION ALL SELECT 1 AS side,* FROM setRight)");
         var tuple=query.ValueTypes.Select((type,index)=>"v"+index+"v"+CqlSqlTranslator.SelectedCollation(type)).ToArray();
         var match=string.Join(" AND ",query.ValueTypes.Select((type,index)=>
@@ -47,7 +63,13 @@ public partial class HolonRepository
             proofs.Add("SELECT "+index+" AS phase,side,occurrenceIndex,r"+(index+1)+" AS ordinal,0 AS stageRows FROM c"+(index+1));
         var work="(SELECT count(*) FROM setLeft)+(SELECT count(*) FROM setRight)";
         if(selected.Work.Count!=0)work+="+"+string.Join("+",selected.Work);
-        return "WITH "+string.Join(",",definitions)+" SELECT -2 AS phase,0 AS side,0 AS occurrenceIndex,0 AS ordinal,"+
-            work+" AS stageRows UNION ALL "+string.Join(" UNION ALL ",proofs)+" ORDER BY phase,ordinal,side,occurrenceIndex";
+        var common="WITH "+string.Join(",",definitions)+" ";
+        return new ProjectedSetSql {
+            Left=left,Right=right,LeftSet=leftSet,RightSet=rightSet,
+            HasRelationship=left?.HasRelationship==true||right?.HasRelationship==true||leftSet?.HasRelationship==true||rightSet?.HasRelationship==true,
+            Rank=selected.Rank,Rows=common+"SELECT * FROM c"+query.Output.ResultStages.Count+" ORDER BY "+selected.Rank,
+            Proof=common+"SELECT -2 AS phase,0 AS side,0 AS occurrenceIndex,0 AS ordinal,"+
+                work+" AS stageRows UNION ALL "+string.Join(" UNION ALL ",proofs)+" ORDER BY phase,ordinal,side,occurrenceIndex"
+        };
     }
 }
