@@ -9,9 +9,9 @@ async function main(){
  const api=new URL(process.env.OASIS_STARTUP_API_URL);assert.equal(api.hostname,'127.0.0.1');assert.equal(api.protocol,'http:');
  const api5=process.env.OASIS_STARTUP_WEB5_URL?new URL(process.env.OASIS_STARTUP_WEB5_URL):null;
  const popupGroup=process.env.OASIS_STARTUP_POPUP_GROUP||'none';
- assert.ok(['none','map-visit','map-search','map-renderer','map-geo','map-places','onet','web5-diff','web5-errors','provider-migration','web5-depth','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data','social-activity','account-recovery'].includes(popupGroup));
+ assert.ok(['none','map-purpose','map-visit','map-search','map-renderer','map-geo','map-places','onet','web5-diff','web5-errors','provider-migration','web5-depth','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data','social-activity','account-recovery'].includes(popupGroup));
  let visitWrites=0;
- const selectedPopups=popupGroup==='map-visit'?['MapVisit']:popupGroup==='map-search'?[]:popupGroup==='map-renderer'?['MapRenderer']:popupGroup==='map-geo'?['MapGeo']:popupGroup==='map-places'?['MapPlaces']:popupGroup==='onet'?['ONET']:popupGroup==='web5-diff'?['HolonDiff']:popupGroup==='web5-errors'?['CatalogueErrors']:popupGroup==='provider-migration'?['Migration']:popupGroup==='web5-depth'?['OappMap','Launcher']:popupGroup==='account-recovery'?['AccountRecovery']:popupGroup==='social-activity'?['SocialGraph','ActivityFeed']:popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
+ const selectedPopups=popupGroup==='map-purpose'?[]:popupGroup==='map-visit'?['MapVisit']:popupGroup==='map-search'?[]:popupGroup==='map-renderer'?['MapRenderer']:popupGroup==='map-geo'?['MapGeo']:popupGroup==='map-places'?['MapPlaces']:popupGroup==='onet'?['ONET']:popupGroup==='web5-diff'?['HolonDiff']:popupGroup==='web5-errors'?['CatalogueErrors']:popupGroup==='provider-migration'?['Migration']:popupGroup==='web5-depth'?['OappMap','Launcher']:popupGroup==='account-recovery'?['AccountRecovery']:popupGroup==='social-activity'?['SocialGraph','ActivityFeed']:popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
   popupGroup==='data-messaging'?['Data','Messaging']:
   popupGroup==='none'?[]:[{nft:'NFT',data:'Data','data-crud':'DataWrite','data-edit':'DataWrite','files-write':'FilesWrite','map-route':'MapRoute',messaging:'Messaging','messaging-read':'MessagingRead',chat:'Chat','directory-message':'DirectoryMessage',clan:'Clan'}[popupGroup]];
  let expectedMapSearchQuery=null,mapSearchRequestCount=0;
@@ -108,7 +108,7 @@ async function main(){
    assert.ok(Array.isArray(subs)&&subs.some(s=>s.planId==='free'&&s.status==='active'),'Persisted free subscription');
    return signed.jwtToken;
   }
-  if(api5||['map-search','map-visit'].includes(popupGroup))ownedToken=await admitFree(account);
+  if(api5||['map-search','map-visit','map-purpose'].includes(popupGroup))ownedToken=await admitFree(account);
   if(selectedPopups.length&&popupGroup!=='account-recovery'){
    stage='explicit backend selection';assert.equal(!!api5,['web5-depth','web5-errors','web5-diff','map-geo'].includes(popupGroup),'Explicit matching backend selection');if(!api5)ownedToken=await admitFree(account);
    if(selectedPopups.includes('Messaging')||selectedPopups.includes('MessagingRead')||selectedPopups.includes('Chat')||selectedPopups.includes('DirectoryMessage')||selectedPopups.includes('Clan')||selectedPopups.includes('SocialGraph')){
@@ -207,6 +207,9 @@ async function main(){
       assert.equal(body.providerType,'MongoDBOASIS');assert.deepEqual(Object.keys(body.expectedRevisions),[savedHolonId]);
       assert.match(body.expectedRevisions[savedHolonId],/^[0-9a-f-]{36}$/i);ownedOperation=true;
      }
+    }
+    if(popupGroup==='map-purpose'&&request.method()==='POST'&&url.pathname==='/api/map/visit/'+mapRendererRecordId){
+     assert.equal(request.postDataJSON(),'Walking');assert.equal(url.search,'');assert.equal(visitWrites++,0,'One actual SDK purpose visit');ownedOperation=true;
     }
     if(popupGroup==='map-visit'&&request.method()==='POST'&&url.pathname==='/api/map/visit/'+mapRendererRecordId){
      assert.equal(request.postData(),null,'Existing UI sends no optional purpose');assert.equal(visitWrites++,0,'One explicit map visit');ownedOperation=true;
@@ -400,10 +403,10 @@ async function main(){
    }
    assert.equal(new Set(diffStoredIds).size,2,'Two independently stored published versions');
   }
-  if(['map-search','map-visit'].includes(popupGroup))ownedToken=await page.evaluate(()=>window.oasisClient.http.tokenStore.getToken());
-  if(['map-renderer','map-search','map-visit'].includes(popupGroup)){
+  if(['map-search','map-visit','map-purpose'].includes(popupGroup))ownedToken=await page.evaluate(()=>window.oasisClient.http.tokenStore.getToken());
+  if(['map-renderer','map-search','map-visit','map-purpose'].includes(popupGroup)){
    stage='Create actual stored map location';
-   mapRendererRecordId=popupGroup==='map-visit'?'6bf56398-6aa1-4f22-b01b-42cf941b8d38':require('node:crypto').randomUUID();
+   mapRendererRecordId=['map-visit','map-purpose'].includes(popupGroup)?'6bf56398-6aa1-4f22-b01b-42cf941b8d38':require('node:crypto').randomUUID();
    const operationId=require('node:crypto').randomUUID(),bytes=require('node:crypto').createHash('sha256').update('oasis:map-locations:v1').digest().subarray(0,16);
    const catalogueId=[bytes.readUInt32LE(0).toString(16).padStart(8,'0'),bytes.readUInt16LE(4).toString(16).padStart(4,'0'),bytes.readUInt16LE(6).toString(16).padStart(4,'0'),bytes.subarray(8,10).toString('hex'),bytes.subarray(10).toString('hex')].join('-');
    const created=await context.request.post(proxyOrigin+'/api/data/save-holon',{headers:{Authorization:'Bearer '+ownedToken,'Idempotency-Key':operationId,'X-COSMIC-Operation-Id':operationId},
@@ -419,6 +422,15 @@ async function main(){
    const response=await context.request.get(proxyOrigin+'/api/map/nearby?latitude=46.98&longitude=8.25&radiusKm=5',{headers:{Authorization:'Bearer '+ownedToken}});
    const nearby=await response.json();assert.equal(response.status(),200);assert.equal(nearby.isError,false);assert.equal(nearby.result.length,1);assert.equal(nearby.result[0].id,mapRendererRecordId);
    }
+  }
+  if(popupGroup==='map-purpose'){
+   stage='Actual delivered SDK JSON string purpose';
+   const [response,reply]=await Promise.all([page.waitForResponse(r=>new URL(r.url()).pathname==='/api/map/visit/'+mapRendererRecordId&&r.request().method()==='POST'),page.evaluate(id=>window.oasisClient.map.visitLocation({locationId:id,purpose:'Walking'}),mapRendererRecordId)]);
+   httpFacts.push({path:'/api/map/visit/{id}',status:response.status(),isError:reply.isError===true});assert.equal(response.status(),200);assert.equal(reply.isError,false);assert.equal(reply.isSaved,true);assert.equal(reply.result,true);assert.equal(visitWrites,1);
+   stage='Purpose independent persisted history';const headers={Authorization:'Bearer '+ownedToken};
+   const historyResponse=await context.request.get(proxyOrigin+'/api/map/visit-history?limit=50&offset=0',{headers});const history=await historyResponse.json();assert.equal(historyResponse.status(),200);assert.equal(history.isError,false);assert.equal(history.result.length,1);assert.equal(history.result[0].locationId,mapRendererRecordId);assert.equal(history.result[0].avatarId,account.avatar.id);assert.equal(history.result[0].purpose,'Walking');assert.ok(history.result[0].visitedAt);
+   assert.deepEqual(errors,[]);console.log('PORTAL_STARTUP_MAP_PURPOSE_CONTRACT:'+JSON.stringify({actualSdk:true,jsonStringBody:true,savedAcknowledgement:true,persistedPurpose:true,identityMatched:true,visitWrites:1}));
+   console.log('PORTAL_STARTUP_BROWSER_PROOF: actual delivered SDK optional-purpose write and independent private persisted history on owned real Mongo; no repeated UI Visit, physical karma, provider suite or hosted acceptance.');return;
   }
   if(popupGroup==='map-search'){
    function safeMapSearchMessage(value){let text=String(value||'').replace(/(?:https?|mongodb(?:\+srv)?):\/\/[^\s]+/gi,'[URI]').replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g,'[JWT]');return /password|secret|credential|connectionstring|refresh.?token/i.test(text)?'Sensitive detail withheld':text.slice(0,240);}
