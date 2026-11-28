@@ -1,0 +1,230 @@
+{
+  "date": "2026-11-28",
+  "root": "84b488cd4150f7d253243fe1917b95c87abf200d",
+  "core": "250c5936e8bbd1b08505995f3e61b4e4501c7c06",
+  "mainDone": 148,
+  "mainTotal": 168,
+  "extensionDone": 4,
+  "extensionTotal": 13,
+  "kernelProvidersDone": 3,
+  "kernelProvidersTotal": 3,
+  "fullO03Complete": false,
+  "publicSessionIntegrationComplete": false,
+  "held": {
+    "run": 46158243226,
+    "artifact": 15268399647,
+    "artifactBytes": 5940,
+    "receipt": {
+      "sha256": "d345c38d8eb2b13525a6fb5c220d428edcec2ca2c2be57573ad27aa70e483694",
+      "entries": 8,
+      "reports": {
+        "MongoDBOASIS-held-owner-mixed-uow-native.json": 26,
+        "Neo4jOASIS-held-owner-mixed-uow-native.json": 26,
+        "MongoDBOASIS-held-transaction-native.json": 10,
+        "Neo4jOASIS-held-transaction-native.json": 10,
+        "SQLLiteDBOASIS-held-owner-mixed-uow-native.json": 26,
+        "SQLLiteDBOASIS-held-transaction-native.json": 10
+      },
+      "source": {
+        "source": "84b488cd4150f7d253243fe1917b95c87abf200d",
+        "core": "250c5936e8bbd1b08505995f3e61b4e4501c7c06",
+        "heldNativeProviders": [
+          "MongoDBOASIS",
+          "SQLLiteDBOASIS",
+          "Neo4jOASIS"
+        ],
+        "heldProviderDone": 3,
+        "heldProviderTotal": 3,
+        "nativePassed": 6,
+        "provisionalKernelOnly": true,
+        "publicSessionOwnedWriteEnlistmentComplete": false,
+        "fullO03Complete": false,
+        "actualWeb4Compiled": true,
+        "ownedFixturesAbsent": true,
+        "sharedDatabaseCalls": 0,
+        "deployed": false
+      },
+      "timingsMilliseconds": {
+        "MongoDBOASIS": {
+          "held-create-stage": 36,
+          "held-read-own-create": 7,
+          "held-outside-before-commit": 1,
+          "held-update-stage": 7,
+          "held-read-own-update": 1,
+          "held-commit": 3,
+          "held-outside-after-commit": 1,
+          "held-key-after-commit": 1,
+          "held-rollback-stage": 6,
+          "held-read-before-rollback": 1,
+          "held-rollback": 1,
+          "held-outside-after-rollback": 0,
+          "held-key-after-rollback": 0,
+          "held-foreign": 0,
+          "held-foreign-rollback": 0,
+          "held-delete-stage": 6,
+          "held-delete-commit": 2,
+          "held-key-after-delete": 0
+        },
+        "Neo4jOASIS": {
+          "held-create-stage": 406,
+          "held-read-own-create": 251,
+          "held-outside-before-commit": 29,
+          "held-update-stage": 79,
+          "held-read-own-update": 2,
+          "held-commit": 28,
+          "held-outside-after-commit": 19,
+          "held-key-after-commit": 22,
+          "held-rollback-stage": 88,
+          "held-read-before-rollback": 6,
+          "held-rollback": 13,
+          "held-outside-after-rollback": 27,
+          "held-key-after-rollback": 6,
+          "held-foreign": 3,
+          "held-foreign-rollback": 1,
+          "held-delete-stage": 89,
+          "held-delete-commit": 5,
+          "held-key-after-delete": 2
+        },
+        "SQLLiteDBOASIS": {
+          "held-create-stage": 10,
+          "held-read-own-create": 2,
+          "held-outside-before-commit": 2,
+          "held-update-stage": 5,
+          "held-read-own-update": 1,
+          "held-commit": 3,
+          "held-outside-after-commit": 2,
+          "held-key-after-commit": 2,
+          "held-rollback-stage": 10,
+          "held-read-before-rollback": 1,
+          "held-rollback": 4,
+          "held-outside-after-rollback": 1,
+          "held-key-after-rollback": 4,
+          "held-foreign": 4,
+          "held-foreign-rollback": 0,
+          "held-delete-stage": 18,
+          "held-delete-commit": 4,
+          "held-key-after-delete": 1
+        }
+      }
+    }
+  },
+  "paired": {
+    "run": 46158243287,
+    "artifact": 15268773316,
+    "artifactBytes": 18509,
+    "receipt": {
+      "sha256": "06736906e93a9dc772635651a6fcfb98b534d3b7493437328c63d6bbc6e7f796",
+      "entries": 18,
+      "reports": {
+        "MongoDBOASIS-recursive-entity-set-native.json": 14,
+        "MongoDBOASIS-projected-tuple-set-native.json": 4,
+        "MongoDBOASIS-recursive-selected-set-native.json": 27,
+        "MongoDBOASIS-recursive-set-http-native.json": 14,
+        "MongoDBOASIS-set-publication-count-native.json": 8,
+        "Neo4jOASIS-projected-tuple-set-native.json": 4,
+        "Neo4jOASIS-recursive-entity-set-native.json": 14,
+        "Neo4jOASIS-recursive-selected-set-native.json": 27,
+        "Neo4jOASIS-recursive-set-http-native.json": 14,
+        "Neo4jOASIS-set-publication-count-native.json": 8,
+        "SQLLiteDBOASIS-projected-tuple-set-native.json": 4,
+        "SQLLiteDBOASIS-recursive-entity-set-native.json": 14,
+        "SQLLiteDBOASIS-recursive-selected-set-native.json": 27,
+        "SQLLiteDBOASIS-recursive-set-http-native.json": 14,
+        "SQLLiteDBOASIS-set-publication-count-native.json": 8
+      },
+      "trx": {
+        "recursive-selected-set-native.trx": 15,
+        "recursive-set-compiler.trx": 20
+      },
+      "source": {
+        "source": "84b488cd4150f7d253243fe1917b95c87abf200d",
+        "core": "250c5936e8bbd1b08505995f3e61b4e4501c7c06",
+        "compilerPassed": 20,
+        "nativeIdentitySelectedOperandProviders": [
+          "MongoDBOASIS",
+          "SQLLiteDBOASIS",
+          "Neo4jOASIS"
+        ],
+        "nativeIdentityInputHttpVerified": true,
+        "serverSqlIdentityInputsVerified": true,
+        "shippingSqlEndpointVerified": true,
+        "serverSqlEntityInputsVerified": true,
+        "nativeEntityInputHttpVerified": true,
+        "nativeEntityStageSelectedOperandsVerified": true,
+        "serverSqlSelectedValueCountsVerified": true,
+        "serverSqlSelectedSetExtremaVerified": true,
+        "typedViewsFeedFurtherNativeSetsVerified": true,
+        "typedViewScalarAndElementTerminalsVerified": true,
+        "nativePassed": 15,
+        "serverSqlSelectedSetSumAverageVerified": true,
+        "nativeRecursiveSetHttpVerified": true,
+        "nativeSetPublicationCountsVerified": true,
+        "nativeRecursiveEntitySetProviders": [
+          "MongoDBOASIS",
+          "SQLLiteDBOASIS",
+          "Neo4jOASIS"
+        ],
+        "nativeRecursiveSelectedSetProviders": [
+          "MongoDBOASIS",
+          "SQLLiteDBOASIS",
+          "Neo4jOASIS"
+        ],
+        "typedFinalSetSelectionVerified": true,
+        "nativeSelectedSetSumAverageVerified": true,
+        "nativeNumericRepresentativeDomains": [
+          "Int32Sum",
+          "Int32DoubleAverage"
+        ],
+        "nativeSelectedSetCountVerified": true,
+        "nativeSelectedSetScalarExtremaVerified": true,
+        "nestedVisibleOutputBindingsVerified": true,
+        "fullSetParentsComplete": true,
+        "completedSetParentRows": [
+          "Q50",
+          "Q51",
+          "Q53",
+          "Q54"
+        ],
+        "actualWeb4Compiled": true,
+        "ownedFixturesAbsent": true,
+        "sharedDatabaseCalls": 0,
+        "deployed": false
+      },
+      "entityTimingsMilliseconds": {
+        "MongoDBOASIS": {
+          "ordinary-entity-selected-control": 39,
+          "entity-selections-feed-native-sets": 122,
+          "entity-selected-foreign": 32,
+          "entity-source-bound-before-empty-set": 15,
+          "identity-selected-ordinary-control": 61,
+          "identity-selected-feed-native-sets": 161,
+          "identity-selected-foreign": 50,
+          "identity-source-bound-before-empty": 8
+        },
+        "Neo4jOASIS": {
+          "ordinary-entity-selected-control": 725,
+          "entity-selections-feed-native-sets": 1830,
+          "entity-selected-foreign": 890,
+          "entity-source-bound-before-empty-set": 851,
+          "identity-selected-ordinary-control": 554,
+          "identity-selected-feed-native-sets": 1892,
+          "identity-selected-foreign": 1148,
+          "identity-source-bound-before-empty": 928
+        },
+        "SQLLiteDBOASIS": {
+          "ordinary-entity-selected-control": 27,
+          "entity-selections-feed-native-sets": 52,
+          "entity-selected-foreign": 8,
+          "entity-source-bound-before-empty-set": 11,
+          "identity-selected-ordinary-control": 37,
+          "identity-selected-feed-native-sets": 86,
+          "identity-selected-foreign": 15,
+          "identity-source-bound-before-empty": 13
+        }
+      }
+    }
+  },
+  "entriesInspected": 26,
+  "sharedDatabaseCalls": 0,
+  "newHostedAcceptance": false
+}

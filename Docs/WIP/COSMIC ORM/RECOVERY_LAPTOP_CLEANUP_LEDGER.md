@@ -11607,3 +11607,5 @@ New backend SQL lowering preserves bounded plain entity sources and post-page en
 2026-11-28 gpt-cosmic: native held artifact15267694307 (4,387B)6entries verified onlyinRAM and bufferreleased, compact receipt retained; owned fixturesabsent and WEB4build passed. Local source recovery JSON is now a compact committed-ref checkpoint; no build/env/runtime/db/worktree/archive/download created. Qualified Dev814 source rollout SUCCESS, transaction source remainsfeature-only.
 
 2026-11-28 gpt-cosmic: newNeo/unique-claim sources checkpointed inGit; no local builds/env/db/install/worktree/download. RequiredNeo unique constraint is provisioned/shape-verified in writable activation instead of DDL during heldUOW; no user data backfill. Only isolatedCI executes it. Source backup remains compact ref pointer; owned indexes removed. Main148/168, kernel2/3 accepted, newnative3 pending.
+
+2026-11-28 gpt-cosmic: held15268399647(5,940B) and paired15268773316(18,509B) verified inRAM,26entries; buffersreleased, compacthashreceipts retained. AllownedCI fixturesabsent; no local env/build/runtime/db/worktree/archive/download or sharedAtlas/PIPER calls.
