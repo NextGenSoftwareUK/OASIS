@@ -8,7 +8,7 @@ Main **144/168**, extension **4/13**. Full rows completed this session: O07, M01
 
 ## Development
 
-Published exact native-qualified **52110089779019065be2ef9dbd720e8962538368 / Corefa4ea2e254b59e55ab4c5f4fa031199b887ecabb** at **2026-11-28T12:48:01.532Z**. Railway rollout pending. Next normal own Development push **>=13:18:01UTC**, qualified scoped batch only. No staging/production deployment.
+Published exact native-qualified **52110089779019065be2ef9dbd720e8962538368 / Corefa4ea2e254b59e55ab4c5f4fa031199b887ecabb** at **2026-11-28T12:48:01.532Z**. Railway **0f3e0497-3beb-4615-b07d-8ff92180772c SUCCESS**; metadata verified, no hosted data/browser acceptance claimed. Next normal own Development push **>=13:18:01UTC**, qualified scoped batch only. No staging/production deployment.
 
 Previous running WEB4 **60b0ca66/Corecf34fb1a**, Railway049b0485-c87b-42f3-9f10-dc8124fc1055 **SUCCESS**, serves qualified backend entity-input/SQL support. Its runtime matches shipping SQL endpoint CI1b18b510; differences are docs and test-host files only. Metadata and native CI verification do not imply a new hosted browser/data walkthrough. Peer HyperDrive documents are preserved.
 
@@ -28,7 +28,7 @@ Model constraints apply after native value decoding; scaled/prefixed storage doe
 
 ## Current work and remaining scope
 
-Next Q50 family: identity-set late-projection selections feeding further selected-value sets. Preserve identity membership before selecting cells, duplicate occurrences, one native read owner, full caller/source guards and global proof/work/payload budgets. Standalone staged entity-derived SQL also remains open. No new native acceptance is claimed for either family.
+Current Q50 WIP: identity-set late-projection selections feeding further selected sets. Coreb4ddeb4a89482f985a46946116dd5e42a27a45e5 adds capture/planning/occurrence validation and registered LINQ; All three native owners implemented; combined native3 qualification pending. Mongo46149700249 and Mongo+SQLite46150404741 CI passed separately; artifact inspection pending. JSON/SQL capture and full parent-row acceptance remain open. No fabricated IDs, managed query fallback or live enrollment from this unqualified feature branch. Standalone staged entity-derived SQL also remains open.
 
 Full M04 relationships, composite collection elements, POCO XML collections, table/schema placement, full IUserType and remaining generators remain open. Other open rows stay in the checklist.
 
@@ -41,3 +41,9 @@ Provider matrix baseline238projects; native import8/238, virtual3/238/demo-only;
 ## Isolation and cleanup
 
 Shared Atlas/PIPER calls0; no data changes, retries or diagnostic polling. No local builds, installs, databases, environments, containers or worktrees created. Artifact ZIPs inspected in RAM and released; only compact evidence retained. CI artifacts expire2days; owned fixtures/containers cleaned. Temporary scoped Git indexes removed. Last measured free31.91GiB; no reclamation claim. Source, credentials, user databases and unrelated environments preserved.
+
+
+### 2026-11-28 — backend JSON/SQL late identity inputs, qualification pending
+- Set+Columns now means an identity-set subtree selected after its own membership/entity stages, followed by selected Stages before outer tuple equality. Source leaf settings remain disallowed on the envelope; selected subtrees cannot acquire a second entity selection. Recursive capture/depth/leaf bounds and one actor/provider/model policy are unchanged.
+- Server SQL lowering now retains this shape for derived/WITH identity results used as selected operands;47 parser controls passed in RAM. WEB6 server drafting guidance and Postman examples updated; browser engines untouched. Existing generic SDK/MCP JSON forwarding uses the same endpoint; dedicated typed gRPC/GraphQL set operations remain OPEN.
+- Representative HTTP journey adds owner/foreign/anonymous requests through both typed and direct SQL paths:14groups/37timings,24authenticated settlements, same1owned record/1write per store. Compiler20/native15/WEB4/cleanup gate pending. Main144/168 extension4/13 unchanged; full parent rows OPEN.

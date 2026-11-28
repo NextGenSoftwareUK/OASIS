@@ -294,3 +294,35 @@ New backend SQL lowering preserves bounded plain entity sources and post-page en
 
 
 2026-11-28 backend catalogue inspection: configured preset contract currently admits Rows/Federation only. A selected-set SQL preset must get a matching typed preset/admission contract and thin UI treatment; do not relabel a Row preset with different Set SQL. Current advanced set syntax remains available through the backend SQL endpoint and documented/Postman examples. No browser parser/prompt engine copy was edited.
+
+
+### 2026-11-28 — late identity-set operands, Mongo native qualification pending
+- Coreb4ddeb4a89482f985a46946116dd5e42a27a45e5 captures late identity projections, preserves original identity membership and selected stages, counts all nested source leaves, shares occurrence proof validation and conservative source/stage budgets, and binds registered LINQ late selections. Other shipping providers retain closed independent admission until their owners are implemented.
+- Mongo compiler reuses the native identity-set/late-selection pipeline for outer native selected sets. Native source guards, base cell read, selected occurrence proof and outer set commands share the original snapshot/deadline. Existing projection reader factored once for this shared owner; no nested read session, fabricated Guid or managed predicate/set execution.
+- Changed existing owned journey for Mongo only: direct late control, asymmetric identity operands plus plain leaf, foreign isolation, original source bound refusal before outer Take(0);4newtimings,27groups/41timings total, same4owned records/1successfulwrite. SQLite/Neo remain26/37 and independently unsupported for this new source family. Expected15native+18compiler plusWEB4/cleanup; new gate pending. Full Q50/Q51/Q53/Q54 OPEN; main144/168 extension4/13.
+- Current running Development52110089/Corefa4ea2e2 is SUCCESS (Railway0f3e0497-3beb-4615-b07d-8ff92180772c); unqualified identity work is feature-only. No Atlas/PIPER operations, staging/production rollout, local builds/environments/download files or new worktrees.
+
+
+### 2026-11-28 — SQLite late identity-source owner, native gate pending
+- Shared the existing SQLite projection cell decoder; source/entity/set guard, raw late cells, selected occurrence proof and outer selected-set CTEs run under the original serializable transaction and read budget. Source set compilation shares the root parameter pool; new projection limits use bound unique parameters. No nested owner, temporary table, synthetic Id, literal data rebinding or managed predicate/set execution.
+- Existing native late-selection compiler now publishes reusable rows/rank/proof SQL and supports an explicit zero-selected-stage native header. Full original source guards execute before any outer empty result.
+- Representative existing journey enabled for Mongo and SQLite:27groups/41timings, unchanged4owned records/1write; Neo remains26/37 and new admission is closed. Root qualification pending; full Q50/Q51/Q53/Q54 remain OPEN, main144/168 extension4/13.
+- Core remainsb4ddeb4a; Development remains qualified52110089/Corefa4ea2e2 (SUCCESS). No shared Atlas/PIPER calls, local builds/installs/databases/worktrees or artifact downloads.
+
+
+### 2026-11-28 — Neo4j late identity operands, native3 gate pending
+- Native Neo4j identity source, selected stages and outer set algebra now compile into one Cypher statement. Existing identity-set publication/canonical snapshot guard and projection cell decoder are reused; no multi-query source capture, rebinding, separate owner or fabricated source IDs.
+- Set-tree parameters and node names have a unique shared namespace; entity work/output parameters use the existing binder. Aggregate snapshot character lower bound is checked before native publication; canonical guard enforces exact UTF8 bytes after transfer.
+- All three new source enrollments are explicit. Existing selected journey now27groups/41timings per provider, same4owned IDs/1successfulwrite. Source kinds/visible aliases, duplicate occurrences, source windows, caller isolation and input bounds before outer Take(0) remain represented. New native3 acceptance pending; Mongo46149700249 and Mongo+SQLite46150404741 CI succeeded separately (artifacts awaiting inspection).
+- Main144/168 extension4/13 unchanged; full parent rows and backend JSON/SQL capture for this source family remain open. Development stays52110089/Corefa4ea2e2; no live promotion from unqualified work. No Atlas/PIPER calls or local builds/installs/databases/worktrees/download files.
+
+
+### 2026-11-28 — first two late identity owners accepted
+- Mongo Root4ba8b8f55128500e84b0d249dcfd748c25767095 CI46149700249 and Mongo+SQLite Roota4643c591ad848af25a9600aed6c1e1b2e13b126 CI46150404741 both SUCCESS on Coreb4ddeb4a. Each archive independently verified:18 entries,18 compiler/15 native, actual WEB4 build, exact cleanup, zero shared database calls. New-owner native scope1/3 then2/3; selected journey27groups/41timings for enrolled owners.
+- Compact receipt records archive SHA256 and original source provenance. ZIPs processed only in RAM and released. Native3 Rootb23498a5 remains pending, independent Neo review found no concrete blockers. Main144/168 extension4/13 unchanged; full parent rows OPEN.
+
+
+### 2026-11-28 — backend JSON/SQL late identity inputs, qualification pending
+- Set+Columns now means an identity-set subtree selected after its own membership/entity stages, followed by selected Stages before outer tuple equality. Source leaf settings remain disallowed on the envelope; selected subtrees cannot acquire a second entity selection. Recursive capture/depth/leaf bounds and one actor/provider/model policy are unchanged.
+- Server SQL lowering now retains this shape for derived/WITH identity results used as selected operands;47 parser controls passed in RAM. WEB6 server drafting guidance and Postman examples updated; browser engines untouched. Existing generic SDK/MCP JSON forwarding uses the same endpoint; dedicated typed gRPC/GraphQL set operations remain OPEN.
+- Representative HTTP journey adds owner/foreign/anonymous requests through both typed and direct SQL paths:14groups/37timings,24authenticated settlements, same1owned record/1write per store. Compiler20/native15/WEB4/cleanup gate pending. Main144/168 extension4/13 unchanged; full parent rows OPEN.
