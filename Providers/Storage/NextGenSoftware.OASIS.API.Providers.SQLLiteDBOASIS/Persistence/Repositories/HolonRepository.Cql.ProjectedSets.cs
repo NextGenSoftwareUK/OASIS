@@ -76,7 +76,7 @@ public partial class HolonRepository
                     var stages=Enumerable.Range(0,node.Query.Output.ResultStages.Count)
                         .Select(_=>new List<CosmicProjectedSetOccurrence>()).ToArray();
                     var seen=Enumerable.Range(0,stages.Length+1).Select(_=>new HashSet<CosmicProjectedSetOccurrence>()).ToArray();
-                    bool header=false;long work=0,proofBytes=0;
+                    bool header=false;long work=0,proofBytes=0,nativeCount=-1;
                     using(var command=connection.CreateCommand())
                     {
                         command.Transaction=_dbContext.Database.CurrentTransaction?.GetDbTransaction() as SqliteTransaction;
@@ -90,7 +90,9 @@ public partial class HolonRepository
                             if(phase==-2)
                             {
                                 if(header)throw new InvalidDataException("Native selected-set header is duplicated.");
-                                work=reader.GetInt64(4);header=true;
+                                work=reader.GetInt64(4);nativeCount=reader.GetInt64(2);header=true;
+                                if(nativeCount<0||nativeCount>nodeLimits.MaximumResults)
+                                    throw new SqliteCqlResourceException("Native selected-set count exceeds its admitted bound.");
                                 if(work<0 || work>node.Options.MaximumStageRows)
                                     throw new SqliteCqlResourceException("Native selected-set work exceeds its admitted bound.");
                                 continue;
@@ -113,6 +115,9 @@ public partial class HolonRepository
                     var final=stages.Length==0?members:stages[stages.Length-1];
                     if(final.Count>nodeLimits.MaximumResults)
                         throw new SqliteCqlResourceException("Native selected-set result count exceeds its admitted bound.");
+                    if(nodeLimits.CountOnly)
+                        return CosmicProjectedSetPacket.FromCount(left.Proof,right.Proof,new(members),
+                            stages.Select(stage=>new CosmicProjectedSetStageProof(stage)).ToArray(),nativeCount,work);
                     var output=new List<CosmicProjectionRow>();long outputBytes=0;
                     foreach(var occurrence in final)
                     {

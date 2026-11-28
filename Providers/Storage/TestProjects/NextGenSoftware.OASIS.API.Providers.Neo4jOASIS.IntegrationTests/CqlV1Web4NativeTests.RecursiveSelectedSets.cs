@@ -87,11 +87,35 @@ public sealed partial class CqlV1Web4NativeTests
         var lright=await Timed("linq-selected-right-tree",()=>la.Concat(lchild).ToCosmicListAsync());
         Assert.IsFalse(lright.IsError,lright.Message+lright.Exception);
         CollectionAssert.AreEqual(new[]{"a|x","a|y","a|x","a|y","a|x"},lright.Result.Select(row=>row.Name+"|"+row.Category).ToArray());
+        var nativeCount=await Timed("selected-native-count-beyond-publication",()=>manager.ExecuteProjectedSetCountQueryAsync(
+            Plan(query,new CosmicProjectedSetOptions(new CosmicSetQueryOptions(8,8,1048576,2))),new[]{adapter}));
+        Assert.IsFalse(nativeCount.IsError,nativeCount.Message+nativeCount.Exception);Assert.AreEqual(5L,nativeCount.Result.Providers.Single().Value);
+        var pa=CosmicLinq.Create(manager,adapter,EntitySource(access,0),maximumResults:4).Result.Select(row=>new SelectedCountProbe{Name=row.Name,Category=row.Description});
+        var pb=CosmicLinq.Create(manager,adapter,EntitySource(access,1),maximumResults:4).Result.Select(row=>new SelectedCountProbe{Name=row.Name,Category=row.Description});
+        var pc=CosmicLinq.Create(manager,adapter,EntitySource(access,2),maximumResults:4).Result.Select(row=>new SelectedCountProbe{Name=row.Name,Category=row.Description});
+        var probe=pa.Concat(pb).Take(3).Concat(pc);SelectedCountProbe.ConstructorCalls=0;
+        var counted=await Timed("linq-selected-native-long-count",()=>probe.ToCosmicLongCountAsync());
+        Assert.IsFalse(counted.IsError,counted.Message+counted.Exception);Assert.AreEqual(5L,counted.Result);
+        var any=await Timed("linq-selected-any-after-window",()=>probe.Take(1).ToCosmicAnyAsync(row=>row.Name=="b"));
+        Assert.IsFalse(any.IsError,any.Message+any.Exception);Assert.IsFalse(any.Result);
+        var all=await Timed("linq-selected-native-all",()=>probe.ToCosmicAllAsync(row=>row.Name=="a"||row.Name=="b"));
+        Assert.IsFalse(all.IsError,all.Message+all.Exception);Assert.IsTrue(all.Result);
+        Assert.AreEqual(0,SelectedCountProbe.ConstructorCalls,"Native selected counts must not construct selected objects.");
+        var foreignCount=await Timed("selected-foreign-native-count",()=>manager.ExecuteProjectedSetCountQueryAsync(Plan(foreignTree),new[]{adapter}));
+        Assert.IsFalse(foreignCount.IsError,foreignCount.Message+foreignCount.Exception);Assert.AreEqual(0L,foreignCount.Result.Providers.Single().Value);
         using var cancel=new CancellationTokenSource();cancel.Cancel();
         var stopped=await Timed("selected-cancel",()=>manager.ExecuteProjectedSetQueryAsync(Plan(query),new[]{adapter},10,cancellationToken:cancel.Token));
         Assert.IsTrue(stopped.IsError);Assert.AreEqual("CQL_QUERY_CANCELLED",stopped.ErrorCode);
-        return new NativeFixtureJourneyProof(11,1,new Dictionary<string,bool>{["registeredLinqLeftTree"]=true,["registeredLinqRightTree"]=true,["explicitTreeAdmission"]=true,["concatOccurrences"]=true,
+        return new NativeFixtureJourneyProof(14,1,new Dictionary<string,bool>{["nativeCountIndependentOfPublication"]=true,["nativeCardinalityWithoutConstructors"]=true,["foreignNativeCount"]=true,["registeredLinqLeftTree"]=true,["registeredLinqRightTree"]=true,["explicitTreeAdmission"]=true,["concatOccurrences"]=true,
             ["visibleTupleUnion"]=true,["visibleTupleIntersectExcept"]=true,["nodeWindows"]=true,["rightNested"]=true,
             ["foreignIsolation"]=true,["childBoundBeforeEmpty"]=true,["cancellation"]=true});
     }
+    public sealed class SelectedCountProbe
+    {
+        public static int ConstructorCalls;
+        public string Name {get;set;}="";
+        public string Category {get;set;}="";
+        public SelectedCountProbe(){ConstructorCalls++;}
+    }
+
 }
