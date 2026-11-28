@@ -160,3 +160,4 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | WEB4 memory at rest: on-demand sandbox sidecars | Docker sidecar supervisor, CqlV1Providers, SandboxSettings DNA | local: web4-memory-654103 | claude/web4-memory-654103 | 2026-11-27 | DONE 2026-11-27; open: IPFS/SOLID production queries, Holochain on demand |
 | COSMIC O07 transaction-safe execution strategy | COSMIC ORM | local: gpt-cosmic | work/gpt-o07 | 2026-11-28 02:32 | IN PROGRESS |
 | FirebaseOASIS current-Development native core-storage recheck | HyperDrive providers | local: gpt-hyperdrive | work/gpt-firebase-native-recheck | 2026-11-28 02:35 UTC | IN PROGRESS |
+| TursoOASIS current-Development native core-storage recheck | HyperDrive providers | local: gpt-hyperdrive | work/gpt-turso-native-recheck | 2026-11-28 02:36 UTC | IN PROGRESS |
