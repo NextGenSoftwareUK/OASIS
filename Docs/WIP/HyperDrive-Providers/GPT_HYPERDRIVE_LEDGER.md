@@ -55,3 +55,7 @@ Reconciled17/17existing native receipts; provider-directory trees match Developm
 ## 2026-11-28 — Elasticsearch and Qdrant native accepted
 
 Existing shipping-provider suites now run in isolated CI46111639871 on5f03746c7ac9c6208f33678b387703aa6b62a2cb. Both passed26sync+26async, zero skips, independent native empty-store checks and all fixture/container/output cleanup. Existing accepted popular matrix skipped. Native matrix baseline rows117/163; inventory238/75non-storage unchanged. Core README65a90d7 corrects nonexistent migration classes and canonical ownership; its only diff from accepted907cd4b is documentation, so no provider reruns.
+
+## 2026-11-28 — Typesense native CI gate (pending)
+
+Claimed unowned Typesense after reading shared COSMIC status and claims. Existing strict26-check adapter was not wired to CI. Reused it with official30.2image digestsha256:610f2d34b1f93d00762869da2c67736775e5798d19a2c8b91b014b8a0cc1e110 and a fresh loopback container/key per mode. Dynamic matrix selects only Typesense, so accepted Elasticsearch/Qdrant cases are not repeated. Native empty-store,26-check/zero-skip and EXIT cleanup guards remain. No local runtime/download/build/database, shared Atlas operation or hosted credential used.
