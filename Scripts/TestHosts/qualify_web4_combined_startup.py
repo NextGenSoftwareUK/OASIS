@@ -255,8 +255,14 @@ console.log(JSON.stringify(b));
                 if facts:
                     selected = json.loads(facts.group(1))
                     assert isinstance(selected, list) and len(selected) <= 64
-                    assert all(set(item) <= {'path','status','isError','errorCode','json','routingMessage','resultShape','resultCount','routeShape','routePage','oappShape'} for item in selected)
+                    assert all(set(item) <= {'path','status','isError','errorCode','json','routingMessage','resultShape','resultCount','routeShape','routePage','oappShape','migrationShape'} for item in selected)
                     for item in selected:
+                        if 'migrationShape' in item:
+                            shape=item['migrationShape']
+                            assert set(shape)=={'provider','rootPresent','childPresent','childCount'}
+                            assert shape['provider'] in ('MongoDBOASIS','SQLLiteDBOASIS')
+                            assert isinstance(shape['rootPresent'],bool) and isinstance(shape['childPresent'],bool)
+                            assert isinstance(shape['childCount'],int) and shape['childCount']>=0
                         if 'oappShape' in item:
                             shape=item['oappShape']
                             assert set(shape)=={'loadChildren','rootPresent','childrenArray','childPresent','childCount'}

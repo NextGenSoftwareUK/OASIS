@@ -384,9 +384,9 @@ async function main(){
     await page.waitForFunction(()=>document.getElementById('pmig-preview').textContent.includes('Destination: Owned migration root')&&document.getElementById('pmig-preview').textContent.includes('SQLLiteDBOASIS'));
     stage='Migration independent graph readback';
     for(const provider of ['MongoDBOASIS','SQLLiteDBOASIS']){
-     const read=await context.request.post(proxyOrigin+'/api/data/load-holon',{headers:{Authorization:'Bearer '+ownedToken},data:{id:migrationRootId,providerType:provider,loadChildren:true,recursive:true}});
+     const read=await context.request.post(proxyOrigin+'/api/data/load-holon',{headers:{Authorization:'Bearer '+ownedToken,'Idempotency-Key':require('node:crypto').randomUUID()},data:{id:migrationRootId,providerType:provider,loadChildren:true,recursive:true}});
      const body=await read.json(),loaded=body.result;
-     httpFacts.push({path:'/api/data/load-holon',status:read.status(),isError:loaded?.isError===true,...(typeof loaded?.errorCode==='string'&&/^[A-Z0-9_]{1,80}$/.test(loaded.errorCode)?{errorCode:loaded.errorCode}:{})});
+     httpFacts.push({path:'/api/data/load-holon',status:read.status(),isError:loaded?.isError===true,migrationShape:{provider,rootPresent:loaded?.result?.id===migrationRootId,childPresent:Array.isArray(loaded?.result?.children)&&loaded.result.children.some(row=>row.id===migrationChildId),childCount:Array.isArray(loaded?.result?.children)?loaded.result.children.length:0},...(typeof loaded?.errorCode==='string'&&/^[A-Z0-9_]{1,80}$/.test(loaded.errorCode)?{errorCode:loaded.errorCode}:{})});
      assert.equal(read.status(),200);assert.equal(loaded.isError,false);assert.equal(loaded.result.name,'Owned migration root');assert.ok(loaded.result.children.some(row=>row.id===migrationChildId&&row.parentHolonId===migrationRootId));
     }
     assert.equal(migrationCopies,1);assert.deepEqual(migrationReads,{MongoDBOASIS:1,SQLLiteDBOASIS:1});
