@@ -12,7 +12,7 @@ Owner removal46153889539passed1/1; SDK purpose46153459167passed1/1through actual
 
 SourceApp natural-place integration remains unaccepted/unpromoted after real public catalogue failures. Populated GeoNFT, live tiles/Unity/device/remote runtime, paid subscriptions, admitted AI sessions, remaining enabled actions and legacy treasury atomicity remain open. SDK documentation arity/Map.Search metadata follow-up is claimed; runtime JS is unchanged. Source/DNA/worker holds unchanged; shared Atlas operations0.
 
-Native/compile receipts confirm owned containers/network/ephemeral DB volumes removed, compiler ignored outputs cleaned/cache absent. No laptop install/runtime/database/results. Prior d22ee312rollout7/7SUCCESS is historical metadata; the new combined batch needs its own deployment verification. [Structured current report](LATEST_FULL_STATUS_2026-11-28.json).
+Native/compile receipts confirm owned containers/network/ephemeral DB volumes removed, compiler ignored outputs cleaned/cache absent. No laptop install/runtime/database/results. Prior8143052arollout7/7SUCCESS is historical metadata; the new combined batch needs its own deployment verification. [Structured current report](LATEST_FULL_STATUS_2026-11-28.json).
 
 ## Railway shipping gate verified
 

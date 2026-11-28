@@ -30,11 +30,12 @@
     "qualifiedClanActorSource": "e6b5dfdf2c3bfab2fff3bb090506388253a936b0",
     "qualifiedClanActorCore": "43a70495e4b5722b0f5c0fc148b590e119132013",
     "previousCompletedDeploymentMetadata": {
-      "oasisRevision": "d22ee3127f3c3e31fe12bc64bd77a6604f26f8df",
+      "oasisRevision": "8143052a4f9e7b729af3106b7ae48d05799ce784",
       "done": 7,
       "total": 7,
       "status": "success",
-      "scope": "GitHub Railway deployment status metadata only; no hosted sign-in/backend or running-setting verification"
+      "lastUpdated": "2026-11-28T14:45:33Z",
+      "scope": "GitHub Railway status metadata observed before the actor batch; no hosted/backend or loaded-setting certification"
     },
     "newActorRolloutVerification": "Pending after scoped integration; prior7/7metadata is historical, no shared backend calls."
   },
