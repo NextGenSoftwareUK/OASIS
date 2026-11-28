@@ -153,6 +153,9 @@ def main():
                              (('POST','/api/data/save-holon'),('DELETE','/api/data/delete-holon'))))))))]
                 if popup_group in ('map-renderer','map-search'):
                     admission['storageTariffs'].append({'provider':'MongoDBOASIS','operation':'LoadAvatar','costUsd':0,'catalogueVersion':catalogue})
+                if popup_group == 'map-search':
+                    admission['storageTariffs'] += [{'provider':'MongoDBOASIS','operation':operation,'costUsd':0,'catalogueVersion':catalogue}
+                        for operation in ('LoadAllHolons','LoadHolonsForParent','LoadHolonsForParentByProviderKey')]
                 if popup_group == 'web5-depth':
                     admission['routes'].append({'method':'POST','path':'/api/oapps','policy':dict(write_policy)})
                 if popup_group == 'web5-diff':
