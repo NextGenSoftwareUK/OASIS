@@ -205,11 +205,11 @@ internal sealed class MidenLedgerKeyValueBackend : IKeyValueBackend, IDisposable
 
     private async Task InitialiseAsync(CancellationToken cancellationToken)
     {
-        if (_initialised) return;
+        if (_initialised && _sdk.IsInitialized) return;
         await _initialise.WaitAsync(cancellationToken);
         try
         {
-            if (_initialised) return;
+            if (_initialised && _sdk.IsInitialized) return;
             await _sdk.InvokeAsync("init", new { rpcUrl = _rpcUrl, accountId = _accountId, keySeed = _keySeed }, cancellationToken);
             _initialised = true;
         }

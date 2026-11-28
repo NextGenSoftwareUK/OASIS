@@ -5,7 +5,8 @@
 // followed by {id, ok, result | error, txId?}. Other output is SDK logging and is ignored by the host. Seeds (the
 // account's secrets) arrive only on stdin.
 import { readFileSync } from 'node:fs';
-import { randomUUID } from 'node:crypto';
+import { createHash } from 'node:crypto';
+import { isAbsolute } from 'node:path';
 import { createInterface } from 'node:readline';
 import { AccountBuilder, AccountComponent, AccountId, AccountStorageMode, AuthSecretKey, MidenClient, Note, StorageMap, StorageSlot, Word } from '@miden-sdk/miden-sdk';
 
@@ -28,8 +29,14 @@ const seedBytes = (hex) => {
 const toWord = (limbs) => new Word(BigUint64Array.from(limbs.map((limb) => BigInt(limb))));
 const fromWord = (word) => Array.from(word.toU64s(), (limb) => limb.toString());
 
-async function openClient(rpcUrl) {
-  const client = await MidenClient.create({ rpcUrl, storeName: `oasis-miden-${randomUUID()}`, autoSync: false });
+async function openClient(rpcUrl, identity) {
+  // One persistent SDK store per node/account retains its journal across worker restarts.
+  // Disposable CI supplies an absolute file inside its owned fixture instead.
+  const storeFile = process.env.OASIS_MIDEN_SDK_STORE_FILE;
+  if (storeFile && (!isAbsolute(storeFile) || !storeFile.endsWith('.db')))
+    throw new Error('OASIS_MIDEN_SDK_STORE_FILE must be an absolute .db path.');
+  const storeName = storeFile ?? `oasis-miden-${createHash('sha256').update(JSON.stringify([rpcUrl, identity])).digest('hex')}`;
+  const client = await MidenClient.create({ rpcUrl, storeName, autoSync: false });
   await client.sync();
   const component = await client.compile.component({
     code: COMPONENT_CODE,
@@ -42,7 +49,7 @@ async function openClient(rpcUrl) {
 /** Fixture only: creates the public storage account, funds it for fees and returns its id. */
 async function deploy({ rpcUrl, accountSeed, keySeed, faucetUrl }) {
   if (state) throw new Error('The Miden worker is already initialised.');
-  const { client, component } = await openClient(rpcUrl);
+  const { client, component } = await openClient(rpcUrl, accountSeed);
   const auth = AuthSecretKey.rpoFalconWithRNG(seedBytes(keySeed));
   // The basic wallet component lets the account receive the funding note's fee asset (P2ID calls receive_asset).
   const built = new AccountBuilder(seedBytes(accountSeed))
@@ -84,9 +91,10 @@ async function requestFunding(fundingUrl, accountId) {
 
 async function init({ rpcUrl, accountId, keySeed }) {
   if (state) throw new Error('The Miden worker is already initialised.');
-  const { client, component } = await openClient(rpcUrl);
+  const { client, component } = await openClient(rpcUrl, accountId);
   const id = AccountId.fromHex(accountId);
-  await client.accounts.import(id);
+  if (!(await client.accounts.get(id)))
+    await client.accounts.import(id);
   await client.keystore.insert(id, AuthSecretKey.rpoFalconWithRNG(seedBytes(keySeed)));
   state = { client, component, accountId: id };
   return { accountId: id.toString() };

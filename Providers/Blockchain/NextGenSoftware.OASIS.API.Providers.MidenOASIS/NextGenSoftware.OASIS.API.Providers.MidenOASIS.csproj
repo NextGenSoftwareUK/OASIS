@@ -59,6 +59,7 @@
       <None Include="SdkBridge\package-lock.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="MidenSdkBridge\package-lock.json" Pack="true" PackagePath="contentFiles/any/any/MidenSdkBridge/package-lock.json" PackageCopyToOutput="true" />
       <None Include="../../../Docker/install-miden-sdk.sh" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="MidenSdkBridge/install-sdk.sh" Pack="true" PackagePath="contentFiles/any/any/MidenSdkBridge/install-sdk.sh" PackageCopyToOutput="true" />
       <InternalsVisibleTo Include="NextGenSoftware.OASIS.API.Providers.MidenOASIS.UnitTests" />
+      <InternalsVisibleTo Include="NextGenSoftware.OASIS.API.Providers.MidenOASIS.IntegrationTests" />
     </ItemGroup>
 
     <ItemGroup>

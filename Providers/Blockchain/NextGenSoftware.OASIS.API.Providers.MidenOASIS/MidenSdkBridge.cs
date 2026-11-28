@@ -18,6 +18,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS;
 /// </summary>
 public interface IMidenSdkBridge : IDisposable
 {
+    bool IsInitialized { get; }
     Task<JsonElement> InvokeAsync(string operation, object arguments = null, CancellationToken cancellationToken = default);
 }
 
@@ -28,6 +29,9 @@ public sealed class MidenSdkBridge : IMidenSdkBridge
     private readonly SemaphoreSlim _gate = new(1, 1);
     private Process _process;
     private long _nextId;
+    private int _initialized;
+    public bool IsInitialized => Volatile.Read(ref _initialized) != 0;
+    internal int? WorkerProcessId => _process is { HasExited: false } ? _process.Id : null;
 
     public async Task<JsonElement> InvokeAsync(string operation, object arguments = null, CancellationToken cancellationToken = default)
     {
@@ -40,6 +44,10 @@ public sealed class MidenSdkBridge : IMidenSdkBridge
         await _gate.WaitAsync(cancellationToken);
         try
         {
+            var initializing = operation is "init" or "deploy";
+            if (_process != null && (initializing || _process.HasExited)) Stop();
+            if (!initializing && !IsInitialized)
+                throw new InvalidOperationException("The Miden SDK session must be initialized before a new operation.");
             var process = _process ??= Start();
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             deadline.CancelAfter(Deadline);
@@ -56,7 +64,11 @@ public sealed class MidenSdkBridge : IMidenSdkBridge
                     var root = reply.RootElement;
                     if (!root.TryGetProperty("id", out var replyId) || replyId.ValueKind != JsonValueKind.Number || replyId.GetInt64() != id)
                         throw new InvalidDataException("The Miden SDK worker replied out of order.");
-                    if (root.GetProperty("ok").GetBoolean()) return root.GetProperty("result").Clone();
+                    if (root.GetProperty("ok").GetBoolean())
+                    {
+                        if (initializing) Volatile.Write(ref _initialized, 1);
+                        return root.GetProperty("result").Clone();
+                    }
                     var message = root.TryGetProperty("error", out var error) ? error.GetString() : "The Miden SDK worker failed.";
                     if (root.TryGetProperty("txId", out var hash) && hash.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(hash.GetString()))
                         throw new MidenTransactionReconciliationException(hash.GetString(), new InvalidOperationException(message));
@@ -104,15 +116,18 @@ public sealed class MidenSdkBridge : IMidenSdkBridge
 
     private void Stop()
     {
-        var process = Interlocked.Exchange(ref _process, null);
+        Volatile.Write(ref _initialized, 0);
+        var process = _process;
         if (process == null) return;
-        try
+        if (!process.HasExited)
         {
-            if (!process.HasExited) process.Kill(entireProcessTree: true);
-            process.WaitForExit(10_000);
+            try { process.Kill(entireProcessTree: true); }
+            catch (InvalidOperationException) when (process.HasExited) { /* Exit raced the kill; verified below. */ }
         }
-        catch (InvalidOperationException) { } // already exited
-        finally { process.Dispose(); }
+        if (!process.WaitForExit(10_000))
+            throw new TimeoutException("The owned Miden SDK worker did not exit.");
+        _process = null;
+        process.Dispose();
     }
 
     public void Dispose()

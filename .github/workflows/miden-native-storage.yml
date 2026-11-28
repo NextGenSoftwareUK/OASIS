@@ -92,6 +92,8 @@ jobs:
             [[ "$attempt" != 120 ]]; sleep 5
           done
 
+          mkdir "$fixture/sdk-store"
+          export OASIS_MIDEN_SDK_STORE_FILE="$fixture/sdk-store/store.db"
           # Create, fund and deploy the public storage account once; the provider imports it by id.
           account_seed="$(openssl rand -hex 32)"; key_seed="$(openssl rand -hex 32)"
           echo "::add-mask::$account_seed"
@@ -108,7 +110,15 @@ jobs:
             OASIS_MIDEN_STORAGE_ACCOUNT="$account" OASIS_MIDEN_STORAGE_KEY_SEED="$key_seed" \
             OASIS_MIDEN_KUBO="http://127.0.0.1:15001" OASIS_MIDEN_STORAGE_KEY="$encryption_key"
           dotnet vstest "$PUBLISHED_MIDEN_TESTS/NextGenSoftware.OASIS.API.Providers.MidenOASIS.IntegrationTests.dll" \
-            --TestCaseFilter:"FullyQualifiedName~MidenNativeStorageConformanceTests" --logger:"console;verbosity=normal"
+            --TestCaseFilter:"FullyQualifiedName~MidenNativeStorageConformanceTests" --logger:"console;verbosity=normal" \
+            --logger:"trx;LogFileName=miden.trx" --ResultsDirectory:"$fixture"
+          python3 - "$fixture/miden.trx" <<'PY'
+          import sys
+          import xml.etree.ElementTree as ET
+          results = ET.parse(sys.argv[1]).findall(".//{*}UnitTestResult")
+          assert len(results) == 3 and all(row.get("outcome") == "Passed" for row in results)
+          print("Both26-check native modes and the real SDK lifecycle case passed with zero skips.")
+          PY
           for mode in async sync; do
             jq -e '.Succeeded and .FixtureCleanupComplete and (.Passed | length == 26)' "$fixture/$mode.json" >/dev/null
           done
