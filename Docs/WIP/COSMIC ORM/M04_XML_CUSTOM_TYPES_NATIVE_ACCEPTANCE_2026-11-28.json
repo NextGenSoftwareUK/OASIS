@@ -1,0 +1,28 @@
+{
+  "run": 46138409566,
+  "artifact": 15260846850,
+  "sha256": "ff7a57d11d8b736bb40cfe6630afd2e0345d3f69d5f3bca32ba5e9afd9aaa65b",
+  "artifactEntries": 8,
+  "source": "13a6e23326aa2a774e3280abf493d7d3cf3fd7cb",
+  "core": "0a4074ecf6e82196d757e7f657e51780b7525eb7",
+  "nativePassed": 6,
+  "admissionControlsPassed": 2,
+  "registeredXmlUserTypesVerified": true,
+  "canonicalXmlVersionVerified": true,
+  "nativeStaleWritesRejected": true,
+  "fullNhXmlComplete": false,
+  "actualWeb4Compiled": true,
+  "ownedFixturesAbsent": true,
+  "sharedDatabaseCalls": 0,
+  "deployed": false,
+  "cqlRegression": {
+    "run": 46138409613,
+    "artifact": 15261186443,
+    "sha256": "4731a1629df738967f3470ca1c52dbbf6fbbd3b125e4b4108fd02a247fb2e588",
+    "artifactEntries": 18,
+    "compilerPassed": 17,
+    "nativePassed": 15,
+    "actualWeb4Compiled": true,
+    "ownedFixturesAbsent": true
+  }
+}

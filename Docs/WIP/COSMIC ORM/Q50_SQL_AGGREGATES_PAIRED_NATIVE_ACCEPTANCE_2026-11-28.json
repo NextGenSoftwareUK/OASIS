@@ -1,0 +1,64 @@
+{
+  "run": 46138293521,
+  "artifact": 15261220680,
+  "sha256": "decd7135e0de1de9bfb63dfcb89f8d3ed6b773eca4290ec96d27f5d5ecf2d57d",
+  "artifactEntries": 18,
+  "xmlRegression": {
+    "run": 46138293530,
+    "artifact": 15260514385,
+    "sha256": "d2566eea3e73952a951bd7360b49c95adc256bca1892718d212a85f3f4cd6c99",
+    "artifactEntries": 5,
+    "nativePassed": 3,
+    "admissionControlsPassed": 1,
+    "actualWeb4Compiled": true,
+    "ownedFixturesAbsent": true
+  },
+  "serverParserChecks": 32,
+  "httpJourney": {
+    "providers": 3,
+    "groupsPerProvider": 9,
+    "timingsPerProvider": 25,
+    "settledOperationsPerProvider": 16
+  },
+  "source": "32c83be070f99cd37284ff5452ca862145b1c1fc",
+  "core": "60c4e11f3063d3d9d19acb38fa472772cea548c7",
+  "compilerPassed": 17,
+  "serverSqlSelectedValueCountsVerified": true,
+  "serverSqlSelectedSetExtremaVerified": true,
+  "typedViewsFeedFurtherNativeSetsVerified": true,
+  "typedViewScalarAndElementTerminalsVerified": true,
+  "nativePassed": 15,
+  "serverSqlSelectedSetSumAverageVerified": true,
+  "nativeRecursiveSetHttpVerified": true,
+  "nativeSetPublicationCountsVerified": true,
+  "nativeRecursiveEntitySetProviders": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS",
+    "Neo4jOASIS"
+  ],
+  "nativeRecursiveSelectedSetProviders": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS",
+    "Neo4jOASIS"
+  ],
+  "typedFinalSetSelectionVerified": true,
+  "nativeSelectedSetSumAverageVerified": true,
+  "nativeNumericRepresentativeDomains": [
+    "Int32Sum",
+    "Int32DoubleAverage"
+  ],
+  "nativeSelectedSetCountVerified": true,
+  "nativeSelectedSetScalarExtremaVerified": true,
+  "nestedVisibleOutputBindingsVerified": true,
+  "fullSetParentsComplete": false,
+  "actualWeb4Compiled": true,
+  "ownedFixturesAbsent": true,
+  "sharedDatabaseCalls": 0,
+  "deployed": false,
+  "development": {
+    "source": "32c83be070f99cd37284ff5452ca862145b1c1fc",
+    "core": "60c4e11f3063d3d9d19acb38fa472772cea548c7",
+    "pushedAt": "2026-11-28T11:16:07.896Z",
+    "liveAcceptance": false
+  }
+}

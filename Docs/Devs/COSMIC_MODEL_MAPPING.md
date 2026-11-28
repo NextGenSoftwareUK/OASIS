@@ -480,3 +480,11 @@ A Holon contract imported through CosmicModelBuilder.ImportNHibernateXml may dec
 Version must be the inherited Holon.Version getter/setter and native storage column. Native acknowledged writes assign/increment it; a stale session cannot overwrite a newer winner. Unsaved-value may be0 or undefined, generated only never. Renamed/custom/timestamp/POCO version tokens, other optimistic-lock strategies and database-generated versions are refused explicitly. Invalid imports leave the destination builder unchanged.
 
 Native MongoDB/SQLite/Neo4j qualification46134517647 verified initial acknowledgement, increment, stale-write refusal, preserved winner and foreign-reader isolation, plus atomic admission and actual WEB4 build. Development49f8f1c7/Core551ac0d8 deployed successfully; a new hosted application walkthrough is not claimed. Full NHibernate XML parity remains open.
+
+
+## Registered XML custom scalar types
+
+ImportNHibernateXml(xml, contracts, customTypes) accepts an explicit IReadOnlyDictionary<string,CosmicValueConverter>. A property type attribute may name one of these registrations, for example type="scaled-units" with a CosmicValueConverter<int,long>. The converter ModelType must exactly match that CLR property; storage, typed query parameters, projections, hydration and session updates use its native ProviderType and declared equality/ordering semantics. The application supplies converters; XML cannot instantiate classes, load assemblies or execute callback text. Registered names are frozen during atomic import (up to128 bounded names); later dictionary edits do not change the model. Canonical Holon fields cannot be replaced by custom XML conversions. This scope is scalar property mapping, not full NHibernate IUserType/SQL type/schema/component parity. Native qualification pending.
+
+
+Registered XML scalar qualification: exact13a6e233/Core0a4074ec passed46138409566 (native6/admission2/actual WEB4/cleanup) and paired CQL46138409613 (compiler17/native15/actual WEB4/cleanup). This supersedes the pending note above. Full NHibernate XML remains incomplete; Development publication of this slice is still pending the normal cadence.

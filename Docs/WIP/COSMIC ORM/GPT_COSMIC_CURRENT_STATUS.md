@@ -1,37 +1,37 @@
 # COSMIC current status
 
-Updated 2026-11-28T10:50:17.174Z. Session gpt-cosmic; one implementation/evidence branch work/gpt-q50. Historical decisions/failures remain in the M04/Q50 ledgers.
+Updated 2026-11-28T11:32:48.102Z. Session gpt-cosmic; single task branch work/gpt-q50. Detailed history: GPT_Q50_SET_FAMILY_LEDGER_2026-11-28.md and GPT_M04_LEDGER_2026-11-28.md.
 
 ## Progress
 
-Main checklist **144/168**, extension **4/13**. Full rows completed this session: **O07, M01, M09**, each native-qualified on MongoDB, SQLite and Neo4j plus actual WEB4 build and exact cleanup. M04, Q50, Q51, Q53 and Q54 remain OPEN; accepted increments do not earn full-row credit.
-
-Accepted breadth: recursive entity/visible-tuple sets, node windows, selected filters/order/Distinct/pages/elements, typed DTO/anonymous/scalar views feeding further selected sets, and native cardinality/extrema/numeric terminals without intermediate DTO construction. Mixed identity-set late-projection operands remain open. Broader numeric kernels exist; representative new domains are Int32 Sum and Int32-to-Double Average, not exhaustive new hardening.
+Main **144/168**, extension **4/13**. Full rows completed this session: O07, M01, M09, native-qualified on MongoDB/SQLite/Neo4j plus actual WEB4 build/cleanup. M04 and Q50/Q51/Q53/Q54 remain OPEN. Accepted increments do not earn full-row credit.
 
 ## Deployed Development
 
-**Development49f8f1c77ff23529496a46efb7b0d4441dc661ce / Core551ac0d8302dfe66415b3a9b78b5d16fc0b08590.** Pushed2026-11-28T10:30:43.703Z as one verified batch preserving peer874d4de3 ONET/OAPP changes and dependency pins. Railway WEB4 deployment2ef0500e-8bd0-4fc0-8029-83598d026fa9 reports **SUCCESS**. Metadata-only revision verification; no new hosted query/browser acceptance claimed. No staging/production deployment.
+**32c83be070f99cd37284ff5452ca862145b1c1fc / Core60c4e11f3063d3d9d19acb38fa472772cea548c7**, pushed 2026-11-28T11:16:07.896Z. Railway WEB4 deployment8e89db37-65cc-4d2c-ac89-8fdccd25bdfd reports **SUCCESS**. This pairs native backend aggregates with peer308ed7cf/Corec0e8 metadata-tariff/portal changes. Revision metadata is verified; no new hosted data/browser walkthrough claimed. Next normal own Dev push **>=11:46:07UTC**, qualified scoped batch only. No staging/production deployment.
 
-| Qualified increment | Source / Core | CI evidence |
+Deployed CQL breadth: recursive entity and selected-value trees, per-node windows/complete proof, typed DTO/anonymous/scalar views feeding further selected sets, native selected filters/order/Distinct/pages/elements, Count/LongCount/Any/All, Min/Max/Sum/Average. Backend SQL over selected sets includes COUNT(*), COUNT(alias), COUNT(DISTINCT alias), ANY(*), MIN/MAX/SUM/AVG under admitted domains. All lowering/prompt changes are server-owned; browser engines untouched.
+
+## Native acceptance
+
+| Slice | Exact source/Core | Passed gates |
 |---|---|---|
-| Typed selected-set composition, elements/scalars, recursive backend SQL/count | f32951a2 /72245df5 | [46131669929](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/46131669929):15 compiler +15 native, WEB4/cleanup;18 artifact entries inspected |
-| Backend selected-set SQL SUM/AVG | a6407f06 /ed51f44d | [46132720360](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/46132720360):16 compiler +15 native, WEB4/cleanup;18 artifact entries inspected |
-| Canonical XML Version and native stale-write/winner/caller controls | d36a143c /551ac0d8 | [46134517647](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/46134517647):3 native +1 admission, WEB4/cleanup;5 artifact entries inspected; CQL regression46134517653 passed |
+| Typed composition and recursive SQL/count | f32951a2 /72245df5 |46131669929:15compiler/15native/WEB4/cleanup |
+| Backend selected SUM/AVG | a6407f06 /ed51f44d |46132720360:16compiler/15native/WEB4/cleanup |
+| Canonical XML Version/stale-write protection | d36a143c /551ac0d8 |46134517647:3native/1admission/WEB4/cleanup |
+| Paired backend extrema/value counts/shared LINQ scalar owner |32c83be0 /60c4e11f |46138293521:17compiler/15native/WEB4/cleanup; XML regression46138293530:3native/1admission/WEB4/cleanup |
+| Registered XML custom scalar converters (not deployed yet) |13a6e233 /0a4074ec |46138409566:6native/2admission/WEB4/cleanup; CQL46138409613:17compiler/15native/WEB4/cleanup |
 
-Independent exact-ref reviews found no merge blockers; compact acceptance JSON contains hashes and exact revisions. Full M04 XML relationships, collections, schema/custom types and remaining generators are incomplete.
+All artifact entries independently inspected in RAM and hash-bound compact acceptance JSON retained: paired aggregates18+5 entries, custom XML8+18. Independent exact-ref reviews passed. XML registrations reuse native converters for representation, filtering/ordering, projections/membership/sets, mutable updates, caller isolation and frozen models. Full M04 relationships, collections, table/schema/full IUserType and remaining generators are open.
 
-## Current source qualification
+## Current implementation gate
 
-Candidate **d0d03d2f429ad722e2784f7f3c4ead29c67dbf31 / Core1b061dca526d07582dc1cd88bc8bb3ad13f367a0** adds backend selected-set SQL MIN/MAX, COUNT(alias), COUNT(DISTINCT alias), and one shared native extrema planner for backend and LINQ/typed views. Local existing Node18 server parser **32/32** passed; independent review found no blockers. CI **46137078181** must pass compiler17/native15/actual WEB4 and cleanup before integration. Earlier paired26efb078/Core3c23ee04 is running46136894293. Native HTTP checks cover owner/foreign/anonymous, null column counts, distinct values, prior windows and one settled physical attempt.
+**23d1d178742aa1f4b76ef650d0b5aa47e02d6af4 / Core3d8d54dbb0ed978de635be937391ae1e6ebff7b8**, CI **46140273726 pending**. Entity-stage selections can now be registered selected-set operands; all three shipping provider compilers use existing native entity plans. Exact source/actor/model, independent enrollment, conservative worst-case entity-work reservations, shared native-guard payload allowances and complete proof are retained. SQLite/Neo parameters are shared/unique; Neo reuses one entity proof guard and bounds its envelope before collection.
 
-Earlier46136308349 failed because Core ModelValueType was internal; Core3c23ee04 exposes the canonical read-only property. Superseded46136695804 cancelled. Failures remain in the ledger; no acceptance from source/review alone. Next normal own Development push **no earlier11:00:43UTC**, one qualified batch preserving latest concurrent work.
+Representative changed journey26groups/37timings reuses4owned records/1write: direct ordinary entity-selected control, two asymmetric entity inputs plus a plain input in nested Concat, foreign isolation and oversized original input refusal before Take(0). Review caught SQLite right EntitySource omission in ad4bb95b; fixed23d1d178. Superseded46140132214 cancelled. No native/deployment acceptance before exact gate passes. Identity-set late-projection operands and JSON/SQL entity-input transport remain OPEN; no full set-parent credit.
 
-## Remaining roadmap
+## Remaining roadmap and isolation
 
-Phase2a backend /api/data/query-cql/sql and /ask baseline is DONE. SQL parser and AI drafting engine live only in WEB4 Services/Cql/Text; **do not edit Web4Site cql-text.js or cql-ask.js**. Expanded syntax is qualified separately. SDK Data.set/sql/ask generic forwarding is present; dedicated typed gRPC/GraphQL CQL set operations remain a documented gap.
+Phase2a backend /api/data/query-cql/sql and /ask baseline DONE. Engines are WEB4 Services/Cql/Text cql-text.js/cql-ask.js; **do not edit Web4Site engines**. Existing SDK generic set/sql/ask forwarding is present; dedicated typed gRPC/GraphQL set operations remain a gap. Full provider parity, import/full/virtual/hybrid policies and ONODE profiles remain. Baseline238projects, native import8/238, virtual3/238/demo-source restrictions,107enrolled sandbox sources preserved without reruns. Hosted Neo4j stopped for cost; CI owns isolated containers. Existing TRON action deferred; no new ACTIONS-FOR-DAVID entry.
 
-Preserve full provider parity, import, full/virtual/hybrid holons and per-avatar/app policies, then ONODE profiles. Baseline:238 tracked projects, native import8/238, virtual mappings3/238 with demo-source restriction still open,107 enrolled Development CQL sources (accepted baseline retained, not rechecked). Hosted Neo4j stays stopped for cost; CI containers are independent. Existing TRON key action remains deferred; **no new ACTIONS-FOR-DAVID entry**.
-
-## Cleanup and isolation
-
-No local .NET builds, runtime installs, environments, databases, containers, worktrees or retained artifact downloads created. CI owns isolated Mongo/Neo4j/SQLite fixtures and exact cleanup. Artifact ZIPs inspected in RAM/released; compact evidence retained, artifacts expire2days. Existing Node parser checks produce no output files. Latest measured **32.33GiB free**, no reclamation claim. Temporary scoped Git indexes removed; unrelated source/credentials/user data preserved. **No shared Atlas/PIPER tests, polling or data changes.**
+No shared Atlas/PIPER queries, polling or data changes. No local builds, downloads, environments, databases, containers, worktrees or retained artifact ZIPs created; RAM ZIP buffers released. Existing Node32parser controls and Python syntax checks create no output files. Latest free **32.31GiB**, no reclamation claim. Compact evidence retained; CI artifacts expire2days; temporary scoped Git indexes removed. Credentials/unrelated source/user databases untouched.
