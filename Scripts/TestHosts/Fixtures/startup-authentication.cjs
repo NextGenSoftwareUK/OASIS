@@ -2,7 +2,7 @@
 // Runs inside the owned, network-isolated shipping API image. Never outputs credentials or responses.
 const assert=require('node:assert/strict'),crypto=require('node:crypto');
 let stage='preparation';
-async function createOwnedAvatar(base){
+async function createOwnedAvatar(base,readOwnedVerificationToken){
  const url=new URL(base);assert.equal(url.hostname,'127.0.0.1');assert.equal(url.protocol,'http:');
  assert.equal(url.pathname,'/');base=url.origin;
  const password='Owned!'+crypto.randomBytes(24).toString('hex');
@@ -12,8 +12,26 @@ async function createOwnedAvatar(base){
   const response=await fetch(base+endpoint,{method,signal:AbortSignal.timeout(20000),
    headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},
    ...(body===undefined?{}:{body:JSON.stringify(body)})});
+  let json;
+  try { json=await response.json(); }
+  catch(error){
+   console.error('PORTAL_STARTUP_HTTP_FACTS:'+JSON.stringify([{path:endpoint.split('?')[0],status:response.status,json:false}]));
+   throw error;
+  }
+  const result=wrapped?json.result:json;
+  if(response.status!==200||result?.isError!==false){
+   let message=String(result?.message||json.message||json.title||'No application acknowledgement');
+   for(const value of [password,token,body?.password,body?.confirmPassword,body?.token])
+    if(typeof value==='string'&&value)message=message.split(value).join('[private]');
+   message=message.replace(/(?:https?|mongodb(?:\+srv)?):\/\/[^\s]+/gi,'[URI]')
+    .replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g,'[JWT]')
+    .replace(/[a-f0-9]{32,}/gi,'[identifier]').slice(0,320);
+   if(/password|secret|credential|connectionstring|verificationtoken|resettoken/i.test(message))message='Sensitive failure detail withheld';
+   const fact={path:endpoint.split('?')[0],status:response.status,isError:result?.isError===true,routingMessage:message};
+   if(typeof result?.errorCode==='string'&&/^[A-Z0-9_]{1,80}$/.test(result.errorCode))fact.errorCode=result.errorCode;
+   console.error('PORTAL_STARTUP_HTTP_FACTS:'+JSON.stringify([fact]));
+  }
   assert.equal(response.status,200,label+' HTTP status');
-  const json=await response.json(),result=wrapped?json.result:json;
   assert.equal(result?.isError,false,label+' application result');
   return result.result;
  }
@@ -21,9 +39,11 @@ async function createOwnedAvatar(base){
   title:'',firstName:'Owned',lastName:'Startup',avatarType:'Human',email:username+'@startup.invalid',
   username,password,confirmPassword:password,acceptTerms:true,suppressVerificationEmail:true},undefined,true);
  assert.match(avatar?.id||'',/^[0-9a-f-]{36}$/i,'Persisted registration identity');
- assert.equal(typeof avatar.verificationToken,'string','Isolated email-disabled verification token');
- assert.ok(avatar.verificationToken.length>0,'Verification token present');
- const verified=await call('verification','POST','/api/avatar/verify-email',{token:avatar.verificationToken},undefined,true);
+ // Browser fixtures read the token from their labelled disposable database. Shipping JSON intentionally redacts it.
+ const verificationToken=readOwnedVerificationToken?readOwnedVerificationToken(username,avatar.id):avatar.verificationToken;
+ assert.equal(typeof verificationToken,'string','Owned verification token');
+ assert.ok(verificationToken.length>0,'Verification token present');
+ const verified=await call('verification','POST','/api/avatar/verify-email',{token:verificationToken},undefined,true);
  assert.equal(verified,true,'Verification acknowledged');
  return {username,password,avatar,call};
 }

@@ -68,7 +68,7 @@ on:
         description: New popup journey only; reuses the exact shipping image without rebuilding
         required: false
         type: choice
-        options: [none, nft, data, data-crud, data-edit, files-write, map-route, messaging, messaging-read, chat, chat-directory, directory-message, clan, portal-breadth, chat-hyperdrive, data-messaging, nft-messaging-data, social-activity]
+        options: [none, nft, data, data-crud, data-edit, files-write, map-route, messaging, messaging-read, chat, chat-directory, directory-message, clan, portal-breadth, chat-hyperdrive, data-messaging, nft-messaging-data, social-activity, account-recovery]
         default: none
       retained_waku:
         description: Verify the packaged native Waku runtime with the aged original archive
@@ -146,6 +146,7 @@ jobs:
           cp "$RUNNER_TEMP/owned_docker_resources.py" Scripts/TestHosts/owned_docker_resources.py
           cp "$RUNNER_TEMP/owned_web5_startup.py" Scripts/TestHosts/owned_web5_startup.py
           mkdir -p Scripts/TestHosts/Fixtures
+          cp "$RUNNER_TEMP/startup-authentication.cjs" Scripts/TestHosts/Fixtures/startup-authentication.cjs
           cp "$RUNNER_TEMP/startup-authentication.cjs" Scripts/TestHosts/Fixtures/startup-authentication.cjs
           cp "$RUNNER_TEMP/portal-startup-browser.cjs" Scripts/TestHosts/Fixtures/portal-startup-browser.cjs
       - name: Validate immutable portal browser selection
