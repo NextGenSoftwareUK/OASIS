@@ -36,3 +36,10 @@ CI46134517647 qualified d36a143c/Core551ac0d8: native3/3 plus one atomic-admissi
 ## 2026-11-28 backend selected-set extrema (qualification pending)
 
 Added shared native selected-set scalar Min/Max planning/execution through the existing one-attempt owner and complete source/stage proof, without constructing enclosing DTOs. The owner re-admits the actual provider extrema domain immediately before dispatch. Backend SQL WITH/derived selected set MIN(alias)/MAX(alias) lowers to the same set route and currently visible alias. Caller/provider, windows, null/empty and canonical scalar wire semantics remain explicit. Browser engines untouched. Local Node18 parser26/26 and runner syntax passed; native compiler17/native15 and actual WEB4 build are pending CI. Full Q50/Q51/Q53/Q54 remain OPEN; main144/168 extension4/13 unchanged. No shared Atlas/PIPER operations or local builds/installations.
+
+
+## Current rollout and pending feature — 2026-11-28T10:40:43.227Z
+
+Development49f8f1c7/Core551ac0d8 was pushed10:30:43UTC as one verified batch, preserving peer874d4de3 ONET/OAPP source and dependency pins. Railway WEB4 deployment2ef0500e-8bd0-4fc0-8029-83598d026fa9 was BUILDING; previous7c8bb492 deployment113b3cdf was SUCCESS. Metadata-only observation, no hosted query acceptance claimed. SQL Sum/Avg and canonical XML Version native evidence are accepted; exact review found no blockers. Documentation-only masterd464aa9a contains evidence, no runtime promotion.
+
+Next candidate7ecb06ca/Core38ce13bb adds backend selected-set SQL Min/Max. CI46136308349 pending; local server parser26/26 and independent exact-ref review passed. Full main144/168 and extension4/13 unchanged. No browser engines changed. Shared Atlas/PIPER untouched. Next normal own Development push no earlier11:00:43UTC, only after qualification. Mixed identity-set late-projection operands remain open.
