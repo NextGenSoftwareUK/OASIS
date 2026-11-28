@@ -97,3 +97,7 @@ CI46117709175and46117714885passed26sync+26async each, zero skips, both exact Dev
 ## 2026-11-28 — OPORTAL acceptance index and scope correction
 
 Found older community45172482199after current-router recheck46118199642; the existing Social/Activity flow should have been recognized before dispatch. Classified today’s result as compatibility, not new breadth, and retained the earlier pass. Inspected43OPORTAL WIP reports plus grouped native receipts; inventoried exact45current surfaces (42loader modals, notification panel, lazy developer, dashboard). Published CURRENT_ACCEPTANCE and historical-ledger pointer on OPORTAL dev4c4d90af/main4ecb86db. Gifts/Inventory and other accepted flows are not being rerun. No new tests, local outputs, shared Atlas or owner action for reconciliation.
+
+## 2026-11-28 — Garnet native gate accepted
+
+CI46122538895 passed26sync+26async with zero skips on official Garnet2.2.5, native DBSIZE0 and owned container/volume/fixture cleanup. Hosted durability/restart and all-interface acceptance remain separate. Source d7a6ed18ab05 and acceptance3cb6bbe7ed6a; Development89d03b27997a preserves concurrent COSMIC native-query changes. Matrix123/163; no local runtime/output/download or Atlas call.
