@@ -105,3 +105,7 @@ Claimed unowned provider after shared COSMIC/claims review. Shipping adapter unc
 ## 2026-11-28 — Garnet native acceptance
 
 CI46122538895 passed26sync+26async with zero skips on official Garnet2.2.5, native DBSIZE0 and owned container/volume/fixture cleanup. Hosted durability/restart and all-interface acceptance remain separate. Source d7a6ed18ab05. Matrix native baselines123/163; provider project inventory238/238 unchanged. First probe-only failure retained; only failed Garnet path retried. No laptop download/env/build/output/database, shared Atlas call or new David action. Owned remote resources removed; compact source receipt retained.
+
+## 2026-11-28 — real account recovery accepted
+
+CI46123580498passed actual forgot/reset/new-password sign-in and previous-password refusal on exact fbea image/Core98952d72 +OPORTAL8d66cb77, including native one-day expiry and consumed token. Five Startup cleanup flags, package container absence and browser/runtime/cache/TLS absence verified from4483-byte artifact15254776924 inspected in RAM. API token redaction retained. Core6247348c preserves current CQLc14 source and identical accepted recovery files; gitlink/manifest paired. Email delivery, founder activation, hosted adoption and whole-portal completion separate. Provider baseline stays123/163. Two failed package-only selections used the wrong full/teaching scope; corrected to exact built cql-api scope, no rebuild. No unrelated accepted popup flow replayed, new David action or laptop runtime/output/database.
