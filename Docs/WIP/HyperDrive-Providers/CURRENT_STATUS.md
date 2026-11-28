@@ -2,16 +2,16 @@
 
 Updated2026-11-28UTC. Shared Atlas is not a test backend; protected deliveries535/543 remain untouched. Work uses owned branch refs and isolated CI, preserving concurrent physical checkouts.
 
-## Railway shipping gate under repair
+## Railway shipping gate verified
 
-WEB6/WEB7/WEB9 deployments for8c7a3148 failed at the unconditional Miden SDK install. Qualified root fix moves Miden into the existing publish-graph packager: a shipped Miden assembly requires its complete SDK, while API graphs without that provider do not install it. CI46113637170passed both real Miden-consumer and WEB6publish-graph checks plus cleanup. Corrected-source Railway rollout remains pending; accepted native storage cases were not repeated. No running-environment setting or secret changed.
+WEB6/WEB7/WEB9 deployments for8c7a3148 failed at the unconditional Miden SDK install. Qualified root fix moves Miden into the existing publish-graph packager: a shipped Miden assembly requires its complete SDK, while API graphs without that provider do not install it. CI46113637170passed both real Miden-consumer and WEB6publish-graph checks plus cleanup. Corrected-source03bf0ef24bcf rollout reports7/7 Railway dev deployment statuses SUCCESS (2026-11-28T06:20Z); accepted native storage cases were not repeated. No running-environment setting or secret changed.
 
 ## Progress and scope
 
 | Scope | Done/total | Evidence / limits |
 |---|---|---|
 | Tracked provider-project inventory | 238/238 | Exact tracked project-path set matches matrix;75non-storage and163storage/specialized. Includes legacy variants, not active backend admission. Earlier234/56/178headline was stale. |
-| Matrix native core-storage baseline rows | 118/163 | Both26-check modes recorded. This inventory tally combines historical accepted evidence; it is not115current-graph/hosted/all-interface certifications. |
+| Matrix native core-storage baseline rows | 118/163 | Both26-check modes recorded. This inventory tally combines historical accepted evidence; it is not118current-graph/hosted/all-interface certifications. |
 | Requested Firebase/Turso/PocketBase current-source rechecks | 3/3 | CI46099124837,46099193518,46103379382; own real fixtures and cleanup. |
 | Existing accepted CI receipts reconciled | 19/19 |17cloud-native +2Redis-family; exact provider trees unchanged. No reruns.14not-run and2smoke-only rows corrected;3already recorded. |
 | New Typesense native gate | 1/1 | CI46114331452;26sync+26async, zero skips, native empty collections and owned volume cleanup. |
