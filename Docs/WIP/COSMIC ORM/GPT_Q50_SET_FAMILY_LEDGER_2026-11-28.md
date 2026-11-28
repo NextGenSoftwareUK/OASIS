@@ -339,3 +339,9 @@ New backend SQL lowering preserves bounded plain entity sources and post-page en
 - Artifact15267090010,18,455B/18entries,SHA256ffc3c9a483cddb2d89e752ef0db0254639f26c3c089b315c52f25684d4d37a06 verified in RAM, buffer released. Increment source retains fullSetParentsComplete=false; four named rows earn combined-family credit from this gate plus preserved preceding native cohorts, not from rewriting that scoped receipt.
 - Native functional rows4/4 done across3stores; overall148/168 and extension4/13. Dedicated typed gRPC/GraphQL, advanced hosted presets/walkthrough, standalone staged entity SQL and deeper hardening remain separate. No universal EF parity or new hosted acceptance claimed.
 - Peer Developmentd22ee312/Core2d076f7c arrived while CI ran; preserve portal/tariff/framing changes, combine then qualify exact source before Dev push. Next M04 ordinary-class bags/sets uses the existing codec; O03 claimed for session-held transaction design, provisional writes must never publish committed acknowledgements.
+
+
+### 2026-11-28 — exact combined native acceptance
+- Root19bb49f6b256708e9c4ccba30ff1e6afb58083d3/Coree31af3c198d4e8374a1b3dabc269d3d75485f428 passed XML46153501315(native15/admission2) and CQL46153501347(compiler20/native15), both actualWEB4/exactcleanup. Peer Developmentd22ee312/Core2d076f7c preserved in merge ancestry. Independent source review passed.
+- All35entries verified in RAM. XMLartifact15266572043(11,113B),SHAef7dcf07ef07b539ec170efd175b0c0df92e3adc674fdf60d381c071c00e261a; CQLartifact15266539517(18,526B),SHA139d2273eb4c1710f05099fd223678133051439bf4eca674cec000e8ab4b1de9. Buffers released. New ordinary-class collection journey6groups/5timings/2writes/1ID eachstore.
+- Main148/168 extension4/13. FullM04/transaction family remainOPEN. Shared databasecalls0; no new hosted data/browser or staging/production acceptance. Transaction kernel source remains outside this pinned Core/Root batch.
