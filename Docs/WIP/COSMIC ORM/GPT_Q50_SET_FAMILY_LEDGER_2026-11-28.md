@@ -227,3 +227,10 @@ Next Development batch carries qualified d0d03d2f/Core1b061dca only; registered 
 ## Combined dependency qualification
 
 Development advanced concurrently to308ed7cf with Corec0e8f2b8 real metadata-read tariff classification. The push guard preserved that work. Aggregate source d0d03d2f/Core1b061dca remains accepted46137078181, but this exact new dependency pair must qualify before deployment. Paired aggregate Core60c4e11f includes only accepted native extrema plus peer billing; XML custom types are excluded. Existing one feature branch is used for this frozen integration checkpoint; pending XML source45d6fdaa and corrected full Core0a4074ec remain preserved in commit history for the next source slice. XML dictionary-capture compile failure46137736017/46137735964 was fixed in Core9c0e297b with a bounded129-entry snapshot. Full M04 remains OPEN. No new branch/worktree/environment, no shared Atlas/PIPER operation, no unverified Dev push.
+
+
+## 2026-11-28 paired aggregate Development publication
+
+Development32c83be070f99cd37284ff5452ca862145b1c1fc/Core60c4e11f3063d3d9d19acb38fa472772cea548c7 pushed 2026-11-28T11:16:07.896Z after paired CI46138293521 (compiler17/native15/WEB4/cleanup) and46138293530 (XML native3/control1/WEB4/cleanup). All18+5artifact entries inspected in RAM; aggregateSHA decd7135e0de1de9bfb63dfcb89f8d3ed6b773eca4290ec96d27f5d5ecf2d57d, XMLSHA d2566eea3e73952a951bd7360b49c95adc256bca1892718d212a85f3f4cd6c99. Peer308ed7cf/Corec0e8 real metadata tariffs/portal source preserved. Previous old source49f8f1c7 was deployed SUCCESS; new rollout/live data acceptance pending. Next own normal push no earlier11:46:07UTC.
+
+Registered XML custom scalar source13a6e233/Core0a4074ec remains pending46138409566; paired CQL46138409613 passed. Native entity-stage selected operands are current uncommitted Core/provider work, not deployed or accepted. Main144/168 extension4/13 unchanged. No new owner actions, shared Atlas/PIPER calls, local builds/downloads/environments or worktrees.

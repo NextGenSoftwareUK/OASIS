@@ -60,3 +60,10 @@ Development advanced concurrently to308ed7cf with Corec0e8f2b8 real metadata-rea
 ## Corrected XML custom-scalar source restored after paired aggregate checkpoint
 
 The single task branch retains paired aggregate checkpoint32c83be0/Core60c4e11f for independent native qualification and scoped deployment. Restored XML custom scalar source from45d6fdaa now uses corrected full Core0a4074ec (Core9c0e297b bounded dictionary capture plus peer metadata-tariff fix). New XML native6/admission2/WEB4 and CQL compiler17/native15/WEB4 gates must pass before this newer slice deploys. No new branch/worktree, no work lost or reimplemented. Original aggregate qualification46137078181 remains accepted; older46136894293 had already completed when cancellation was attempted, so no cancellation occurred.
+
+
+## 2026-11-28 paired aggregate Development publication
+
+Development32c83be070f99cd37284ff5452ca862145b1c1fc/Core60c4e11f3063d3d9d19acb38fa472772cea548c7 pushed 2026-11-28T11:16:07.896Z after paired CI46138293521 (compiler17/native15/WEB4/cleanup) and46138293530 (XML native3/control1/WEB4/cleanup). All18+5artifact entries inspected in RAM; aggregateSHA decd7135e0de1de9bfb63dfcb89f8d3ed6b773eca4290ec96d27f5d5ecf2d57d, XMLSHA d2566eea3e73952a951bd7360b49c95adc256bca1892718d212a85f3f4cd6c99. Peer308ed7cf/Corec0e8 real metadata tariffs/portal source preserved. Previous old source49f8f1c7 was deployed SUCCESS; new rollout/live data acceptance pending. Next own normal push no earlier11:46:07UTC.
+
+Registered XML custom scalar source13a6e233/Core0a4074ec remains pending46138409566; paired CQL46138409613 passed. Native entity-stage selected operands are current uncommitted Core/provider work, not deployed or accepted. Main144/168 extension4/13 unchanged. No new owner actions, shared Atlas/PIPER calls, local builds/downloads/environments or worktrees.
