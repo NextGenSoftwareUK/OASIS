@@ -20,10 +20,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
                 double? lat = request.HasLocation ? request.Latitude : (double?)null;
                 double? lon = request.HasLocation ? request.Longitude : (double?)null;
                 double? radius = request.RadiusKm > 0 ? request.RadiusKm : (double?)null;
-                NextGenSoftware.OASIS.API.ONODE.Core.Managers.LocationType? locType = null;
-                if (!string.IsNullOrWhiteSpace(request.LocationType) && System.Enum.TryParse<NextGenSoftware.OASIS.API.ONODE.Core.Managers.LocationType>(request.LocationType, true, out var lt))
-                    locType = lt;
-                var result = await CreateMapManager().SearchLocationsAsync(request.Query, locType, lat, lon, radius);
+                var locType = Helpers.MapSearchBinding.ParseLocationType(request.LocationType);
+                var avatarId = Helpers.MapSearchBinding.RequireAvatarId(context.GetHttpContext());
+                var result = await CreateMapManager(avatarId).SearchLocationsAsync(request.Query, locType, lat, lon, radius);
                 return result.IsError ? new JsonResponse { IsError = true, Message = result.Message } : new JsonResponse { Json = JsonSerializer.Serialize(result.Result) };
             }
             catch (Exception ex) { return new JsonResponse { IsError = true, Message = ex.Message }; }

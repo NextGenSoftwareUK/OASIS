@@ -739,12 +739,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
         }
 
         // Map
-        public async Task<string> SearchMapLocations(string query, string locationTypeStr, double? latitude, double? longitude, double? radiusKm)
+        public async Task<string> SearchMapLocations(string query, string locationTypeStr, double? latitude, double? longitude, double? radiusKm,
+            [Service] Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor)
         {
-            NextGenSoftware.OASIS.API.ONODE.Core.Managers.LocationType? lt = null;
-            if (!string.IsNullOrWhiteSpace(locationTypeStr) && System.Enum.TryParse<NextGenSoftware.OASIS.API.ONODE.Core.Managers.LocationType>(locationTypeStr, true, out var ltv)) lt = ltv;
-            var r = await new NextGenSoftware.OASIS.API.ONODE.Core.Managers.MapManager(Guid.Empty).SearchLocationsAsync(query, lt, latitude, longitude, radiusKm);
-            return r.IsError ? null : System.Text.Json.JsonSerializer.Serialize(r.Result);
+            Guid avatarId;
+            NextGenSoftware.OASIS.API.ONODE.Core.Managers.LocationType? type;
+            try
+            {
+                avatarId = NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers.MapSearchBinding.RequireAvatarId(httpContextAccessor.HttpContext);
+                type = NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers.MapSearchBinding.ParseLocationType(locationTypeStr);
+            }
+            catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException)
+            {
+                throw new GraphQLException(ErrorBuilder.New().SetMessage(ex.Message).SetCode("MAP_SEARCH_BINDING_FAILED").Build());
+            }
+            var result = await new NextGenSoftware.OASIS.API.ONODE.Core.Managers.MapManager(avatarId).SearchLocationsAsync(query, type, latitude, longitude, radiusKm);
+            if (result.IsError)
+                throw new GraphQLException(ErrorBuilder.New().SetMessage(result.Message).SetCode("MAP_SEARCH_FAILED").Build());
+            return System.Text.Json.JsonSerializer.Serialize(result.Result);
         }
 
         public async Task<string> GetNearbyLocations(Guid avatarId, double latitude, double longitude, double radiusKm)

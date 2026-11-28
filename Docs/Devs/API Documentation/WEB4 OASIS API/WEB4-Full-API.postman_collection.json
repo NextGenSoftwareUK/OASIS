@@ -11563,7 +11563,7 @@
             "url": "{{web4BaseUrl}}/api/map/search",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"query\": \"cafe\",\n  \"type\": \"Custom\",\n  \"latitude\": 46.98,\n  \"longitude\": 8.25,\n  \"radiusKm\": 5\n}",
               "options": {
                 "raw": {
                   "language": "json"

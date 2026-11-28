@@ -163,3 +163,6 @@ Root fix restores earlier0bc4d64f shared Holon boot filter/demo-substitution rem
 
 
 2026-11-28: Existing accepted baseline123/163within238projects unchanged. Reconciled stale Garnet/search gate rows from retained52check receipts without reruns. Holon qualified308ed7cf preserved by peerCQL13a6e233;7/7service statuses through11:14:43UTC, not live functional certification. Map source/image b0c2f5a6/46138363710 remains unaccepted after real catalogue46140605906/46141372411failures; both cleaned. Geo fixture46141859638missed matching-backend allowlist; corrected46142470160running, no acceptance yet. Guides Docs/Learn live2/2(SDKsource3e8d07c3); AI35/35model/source identity trace only68338f00. No new owner action/shared Atlas/local builds.
+
+
+2026-11-28: Claimed Map search JSON/validated identity repair; REST SDK body ignored before fix, gRPC/GraphQL actorGuid.Empty prevented search. SourceOnly; existing Wizard gates unchanged, Postman/generator paired, no new endpoint/tool delivery claim. Native SDK/REST+gRPC+GraphQL real-backend gate planned; no shared Atlas or local runtime/build/env/database.
