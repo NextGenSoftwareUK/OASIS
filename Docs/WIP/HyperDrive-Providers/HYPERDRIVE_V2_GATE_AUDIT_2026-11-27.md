@@ -23,3 +23,9 @@ These are source findings, not claims that a hosted request failed. The main Hyp
 Cleanup: no local build, environment, download, database or generated test output; source and CI metadata inspected only. Private indexes removed in finally. No owner action added for engineering work.
 
 Checkpoint: Eclipse CI46101901966 and PocketBase CI46103379382 are now accepted; Miden current-graph/shipping-SDK integration remains in progress. Core6613656a preserves the audited switcher/registry files; no global backend test is being inferred from this source audit.
+
+## Scoped correction accepted — 2026-11-28
+
+Core907cd4b preserves concurrent COSMIC5e8f22d and removes the split registry/selection implementation. A target must activate and remain canonically registered before storage selection is published. Healthy borrowed providers are retained; post-commit telemetry failures are explicit warnings. Public parameter names are preserved, while registry collections are read-only snapshots; callers register/configure through ProviderManager.
+
+WEB4 shipping build46109274477 passed all3manifest gates and compilation. Native46109531969 passed2/2 sync/async control cases on actual SQLite/LocalFile, with actual routed reads, failed activation, same-type reactivation, timestamp and shared-selector checks. Fixture cleanup was asserted. No shared Atlas operations or protected queue changes. This is scoped control-plane acceptance, not hosted or whole-v2 certification. Executable method/route manifests travel with source and are not copied onto master ahead of its release snapshot.
