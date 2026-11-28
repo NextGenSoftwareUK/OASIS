@@ -11,9 +11,10 @@ WEB6/WEB7/WEB9 deployments for8c7a3148 failed at the unconditional Miden SDK ins
 | Scope | Done/total | Evidence / limits |
 |---|---|---|
 | Tracked provider-project inventory | 238/238 | Exact tracked project-path set matches matrix;75non-storage and163storage/specialized. Includes legacy variants, not active backend admission. Earlier234/56/178headline was stale. |
-| Matrix native core-storage baseline rows | 118/163 | Both26-check modes recorded. This inventory tally combines historical accepted evidence; it is not118current-graph/hosted/all-interface certifications. |
+| Matrix native core-storage baseline rows | 119/163 | Both26-check modes recorded. This inventory tally combines historical accepted evidence; it is not119current-graph/hosted/all-interface certifications. |
 | Requested Firebase/Turso/PocketBase current-source rechecks | 3/3 | CI46099124837,46099193518,46103379382; own real fixtures and cleanup. |
 | Existing accepted CI receipts reconciled | 19/19 |17cloud-native +2Redis-family; exact provider trees unchanged. No reruns.14not-run and2smoke-only rows corrected;3already recorded. |
+| Recovered older search native receipts | 4/4 | Only OpenSearch adds a source-matched pass. Newer Meilisearch/Solr native failures supersede older passes; Weaviate source differs. No reruns. |
 | New Typesense native gate | 1/1 | CI46114331452;26sync+26async, zero skips, native empty collections and owned volume cleanup. |
 | New Elasticsearch/Qdrant native gates | 2/2 | CI46111639871;52/52 each, zero skips, native empty stores and owned cleanup. |
 | Canonical public storage-switch regression | 2/2 | CI46109531969, real SQLite/LocalFile, zero skips. WEB4 shipping build46109274477passed. |
@@ -22,7 +23,7 @@ See [provider matrix](PROVIDER_MATRIX.md), [reconciliation](ACCEPTED_CI_RECONCIL
 
 ## Latest verified Development batch
 
-Developmentbfaf7957092735dfe31d83f5284b46ad738f5b5d preserves COSMICCore5e8f22d in Core907cd4b with paired Railway manifest.
+Qualified batch preserves Development8ed94e278c2263a5aea4c35fd432514671df6ed8 and Core0fd03dede3f2caaa02ec6e2c5ff75319f9528e55 with paired Railway manifest. Typesense native52/52 is added; OpenSearch existing25Nov native52/52 is source-matched without rerun. Meilisearch/Solr newer failures remain explicit.
 
 - Miden: reused Claude0289f57c, completed locked official SDK installation across7API images and normal constructor configuration. CI46106768815 passed52/52 plus native worker-loss/reopen/disposal case, zero skips. Deterministic stores retain signing journals; owned CI fixture/stores/output removed. Hosted admission remains MIDEN-HOSTED1.
 - Delegated identity: Eclipse46101901966, Telos46101946563, SEEDS46101275004 pass52/52 and composing-key/update round trips. EOSIO canonical save/key lookup aligned; original6c95573c reused.
@@ -50,3 +51,7 @@ Corrected public MCP documentation links and runtime download labels in OPORTALd
 Own branches: work/gpt-provider-evidence-reconciliation, work/gpt-hyperdrive-release-gates, work/gpt-miden-native-integration. Claims on claims branch; scope completed items with commit evidence. Integrate only verified non-overlapping batches, at most once per30minutes, after queue checks. Human status/evidence docs also synchronized to master; executable inventories stay paired with source until release. No production-code promotion implied.
 
 Ledger: [GPT_HYPERDRIVE_LEDGER.md](GPT_HYPERDRIVE_LEDGER.md). Private Git indexes removed in finally; compact receipts retained. No shared Atlas operations or protected queue changes. Earlier status is retained in Git history and Archive/CURRENT_STATUS_LOG_TO_2026-11-23.md.
+
+## Active OPORTAL breadth continuation
+
+Two new isolated real-API journeys are under qualification: Social Graph persisted contact-to-composer keyboard handoff and Activity Feed native read/refresh. Existing accepted popup cohorts are not repeated. Latest run46117837269 is pending; earlier runs exposed harness declarations and the current router X-to-home contract. No whole-portal acceptance is claimed. Shared Atlas remains untouched.

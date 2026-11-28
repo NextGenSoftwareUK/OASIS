@@ -1,0 +1,28 @@
+{
+  "provider": "SolrOASIS",
+  "suite": "core-storage-v2",
+  "mode": "native",
+  "run": 43217963814,
+  "url": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43217963814",
+  "source": "94b7dbb0ef1b39d792a03883c4aa5eb04d386ce7",
+  "conclusion": "success",
+  "sync": 26,
+  "async": 26,
+  "passed": 52,
+  "total": 52,
+  "skipped": 0,
+  "reconciledAgainst": "ce6f80915fde614261fd00f01d51ad966d11ed50",
+  "providerTreeAtRun": "1c8c7faf28b6d812c92c904a648055ac8499993d",
+  "providerTreeNow": "1c8c7faf28b6d812c92c904a648055ac8499993d",
+  "providerTreeUnchanged": true,
+  "cleanup": "Both mode logs report FixtureCleanupComplete true and owned node/volumes/fixture removal.",
+  "scope": "Historical12Nov pass superseded by25Nov native failures in both modes. Current acceptance remains open; do not count as passing despite identical provider tree.",
+  "supersededByFailure": {
+    "run": 45721795557,
+    "syncChecksPassed": 6,
+    "asyncChecksPassed": 6,
+    "currentCase": "detail-id",
+    "contract": "single read acknowledgement/count",
+    "fixtureCleanupComplete": false
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "provider": "OpenSearchOASIS",
+  "suite": "core-storage-v2",
+  "mode": "native",
+  "run": 45721795632,
+  "url": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/45721795632",
+  "source": "49f2b865d8030eef30c86605183afd4a3ba52926",
+  "conclusion": "success",
+  "sync": 26,
+  "async": 26,
+  "passed": 52,
+  "total": 52,
+  "skipped": 0,
+  "reconciledAgainst": "ce6f80915fde614261fd00f01d51ad966d11ed50",
+  "providerTreeAtRun": "6a5834216778f0fd9eb25460bc37448b04946729",
+  "providerTreeNow": "6a5834216778f0fd9eb25460bc37448b04946729",
+  "providerTreeUnchanged": true,
+  "cleanup": "Both mode logs report FixtureCleanupComplete true and owned node/volumes/fixture removal.",
+  "scope": "Historical accepted native baseline; provider tree byte-identical. No new test or latest shared-graph/hosted/full-interface certification."
+}
