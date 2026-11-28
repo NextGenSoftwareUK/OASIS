@@ -41,9 +41,9 @@ for store in ['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS']:
  assert flat['concatMultiplicityVerified'] and flat['nullTupleCellVerified'] and flat['foreignRowsHiddenVerified']
 for store in ['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS']:
  selected=json.loads((RESULTS/(store+'-recursive-selected-set-native.json')).read_text(encoding='utf-8-sig'))
- assert selected['provider']==store and selected['checks']==16 and selected['ownedCleanupIds']==4 and selected['successfulHolonWrites']==1
- assert selected['nativeProviderVerified'] and selected['exactCleanupVerified'] and len(selected['queryElapsedMilliseconds'])==20
- assert set(selected['evidence'])=={'nestedVisibleOutputBindings','nativeScalarExtremaAfterWindows','nativeCountIndependentOfPublication','nativeCardinalityWithoutConstructors','foreignNativeCount','registeredLinqLeftTree','registeredLinqRightTree','explicitTreeAdmission','concatOccurrences','visibleTupleUnion','visibleTupleIntersectExcept','nodeWindows','rightNested','foreignIsolation','childBoundBeforeEmpty','cancellation'} and all(selected['evidence'].values())
+ assert selected['provider']==store and selected['checks']==20 and selected['ownedCleanupIds']==4 and selected['successfulHolonWrites']==1
+ assert selected['nativeProviderVerified'] and selected['exactCleanupVerified'] and len(selected['queryElapsedMilliseconds'])==27
+ assert set(selected['evidence'])=={'registeredLinqNativeSumAverage','sharedOrdinaryNumericDecoderControl','nativeSumAverageAfterSetWindows','numericVisibleEqualityAndForeignScope','nestedVisibleOutputBindings','nativeScalarExtremaAfterWindows','nativeCountIndependentOfPublication','nativeCardinalityWithoutConstructors','foreignNativeCount','registeredLinqLeftTree','registeredLinqRightTree','explicitTreeAdmission','concatOccurrences','visibleTupleUnion','visibleTupleIntersectExcept','nodeWindows','rightNested','foreignIsolation','childBoundBeforeEmpty','cancellation'} and all(selected['evidence'].values())
 for store in ['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS']:
  r=json.loads((RESULTS/(store+'-recursive-set-http-native.json')).read_text(encoding='utf-8-sig'))
  assert r['provider']==store and r['checks']==6 and r['ownedCleanupIds']==1 and r['successfulHolonWrites']==1
@@ -55,6 +55,6 @@ def git(*args):
 source=git('rev-parse','HEAD')
 assert source==os.environ['GITHUB_SHA']
 proof={'source':source,'core':git('-C','OASIS Architecture/NextGenSoftware.OASIS.API.Core','rev-parse','HEAD'),
- 'nativePassed':15,'nativeRecursiveSetHttpVerified':True,'nativeSetPublicationCountsVerified':True,'nativeRecursiveEntitySetProviders':['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS'],'nativeRecursiveSelectedSetProviders':['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS'],'nativeSelectedSetCountVerified':True,'nativeSelectedSetScalarExtremaVerified':True,'nestedVisibleOutputBindingsVerified':True,'fullSetParentsComplete':False,'actualWeb4Compiled':True,'ownedFixturesAbsent':True,
+ 'nativePassed':15,'nativeRecursiveSetHttpVerified':True,'nativeSetPublicationCountsVerified':True,'nativeRecursiveEntitySetProviders':['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS'],'nativeRecursiveSelectedSetProviders':['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS'],'nativeSelectedSetSumAverageVerified':True,'nativeNumericRepresentativeDomains':['Int32Sum','Int32DoubleAverage'],'nativeSelectedSetCountVerified':True,'nativeSelectedSetScalarExtremaVerified':True,'nestedVisibleOutputBindingsVerified':True,'fullSetParentsComplete':False,'actualWeb4Compiled':True,'ownedFixturesAbsent':True,
  'sharedDatabaseCalls':0,'deployed':False}
 (RESULTS/'source.json').write_text(json.dumps(proof,indent=2)+'\n',encoding='utf-8')

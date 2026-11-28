@@ -93,6 +93,24 @@ public partial class HolonRepository
                     }
                 if(!acknowledged)throw new InvalidDataException("Selected-set native count header is missing.");
                 if(nativeCount>nodeLimits.MaximumResults)throw new MongoCqlLimitException();
+                if(nodeLimits.NumericReduction is {} numericIntent)
+                {
+                    if(checked(work+current.Count)>node.Options.MaximumStageRows
+                        ||checked(proofBytes+9L+8L*MongoCqlTranslator.SelectedNumericWidth(numericIntent.InputType))>node.Options.MaximumProofPayloadBytes)
+                        throw new MongoCqlLimitException();
+                    CosmicProjectedNumericPacket numeric=null;
+                    using var numericCursor=await _dbContext.Holon.AggregateAsync<BsonDocument>(session,
+                        new MongoCqlTranslator().CompileProjectedSetNumeric(native.Rows,numericIntent),Options(),token).ConfigureAwait(false);
+                    while(await numericCursor.MoveNextAsync(token).ConfigureAwait(false))
+                        foreach(var header in numericCursor.Current)
+                        {
+                            token.ThrowIfCancellationRequested();
+                            if(numeric!=null)throw new InvalidDataException("Native selected-set numeric header is duplicated.");
+                            numeric=ReadNativeCqlSelectedNumeric(header,numericIntent);
+                        }
+                    if(numeric==null)throw new InvalidDataException("Native selected-set numeric header is missing.");
+                    return CosmicProjectedSetPacket.FromNumeric(left.Proof,right.Proof,new(members),stages,nativeCount,numeric,work);
+                }
                 return CosmicProjectedSetPacket.FromCount(left.Proof,right.Proof,new(members),stages,nativeCount,work);
             }
             var rows=new List<CosmicProjectionRow>();long bytes=0;

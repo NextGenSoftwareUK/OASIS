@@ -23,6 +23,13 @@ internal sealed partial class MongoCqlTranslator
             new BsonDocument("$arrayElemAt",new BsonArray{"$count.value",0}),0L})}}));
         ValidatePipeline(stages);return stages.ToArray();
     }
+    internal BsonDocument[] CompileProjectedSetNumeric(BsonDocument[] input,CosmicProjectedNumericIntent intent)
+    {
+        var rows=input.Select(stage=>(BsonDocument)stage.DeepClone()).ToList();
+        rows.Add(new("$project",new BsonDocument{{"_id",0},{"rank",1},{"values",new BsonArray(
+            Enumerable.Range(0,intent.ColumnIndex+1).Select(index=>(BsonValue)("$k"+index+".value")))}}));
+        return SelectedIntegerReduction(rows,intent);
+    }
     internal static CosmicProjectionCompositionExecutionLimits ProjectedSetInputLimits(CosmicProjectionCompositionOptions options)
         =>new(options.MaximumInputRows,options.MaximumInputPayloadBytes,options.MaximumStageRows,
             options.MaximumProofPayloadBytes,10000,options.MaximumInputPayloadBytes);

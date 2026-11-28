@@ -10,7 +10,7 @@ Main checklist **144/168**, extension **4/13**. This session completed O07, M01 
 
 Exact source **233d9f1c1c467489f18a0dd62f671955d675ef8a**, Core **1b24c6291c6500888d735e9eb9d81b30b802d1e8**: CI [46126840806](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/46126840806) passed **12/12** native cases plus actual WEB4 build and exact owned-fixture cleanup. Includes peer password-recovery changes. Recursive entity/selected-value set trees, left/right LINQ composition, native Count/LongCount/Any/All without DTO constructors, scalar Min/Max after windows, and child visible-column bindings are verified on all three stores. Artifact15256053536, SHA256 a4ce4ef283cc3823b4a19a3cf87e0d5da6293eeaf99e931c76e1205dd27c8a7a, all14 entries checked in RAM. Shared-database calls0.
 
-Full set-family rows remain red: Sum/Average, general typed output-shape composition and backend/wire recursion still need completion. Backend recursive SQL/selected-count API changes are active local source drafts, excluded from this accepted batch; representative native HTTP/permission/usage checks are being added to CI.
+Full set-family rows remain red: Sum/Average implementation is now a source candidate with representative native checks pending; general typed output-shape composition and backend/wire recursion still need qualification/completion. Backend recursive SQL/selected-count API changes are active local source drafts, excluded from this accepted batch; representative native HTTP/permission/usage checks are being added to CI.
 
 ## Search ownership and later phases
 
