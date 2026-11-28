@@ -2,9 +2,9 @@
   "date": "2026-11-28",
   "status": "in-progress-not-whole-portal-or-hyperdrive-certified",
   "source": {
-    "oasisDevelopment": "13a6e23326aa2a774e3280abf493d7d3cf3fd7cb",
+    "oasisDevelopment": "7c70ffcb8ea54e19c2e5d439bd181e3d68f52fea",
     "portalDev": "012fdbba3034f208ad248bd0756f5e14cfa0cdff",
-    "portalDocsMain": "a9e2352ba305b5ecf785589bf3deb9d26956ef79",
+    "portalDocsMain": "400c5975ec142ef735357e29cd5268d3831df179",
     "corePinned": "0a4074ecf6e82196d757e7f657e51780b7525eb7",
     "runningCurrentDeploymentsVerified": false,
     "portalStaticAssetsVerified": {
@@ -46,14 +46,15 @@
     },
     "fullyAccepted": false,
     "latestSelectedNativeBrowser": {
-      "done": 6,
-      "total": 6,
+      "done": 7,
+      "total": 7,
       "runs": {
         "recovery": 46123580498,
         "populatedMapLauncher": 46126474607,
         "providerMigration": 46130012906,
         "onet": 46133501110,
-        "holonDiff": 46136436169
+        "holonDiff": 46136436169,
+        "populatedGeoLayers": 46142470160
       }
     },
     "sdkDelivery": {
@@ -90,6 +91,13 @@
       "run": 46136436169,
       "scope": "Cold history, real two metadata publications, populated comparison, distinct stored-ID seal dispatch and close",
       "specificSealStatusOrCryptographicVerificationAccepted": false
+    },
+    "mapGeo": {
+      "done": 1,
+      "total": 1,
+      "run": 46142470160,
+      "scope": "Real visible/hidden hotspot and linked root quest creation/readback plus OPORTAL layer status and close",
+      "populatedGeoNftOrRendererOrUnityAccepted": false
     }
   },
   "hyperdrive": {
@@ -116,10 +124,11 @@
       "status": "Image built; real public catalogue timeout/upstream connection failure before visits. No native visit acceptance, no shared Development source promotion. Completed failed fixtures cleaned."
     },
     {
-      "item": "Populated visible/hidden hotspot and linked quest OPORTAL layers",
-      "failedControlRun": 46141859638,
-      "run": 46142470160,
-      "status": "Corrected fixture backend selection; native journey running. No geo writes were reached in first run; all5cleanup flags true. No new screen acceptance yet."
+      "item": "Correct ID/model binding and map provider/runtime ownership for Provider Controls",
+      "branch": "work/gpt-oportal-map-controls",
+      "status": "Source moves popup camera/selection to actual MapLibre owner; real renderer native journey queued. Legacy remote provider-runtime API remains separately unaccepted.",
+      "portalSource": "c41c5fe181e547f69ade06e709199cbdb00b3aa9",
+      "run": 46144542600
     }
   ],
   "ownerActions": {
@@ -138,7 +147,7 @@
     "freeSpaceReclamationClaimed": false,
     "cloudOwnedContainersDatabasesVolumesBrowserCachesAndBootstrapOutputsRemoved": true,
     "compactEvidenceInspectedInMemory": true,
-    "scope": "Completed native runs only, all acknowledged cleaned; running46142470160owns resources until its final cleanup."
+    "scope": "All completed runs through46142470160cleaned. New46144542600queued; its owned resources are removed by its final cleanup."
   },
   "documents": {
     "status": "Docs/WIP/HyperDrive-Providers/CURRENT_STATUS.md",
@@ -157,5 +166,5 @@
     }
   },
   "completedPendingIntegration": [],
-  "asOfUtc": "2026-11-28T12:00:21.062Z"
+  "asOfUtc": "2026-11-28T12:23:39.587Z"
 }
