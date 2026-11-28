@@ -41,3 +41,7 @@ Core907cd4b preserves COSMIC5e8f22d and replaces duplicate registry/selection st
 ## 2026-11-28 — canonical switch accepted, scoped batch ready
 
 Shipping build46109274477 passed3manifest gates and WEB4 compilation. Native46109531969 on5366da3 passed2/2, zero skips, with real SQLite/LocalFile and asserted owned cleanup. Core907cd4b preserves COSMIC5e8f22d; parent manifest/gitlink paired. No local runtime/build/test artifacts or Atlas operations. Docs-only master synchronization excludes executable CSV inventories until source release. Global/hosted v2 acceptance remains open.
+
+## 2026-11-28 — popular search native CI gap
+
+Existing Elasticsearch/Qdrant26-check native adapters require explicit disposable GitHub fixtures, but no workflow sets their admission markers/ports/modes. Reused those tests and pinned official backend9.5.5/1.16.3manifest digests obtained from registries without local downloads. New selective workflow builds once under the lease and runs both modes with fresh isolated containers,26-check/zero-skip/native-empty guards and EXIT cleanup. Current source acceptance pending; no Atlas/backend secrets or local environment/output.

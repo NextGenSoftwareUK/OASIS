@@ -1,0 +1,127 @@
+name: Search core native storage
+
+on:
+  workflow_dispatch:
+    inputs:
+      provider:
+        description: Run only the native storage provider awaiting acceptance
+        type: choice
+        options: [Both, Elasticsearch, Qdrant]
+        default: Both
+
+permissions:
+  contents: read
+
+jobs:
+  storage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        provider: [Elasticsearch, Qdrant]
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+      - name: Read recorded Libraries revision
+        id: dependencies
+        shell: bash
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Build the existing native test consumer once under the provider lease
+        if: ${{ inputs.provider == 'Both' || inputs.provider == matrix.provider }}
+        shell: pwsh
+        env:
+          PROVIDER: ${{ matrix.provider }}
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner search-core-native-ci -Operation {
+            $project = "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.$($env:PROVIDER)OASIS.IntegrationTests"
+            dotnet build $project --configuration Release -m:2 -nr:false -p:UseSharedCompilation=false
+            if ($LASTEXITCODE) { throw 'Native search test consumer build failed.' }
+          }
+      - name: Run both26-check modes against the pinned official backend
+        if: ${{ inputs.provider == 'Both' || inputs.provider == matrix.provider }}
+        shell: bash
+        env:
+          PROVIDER: ${{ matrix.provider }}
+        run: |
+          set -euo pipefail
+          slug="$(printf %s "$PROVIDER" | tr '[:upper:]' '[:lower:]')"
+          fixture="$(mktemp -d "$RUNNER_TEMP/oasis-$slug.XXXXXXXX")"
+          container=""
+          cleanup() {
+            status=$?
+            if [[ -n "$container" ]]; then
+              if (( status != 0 )); then docker logs --tail 30 "$container" || true; fi
+              docker rm --force --volumes "$container" >/dev/null || status=1
+            fi
+            if [[ "$fixture" == "$RUNNER_TEMP"/oasis-"$slug".* && -d "$fixture" ]]; then
+              rm -rf -- "$fixture"
+              [[ ! -e "$fixture" ]] || status=1
+            else
+              status=1
+            fi
+            echo "Owned $PROVIDER container and fixture cleanup completed with status $status."
+            exit "$status"
+          }
+          trap cleanup EXIT
+          project="Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.$PROVIDER"OASIS.IntegrationTests
+          for mode in sync async; do
+            if [[ "$PROVIDER" == Elasticsearch ]]; then
+              sudo sysctl -w vm.max_map_count=1048576
+              container="$(docker run --detach -p 127.0.0.1:19211:9200 \
+                -e discovery.type=single-node -e xpack.security.enabled=false -e 'ES_JAVA_OPTS=-Xms512m -Xmx512m' \
+                docker.elastic.co/elasticsearch/elasticsearch@sha256:13b4a40bb095774f5fda635e45fd5677cc6a26565e42b24997b0c72b88e75984)"
+              endpoint=http://127.0.0.1:19211
+              export OASIS_ELASTICSEARCH_DOCUMENT_FIXTURE=owned-ci-19211
+              export OASIS_ELASTICSEARCH_REPORT_DIRECTORY="$fixture" OASIS_ELASTICSEARCH_MODE="$mode"
+            else
+              container="$(docker run --detach -p 127.0.0.1:16333:6333 \
+                qdrant/qdrant@sha256:0425e3e03e7fd9b3dc95c4214546afe19de2eb2e28ca621441a56663ac6e1f46)"
+              endpoint=http://127.0.0.1:16333
+              export OASIS_QDRANT_SHARED_FIXTURE=owned-ci-16333
+              export OASIS_QDRANT_REPORT_DIRECTORY="$fixture" OASIS_QDRANT_MODE="$mode"
+            fi
+            ready=false
+            for attempt in $(seq 1 90); do
+              if curl --fail --silent --max-time 2 "$endpoint/" >/dev/null; then ready=true; break; fi
+              [[ "$(docker inspect --format '{{.State.Running}}' "$container")" == true ]]
+              sleep 2
+            done
+            [[ "$ready" == true ]] || { echo "$PROVIDER did not become ready."; exit 1; }
+            dotnet test "$project" --configuration Release --no-build \
+              --filter "FullyQualifiedName~$PROVIDER"NativeStorageConformanceTests \
+              --logger "trx;LogFileName=native-$mode.trx" --results-directory "$fixture"
+            jq -e '.Succeeded and .FixtureCleanupComplete and (.Passed | length == 26)' "$fixture/storage-$mode.json" >/dev/null
+            python3 - "$fixture/native-$mode.trx" <<'PY'
+          import sys, xml.etree.ElementTree as ET
+          root = ET.parse(sys.argv[1]).getroot()
+          counters = root.find('.//{*}Counters')
+          assert counters is not None
+          assert counters.attrib['total'] == counters.attrib['passed'] == '1'
+          assert counters.attrib.get('failed', '0') == counters.attrib.get('notExecuted', '0') == '0'
+          print('Native method passed with zero skips; report verifies26checks and fixture cleanup.')
+          PY
+            docker rm --force --volumes "$container" >/dev/null
+            container=""
+          done
+          echo "$PROVIDER passed26sync+26async on its real backend; native empty-store checks passed."
