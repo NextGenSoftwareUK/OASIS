@@ -11,10 +11,10 @@ WEB6/WEB7/WEB9 deployments for8c7a3148 failed at the unconditional Miden SDK ins
 | Scope | Done/total | Evidence / limits |
 |---|---|---|
 | Tracked provider-project inventory | 238/238 | Exact tracked project-path set matches matrix;75non-storage and163storage/specialized. Includes legacy variants, not active backend admission. Earlier234/56/178headline was stale. |
-| Matrix native core-storage baseline rows | 121/163 | Both26-check modes recorded. This inventory tally combines historical accepted evidence; it is not121current-graph/hosted/all-interface certifications. |
+| Matrix native core-storage baseline rows | 119/163 | Both26-check modes recorded. This inventory tally combines historical accepted evidence; it is not119current-graph/hosted/all-interface certifications. |
 | Requested Firebase/Turso/PocketBase current-source rechecks | 3/3 | CI46099124837,46099193518,46103379382; own real fixtures and cleanup. |
 | Existing accepted CI receipts reconciled | 19/19 |17cloud-native +2Redis-family; exact provider trees unchanged. No reruns.14not-run and2smoke-only rows corrected;3already recorded. |
-| Recovered older search native receipts | 4/4 | Three provider trees unchanged (Meilisearch/OpenSearch/Solr), added to historical baseline tally; Weaviate current source differs and remains pending. No reruns. |
+| Recovered older search native receipts | 4/4 | Only OpenSearch adds a source-matched pass. Newer Meilisearch/Solr native failures supersede older passes; Weaviate source differs. No reruns. |
 | New Typesense native gate | 1/1 | CI46114331452;26sync+26async, zero skips, native empty collections and owned volume cleanup. |
 | New Elasticsearch/Qdrant native gates | 2/2 | CI46111639871;52/52 each, zero skips, native empty stores and owned cleanup. |
 | Canonical public storage-switch regression | 2/2 | CI46109531969, real SQLite/LocalFile, zero skips. WEB4 shipping build46109274477passed. |

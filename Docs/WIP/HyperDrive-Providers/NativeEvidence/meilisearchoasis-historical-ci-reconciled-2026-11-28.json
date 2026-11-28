@@ -16,5 +16,13 @@
   "providerTreeNow": "47dc8725ee21b1731801384b9a3722055e0db357",
   "providerTreeUnchanged": true,
   "cleanup": "Both mode logs report FixtureCleanupComplete true and owned node/volumes/fixture removal.",
-  "scope": "Historical accepted native baseline; provider tree byte-identical. No new test or latest shared-graph/hosted/full-interface certification."
+  "scope": "Historical12Nov pass superseded by25Nov native failures in both modes. Current acceptance remains open; do not count as passing despite identical provider tree.",
+  "supersededByFailure": {
+    "run": 45721795666,
+    "syncChecksPassed": 6,
+    "asyncChecksPassed": 6,
+    "currentCase": "detail-id",
+    "contract": "single read acknowledgement/count",
+    "fixtureCleanupComplete": false
+  }
 }

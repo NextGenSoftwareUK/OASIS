@@ -616,18 +616,6 @@
       ]
     },
     {
-      "provider": "MeilisearchOASIS",
-      "suite": "core-storage-v2",
-      "mode": "native",
-      "passed": 52,
-      "total": 52,
-      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/meilisearchoasis-historical-ci-reconciled-2026-11-28.json",
-      "sha256": "bf8047cf0975ef6c4fe08bb826eca220d768a4e398679aeaccbdbec545ab4f0e",
-      "blockers": [
-        "Historical accepted native baseline; provider tree byte-identical. No new test or latest shared-graph/hosted/full-interface certification."
-      ]
-    },
-    {
       "provider": "OpenSearchOASIS",
       "suite": "core-storage-v2",
       "mode": "native",
@@ -635,18 +623,6 @@
       "total": 52,
       "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/opensearchoasis-historical-ci-reconciled-2026-11-28.json",
       "sha256": "cc1b5ed578883f9a6463d4c1612ac39f3e0252536f0eb002a20cd6028d30e15a",
-      "blockers": [
-        "Historical accepted native baseline; provider tree byte-identical. No new test or latest shared-graph/hosted/full-interface certification."
-      ]
-    },
-    {
-      "provider": "SolrOASIS",
-      "suite": "core-storage-v2",
-      "mode": "native",
-      "passed": 52,
-      "total": 52,
-      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/solroasis-historical-ci-reconciled-2026-11-28.json",
-      "sha256": "7d4801ce5cf0101403c319924b4d1fb81644b0bccb4f8b708ef252e6b6ead17d",
       "blockers": [
         "Historical accepted native baseline; provider tree byte-identical. No new test or latest shared-graph/hosted/full-interface certification."
       ]
