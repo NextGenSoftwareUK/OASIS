@@ -413,7 +413,7 @@ This document provides a comprehensive analysis of OASIS's Unique Selling Propos
 
 **Investment Value**: Development cost reduction, market reach expansion.
 
-### 10. Comprehensive Provider Ecosystem — 238 Shipping Provider Projects
+### 10. Comprehensive Provider Ecosystem — 238 Tracked Provider Projects
 **Innovation**: The world's largest unified Web2 + Web3 provider ecosystem under a single hot-swappable interface.
 
 **Technical Details**:
@@ -439,7 +439,7 @@ This document provides a comprehensive analysis of OASIS's Unique Selling Propos
 | The Graph | ~50 | Indexing only (no write) |
 | Chainlink | ~20 | Oracle data only |
 
-The inventory spans 238 shipping projects. Read, write, identity, social, and spatial capabilities vary by provider.
+The inventory spans 238 tracked projects. Read, write, identity, social, and spatial capabilities vary by provider.
 
 **Investment Value**: Vendor independence, cost optimization, deepest moat in Web3 infrastructure — apps built on OASIS cannot be disrupted by any single provider shutting down or changing pricing.
 

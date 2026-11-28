@@ -267,7 +267,7 @@ export default function Providers() {
           <Chip label={`${total} providers`} color="primary" size="medium" />
         </Box>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-          The OASIS inventory tracks 238 tracked provider projects across storage and other capabilities. HyperDrive compatibility and live backend verification vary by provider.
+          The OASIS inventory lists 238 tracked provider projects across storage and other capabilities. HyperDrive compatibility and live backend verification vary by provider.
         </Typography>
       </Grid>
       {Object.entries(providers).map(([group, items]) => (
