@@ -9,10 +9,14 @@ async function main(){
  const api=new URL(process.env.OASIS_STARTUP_API_URL);assert.equal(api.hostname,'127.0.0.1');assert.equal(api.protocol,'http:');
  const api5=process.env.OASIS_STARTUP_WEB5_URL?new URL(process.env.OASIS_STARTUP_WEB5_URL):null;
  const popupGroup=process.env.OASIS_STARTUP_POPUP_GROUP||'none';
- assert.ok(['none','onet','web5-diff','web5-errors','provider-migration','web5-depth','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data','social-activity','account-recovery'].includes(popupGroup));
- const selectedPopups=popupGroup==='onet'?['ONET']:popupGroup==='web5-diff'?['HolonDiff']:popupGroup==='web5-errors'?['CatalogueErrors']:popupGroup==='provider-migration'?['Migration']:popupGroup==='web5-depth'?['OappMap','Launcher']:popupGroup==='account-recovery'?['AccountRecovery']:popupGroup==='social-activity'?['SocialGraph','ActivityFeed']:popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
+ assert.ok(['none','map-search','map-renderer','map-geo','map-places','onet','web5-diff','web5-errors','provider-migration','web5-depth','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data','social-activity','account-recovery'].includes(popupGroup));
+ const selectedPopups=popupGroup==='map-search'?[]:popupGroup==='map-renderer'?['MapRenderer']:popupGroup==='map-geo'?['MapGeo']:popupGroup==='map-places'?['MapPlaces']:popupGroup==='onet'?['ONET']:popupGroup==='web5-diff'?['HolonDiff']:popupGroup==='web5-errors'?['CatalogueErrors']:popupGroup==='provider-migration'?['Migration']:popupGroup==='web5-depth'?['OappMap','Launcher']:popupGroup==='account-recovery'?['AccountRecovery']:popupGroup==='social-activity'?['SocialGraph','ActivityFeed']:popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
   popupGroup==='data-messaging'?['Data','Messaging']:
   popupGroup==='none'?[]:[{nft:'NFT',data:'Data','data-crud':'DataWrite','data-edit':'DataWrite','files-write':'FilesWrite','map-route':'MapRoute',messaging:'Messaging','messaging-read':'MessagingRead',chat:'Chat','directory-message':'DirectoryMessage',clan:'Clan'}[popupGroup]];
+ let expectedMapSearchQuery=null,mapSearchRequestCount=0;
+ let mapRendererRecordId;
+ let mapGeoVisibleId,mapGeoHiddenId,mapGeoQuestId;
+ let expectedPlaceObservation=null,placeObservationCount=0,mapPlaceId=null,mapKarmaBefore=null;const mapVisitIds=[];
  const onetWrites={};
  let diffIdentity;const diffStoredIds=[],diffSealReads=[];
  let migrationRootId,migrationChildId;const migrationReads={MongoDBOASIS:0,SQLLiteDBOASIS:0};let migrationCopies=0;
@@ -95,7 +99,7 @@ async function main(){
   const origin='http://127.0.0.1:'+server.address().port,proxyOrigin='https://127.0.0.1:'+proxy.address().port;
   const proxy5Origin=proxy5?'https://127.0.0.1:'+proxy5.address().port:null;
   stage='owned registration';const account=await createOwnedAvatar(api.href,readOwnedVerificationToken);
-  if(['provider-migration','onet'].includes(popupGroup))await prepareOwnedWizard(account,popupGroup==='onet'?'/api/v1/onet/network/status':'/api/data/copy-holon/providers');
+  if(['provider-migration','onet','map-search'].includes(popupGroup))await prepareOwnedWizard(account,popupGroup==='onet'?'/api/v1/onet/network/status':'/api/data/copy-holon/providers');
   async function admitFree(owned){
    const signed=await owned.call('free account sign-in','POST','/api/avatar/authenticate',{username:owned.username,password:owned.password},undefined,true);
    await owned.call('free subscription','POST','/api/subscription/checkout/session',{planId:'free',successUrl:origin+'/subscription?tab=mysubs',cancelUrl:origin+'/'},signed.jwtToken);
@@ -103,9 +107,9 @@ async function main(){
    assert.ok(Array.isArray(subs)&&subs.some(s=>s.planId==='free'&&s.status==='active'),'Persisted free subscription');
    return signed.jwtToken;
   }
-  if(api5)ownedToken=await admitFree(account);
+  if(api5||popupGroup==='map-search')ownedToken=await admitFree(account);
   if(selectedPopups.length&&popupGroup!=='account-recovery'){
-   assert.equal(!!api5,['web5-depth','web5-errors','web5-diff'].includes(popupGroup),'Explicit matching backend selection');if(!api5)ownedToken=await admitFree(account);
+   stage='explicit backend selection';assert.equal(!!api5,['web5-depth','web5-errors','web5-diff','map-geo'].includes(popupGroup),'Explicit matching backend selection');if(!api5)ownedToken=await admitFree(account);
    if(selectedPopups.includes('Messaging')||selectedPopups.includes('MessagingRead')||selectedPopups.includes('Chat')||selectedPopups.includes('DirectoryMessage')||selectedPopups.includes('Clan')||selectedPopups.includes('SocialGraph')){
     recipient=await createOwnedAvatar(api.href,readOwnedVerificationToken);recipientToken=await admitFree(recipient);
    }
@@ -122,8 +126,9 @@ async function main(){
    incomingNotificationIds=notifications.filter(row=>row.avatarId===account.avatar.id&&row.isRead===false).map(row=>row.id);
    assert.ok(incomingNotificationIds.length>0);
   }
-  browser=await chromium.launch({channel:'chrome',headless:true});
+  browser=await chromium.launch({channel:'chrome',headless:true,...(popupGroup==='map-renderer'?{args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']}: {})});
   context=await browser.newContext({serviceWorkers:'block',ignoreHTTPSErrors:true});
+  if(popupGroup==='map-renderer')await context.addInitScript(()=>{window.portalMapStyle={version:8,sources:{},layers:[{id:'background',type:'background',paint:{'background-color':'#102030'}}]};});
   const errors=[],otherServices=[],reads=[];
   await context.route('**/*',async route=>{
    try {
@@ -202,6 +207,16 @@ async function main(){
       assert.match(body.expectedRevisions[savedHolonId],/^[0-9a-f-]{36}$/i);ownedOperation=true;
      }
     }
+    if(popupGroup==='map-search'&&request.method()==='POST'&&url.pathname==='/api/map/search'){
+     assert.ok(expectedMapSearchQuery);assert.ok(++mapSearchRequestCount<=2);
+     assert.deepEqual(request.postDataJSON(),{query:expectedMapSearchQuery,type:'Custom',latitude:46.98,longitude:8.25,radiusKm:5});
+     ownedOperation=true;
+    }
+    if(popupGroup==='map-places'&&request.method()==='POST'&&url.pathname==='/api/places/observe'){
+     assert.ok(expectedPlaceObservation,'Only an explicit owned visit intent');assert.deepEqual(request.postDataJSON(),expectedPlaceObservation);
+     assert.ok(++placeObservationCount<=3,'Bounded enter departure return sequence');
+     const headers=request.headers();assert.match(headers['idempotency-key'],/^[0-9a-f-]{36}$/i);assert.equal(headers['x-cosmic-operation-id'],headers['idempotency-key']);ownedOperation=true;
+    }
     if(popupGroup==='onet'&&request.method()==='POST'&&url.pathname.startsWith('/api/v1/onet/')){
      assert.ok(['/api/v1/onet/network/start','/api/v1/onet/network/stop'].includes(url.pathname),'Only owned local ONET lifecycle writes');
      assert.equal(onetWrites[url.pathname]=(onetWrites[url.pathname]||0)+1,1,'One explicit lifecycle command');ownedOperation=true;
@@ -247,6 +262,7 @@ async function main(){
     if(request.method()!=='GET'&&request.method()!=='OPTIONS'){otherServices.push('unadmitted WEB5 mutation');return route.abort();}
     return route.continue({url:proxy5Origin+url.pathname+url.search});
    }
+   if(popupGroup==='map-renderer'&&url.origin==='https://unpkg.com'&&['/maplibre-gl@6.19.0/dist/maplibre-gl.mjs','/maplibre-gl@6.19.0/dist/maplibre-gl.css','/maplibre-gl@6.19.0/dist/maplibre-gl-worker.mjs'].includes(url.pathname))return route.continue();
    if(url.origin===origin||['data:','blob:'].includes(url.protocol)||['fonts.googleapis.com','fonts.gstatic.com'].includes(url.hostname))return route.continue();
    otherServices.push(request.method()+' '+url.origin+url.pathname);return route.abort();
    } catch (error) {
@@ -380,6 +396,120 @@ async function main(){
    }
    assert.equal(new Set(diffStoredIds).size,2,'Two independently stored published versions');
   }
+  if(popupGroup==='map-search')ownedToken=await page.evaluate(()=>window.oasisClient.http.tokenStore.getToken());
+  if(['map-renderer','map-search'].includes(popupGroup)){
+   stage='Create actual stored map location';
+   mapRendererRecordId=require('node:crypto').randomUUID();
+   const operationId=require('node:crypto').randomUUID(),bytes=require('node:crypto').createHash('sha256').update('oasis:map-locations:v1').digest().subarray(0,16);
+   const catalogueId=[bytes.readUInt32LE(0).toString(16).padStart(8,'0'),bytes.readUInt16LE(4).toString(16).padStart(4,'0'),bytes.readUInt16LE(6).toString(16).padStart(4,'0'),bytes.subarray(8,10).toString('hex'),bytes.subarray(10).toString('hex')].join('-');
+   const created=await context.request.post(proxyOrigin+'/api/data/save-holon',{headers:{Authorization:'Bearer '+ownedToken,'Idempotency-Key':operationId,'X-COSMIC-Operation-Id':operationId},
+    data:{holon:{id:mapRendererRecordId,name:'Owned renderer point',description:'Real API location for browser map controls',holonType:'Custom',customHolonType:'OASIS.MapLocation',parentHolonId:catalogueId,
+     metaData:{mapLocation:JSON.stringify({Latitude:46.98,Longitude:8.25,Type:6,IsActive:true,Metadata:{sourceApp:'Shared Places CI'}})}},
+     saveChildren:false,recursive:false,providerType:'MongoDBOASIS',operationId,expectedRevisions:{[mapRendererRecordId]:null}}});
+   const envelope=await created.json(),saved=envelope.result;
+   let diagnostic=String(saved?.message||envelope.message||'').replace(/(?:https?|mongodb(?:\+srv)?):\/\/[^\s]+/gi,'[URI]').replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g,'[JWT]');
+   if(/password|secret|credential|connectionstring|refresh.?token/i.test(diagnostic))diagnostic='Sensitive detail withheld';
+   httpFacts.push({path:'/api/data/save-holon',status:created.status(),isError:saved?.isError===true,routingMessage:diagnostic.slice(0,320)});
+   assert.equal(created.status(),200);assert.equal(saved.isError,false);assert.equal(saved.result.id,mapRendererRecordId);
+   if(popupGroup==='map-renderer'){
+   const response=await context.request.get(proxyOrigin+'/api/map/nearby?latitude=46.98&longitude=8.25&radiusKm=5',{headers:{Authorization:'Bearer '+ownedToken}});
+   const nearby=await response.json();assert.equal(response.status(),200);assert.equal(nearby.isError,false);assert.equal(nearby.result.length,1);assert.equal(nearby.result[0].id,mapRendererRecordId);
+   }
+  }
+  if(popupGroup==='map-search'){
+   function safeMapSearchMessage(value){let text=String(value||'').replace(/(?:https?|mongodb(?:\+srv)?):\/\/[^\s]+/gi,'[URI]').replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g,'[JWT]');return /password|secret|credential|connectionstring|refresh.?token/i.test(text)?'Sensitive detail withheld':text.slice(0,240);}
+   const positive='Owned renderer point',negative='No matching owned map location';
+   const restCounts=[];
+   stage='Actual SDK JSON map filters';
+   for(const query of [positive,negative]){
+    expectedMapSearchQuery=query;
+    const [response,reply]=await Promise.all([page.waitForResponse(r=>new URL(r.url()).pathname==='/api/map/search'),page.evaluate(query=>window.oasisClient.map.search({query,type:'Custom',latitude:46.98,longitude:8.25,radiusKm:5}),query)]);
+    httpFacts.push({path:'/api/map/search',status:response.status(),isError:reply.isError===true,routingMessage:safeMapSearchMessage(reply.message)});
+    assert.equal(response.status(),200);assert.equal(reply.isError,false);assert.ok(Array.isArray(reply.result));
+    const expected=restCounts.length===0?1:0;assert.equal(reply.result.length,expected);
+    if(expected)assert.equal(reply.result[0].id,mapRendererRecordId);restCounts.push(reply.result.length);expectedMapSearchQuery=null;
+   }
+   assert.equal(mapSearchRequestCount,2);
+   stage='Actual gRPC client map filters';
+   const owner='oasis_startup_'+process.env.GITHUB_RUN_ID+'_'+process.env.GITHUB_RUN_ATTEMPT;
+   const apiState=JSON.parse(execFileSync('docker',['inspect',owner+'_api'],{encoding:'utf8',timeout:15000}))[0];
+   assert.equal(apiState.Config.Labels['oasis.startup.owner'],owner);
+   const privateIp=apiState.NetworkSettings.Networks[owner+'_net'].IPAddress;
+   const grpcUrl=new URL(process.env.OASIS_STARTUP_MAP_GRPC_URL);assert.equal(grpcUrl.hostname,privateIp);assert.equal(grpcUrl.port,'5002');assert.equal(grpcUrl.protocol,'http:');
+   const probe=await fs.realpath(process.env.OASIS_STARTUP_MAP_GRPC_PROBE);
+   assert.equal(probe,path.join(process.env.RUNNER_TEMP,'oasis-map-search-owned','probe','MapSearchTransportProbe.dll'));
+   let native;
+   try{native=execFileSync('dotnet',[probe],{input:JSON.stringify({address:grpcUrl.href,bearer:ownedToken,query:positive,noMatchQuery:negative,recordId:mapRendererRecordId}),encoding:'utf8',timeout:60000});}
+   catch(error){const reason=String(error.stderr||'').match(/MAP_SEARCH_GRPC_FAILURE:([^\r\n]*)/);httpFacts.push({path:'/oasis.web4.MapService/SearchMapLocations',status:0,isError:true,routingMessage:safeMapSearchMessage(reason?reason[1]:'Native client failed')});throw error;}
+   const proof=native.match(/MAP_SEARCH_GRPC_PROOF:(\{[^\r\n]*\})/);assert.ok(proof);
+   const grpc=JSON.parse(proof[1]);assert.deepEqual(grpc,{positiveCount:1,noMatchCount:0,identityMatched:true,actualClient:'Grpc.Net.Client',actualSourceProto:true});
+   stage='Actual GraphQL map filters';
+   const graphCounts=[];
+   for(const query of [positive,negative]){
+    const operation=require('node:crypto').randomUUID();
+    const response=await context.request.post(proxyOrigin+'/graphql',{headers:{Authorization:'Bearer '+ownedToken,'Idempotency-Key':operation,'X-COSMIC-Operation-Id':operation},
+     data:{query:'query { searchMapLocations(query: '+JSON.stringify(query)+', locationTypeStr: "Custom", latitude: 46.98, longitude: 8.25, radiusKm: 5) }'}});
+    const result=await response.json();httpFacts.push({path:'/graphql',status:response.status(),isError:Array.isArray(result.errors)&&result.errors.length>0,routingMessage:safeMapSearchMessage(result.errors?.[0]?.message)});
+    assert.equal(response.status(),200);assert.ok(!result.errors?.length);assert.equal(typeof result.data?.searchMapLocations,'string');
+    const rows=JSON.parse(result.data.searchMapLocations),expected=graphCounts.length===0?1:0;assert.equal(rows.length,expected);
+    if(expected)assert.equal(rows[0].Id,mapRendererRecordId);graphCounts.push(rows.length);
+   }
+   assert.deepEqual(errors,[]);
+   console.log('PORTAL_STARTUP_MAP_SEARCH_CONTRACTS:'+JSON.stringify({rest:{positiveCount:restCounts[0],noMatchCount:restCounts[1],identityMatched:true},grpc,graphql:{positiveCount:graphCounts[0],noMatchCount:graphCounts[1],identityMatched:true}}));
+   console.log('PORTAL_STARTUP_BROWSER_PROOF: real SDK JSON REST, actual source-proto gRPC SDK and GraphQL map filters on one owned native Mongo location; existing Wizard admission retained; no popup/hosted/MCP/provider-suite claim.');
+   return;
+  }
+  if(popupGroup==='map-geo'){
+   async function createGeo(path,body){
+    const operationId=require('node:crypto').randomUUID();
+    const response=await context.request.post(proxy5Origin+path,{headers:{Authorization:'Bearer '+ownedToken,'X-COSMIC-Operation-Id':operationId,'Idempotency-Key':operationId},data:body});
+    const result=await response.json();
+    httpFacts.push({path,status:response.status(),isError:result.isError===true,...(typeof result.errorCode==='string'&&/^[A-Z0-9_]{1,80}$/.test(result.errorCode)?{errorCode:result.errorCode}:{})});
+    assert.equal(response.status(),200);assert.equal(result.isError,false);assert.ok(result.result?.id);return result.result;
+   }
+   stage='Create actual visible hotspot';
+   const visible=await createGeo('/api/geoHotSpots',{id:require('node:crypto').randomUUID(),name:'Owned visible map hotspot',description:'Native catalogue and quest location',lat:46.98,long:8.25,isActive:true,isVisibleOnMap:true});
+   mapGeoVisibleId=visible.id;assert.equal(visible.isVisibleOnMap,true);assert.equal(visible.lat,46.98);assert.equal(visible.long,8.25);
+   stage='Create actual hidden hotspot';
+   const hidden=await createGeo('/api/geoHotSpots',{id:require('node:crypto').randomUUID(),name:'Owned hidden map hotspot',description:'Hidden catalogue record',lat:46.981,long:8.251,isActive:true,isVisibleOnMap:false});
+   mapGeoHiddenId=hidden.id;assert.equal(hidden.isVisibleOnMap,false);
+   stage='Create actual linked quest';
+   const quest=await createGeo('/api/quests',{id:require('node:crypto').randomUUID(),name:'Owned hotspot-linked quest',description:'Actual root quest location',isActive:true,linkedGeoHotSpotId:visible.id});
+   mapGeoQuestId=quest.id;assert.equal(quest.linkedGeoHotSpotId,visible.id);
+   stage='Independent geo catalogue reads';
+   const near=await context.request.get(proxy5Origin+'/api/geoHotSpots/nearby?latitude=46.98&longitude=8.25&radiusKm=5',{headers:{Authorization:'Bearer '+ownedToken}});
+   const nearBody=await near.json();assert.equal(near.status(),200);assert.equal(nearBody.isError,false);assert.deepEqual(nearBody.result.map(x=>x.id),[visible.id]);
+   const questRead=await context.request.get(proxy5Origin+'/api/quests/all-for-avatar',{headers:{Authorization:'Bearer '+ownedToken}});
+   const quests=await questRead.json();assert.equal(questRead.status(),200);assert.equal(quests.isError,false);assert.equal(quests.result.length,1);assert.equal(quests.result[0].id,quest.id);assert.equal(quests.result[0].linkedGeoHotSpotId,visible.id);
+  }
+  if(popupGroup==='map-places'){
+   function safeVisitMessage(value){let text=String(value||'').replace(/(?:mongodb(?:\+srv)?|https?):\/\/[^\s]+/gi,'[URI]').replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g,'[JWT]');return /password|secret|credential|connectionstring|refresh.?token/i.test(text)?'Sensitive detail withheld':text.slice(0,320);}
+   stage='Real place catalogue';const [catalogueReply,catalogue]=await Promise.all([page.waitForResponse(r=>new URL(r.url()).pathname==='/api/places/nearby'),page.evaluate(()=>window.oasisClient.places.nearby({category:'Mountain',latitude:46.98,longitude:8.25}))]);
+   httpFacts.push({path:'/api/places/nearby',status:catalogueReply.status(),isError:catalogue.isError,routingMessage:safeVisitMessage(catalogue.message)});assert.equal(catalogueReply.status(),200);
+   assert.equal(catalogue.isError,false);assert.ok(Array.isArray(catalogue.result));
+   const point=catalogue.result.find(row=>row.source==='OpenStreetMap'&&String(row.id).startsWith('osm:node:')&&Number.isFinite(row.latitude)&&Number.isFinite(row.longitude));
+   assert.ok(point,'The real catalogue must supply a point venue; no synthetic place substitution');mapPlaceId=point.id;
+   const before=await page.evaluate(id=>window.oasisClient.http.get('api/karma/get-karma-stats/'+id),account.avatar.id);
+   assert.equal(before.isError,false);mapKarmaBefore=before.result.totalKarma;assert.ok(Number.isSafeInteger(mapKarmaBefore));
+   async function observe(sourceApp,latitude,longitude){
+    expectedPlaceObservation={id:require('node:crypto').randomUUID(),placeId:point.id,latitude,longitude,observedUtc:new Date().toISOString(),sourceApp};
+    const [reply,normalized]=await Promise.all([page.waitForResponse(r=>new URL(r.url()).pathname==='/api/places/observe'&&r.request().method()==='POST'),page.evaluate(body=>window.oasisClient.places.observe(body),expectedPlaceObservation)]);
+    const raw=await reply.json();httpFacts.push({path:'/api/places/observe',status:reply.status(),isError:raw.isError===true,routingMessage:safeVisitMessage(raw.message)});
+    assert.equal(reply.status(),200);assert.equal(normalized.isError,false);assert.equal(raw.isError,false);assert.notEqual(raw.isWarning,true,'Visit and avatar audit must both acknowledge');
+    expectedPlaceObservation=null;return raw.result;
+   }
+   stage='Our World compatible real observation';const first=await observe('Our World',point.latitude,point.longitude);
+   assert.equal(first.oApp,'Our World');assert.equal(first.placeId,point.id);assert.equal(first.karma,100);assert.equal(first.firstVisit,true);mapVisitIds.push(first.id);
+   stage='Real place departure';const departure=await observe('Our World',point.latitude+0.02,point.longitude);assert.ok(departure==null);
+   stage='Other app real return observation';const second=await observe('Shared Places CI',point.latitude,point.longitude);
+   assert.equal(second.oApp,'Shared Places CI');assert.equal(second.placeId,point.id);assert.equal(second.karma,50);assert.equal(second.firstVisit,false);mapVisitIds.push(second.id);
+   assert.equal(placeObservationCount,3);assert.equal(new Set(mapVisitIds).size,2);
+   stage='Cross app native visit readback';const visits=await page.evaluate(()=>window.oasisClient.places.visits({offset:0,limit:50}));
+   assert.equal(visits.isError,false);assert.equal(visits.result.total,2);assert.deepEqual(visits.result.items.map(row=>row.oApp).sort(),['Our World','Shared Places CI']);
+   assert.deepEqual(visits.result.items.map(row=>row.id).sort(),mapVisitIds.slice().sort());
+   const after=await page.evaluate(id=>window.oasisClient.http.get('api/karma/get-karma-stats/'+id),account.avatar.id);
+   assert.equal(after.isError,false);assert.equal(after.result.totalKarma,mapKarmaBefore+150);
+  }
   if(popupGroup==='web5-depth'){
    stage='Catalogue create actual OAPP graph';const operationId=require('node:crypto').randomUUID();
    const rootId=require('node:crypto').randomUUID(),child={id:require('node:crypto').randomUUID(),parentHolonId:rootId,holonType:'Holon',name:'Owned catalogue child',description:'Actual selected descendant'};
@@ -402,7 +532,11 @@ async function main(){
     if(!selectedPopups.includes(name))return;
     let passed=false,closePassed=true,observedStage=name;
     try{await work();passed=true;observedStage=stage;}
-    catch(error){observedStage=stage;const location=String(error.stack||'').match(/portal-startup-browser\.cjs:(\d+):/);console.error('PORTAL_STARTUP_POPUP_FAILURE:'+JSON.stringify({name,stage,errorType:['AssertionError','TimeoutError','TypeError','Error'].includes(error.name)?error.name:'Error',sourceLine:location?Number(location[1]):0}));if(name==='Clan'){
+    catch(error){observedStage=stage;const location=String(error.stack||'').match(/portal-startup-browser\.cjs:(\d+):/);console.error('PORTAL_STARTUP_POPUP_FAILURE:'+JSON.stringify({name,stage,errorType:['AssertionError','TimeoutError','TypeError','Error'].includes(error.name)?error.name:'Error',sourceLine:location?Number(location[1]):0}));if(name==='MapRenderer'){
+     const rendererState=await page.evaluate(()=>({rendererStatus:document.getElementById('map-renderer-status')?.textContent||'',mapPresent:!!window.__ownedRealMap,glContext:!!window.__ownedRealMap?.getCanvas()?.getContext('webgl2')})).catch(()=>({rendererStatus:'Unavailable',mapPresent:false,glContext:false}));
+     function safeRendererText(value){let text=String(value||'').split('\n')[0].replace(/(?:https?|mongodb(?:\+srv)?):\/\/[^\s]+/gi,'[URI]').replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g,'[JWT]');return /password|secret|credential|connectionstring|refresh.?token/i.test(text)?'Sensitive detail withheld':text.slice(0,320);}
+     console.error('PORTAL_STARTUP_RENDERER_FAILURE:'+JSON.stringify({stage,errorType:['AssertionError','TimeoutError','TypeError','Error'].includes(error.name)?error.name:'Error',sourceLine:location?Number(location[1]):0,message:safeRendererText(error.message),rendererStatus:safeRendererText(rendererState.rendererStatus),mapPresent:rendererState.mapPresent,glContext:rendererState.glContext,blockedAssetCount:otherServices.filter(row=>row.includes('unpkg.com')).length}));
+    }if(name==='Clan'){
      const state=await page.evaluate(()=>({status:document.getElementById('clan-status')?.textContent||'',nameLength:document.getElementById('clan-create-name')?.value.length||0,buttonDisabled:document.getElementById('clan-create-btn')?.disabled===true,activeTab:document.querySelector('#clan-modal-block .map-tab.is-active')?.dataset.tab||'unknown',
       formOwner:document.getElementById('clan-create-btn')?.form?.id||'none',
       formValid:document.getElementById('clan-create-form')?.matches(':valid')===true,
@@ -420,6 +554,65 @@ async function main(){
     }catch(error){console.error('PORTAL_STARTUP_POPUP_CLOSE_FAILURE:'+JSON.stringify({name,errorType:error.name,path:new URL(page.url()).pathname}));closePassed=false;passed=false;if(observedStage===name)observedStage=name+' close';}
     outcomes.push({name,passed,stage:observedStage,closePassed});
    }
+   await checkPopup('MapRenderer','#map-close-btn',async()=>{
+    stage='Map real stored location';
+    await page.locator('#dashboard button.dash-panel-link').filter({hasText:'View Map'}).click();
+    await page.locator('#map-latitude').fill('46.98');await page.locator('#map-longitude').fill('8.25');await page.locator('#map-radius').fill('5');
+    await page.locator('#map-refresh-btn').click();
+    await page.waitForFunction(()=>document.getElementById('map-target')?.options.length===2);
+    stage='Real MapLibre renderer';
+    await page.evaluate(async()=>{
+     const library=await import('https://unpkg.com/maplibre-gl@6.19.0/dist/maplibre-gl.mjs'),original=library.Map.prototype.addControl;
+     library.Map.prototype.addControl=function(...args){window.__ownedRealMap=this;library.Map.prototype.addControl=original;return original.apply(this,args);};
+    });
+    await page.locator('#map-show-interactive').click();
+    await page.waitForFunction(()=>window.__ownedRealMap?.isStyleLoaded()&&window.__ownedRealMap.getLayer('selected-item'));
+    assert.equal(await page.evaluate(()=>window.__ownedRealMap.getCanvas().getContext('webgl2')?.drawingBufferWidth>0),true,'Actual WebGL2 context');
+    await page.locator('#map-modal-block [data-tab="controls"]').click();
+    const target=await page.locator('#map-target option').filter({hasText:'Owned renderer point'}).getAttribute('value');assert.ok(target);
+    await page.locator('#map-target').selectOption(target);
+    stage='Map actual item selection';await page.locator('#map-select-holon-btn').click();
+    await page.waitForFunction(()=>document.querySelector('.maplibregl-popup-content')?.textContent.includes('Owned renderer point'));
+    const selected=await page.evaluate(()=>({lat:window.__ownedRealMap.getCenter().lat,lng:window.__ownedRealMap.getCenter().lng,zoom:window.__ownedRealMap.getZoom()}));
+    assert.ok(Math.abs(selected.lat-46.98)<1e-6&&Math.abs(selected.lng-8.25)<1e-6);
+    stage='Map actual zoom controls';await page.locator('#map-zoom-value').fill('1');
+    await page.locator('#map-zoom-in-btn').click();assert.equal(await page.evaluate(()=>window.__ownedRealMap.getZoom()),selected.zoom+1);
+    await page.locator('#map-zoom-out-btn').click();assert.equal(await page.evaluate(()=>window.__ownedRealMap.getZoom()),selected.zoom);
+    stage='Map actual pan controls';await page.locator('#map-pan-value').fill('100');
+    for(const [direction,axis,sign] of [['up','lat',1],['down','lat',-1],['left','lng',-1],['right','lng',1]]){
+     const before=await page.evaluate(axis=>window.__ownedRealMap.getCenter()[axis],axis);
+     await page.locator('#map-pan-'+direction+'-btn').click();
+     const after=await page.evaluate(axis=>window.__ownedRealMap.getCenter()[axis],axis);assert.ok((after-before)*sign>0.001,'Actual '+direction+' pan');
+    }
+    stage='Map actual target zoom';await page.locator('#map-zoom-holon-btn').click();
+    assert.equal(await page.evaluate(()=>window.__ownedRealMap.getZoom()),15);
+    stage='Map actual pin highlight';await page.locator('#map-highlight-building-btn').click();
+    await page.waitForFunction(id=>window.__ownedRealMap.isSourceLoaded('selected-item')&&window.__ownedRealMap.queryRenderedFeatures({layers:['selected-item']}).some(feature=>feature.properties.identity===id),mapRendererRecordId);
+    assert.ok(!reads.some(read=>/^\/api\/map\/(Zoom|Pam|Select|Highlight)/.test(read.path)),'No legacy server camera command');
+   });
+   if(popupGroup==='map-renderer'){
+    assert.equal(await page.evaluate(()=>window.__ownedRealMap.getCanvas().isConnected),false,'Real renderer disposed');
+    assert.equal(await page.locator('#map-target option').count(),1,'Private loaded targets cleared');
+    assert.equal(await page.locator('#map-zoom-in-btn').isDisabled(),true);
+   }
+   await checkPopup('MapGeo','#map-close-btn',async()=>{
+    stage='Map actual hotspot and quest layers';
+    await page.locator('#dashboard button.dash-panel-link').filter({hasText:'View Map'}).click();
+    await page.locator('#map-latitude').fill('46.98');await page.locator('#map-longitude').fill('8.25');await page.locator('#map-radius').fill('5');
+    await page.locator('#map-modal-block [data-tab="geo"]').click();await page.locator('#map-load-geo').click();
+    await page.waitForFunction(()=>document.getElementById('map-geo-status')?.textContent==='0 GeoNFTs, 1 hotspots, 1 quest/objective locations loaded.');
+    for(const endpoint of ['/api/geoHotSpots/nearby','/api/quests/all-for-avatar'])
+     assert.ok(reads.some(read=>read.path===endpoint&&read.status===200),'Actual map layer API '+endpoint);
+    assert.ok(mapGeoVisibleId&&mapGeoHiddenId&&mapGeoQuestId);
+   });
+   await checkPopup('MapPlaces','#map-close-btn',async()=>{
+    stage='Map actual cross app place visits';await page.locator('#dashboard button.dash-panel-link').filter({hasText:'View Map'}).click();
+    await page.locator('#map-modal-block [data-tab="places"]').click();
+    await page.waitForFunction(()=>{const s=document.getElementById('map-places-list')?.textContent||'';return s.includes('Our World')&&s.includes('Shared Places CI');});
+    const rows=page.locator('#map-places-list .map-history-row');assert.equal(await rows.count(),2);
+    const text=await page.locator('#map-places-list').textContent();assert.ok(text.includes(mapPlaceId));assert.ok(text.includes('100 karma'));assert.ok(text.includes('50 karma'));
+    assert.equal(await page.locator('#map-places-more').isVisible(),false);assert.equal(placeObservationCount,3);
+   });
    await checkPopup('ONET','#onet-close-btn',async()=>{
     stage='ONET real initial reads';await page.evaluate(()=>window.openONETModal());
     await page.waitForFunction(()=>['ONLINE','OFFLINE'].includes(document.getElementById('onet-status-label')?.textContent));

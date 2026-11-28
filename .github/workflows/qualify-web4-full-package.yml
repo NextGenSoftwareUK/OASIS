@@ -68,7 +68,7 @@ on:
         description: New popup journey only; reuses the exact shipping image without rebuilding
         required: false
         type: choice
-        options: [none, onet, web5-diff, web5-errors, provider-migration, web5-depth, nft, data, data-crud, data-edit, files-write, map-route, messaging, messaging-read, chat, chat-directory, directory-message, clan, portal-breadth, chat-hyperdrive, data-messaging, nft-messaging-data, social-activity, account-recovery]
+        options: [none, map-search, map-renderer, map-geo, map-places, onet, web5-diff, web5-errors, provider-migration, web5-depth, nft, data, data-crud, data-edit, files-write, map-route, messaging, messaging-read, chat, chat-directory, directory-message, clan, portal-breadth, chat-hyperdrive, data-messaging, nft-messaging-data, social-activity, account-recovery]
         default: none
       retained_waku:
         description: Verify the packaged native Waku runtime with the aged original archive
@@ -93,7 +93,7 @@ jobs:
       - name: Verify startup probe error contract without native images
         run: python3 -B Scripts/TestHosts/test_web4_combined_startup.py
   package:
-    if: github.event_name == 'workflow_dispatch' && inputs.startup_popup_group != 'web5-depth' && inputs.startup_popup_group != 'web5-errors' && inputs.startup_popup_group != 'web5-diff'
+    if: github.event_name == 'workflow_dispatch' && inputs.startup_popup_group != 'map-geo' && inputs.startup_popup_group != 'web5-depth' && inputs.startup_popup_group != 'web5-errors' && inputs.startup_popup_group != 'web5-diff'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -125,17 +125,31 @@ jobs:
         run: test "$AUTH" = true && test "$STARTUP" = true && test -n "$PORTAL"
       - name: Verify startup readiness and error boundaries
         run: python3 -B Scripts/TestHosts/test_web4_combined_startup.py
+      - name: Verify the owned catalogue network boundary
+        if: inputs.startup_popup_group == 'map-places'
+        run: python3 -B Scripts/TestHosts/test_owned_overpass_proxy.py
       - name: Retain verifier before checking exact image source
+        env:
+          POPUP_GROUP: ${{ inputs.startup_popup_group }}
         run: |
           cp Scripts/TestHosts/qualify_web4_full_package.py "$RUNNER_TEMP/qualify_web4_full_package.py"
           cp Scripts/TestHosts/qualify_web4_combined_startup.py "$RUNNER_TEMP/qualify_web4_combined_startup.py"
           cp Scripts/TestHosts/owned_docker_resources.py "$RUNNER_TEMP/owned_docker_resources.py"
           cp Scripts/TestHosts/owned_web5_startup.py "$RUNNER_TEMP/owned_web5_startup.py"
+          cp Scripts/TestHosts/owned_overpass_proxy.py "$RUNNER_TEMP/owned_overpass_proxy.py"
           cp Scripts/TestHosts/Fixtures/startup-authentication.cjs "$RUNNER_TEMP/startup-authentication.cjs"
           cp Scripts/TestHosts/owned_migration_bootstrap.py "$RUNNER_TEMP/owned_migration_bootstrap.py"
           cp Scripts/TestHosts/Fixtures/migration-wizard-bootstrap.cs "$RUNNER_TEMP/migration-wizard-bootstrap.cs"
           cp Scripts/TestHosts/Fixtures/portal-startup-browser.cjs "$RUNNER_TEMP/portal-startup-browser.cjs"
           cp Scripts/TestHosts/Fixtures/profile-browser-runtime.json "$RUNNER_TEMP/profile-browser-runtime.json"
+          if [[ "$POPUP_GROUP" == map-search ]]; then
+            probe="$RUNNER_TEMP/oasis-map-search-owned"
+            test "$probe" = "$RUNNER_TEMP/oasis-map-search-owned"
+            test ! -e "$probe"
+            mkdir -p "$probe/probe-source"
+            cp Scripts/TestHosts/MapSearchTransportProbe/MapSearchTransportProbe.csproj "$probe/probe-source/"
+            cp Scripts/TestHosts/MapSearchTransportProbe/Program.cs "$probe/probe-source/"
+          fi
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           ref: ${{ inputs.source }}
@@ -147,6 +161,7 @@ jobs:
           cp "$RUNNER_TEMP/qualify_web4_combined_startup.py" Scripts/TestHosts/qualify_web4_combined_startup.py
           cp "$RUNNER_TEMP/owned_docker_resources.py" Scripts/TestHosts/owned_docker_resources.py
           cp "$RUNNER_TEMP/owned_web5_startup.py" Scripts/TestHosts/owned_web5_startup.py
+          cp "$RUNNER_TEMP/owned_overpass_proxy.py" Scripts/TestHosts/owned_overpass_proxy.py
           mkdir -p Scripts/TestHosts/Fixtures
           cp "$RUNNER_TEMP/startup-authentication.cjs" Scripts/TestHosts/Fixtures/startup-authentication.cjs
           cp "$RUNNER_TEMP/owned_migration_bootstrap.py" Scripts/TestHosts/owned_migration_bootstrap.py
@@ -185,9 +200,27 @@ jobs:
           test "$actual" = "$expected"
           npm install --prefix "$owned/runtime" --cache "$owned/npm-cache" --registry https://registry.npmjs.org --ignore-scripts --no-audit --no-fund "playwright-core@$version"
       - uses: actions/setup-dotnet@v4
-        if: inputs.startup_popup_group == 'provider-migration'
+        if: inputs.startup_popup_group == 'provider-migration' || inputs.startup_popup_group == 'map-search'
         with:
           dotnet-version: '10.0.x'
+      - name: Build the real standalone gRPC client from exact API proto
+        if: inputs.startup_popup_group == 'map-search'
+        env:
+          DOTNET_CLI_HOME: ${{ runner.temp }}/oasis-map-search-owned/dotnet-home
+          NUGET_PACKAGES: ${{ runner.temp }}/oasis-map-search-owned/nuget
+          NUGET_HTTP_CACHE_PATH: ${{ runner.temp }}/oasis-map-search-owned/nuget-http
+          DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+          DOTNET_SKIP_FIRST_TIME_EXPERIENCE: '1'
+          DOTNET_GENERATE_ASPNET_CERTIFICATE: 'false'
+        run: |
+          set -euo pipefail
+          probe="$RUNNER_TEMP/oasis-map-search-owned"
+          test "$probe" = "$RUNNER_TEMP/oasis-map-search-owned"
+          test ! -L "$probe"
+          api="$GITHUB_WORKSPACE/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI"
+          test -f "$api/Protos/map.proto"
+          dotnet publish "$probe/probe-source/MapSearchTransportProbe.csproj" -c Release -o "$probe/probe" -m:2 -nr:false -p:UseSharedCompilation=false -p:UseAppHost=false -p:BaseIntermediateOutputPath="$probe/obj/" -p:OasisWebApiRoot="$api"
+          test -f "$probe/probe/MapSearchTransportProbe.dll"
       - uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -219,6 +252,7 @@ jobs:
           OASIS_STARTUP_POPUP_GROUP: ${{ inputs.startup_popup_group }}
           OASIS_STARTUP_PORTAL_ROOT: ${{ inputs.startup_portal != '' && format('{0}/oportal-startup-source', github.workspace) || '' }}
           OASIS_PROFILE_BROWSER_RUNTIME: ${{ github.workspace }}/portal-startup-owned/runtime
+          OASIS_STARTUP_MAP_GRPC_PROBE: ${{ inputs.startup_popup_group == 'map-search' && format('{0}/oasis-map-search-owned/probe/MapSearchTransportProbe.dll', runner.temp) || '' }}
         run: python3 -B Scripts/TestHosts/qualify_web4_combined_startup.py --digest "$DIGEST" --profile "$PACKAGE_PROFILE"
       - name: Retrieve the qualified Waku archive
         if: inputs.retained_waku
@@ -246,7 +280,7 @@ jobs:
             /qualification/Scripts/TestHosts/Verify-WakuHostedRuntime.cjs \
             /opt/waku/logosdeliverynode /original /result
       - name: Remove owned portal browser runtime and cache
-        if: always() && inputs.startup_portal != ''
+        if: always() && (inputs.startup_portal != '' || inputs.startup_popup_group == 'map-search')
         run: |
           set -euo pipefail
           owned="$GITHUB_WORKSPACE/portal-startup-owned"
@@ -255,6 +289,12 @@ jobs:
           if test -e "$owned"; then rm -rf -- "$owned"; fi
           test ! -e "$owned"
           echo 'Owned Startup portal runtime/cache/TLS absence verified.'
+          probe="$RUNNER_TEMP/oasis-map-search-owned"
+          test "$probe" = "$RUNNER_TEMP/oasis-map-search-owned"
+          test ! -L "$probe"
+          if test -e "$probe"; then rm -rf -- "$probe"; fi
+          test ! -e "$probe"
+          echo 'Owned map gRPC probe source/runtime/cache absent.'
       - uses: actions/upload-artifact@v7
         if: always()
         with:
@@ -267,7 +307,7 @@ jobs:
           retention-days: 30
 
   web5-depth:
-    if: github.event_name == 'workflow_dispatch' && (inputs.startup_popup_group == 'web5-depth' || inputs.startup_popup_group == 'web5-errors' || inputs.startup_popup_group == 'web5-diff')
+    if: github.event_name == 'workflow_dispatch' && (inputs.startup_popup_group == 'map-geo' || inputs.startup_popup_group == 'web5-depth' || inputs.startup_popup_group == 'web5-errors' || inputs.startup_popup_group == 'web5-diff')
     uses: ./.github/workflows/oportal-web5-startup-qualification.yml
     with:
       portal: ${{ inputs.startup_portal }}
