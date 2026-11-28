@@ -549,12 +549,12 @@
       const leadingTake=readTop();
       const output=[];
       let setReduction,scalarAlias,setReductionColumn;
-      if(input.setBody&&['COUNT','ANY','SUM','AVG'].includes(peek())&&tokens[index+1]==='(') {
+      if(input.setBody&&['COUNT','ANY','MIN','MAX','SUM','AVG'].includes(peek())&&tokens[index+1]==='(') {
         const operation=tokens[index++].toUpperCase();expect('(');
-        if(operation==='SUM'||operation==='AVG')setReductionColumn=column().alias;
+        if(['MIN','MAX','SUM','AVG'].includes(operation))setReductionColumn=column().alias;
         else if(!accept('*')&&!accept('1'))throw new Error('Selected cardinality accepts COUNT(*)/COUNT(1) or ANY(*).');
-        expect(')');setReduction=({COUNT:'LongCount',ANY:'Any',SUM:'Sum',AVG:'Average'})[operation];
-        scalarAlias=readColumnAlias(({COUNT:'Count',ANY:'Any',SUM:'Sum',AVG:'Average'})[operation]);
+        expect(')');setReduction=({COUNT:'LongCount',ANY:'Any',MIN:'Min',MAX:'Max',SUM:'Sum',AVG:'Average'})[operation];
+        scalarAlias=readColumnAlias(({COUNT:'Count',ANY:'Any',MIN:'Min',MAX:'Max',SUM:'Sum',AVG:'Average'})[operation]);
         input.columns.forEach(item=>output.push({alias:item.alias,sourceAlias:item.alias}));
       } else if (accept('*')) input.columns.forEach(item=>output.push({alias:item.alias,sourceAlias:item.alias}));
       else do {

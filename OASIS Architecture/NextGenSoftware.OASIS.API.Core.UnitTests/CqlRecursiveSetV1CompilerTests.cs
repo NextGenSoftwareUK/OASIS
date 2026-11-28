@@ -43,5 +43,15 @@ public sealed class CqlRecursiveSetV1CompilerTests
         copy.ReductionColumn=null;
         Assert.Throws<ArgumentException>(()=>CqlV1Compiler.CompileProjectedSetReduction(copy,Guid.NewGuid(),ProviderType.MongoDBOASIS));
     }
+    [Fact] public void ExtremaRequireTheirVisibleAliasWithoutNumericCoercion()
+    {
+        var request=Tree();request.Reduction="Min";request.ReductionColumn="label";
+        var query=CqlV1Compiler.CompileProjectedSetReduction(request,Guid.NewGuid(),ProviderType.MongoDBOASIS);
+        Assert.Equal(typeof(string),query.Output.Columns[query.Output.OutputColumnIndices[0]].ValueType);
+        request.Reduction="Max";request.ReductionColumn="hidden";
+        Assert.Throws<ArgumentException>(()=>CqlV1Compiler.CompileProjectedSetReduction(request,Guid.NewGuid(),ProviderType.MongoDBOASIS));
+        request.ReductionColumn=null;
+        Assert.Throws<ArgumentException>(()=>CqlV1Compiler.CompileProjectedSetReduction(request,Guid.NewGuid(),ProviderType.MongoDBOASIS));
+    }
 
 }

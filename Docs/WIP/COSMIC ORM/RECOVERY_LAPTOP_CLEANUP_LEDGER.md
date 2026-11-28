@@ -11465,3 +11465,8 @@ Owned Chrome stopped; marker/path and process absence verified before normal rec
 ## 2026-11-28 canonical XML version acceptance
 
 CI46134517647 qualified d36a143c/Core551ac0d8: native3/3 plus one atomic-admission control, actual WEB4 build and exact owned cleanup. All five artifact entries inspected in RAM; artifact15259323174 SHA256 dae858c2187682d2c573df7eeaeba425bba536844c57a976e7b0444315fe0c8b. Each provider verified acknowledged Version, next-version increment, stale-write rejection, preserved winner and foreign-reader isolation (five groups/six timings). CQL regression46134517653 also passed. Full M04 OPEN; main144/168 extension4/13 unchanged. No shared Atlas/PIPER operations. Review/deployment pending.
+
+
+## 2026-11-28 backend selected-set extrema (qualification pending)
+
+Added shared native selected-set scalar Min/Max planning/execution through the existing one-attempt owner and complete source/stage proof, without constructing enclosing DTOs. The owner re-admits the actual provider extrema domain immediately before dispatch. Backend SQL WITH/derived selected set MIN(alias)/MAX(alias) lowers to the same set route and currently visible alias. Caller/provider, windows, null/empty and canonical scalar wire semantics remain explicit. Browser engines untouched. Local Node18 parser26/26 and runner syntax passed; native compiler17/native15 and actual WEB4 build are pending CI. Full Q50/Q51/Q53/Q54 remain OPEN; main144/168 extension4/13 unchanged. No shared Atlas/PIPER operations or local builds/installations.

@@ -119,5 +119,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlProjectedSetNumericV1Endpoint.cs" Link="Production/CqlProjectedSetNumericV1Endpoint.cs" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlProjectedSetExtremumV1Endpoint.cs" Link="Production/CqlProjectedSetExtremumV1Endpoint.cs" />
   </ItemGroup>
 </Project>

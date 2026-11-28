@@ -21,7 +21,7 @@ ns={'t':'http://microsoft.com/schemas/VisualStudio/TeamTest/2010'}
 c=ET.parse(RESULTS/'recursive-selected-set-native.trx').find('.//t:Counters',ns)
 assert c is not None and c.attrib['total']=='15' and c.attrib['passed']=='15' and c.attrib['failed']=='0'
 unit=ET.parse(RESULTS/'recursive-set-compiler.trx').find('.//t:Counters',ns)
-assert unit is not None and unit.attrib['total']=='16' and unit.attrib['passed']=='16' and unit.attrib['failed']=='0'
+assert unit is not None and unit.attrib['total']=='17' and unit.attrib['passed']=='17' and unit.attrib['failed']=='0'
 groups={'allFourSetKinds','duplicateCountIndependentOfPublicationCap','semanticWindowsRetained',
  'postWindowPredicatesRetained','noEntityMaterialization','foreignCallerIsolated','inputCompletenessBeforeEmptyOutput','cancellationPreserved'}
 for store in ['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS']:
@@ -48,15 +48,15 @@ for store in ['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS']:
  assert set(selected['evidence'])=={'typedViewsFeedFurtherNativeSets','typedViewNativeElements','typedViewCardinalityAndExtrema','typedViewNumericTerminal','typedFinalSelectionWithoutIntermediateConstructors','registeredLinqNativeSumAverage','sharedOrdinaryNumericDecoderControl','nativeSumAverageAfterSetWindows','numericVisibleEqualityAndForeignScope','nestedVisibleOutputBindings','nativeScalarExtremaAfterWindows','nativeCountIndependentOfPublication','nativeCardinalityWithoutConstructors','foreignNativeCount','registeredLinqLeftTree','registeredLinqRightTree','explicitTreeAdmission','concatOccurrences','visibleTupleUnion','visibleTupleIntersectExcept','nodeWindows','rightNested','foreignIsolation','childBoundBeforeEmpty','cancellation'} and all(selected['evidence'].values())
 for store in ['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS']:
  r=json.loads((RESULTS/(store+'-recursive-set-http-native.json')).read_text(encoding='utf-8-sig'))
- assert r['provider']==store and r['checks']==7 and r['ownedCleanupIds']==1 and r['successfulHolonWrites']==1
- assert r['nativeProviderVerified'] and r['exactCleanupVerified'] and len(r['queryElapsedMilliseconds'])==14
- assert set(r['evidence'])=={'serverSqlNumericSetAggregates','serverSqlCompilation','nestedEntityWindows','selectedChildBindings','nativeScalarCountBeyondPublication','ownerForeignAnonymousBoundaries','oneSettledNativeAttempt'} and all(r['evidence'].values())
+ assert r['provider']==store and r['checks']==8 and r['ownedCleanupIds']==1 and r['successfulHolonWrites']==1
+ assert r['nativeProviderVerified'] and r['exactCleanupVerified'] and len(r['queryElapsedMilliseconds'])==19
+ assert set(r['evidence'])=={'serverSqlSetExtrema','serverSqlNumericSetAggregates','serverSqlCompilation','nestedEntityWindows','selectedChildBindings','nativeScalarCountBeyondPublication','ownerForeignAnonymousBoundaries','oneSettledNativeAttempt'} and all(r['evidence'].values())
 subprocess.run(['dotnet','build','ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI',*BOUNDS],cwd=ROOT,check=True)
 def git(*args):
  return subprocess.check_output(['git',*args],cwd=ROOT,text=True).strip()
 source=git('rev-parse','HEAD')
 assert source==os.environ['GITHUB_SHA']
 proof={'source':source,'core':git('-C','OASIS Architecture/NextGenSoftware.OASIS.API.Core','rev-parse','HEAD'),
- 'compilerPassed':16,'typedViewsFeedFurtherNativeSetsVerified':True,'typedViewScalarAndElementTerminalsVerified':True,'nativePassed':15,'serverSqlSelectedSetSumAverageVerified':True,'nativeRecursiveSetHttpVerified':True,'nativeSetPublicationCountsVerified':True,'nativeRecursiveEntitySetProviders':['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS'],'nativeRecursiveSelectedSetProviders':['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS'],'typedFinalSetSelectionVerified':True,'nativeSelectedSetSumAverageVerified':True,'nativeNumericRepresentativeDomains':['Int32Sum','Int32DoubleAverage'],'nativeSelectedSetCountVerified':True,'nativeSelectedSetScalarExtremaVerified':True,'nestedVisibleOutputBindingsVerified':True,'fullSetParentsComplete':False,'actualWeb4Compiled':True,'ownedFixturesAbsent':True,
+ 'compilerPassed':17,'serverSqlSelectedSetExtremaVerified':True,'typedViewsFeedFurtherNativeSetsVerified':True,'typedViewScalarAndElementTerminalsVerified':True,'nativePassed':15,'serverSqlSelectedSetSumAverageVerified':True,'nativeRecursiveSetHttpVerified':True,'nativeSetPublicationCountsVerified':True,'nativeRecursiveEntitySetProviders':['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS'],'nativeRecursiveSelectedSetProviders':['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS'],'typedFinalSetSelectionVerified':True,'nativeSelectedSetSumAverageVerified':True,'nativeNumericRepresentativeDomains':['Int32Sum','Int32DoubleAverage'],'nativeSelectedSetCountVerified':True,'nativeSelectedSetScalarExtremaVerified':True,'nestedVisibleOutputBindingsVerified':True,'fullSetParentsComplete':False,'actualWeb4Compiled':True,'ownedFixturesAbsent':True,
  'sharedDatabaseCalls':0,'deployed':False}
 (RESULTS/'source.json').write_text(json.dumps(proof,indent=2)+'\n',encoding='utf-8')

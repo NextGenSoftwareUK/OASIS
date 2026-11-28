@@ -24,6 +24,10 @@ for(const provider of ['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS']) {
  assert.equal(q.body.reduction,'Sum');assert.equal(q.body.reductionColumn,'Number');assert.equal(q.scalarAlias,'Total');checks++;
  q=compile('WITH q AS ((SELECT Version AS Number FROM '+provider+' LIMIT 2) UNION ALL (SELECT Version AS Number FROM '+provider+' LIMIT 2)) SELECT AVG(Number) AS Mean FROM q WHERE Number > 0');
  assert.equal(q.body.reduction,'Average');assert.equal(q.body.reductionColumn,'Number');assert.equal(q.body.selectedStages[0].operation,'Where');checks++;
+ q=compile('WITH q AS ('+selected+') SELECT MIN(Name) AS First FROM q');
+ assert.equal(q.body.reduction,'Min');assert.equal(q.body.reductionColumn,'Name');assert.equal(q.scalarAlias,'First');checks++;
+ q=compile('WITH q AS ('+selected+') SELECT MAX(Description) AS Last FROM q WHERE Name IS NOT NULL');
+ assert.equal(q.body.reduction,'Max');assert.equal(q.body.reductionColumn,'Description');assert.equal(q.body.selectedStages[0].operation,'Where');checks++;
 }
 assert.throws(()=>compile('SELECT * FROM MongoDBOASIS UNION SELECT * FROM SQLLiteDBOASIS'),/same provider/);checks++;
 assert.throws(()=>compile('WITH q AS ((SELECT Name FROM MongoDBOASIS) UNION (SELECT Name FROM MongoDBOASIS)) SELECT Name FROM q'),/explicit TOP|LIMIT|FETCH/);checks++;

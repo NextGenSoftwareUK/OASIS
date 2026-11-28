@@ -9,9 +9,9 @@ public sealed class CqlSetV1Request
     public string? Provider { get; set; }
     public string Kind { get; set; } = "Union";
     /// <summary>Optional native scalar reduction after set windows/stages.
-    /// Count/LongCount/Any accept a final predicate; All requires one. Sum/Average use ReductionColumn.</summary>
+    /// Count/LongCount/Any accept a final predicate; All requires one. Min/Max/Sum/Average use ReductionColumn.</summary>
     public string? Reduction {get;set;}
-    /// <summary>Currently visible selected alias for Sum/Average; absent for cardinality reductions.</summary>
+    /// <summary>Currently visible selected alias for Min/Max/Sum/Average; absent for cardinality reductions.</summary>
     [JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)]
     public string? ReductionColumn {get;set;}
     public CqlWhereV1Predicate? ReductionWhere {get;set;}

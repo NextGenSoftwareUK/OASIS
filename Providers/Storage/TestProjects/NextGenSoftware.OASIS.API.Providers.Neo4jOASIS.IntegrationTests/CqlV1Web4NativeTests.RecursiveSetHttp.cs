@@ -55,10 +55,12 @@ public sealed partial class CqlV1Web4NativeTests
                 var numericSet=numericLeaf+" UNION ALL "+numericLeaf;
                 var sumSql="WITH amounts AS ("+numericSet+") SELECT SUM(amount) AS total FROM amounts";
                 var averageSql="WITH amounts AS ("+numericSet+") SELECT AVG(amount) AS mean FROM amounts";
+                var minSql="WITH labels AS ("+selectedSql+") SELECT MIN(kept) AS first FROM labels";
+                var maxSql="WITH amounts AS ("+numericSet+") SELECT MAX(amount) AS highest FROM amounts";
                 async Task Send(string sql,string mode,string? bearer,int expected)
                 {
                     var query=compiler.Compile(sql);Assert.AreEqual("data/query-cql/set",query.Path);
-                    var body=JsonNode.Parse(query.Body.GetRawText())!.AsObject();if(mode is "count" or "sum" or "average")body["maximumResults"]=1;
+                    var body=JsonNode.Parse(query.Body.GetRawText())!.AsObject();if(mode is "count" or "sum" or "average" or "min" or "max")body["maximumResults"]=1;
                     using var request=new HttpRequestMessage(HttpMethod.Post,"/api/"+query.Path){Content=new StringContent(body.ToJsonString(),Encoding.UTF8,"application/json")};
                     if(bearer!=null)request.Headers.Authorization=new AuthenticationHeaderValue("Bearer",bearer);
                     request.Headers.Add("Idempotency-Key",Guid.NewGuid().ToString("D"));
@@ -67,7 +69,15 @@ public sealed partial class CqlV1Web4NativeTests
                     var text=await response.Content.ReadAsStringAsync();
                     if(bearer==null){Assert.AreEqual(HttpStatusCode.Unauthorized,response.StatusCode,text);return;}
                     Assert.AreEqual(HttpStatusCode.OK,response.StatusCode,text);using var json=JsonDocument.Parse(text);var result=json.RootElement.GetProperty("result");
-                    if(mode is "sum" or "average")
+                    if(mode is "min" or "max")
+                    {
+                        Assert.AreEqual("cql-scalar-v1",result.GetProperty("version").GetString());
+                        Assert.AreEqual(mode=="min"?"Min":"Max",result.GetProperty("operation").GetString());
+                        Assert.AreEqual(mode=="min"?"String":"Int32",result.GetProperty("valueType").GetString());
+                        if(mode=="min")Assert.AreEqual(expected==0?null:row.Name,result.GetProperty("value").GetString());
+                        else Assert.AreEqual(persistedVersion,result.GetProperty("value").GetInt32());
+                    }
+                    else if(mode is "sum" or "average")
                     {
                         Assert.AreEqual("cql-scalar-v1",result.GetProperty("version").GetString());
                         Assert.AreEqual(mode=="sum"?"Sum":"Average",result.GetProperty("operation").GetString());
@@ -99,7 +109,9 @@ public sealed partial class CqlV1Web4NativeTests
                 foreach(var sample in new[]{(entitySql,"entity"),(selectedSql,"selected"),(scalarSql,"count"),(sumSql,"sum")})
                 {await Send(sample.Item1,sample.Item2,ownerToken,2);await Send(sample.Item1,sample.Item2,foreignToken,0);await Send(sample.Item1,sample.Item2,null,0);}
                 await Send(averageSql,"average",ownerToken,2);await Send(averageSql,"average",null,0);
-                Assert.AreEqual(9,authority.Started.Count);Assert.AreEqual(9,authority.Settlements.Count);
+                await Send(minSql,"min",ownerToken,1);await Send(minSql,"min",foreignToken,0);await Send(minSql,"min",null,0);
+                await Send(maxSql,"max",ownerToken,1);await Send(maxSql,"max",null,0);
+                Assert.AreEqual(12,authority.Started.Count);Assert.AreEqual(12,authority.Settlements.Count);
             }
             finally{await app.StopAsync();}
         }
@@ -111,7 +123,7 @@ public sealed partial class CqlV1Web4NativeTests
                 await mongo.DropDatabaseAsync(database);using var names=await mongo.ListDatabaseNamesAsync();Assert.IsFalse((await names.ToListAsync()).Contains(database));
             }
         }
-        return new NativeFixtureJourneyProof(7,1,new Dictionary<string,bool>{["serverSqlNumericSetAggregates"]=true,["serverSqlCompilation"]=true,["nestedEntityWindows"]=true,
+        return new NativeFixtureJourneyProof(8,1,new Dictionary<string,bool>{["serverSqlSetExtrema"]=true,["serverSqlNumericSetAggregates"]=true,["serverSqlCompilation"]=true,["nestedEntityWindows"]=true,
             ["selectedChildBindings"]=true,["nativeScalarCountBeyondPublication"]=true,["ownerForeignAnonymousBoundaries"]=true,["oneSettledNativeAttempt"]=true});
     }
 }
