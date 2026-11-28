@@ -1,0 +1,68 @@
+{
+  "run": 46113010583,
+  "artifact": 15250122448,
+  "bytes": 5364,
+  "sha256": "8c8b3da95e65cbf287ccbceca78fe39f4f20d7993d39d07b3d24e00a72835fe4",
+  "source": {
+    "source": "375350b5608e6d613231d6a43f0ec1d509175720",
+    "core": "1c9c8a6f36cb14f006dbd325a0dd57f06b46a8b2",
+    "nativePassed": 6,
+    "xmlComponentsVerified": true,
+    "ownedCodecRegressionVerified": true,
+    "fullNHibernateParity": false,
+    "actualWeb4Compiled": true,
+    "ownedFixturesAbsent": true,
+    "sharedDatabaseCalls": 0,
+    "deployed": false
+  },
+  "cohorts": [
+    {
+      "provider": "MongoDBOASIS",
+      "family": "xml-components",
+      "groups": 8,
+      "ownedIds": 1,
+      "writes": 2,
+      "timings": 10
+    },
+    {
+      "provider": "MongoDBOASIS",
+      "family": "owned-value-model",
+      "groups": 6,
+      "ownedIds": 1,
+      "writes": 2,
+      "timings": 6
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "family": "xml-components",
+      "groups": 8,
+      "ownedIds": 1,
+      "writes": 2,
+      "timings": 10
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "family": "owned-value-model",
+      "groups": 6,
+      "ownedIds": 1,
+      "writes": 2,
+      "timings": 6
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "family": "xml-components",
+      "groups": 8,
+      "ownedIds": 1,
+      "writes": 2,
+      "timings": 10
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "family": "owned-value-model",
+      "groups": 6,
+      "ownedIds": 1,
+      "writes": 2,
+      "timings": 6
+    }
+  ]
+}

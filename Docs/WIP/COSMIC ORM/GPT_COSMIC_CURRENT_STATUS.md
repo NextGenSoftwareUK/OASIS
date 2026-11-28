@@ -1,6 +1,6 @@
 # COSMIC current status
 
-Updated 2026-11-28T05:37:42.711Z. Session gpt-cosmic.
+Updated 2026-11-28T05:53:42.071Z. Session gpt-cosmic.
 
 Maintained checklist:144/168 rows green across MongoDB/SQLite/Neo4j. The historical130/164 baseline used an older denominator; all existing features remain in scope. This session completed3 full rows, each native3/3 plus actual WEB4 build and exact cleanup:
 
@@ -14,10 +14,12 @@ Earlier qualified changes reached Developmenta267db5b/Core5e8f22d7. The new nati
 
 Numeric identifiers and XML discriminator/subclass mappings passed native6/6 and actual WEB4 build in46111979889 on6d24d741/Core5ef2f9e2. Artifact15249779607 verified strictly in RAM, exact cleanup. Qualified batch preserves current Development8c7a3148 and Core provider documentation via7d00ed11; pending component implementationcfc8d0f6 is excluded. Full M04 remains OPEN and parity totals unchanged. Live acceptance remains pending.
 
-Next work: full M04 XML components are implemented through the common native owned-value codec (stored aliases, nested field predicates/hydration, constraint validation, explicit unknown-field refusal); representative native qualification46113010583 is active on source375350b5608e/Core1c9c8a6f36cb (XML3 + changed fluent codec3); native6/6 and actual WEB4 build pending. Claims remain the coordination source.
+Next work: XML components passed native6/6 + WEB4 in46113010583 (375350b5/Core1c9c8a6f), including shared fluent-owned codec. Plain business-class/constructor component support now extends the same codec in Core0fd03dede3f2; native6-case qualification46113931675 is active on de3259e281ea (POCO3 + changed Holon XML3). Not yet deployed; full M04 remains OPEN. Main table144/168, extension4/13. Claims remain the coordination source.
 
 SQL/AI search stays backend-owned at POST /api/data/query-cql/sql and /ask; browser engines untouched. All Next phases/provider priorities remain intact. Owner baseline107 enrolled sandbox sources is retained without rechecking accepted cohorts. Hosted Neo4j stays stopped per budget; CI containers are independent. Existing TRON key action remains deferred on the one owner list; no new owner action added.
 
 Cleanup: no local build/runtime/database/environment/image/archive download. CI stores were isolated and their owned containers removed. Compact JSON proofs retained; artifact zips were inspected only in RAM. Last measured C free34.94GiB, no reclamation claim. Retained recovery source LocalState/COSMIC/GPT_M09_FIXTURE_DRAFT.cs about8KB and generated tool profile C:/Source/OASIS2/null (1file/36bytes) are recorded; source/configuration was preserved. Existing global Railway CLI was reused. Parent physical checkout/unrelated ACTIONS and cleanup docs remain preserved; implementation is committed on the claimed task branches.
 
-Latest rollout metadata: WEB4 dev eaa56ff0-73b1-4155-8bc0-ecd786612ad3 is QUEUED for7934f8bd; prior8c7a3148 is BUILDING, bfaf7957 remains SUCCESS. Saved/pushed source is not running-deployment acceptance. No data API/browser test.
+Latest rollout metadata: WEB4 dev eaa56ff0-73b1-4155-8bc0-ecd786612ad3 reports SUCCESS for exact Development7934f8bd9c83/Core7d00ed11. This confirms running deployment metadata only; no new live data/API/browser acceptance or shared Atlas/PIPER test. Components/POCO components are not included in that deployment.
+
+Active breadth work: work/gpt-q50, claimed Q50/Q51/Q53/Q54 set family in claims28146572. Existing two-input/staged/native/HTTP cohorts remain accepted. Next implementation extends immutable plans and all3 native engines to nested set trees and remaining terminals; no set row newly credited. M04 remains on work/gpt-m04 with POCO component CI46113931675 active. Full provider/SQL/backend AI/virtual-Holons roadmap stays intact. No additional Development push before the05:33:40+30min cadence and verification gates.
