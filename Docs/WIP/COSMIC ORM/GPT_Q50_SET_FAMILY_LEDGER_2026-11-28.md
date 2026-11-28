@@ -214,3 +214,8 @@ Server SQL COUNT(alias) and COUNT(DISTINCT alias) over bounded selected sets now
 
 
 2026-11-28: both existing scalar-set and typed-view LINQ Min/Max now call the same shared native extrema planner/executor as the backend. Removed the separate lowered-row/materialization logic; all three entry paths read the validated winning cell through one scalar owner and retain exact registered provider checks. Existing native LINQ scalar/typed-view groups cover these changed paths in the representative cohort; no new test matrix or fixture writes added. Qualification pending.
+
+
+## 2026-11-28 backend aggregate acceptance
+
+CI46137078181 accepted d0d03d2f/Core1b061dca: compiler17/17, native15/15, actual WEB4 and exact cleanup. All18artifact entries independently inspected in RAM; artifact15260118428 SHA256 b51945b844f09a3ae6dfe511535d2afeafdfda6dd9e6481b0deaa83f9f3c0ced. Server parser32 checks; each real-provider HTTP journey9groups/25timings/16settled operations, including MIN/MAX and nullable/distinct selected counts with owner/foreign/anonymous boundaries. Both LINQ extrema paths use the same native scalar owner. Independent review passed. This supersedes the earlier pending aggregate note. Main144/168 extension4/13 unchanged; mixed identity-set late-projection operands/full parent rows remain OPEN. New XML custom types45d6/Core00cdfbcd remain pending separate qualification and excluded from the next Dev aggregate batch.
