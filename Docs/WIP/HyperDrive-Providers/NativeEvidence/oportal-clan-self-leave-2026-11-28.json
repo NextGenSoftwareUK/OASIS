@@ -1,0 +1,56 @@
+{
+  "date": "2026-11-28",
+  "suite": "ordinary authenticated clan member self-leave and actual audit writer",
+  "run": 46156859773,
+  "source": "e6b5dfdf2c3bfab2fff3bb090506388253a936b0",
+  "image": "sha256:e6bf4175cb70a886c26292b21d8f379eb0a073581d5a0faa68e980647c2b0d2b",
+  "coreQualified": "43a70495e4b5722b0f5c0fc148b590e119132013",
+  "coreIntegrated": "4b4ee0aa2c154630d1f14247fbf8df10ded2622e",
+  "web6": "ce6d258c8fa425d84c7c49eb934ee81a540e2b3f",
+  "portal": "0a3c854185f2b9ae669dcc07733f661a4ae38e22",
+  "done": 1,
+  "total": 1,
+  "checks": [
+    "member has no owner edit controls",
+    "one actual UI self-leave acknowledgement",
+    "independent persisted membership preserves owner",
+    "ModifiedByAvatarId equals authenticated leaving member",
+    "normal close"
+  ],
+  "artifact": {
+    "id": 15267384514,
+    "bytes": 4352,
+    "sha256": "eecb6d9f700da86ef41e5b719c2ac8724c5476958ad5fa3f10bf0e3d69a811da"
+  },
+  "cleanup": {
+    "ownedContainerAbsent": true,
+    "ownedContainersAbsent": true,
+    "ownedNetworkAbsent": true,
+    "ephemeralDatabaseVolumesRemoved": true,
+    "web5ProcessStopped": true,
+    "web5DnaAbsent": true
+  },
+  "sourceCompiler": {
+    "run": 46156654176,
+    "done": 1,
+    "total": 1,
+    "actualMcpProject": true,
+    "backendCalls": 0,
+    "ownedIgnoredOutputsCleaned": true,
+    "ownedCacheAbsent": true,
+    "artifact": {
+      "id": 15267858143,
+      "bytes": 353,
+      "sha256": "ac20849f349f68518aabd60f828ab91b2b2aa7c4da0df95c4d2295478c7d1b39"
+    }
+  },
+  "sharedAtlasOperations": 0,
+  "excluded": [
+    "historical audit rewriting",
+    "protected delivery replay",
+    "all transport native actor checks",
+    "current merged dependency graph certification",
+    "hosted acceptance",
+    "treasury transfer atomicity"
+  ]
+}
