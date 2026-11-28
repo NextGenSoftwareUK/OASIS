@@ -1,34 +1,23 @@
 # COSMIC current status
 
-Updated 2026-11-28T07:31:57.517Z. Session gpt-cosmic.
+Updated 2026-11-28T08:46:34.739Z. Session gpt-cosmic; task branch work/gpt-q50.
 
-## Progress and accepted work
+## Progress
 
-Main checklist **144/168**, extension **4/13**. The historical130/164 denominator is retained as history; all maintained rows remain in scope. This session completed3full rows, each native3/3 plus actual WEB4 build and exact cleanup: O07 (cdefa9ee/Core6613656a,46103037019), M01 (20ff7eee/Core0623246c,46104535369), M09 (926bc3f8/Corea30df79c,46105605228).
+Main checklist **144/168**, extension **4/13**. This session completed O07, M01 and M09, each with native MongoDB/SQLite/Neo4j CI evidence and actual WEB4 build. Full M04 and Q50/Q51/Q53/Q54 remain OPEN. Accepted XML mapping increments remain preserved; no full-row credit from partial coverage.
 
-M04 remains OPEN. Accepted XML increments cover ordinary classes/identities, aliases, numeric generators, discriminator inheritance, Holon components and POCO/constructor components. Latest6/6component runs46113010583 and46113931675 are deployed in the qualified lineage. Full XML relationships/collection/schema/custom-type scope remains incomplete.
+## Latest qualified batch
 
-Q50/Q51/Q53/Q54 remain OPEN. Recursive ENTITY sets, per-node windows/source completeness, all4identity operators, left/right nested LINQ, late Name selection and publication-independent native counts passed12/12combined case history across46119098683 and46119647384 (each cohort6/6 plus actual WEB4/cleanup). Latest exact source c0fa8364/Core39488eac, artifact15253088361, SHA2561e50e9b8d0541034158feca37c9f36876b8205eb8a74db2c57f6bedabccbdd9e, inspected in RAM. Three tree journeys each14groups/16timings, three count controls each8groups/12timings. These are increments, not12distinct features or parent-row credit.
+Exact source **233d9f1c1c467489f18a0dd62f671955d675ef8a**, Core **1b24c6291c6500888d735e9eb9d81b30b802d1e8**: CI [46126840806](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/46126840806) passed **12/12** native cases plus actual WEB4 build and exact owned-fixture cleanup. Includes peer password-recovery changes. Recursive entity/selected-value set trees, left/right LINQ composition, native Count/LongCount/Any/All without DTO constructors, scalar Min/Max after windows, and child visible-column bindings are verified on all three stores. Artifact15256053536, SHA256 a4ce4ef283cc3823b4a19a3cf87e0d5da6293eeaf99e931c76e1205dd27c8a7a, all14 entries checked in RAM. Shared-database calls0.
 
-## Current implementation and qualification
+Full set-family rows remain red: Sum/Average, general typed output-shape composition and backend/wire recursion still need completion. Backend recursive SQL/selected-count API changes are active local source drafts, excluded from this accepted batch; representative native HTTP/permission/usage checks are being added to CI.
 
-Active branch **work/gpt-q50**, coordination session **gpt-cosmic** in claims. Recursive SELECTED-VALUE tuples now have shared immutable capture/planning/admission and recursive packet validation, native Mongo/SQLite/Neo compilation under existing snapshot owners, and registered left/right nested selected LINQ. Tuple membership uses visible values; entity membership uses identity. No managed provider substitute.
+## Search ownership and later phases
 
-- Mongo source35b889d2 and SQLitecea851e0 failed before native tests: local proof helper name collision in Corea72edb89. Fixed in Core32593014; failure history is retained.
-- Typed selected trees on all3 stores: source73444d05/Core32593014, CI46121528699 pending.
-- Expanded selected LINQ: source7901d456/Corec75489c7, current CI handle pending discovery. Requires12cases: selected trees3 (11groups/12timings each), changed-proof flat tuples3, entity/count6; actual WEB4 build and exact cleanup required.
+SQL and AI Search use **POST /api/data/query-cql/sql** and **/ask**. Phase2a remains DONE; upgrades belong in ONODE WebAPI Services/Cql/Text and the backend compilers. Browser cql-text.js/cql-ask.js remain untouched. Full provider parity, native import, virtual/hybrid holons, per-avatar/app policies and ONODE host profiles remain in the roadmap. Existing accepted107-source baseline is retained; no unnecessary recheck. Hosted Neo4j remains stopped for cost; native CI uses isolated containers. TRON key remains the existing deferred owner action. No new David action.
 
-No selected-tree native acceptance claimed yet. Remaining set scope includes backend SQL/wire recursion, remaining scalar terminal families and output-shape composition. All4parent rows stay red. Existing accepted cohorts are preserved; flat tuple controls rerun because the shared proof owner changed.
+## Development and cleanup
 
-## Development and coordination
+Preparing one scoped verified Development batch on top of peer f6be65d0; no API drafts included. At most one normal own Development push per30 minutes. No staging/production promotion. Deployment metadata and live application acceptance are recorded separately.
 
-Verified entity/LINQ/late-selection batch **00a7be992b207390e73152d8c6e7805ea9b3d48f**, Core**39488eac**, pushed **07:15:22 UTC**. It preserves peer fb234b46 search/provider/portal work. Railway WEB4 dev deployment**bb8cc6b5-762e-4416-b0ad-58ad1a54fb30** reports**SUCCESS** for that revision. This confirms deployment metadata; application-data/browser acceptance has not been newly run. Selected-value drafts are excluded. Next normal Development push **>=07:45:22 UTC**, only a verified scoped batch. No staging/production deployment.
-
-SQL and AI Search are backend-owned at **POST /api/data/query-cql/sql** and **/ask**, phase2a DONE. Server engines are in ONODE WebAPI Services/Cql/Text; Web4Site cql-text.js/cql-ask.js remain untouched. Roadmap now reflects this and preserves peer provider inventory updates. Full provider parity/import/virtual/hybrid/ONODE phases remain intact. Accepted107source baseline is retained without rechecking; hosted Neo4j stays stopped for cost; CI containers are independent. TRON owner secret action remains deferred; no new David action.
-
-## Cleanup and test isolation
-
-No local .NET builds, runtimes, environments, databases, containers, images, installs, downloads or artifact archives. Artifact zips inspected only in RAM and released; compact evidence and source-only recovery drafts retained. Owned CI stores/fixtures require exact cleanup and artifacts expire after2days. No shared Atlas/PIPER data/API calls. Last measured free34.19GiB; no reclamation claim. Unrelated working-tree changes/configuration are preserved. Scoped temporary Git index is removed after each commit.
-
-
-Accepted selected-tree/LINQ cohort:46122169495 PASSED12/12 on7f7974aa/Corec14e3190, actual WEB4 and exact cleanup. Every selected report/TRX was checked by the runner before source.json; artifact15254526014 retains source.json+6entity/count reports but omits detailed selected/TRX due stale upload patterns. Retention corrected in the upcoming count candidate. New Count/LongCount/Any/All native headers and no-constructor execution are local source drafts, excluded from this accepted revision. Main144/168 + extension4/13 unchanged.
+No local .NET builds, runtime installs, databases or containers. Parser checks use existing Node and emit no files. CI artifact archives inspected only in RAM and released; compact evidence retained. No shared Atlas/PIPER calls or data changes. Last free-space reading33.06GiB; no reclamation claim. Unrelated working-tree changes preserved; temporary scoped Git indexes removed after commit.

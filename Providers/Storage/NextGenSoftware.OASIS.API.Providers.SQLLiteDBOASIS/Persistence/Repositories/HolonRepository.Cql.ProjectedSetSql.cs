@@ -68,7 +68,7 @@ public partial class HolonRepository
             Left=left,Right=right,LeftSet=leftSet,RightSet=rightSet,
             HasRelationship=left?.HasRelationship==true||right?.HasRelationship==true||leftSet?.HasRelationship==true||rightSet?.HasRelationship==true,
             Rank=selected.Rank,Rows=common+"SELECT * FROM c"+query.Output.ResultStages.Count+" ORDER BY "+selected.Rank,
-            Proof=common+"SELECT -2 AS phase,0 AS side,0 AS occurrenceIndex,0 AS ordinal,"+
+            Proof=common+"SELECT -2 AS phase,0 AS side,(SELECT count(*) FROM c"+query.Output.ResultStages.Count+") AS occurrenceIndex,0 AS ordinal,"+
                 work+" AS stageRows UNION ALL "+string.Join(" UNION ALL ",proofs)+" ORDER BY phase,ordinal,side,occurrenceIndex"
         };
     }

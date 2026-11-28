@@ -1,0 +1,127 @@
+{
+  "date": "2026-11-28T08:36:26.173Z",
+  "run": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/46125116033",
+  "root": "88fcf33395ec883f1d6add56655aee001dc9387a",
+  "core": "a5ba51b31e1be67ad8627e0890cb46b6ec94adc5",
+  "artifact": {
+    "id": 15255701462,
+    "bytes": 10612,
+    "sha256": "26692c88dfd8c385eef3d5da61b03fbeeda54980343305b453a55cd6121f78f2",
+    "retainedEntries": 14,
+    "inspectedInMemory": true
+  },
+  "source": {
+    "source": "88fcf33395ec883f1d6add56655aee001dc9387a",
+    "core": "a5ba51b31e1be67ad8627e0890cb46b6ec94adc5",
+    "nativePassed": 12,
+    "nativeSetPublicationCountsVerified": true,
+    "nativeRecursiveEntitySetProviders": [
+      "MongoDBOASIS",
+      "SQLLiteDBOASIS",
+      "Neo4jOASIS"
+    ],
+    "nativeRecursiveSelectedSetProviders": [
+      "MongoDBOASIS",
+      "SQLLiteDBOASIS",
+      "Neo4jOASIS"
+    ],
+    "nativeSelectedSetCountVerified": true,
+    "nativeSelectedSetScalarExtremaVerified": true,
+    "nestedVisibleOutputBindingsVerified": true,
+    "fullSetParentsComplete": false,
+    "actualWeb4Compiled": true,
+    "ownedFixturesAbsent": true,
+    "sharedDatabaseCalls": 0,
+    "deployed": false
+  },
+  "trxPassed": 12,
+  "retainedEntries": 14,
+  "cases": [
+    {
+      "provider": "MongoDBOASIS",
+      "kind": "set-publication-count-native.json",
+      "groups": 8,
+      "timings": 12
+    },
+    {
+      "provider": "MongoDBOASIS",
+      "kind": "recursive-entity-set-native.json",
+      "groups": 14,
+      "timings": 16
+    },
+    {
+      "provider": "MongoDBOASIS",
+      "kind": "recursive-selected-set-native.json",
+      "groups": 16,
+      "timings": 20
+    },
+    {
+      "provider": "MongoDBOASIS",
+      "kind": "projected-tuple-set-native.json",
+      "groups": 4,
+      "timings": 4
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "kind": "set-publication-count-native.json",
+      "groups": 8,
+      "timings": 12
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "kind": "recursive-entity-set-native.json",
+      "groups": 14,
+      "timings": 16
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "kind": "recursive-selected-set-native.json",
+      "groups": 16,
+      "timings": 20
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "kind": "projected-tuple-set-native.json",
+      "groups": 4,
+      "timings": 4
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "kind": "set-publication-count-native.json",
+      "groups": 8,
+      "timings": 12
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "kind": "recursive-entity-set-native.json",
+      "groups": 14,
+      "timings": 16
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "kind": "recursive-selected-set-native.json",
+      "groups": 16,
+      "timings": 20
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "kind": "projected-tuple-set-native.json",
+      "groups": 4,
+      "timings": 4
+    }
+  ],
+  "mainDone": 144,
+  "mainTotal": 168,
+  "extensionDone": 4,
+  "extensionTotal": 13,
+  "fullSetParentsComplete": false,
+  "remaining": [
+    "native selected Sum/Average",
+    "general typed output-shape composition",
+    "backend SQL and request-tree qualification"
+  ],
+  "sharedDatabaseCalls": 0,
+  "localBuilds": 0,
+  "localArtifactDownloads": 0,
+  "retentionGapResolved": true
+}

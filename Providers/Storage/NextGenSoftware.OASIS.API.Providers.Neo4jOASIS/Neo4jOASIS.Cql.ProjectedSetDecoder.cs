@@ -24,7 +24,7 @@ public partial class Neo4jOASIS
             CosmicProjectedSetExecutionLimits nodeLimits,IReadOnlyDictionary<string,object> record)
         {
             check();
-            if(record.Count!=5)throw Invalid("Native selected-set snapshot requires one exact envelope.");
+            if(record.Count!=(nodeLimits.CountOnly?6:5))throw Invalid("Native selected-set snapshot requires one exact envelope.");
             var left=Input("leftProof",node.Left,node.LeftSet,node.Options.Bounds.MaximumLeftInputRows);
             var right=Input("rightProof",node.Right,node.RightSet,node.Options.Bounds.MaximumRightInputRows);
             long proofBytes=0;
@@ -56,6 +56,12 @@ public partial class Neo4jOASIS
                 throw new NeoCqlLimitException("Selected-set native work exceeds its admitted bound.");
             var final=stages.Length==0?members.Occurrences:stages[stages.Length-1].Occurrences;
             if(final.Count>nodeLimits.MaximumResults)throw new NeoCqlLimitException("Selected-set output exceeds its admitted row bound.");
+            if(nodeLimits.CountOnly)
+            {
+                var nativeCount=Number(record,"nativeCount");
+                if(nativeCount<0||nativeCount>nodeLimits.MaximumResults)throw new NeoCqlLimitException("Native selected-set count exceeds its admitted bound.");
+                return CosmicProjectedSetPacket.FromCount(left.Proof,right.Proof,members,stages,nativeCount,work);
+            }
             var rows=new List<CosmicProjectionRow>();long outputBytes=0;
             foreach(var occurrence in final)
             {

@@ -140,3 +140,32 @@ Typed selected-tree46121528699 reached provider compilation and found Mongo refe
 ### Recursive selected tuples and LINQ accepted on all3 native stores
 
 Exact7f7974aa/Corec14e3190 passed12/12 in46122169495, actual WEB4 build and exact cleanup: selected-tree3 (11groups/12timings each), changed-proof flat tuples3, entity/count6. Source.json confirms all3selected providers and exact hashes. Artifact15254526014 (4442B, SHA256 70c5d139fcdc1eb8b935bdf18eeae71efdfd13f07901edf2f7669578cc8f9e3b) inspected in RAM. Retention gap: old upload patterns kept6entity/count JSONs plus source.json, omitting selected JSON/TRX despite the runner asserting them before success/source proof. Fixed upload patterns in the upcoming new count candidate; no artificial success claim about retained detailed reports. Native behavior passed and can publish as a scoped batch. Full parents remain OPEN, main144/168 + extension4/13. New count-only contracts/headers/common owner are local draft, excluded from accepted source. No local builds/downloads/envs/database/shared data operations.
+
+
+### Native selected cardinality — implemented, exact qualification pending
+
+Count/LongCount/Any/All use a separately enrolled native count contract and explicit count-only limits that ignore publication caps but preserve semantic stages and every input proof. One shared Core owner admits and executes row/count shapes, validates native packet/math, then constructs DTOs only for rows. Count packets require a native integer header and zero published cell rows. Mongo aggregates a one-header facet/count under the same snapshot; SQLite supplies count(*) in its existing proof header; Neo supplies size(final native occurrence list) in its one-command envelope. No managed count substitutes for a missing native header. All3shipping providers explicitly implement the contract. Registered selected LINQ applies predicates after semantic windows; All counts violations.
+
+The expanded representative journey additionally verifies5scalar reads per provider: count beyond publication cap, nested LINQ LongCount, Any after window, All with zero selected constructors, foreign count0. Selected journeys now14groups/17timings/4IDs/1write each; cohort remains12cases plus actual WEB4 and exact cleanup. Artifact upload now captures all JSON/TRX, fixing the documented prior retention gap. No full parent credit; main144/168 + extension4/13.
+
+Qualified selected-tree/LINQ batchb9172239/Corec14e3190 pushed Development07:50:55 UTC, next normal batch>=08:20:55. New cardinality source is excluded until verified. No local build/runtime/env/database/install/download/archive or shared Atlas/PIPER operation. Source and compact journals only; no new owner action.
+
+
+### Selected scalar extrema — native stage reuse, qualification pending
+
+Scalar Min/Max now lower through the existing exact-domain extrema planner into native selected null-filter/order/Take(1) stages after every user window. They reuse the same selected-set proof/read owner and publish at most the winning primitive; unsupported domains and nonidentity selectors reject explicitly. Two representative native queries add Min after a semantic window and Max across a nested set on each store. Selected journeys now15groups/19timings (existing native cardinality included), with12cases plus WEB4/exact cleanup. No full parent credit; scalar Sum/Average, arbitrary output-shape selection and backend/wire recursion remain open. Main144/168 + extension4/13. New scalar source remains feature-only; Developmentb9172239/Corec14e3190 was pushed07:50:55 (next>=08:20:55). No local build/env/runtime/database/download or shared Atlas/PIPER call.
+
+
+### Nested visible output bindings — representative source candidate
+
+WithSelectedOutput permits new captured stages/final bindings only when the exact frozen source and physical column objects remain unchanged. A child can expose a renamed subset for its parent tuple equality while retaining its original membership/source proof. Mongo/SQLite already apply child OutputColumnIndices; Neo now remaps child native values through those same visible indices before parent equality. New native journey narrows Category to Only in a child and unions its3visible categories with a similarly rebound leaf; unrelated output source is rejected before I/O. Selected journeys now16groups/20timings per provider, still12cases plus WEB4/cleanup. Count enrollment is re-admitted inside the shared Replan function immediately before dispatch, retaining one owner for this invariant. No full parent credit; main144/168 + extension4/13, Sum/Average, general typed output-shape and backend/wire remain open. No local builds/envs/databases/downloads/shared Atlas/PIPER calls.
+
+
+### Selected scalar and visible bindings accepted; peer Core preserved
+
+Exact88fcf333/Corea5ba51b3 passed12/12 in46125116033, WEB4 and exact cleanup. Full artifact15255701462 (10612B, SHA256 26692c88dfd8c385eef3d5da61b03fbeeda54980343305b453a55cd6121f78f2) strictly inspected in RAM:14entries, TRX12passed, source exact; selected3 journeys each16groups/4IDs/1write/20timings, flat tuples3, entity/count6. NativeCount/LongCount/Any/All, zero selected constructors, Min/Max after windows, foreign count0 and child visible binding remap are accepted. Prior artifact retention gap resolved. Full parents still OPEN; main144/168 + extension4/13.
+
+Current Developmentf6be65d0 advances Core6247348c with independently qualified AvatarManager account-recovery changes (2files). Preserved by merging into our scalar Core; only those2auth files differ from accepteda5ba51b3. Paired exact source qualification requested before a new Development batch. Uncommitted backend request-tree/parser source is excluded; no unsafe gitlink rollback or staging/production deployment. Last local free33.06GiB; no local build/download/env/database/shared data operations.
+
+
+2026-11-28T08:46:34.739Z — Paired auth/native qualification46126840806 passed12/12 and actual WEB4/cleanup; source233d9f1c/Core1b24c629. Artifact15256053536 all14entries checked RAM, SHA256 a4ce4ef283cc3823b4a19a3cf87e0d5da6293eeaf99e931c76e1205dd27c8a7a. Backend API drafts excluded; parent rows OPEN, main144/168 + extension4/13.

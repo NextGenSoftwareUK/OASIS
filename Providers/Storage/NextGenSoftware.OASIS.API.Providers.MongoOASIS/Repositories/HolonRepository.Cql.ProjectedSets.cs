@@ -79,6 +79,22 @@ public partial class HolonRepository
                 stages.Add(new(current));
             }
             if(work>node.Options.MaximumStageRows || current.Count>nodeLimits.MaximumResults)throw new MongoCqlLimitException();
+            if(nodeLimits.CountOnly)
+            {
+                bool acknowledged=false;long nativeCount=0;
+                using var countCursor=await _dbContext.Holon.AggregateAsync<BsonDocument>(session,
+                    MongoCqlTranslator.CompileProjectedSetCount(native.Rows),Options(),token).ConfigureAwait(false);
+                while(await countCursor.MoveNextAsync(token).ConfigureAwait(false))
+                    foreach(var header in countCursor.Current)
+                    {
+                        token.ThrowIfCancellationRequested();
+                        if(acknowledged||header.ElementCount!=1)throw new InvalidDataException("Selected-set count requires one native header.");
+                        nativeCount=CompositionCount(header,"nativeCount",allowZero:true);acknowledged=true;
+                    }
+                if(!acknowledged)throw new InvalidDataException("Selected-set native count header is missing.");
+                if(nativeCount>nodeLimits.MaximumResults)throw new MongoCqlLimitException();
+                return CosmicProjectedSetPacket.FromCount(left.Proof,right.Proof,new(members),stages,nativeCount,work);
+            }
             var rows=new List<CosmicProjectionRow>();long bytes=0;
             foreach(var occurrence in current)
             {

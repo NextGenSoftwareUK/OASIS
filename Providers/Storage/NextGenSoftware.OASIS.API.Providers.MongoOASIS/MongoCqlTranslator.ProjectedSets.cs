@@ -15,6 +15,14 @@ internal sealed class MongoCqlProjectedSetCommand
 }
 internal sealed partial class MongoCqlTranslator
 {
+    internal static BsonDocument[] CompileProjectedSetCount(BsonDocument[] input)
+    {
+        var stages=input.Select(stage=>(BsonDocument)stage.DeepClone()).ToList();
+        stages.Add(new("$facet",new BsonDocument("count",new BsonArray{new BsonDocument("$count","value")})));
+        stages.Add(new("$project",new BsonDocument{{"_id",0},{"nativeCount",new BsonDocument("$ifNull",new BsonArray{
+            new BsonDocument("$arrayElemAt",new BsonArray{"$count.value",0}),0L})}}));
+        ValidatePipeline(stages);return stages.ToArray();
+    }
     internal static CosmicProjectionCompositionExecutionLimits ProjectedSetInputLimits(CosmicProjectionCompositionOptions options)
         =>new(options.MaximumInputRows,options.MaximumInputPayloadBytes,options.MaximumStageRows,
             options.MaximumProofPayloadBytes,10000,options.MaximumInputPayloadBytes);

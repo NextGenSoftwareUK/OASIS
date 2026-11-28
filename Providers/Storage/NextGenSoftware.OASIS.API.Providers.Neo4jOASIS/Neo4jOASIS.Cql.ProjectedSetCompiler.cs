@@ -24,7 +24,9 @@ public partial class Neo4jOASIS
             {
                 text.Append("CALL { CALL { ").Append(Build(child,true))
                     .Append(" } RETURN {kind:'set',proof:{leftProof:leftProof,rightProof:rightProof,members:members,stages:stages,work:work}} AS ")
-                    .Append(name).Append("Proof,rows AS ").Append(name).Append("Values } ");
+                    .Append(name).Append("Proof,[row IN rows | {values:[")
+                    .Append(string.Join(",",selection.OutputColumnIndices.Select(column=>"row.values["+column+"]")))
+                    .Append("]}] AS ").Append(name).Append("Values } ");
                 return;
             }
             var command=CompileCqlSelected(leaf.Query,ProjectedSetInputLimits(leaf.Options),sharedParameters:parameters);
@@ -67,6 +69,7 @@ public partial class Neo4jOASIS
             .Select(index=>"[position IN s"+index+" | {side:input[position].side,index:input[position].index}]");
         text.Append("RETURN leftProof,rightProof,").Append(members).Append(" AS members,[")
             .Append(string.Join(",",stages)).Append("] AS stages,work ");
+        if(!exportRows&&limits.CountOnly)text.Append(",size(s"+node.Query.Output.ResultStages.Count+") AS nativeCount ");
         if(exportRows)text.Append(",[position IN s"+node.Query.Output.ResultStages.Count+" | {values:input[position].values}] AS rows ");
         if(text.Length>1024*1024)throw new NeoCqlLimitException("Native selected-set statement exceeds its bounded size.");
         return text.ToString();
