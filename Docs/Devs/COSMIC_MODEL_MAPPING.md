@@ -497,3 +497,10 @@ CosmicPocoModelBuilder<T>.Property(selector).HasConversion(converter) maps a bus
 The ordinary-class codec writes native provider-domain metadata and decodes it before materialization. Native query binding uses the same converted-value marker as Holon models: typed filters, ordering and projections operate in the declared equality/ordering-preserving provider domain. Model constraints apply after decoding; a prefix or scale does not redefine a business length/precision constraint. Built mappings retain their converters after registry edits or later builder changes. Canonical GUID identity, caller visibility and acknowledged writes retain their existing owners.
 
 Representative real MongoDB/SQLite/Neo4j qualification is pending for this increment. Full NHibernate XML relationships, collection mappings, table/schema placement and IUserType parity remain open.
+
+
+## XML scalar bags and sets
+
+For Holon contracts, `<bag name="Tags"><element type="String"/></bag>` binds a List<string> or string[] through the native owned collection codec. `<set name="Numbers"><element type="Int32"/></set>` requires HashSet<int>. The property name is the metadata key; exact scalar element domains are checked against the declared CLR collection. Native bags retain element order, duplicates and nulls; sets retain their scalar set representation. Existing model snapshots, caller permissions and acknowledged writes own execution.
+
+This is owned-value mapping. Explicit tables, relationship keys, collection modifiers, composite element mappings, scalar element converters and ordinary-class XML collections remain separate unsupported scope; they are rejected instead of silently reinterpreted. No additional child table or replicated child holons are invented. Representative3-store qualification is pending; this does not complete M04.

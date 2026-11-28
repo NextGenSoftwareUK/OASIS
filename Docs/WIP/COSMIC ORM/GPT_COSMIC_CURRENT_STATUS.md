@@ -23,7 +23,7 @@ Each latest artifact has18entries inspected in RAM, hash-bound compact acceptanc
 
 ## Current gate
 
-Root **ddf1ec64 / Core5e83d673**: ordinary-class fluent/XML scalar conversions await XML46144735944 and paired CQL46144736023. Independent review found no blockers. Expected XML9native/2controls, WEB4 and cleanup. Full M04 remains open.
+Ordinary-class fluent/XML scalar converters and explicit native XML scalar bags/sets: Core**fa4ea2e254b59e55ab4c5f4fa031199b887ecabb**, combined native gate pending. Previous POCO46144735944 passed10/11; corrected SQLite fixture raw-value decoding (canonical serializer, strict numeric JSON). No provider workaround. Expected XML12native/2controls, actualWEB4 and exact cleanup. Core conversion review passed; full M04 remains open.
 
 Direct shipping SQL endpoint **1b18b510 / Corecf34fb1a** is accepted **46143984744**:18compiler/15native/WEB4/cleanup. HTTP12groups/31timings per store,20 settled operations each with1 native attempt/receipt. Anonymous queries reserve nothing. Artifact18entries inspected in RAM; receipt Q50_SHIPPING_SQL_HTTP_NATIVE_ACCEPTANCE_2026-11-28.json. This qualifies the isolated endpoint flow, not a hosted browser walkthrough.
 
@@ -43,3 +43,6 @@ Shared Atlas/PIPER calls0; no data changes, retries or diagnostic polling. No lo
 ## Next owned XML mapping slice
 
 Ordinary-class scalar converters: Core5e83d6733da2726e2677f8649521b419c7ab68be; native qualification pending. Shared native conversion/storage path, model-domain constraints, atomic named XML registrations and frozen models. Representative isolated3-store journey9groups/9timings/2writes per provider. No full M04 credit before acceptance.
+
+
+XML scalar collections are an explicit owned-value subset: List<T>/T[] bags and HashSet<T> sets, exact scalar element domains and property-name metadata keys. Relationship tables/keys, composite elements and POCO XML collections remain open. Source and representative native fixture exist; no native acceptance is claimed before CI.

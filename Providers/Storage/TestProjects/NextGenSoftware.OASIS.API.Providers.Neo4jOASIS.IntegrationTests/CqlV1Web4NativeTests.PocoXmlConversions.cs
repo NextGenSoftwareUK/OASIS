@@ -58,7 +58,9 @@ public sealed partial class CqlV1Web4NativeTests
         var saved=await Timed("poco-converted-create",()=>writer.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid())));
         Assert.IsFalse(saved.IsError,saved.Message+saved.Exception);Assert.IsTrue(saved.IsSaved);Assert.AreEqual(id,entity.Id);
         var raw=await Timed("poco-converted-storage",()=>provider.LoadHolonAsync(id));
-        Assert.IsFalse(raw.IsError,raw.Message+raw.Exception);Assert.AreEqual(20L,Convert.ToInt64(raw.Result.MetaData["stored_units"]));
+        Assert.IsFalse(raw.IsError,raw.Message+raw.Exception);
+        using var storedUnits=System.Text.Json.JsonDocument.Parse(NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.SerializeRuntime(raw.Result.MetaData["stored_units"]));
+        Assert.AreEqual(20L,storedUnits.RootElement.GetInt64());
         Assert.AreEqual("label:sample",raw.Result.MetaData["stored_label"].ToString());Assert.AreEqual("code:A",raw.Result.MetaData["stored_code"].ToString());
         using var reader=CosmicPocoContext<ConvertedPlainStock>.Create(manager,adapter,access,xmlModel.Result).Result;
         var wanted=new ConvertedCode{Value="A"};
