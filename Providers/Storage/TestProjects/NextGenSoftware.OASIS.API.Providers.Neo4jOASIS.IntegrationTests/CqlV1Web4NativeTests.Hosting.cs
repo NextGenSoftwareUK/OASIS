@@ -85,7 +85,7 @@ public sealed partial class CqlV1Web4NativeTests
     private static WebApplication Host(Dictionary<ProviderType, IOASISStorageProvider> providers,
         MongoUsageOutboxStore outbox, Authority authority, string signingSecret,
         V1DemoSession? demo = null, Func<Guid, string, Task>? journalRequest = null,
-        IReadOnlyDictionary<Guid, NativeMappingRegistration>? nativeMappings = null)
+        IReadOnlyDictionary<Guid, NativeMappingRegistration>? nativeMappings = null, bool nativeTextEndpoints = false)
     {
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions
         {
@@ -120,6 +120,11 @@ public sealed partial class CqlV1Web4NativeTests
                     }] = Array.Empty<string>()
                 });
             });
+        }
+        if (nativeTextEndpoints)
+        {
+            builder.Services.AddSingleton<CqlTextCompiler>();
+            builder.Services.AddHttpClient();
         }
         builder.Services.AddSingleton<ICqlV1Providers>(new Sources(providers, nativeMappings));
         builder.Services.AddSingleton<CqlV1ResourceFilter>();
@@ -195,6 +200,7 @@ public sealed partial class CqlV1Web4NativeTests
             }
             await next();
         });
+        if (nativeTextEndpoints) app.UseMiddleware<CqlTextMiddleware>();
         app.UseMiddleware<Web4UsageLedgerMiddleware>();
         app.UseWhen(http => IsQueryRoute(http),
             branch => branch.UseMiddleware<PreparedStorageAdmissionMiddleware>());

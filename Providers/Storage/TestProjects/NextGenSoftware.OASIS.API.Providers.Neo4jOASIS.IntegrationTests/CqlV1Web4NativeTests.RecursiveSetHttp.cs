@@ -37,7 +37,7 @@ public sealed partial class CqlV1Web4NativeTests
             await outbox.InitializeAsync(CancellationToken.None);initialized=true;
             var secret=Convert.ToHexString(RandomNumberGenerator.GetBytes(32));var key=new SymmetricSecurityKey(Encoding.ASCII.GetBytes(secret));
             var ownerToken=Token(actor,key);var foreignToken=Token(outsider,key);authority.Tokens.Add(ownerToken,actor);authority.Tokens.Add(foreignToken,outsider);
-            await using var app=Host(new Dictionary<ProviderType,IOASISStorageProvider>{{type,provider}},outbox,authority,secret);
+            await using var app=Host(new Dictionary<ProviderType,IOASISStorageProvider>{{type,provider}},outbox,authority,secret,nativeTextEndpoints:true);
             await app.StartAsync();
             try
             {
@@ -60,12 +60,22 @@ public sealed partial class CqlV1Web4NativeTests
                 var maxSql="WITH amounts AS ("+numericSet+") SELECT MAX(amount) AS highest FROM amounts";
                 var valueCountSql="WITH details AS ("+selected+" UNION ALL "+selected+") SELECT COUNT(detail) AS present FROM details";
                 var distinctCountSql="WITH labels AS ("+selectedSql+") SELECT COUNT(DISTINCT kept) AS uniqueLabels FROM labels";
-                async Task Send(string sql,string mode,string? bearer,int expected)
+                async Task Send(string sql,string mode,string? bearer,int expected,bool throughSql=false)
                 {
-                    var query=compiler.Compile(sql);Assert.AreEqual("data/query-cql/set",query.Path);
-                    var body=JsonNode.Parse(query.Body.GetRawText())!.AsObject();
-if(mode is "count" or "count-value" or "count-distinct" or "sum" or "average" or "min" or "max")body["maximumResults"]=1;
-                    using var request=new HttpRequestMessage(HttpMethod.Post,"/api/"+query.Path){Content=new StringContent(body.ToJsonString(),Encoding.UTF8,"application/json")};
+                    string path, payload;
+                    if(throughSql)
+                    {
+                        path=CqlTextMiddleware.SqlPath;
+                        payload=JsonSerializer.Serialize(new{query=sql});
+                    }
+                    else
+                    {
+                        var query=compiler.Compile(sql);Assert.AreEqual("data/query-cql/set",query.Path);
+                        var body=JsonNode.Parse(query.Body.GetRawText())!.AsObject();
+                        if(mode is "count" or "count-value" or "count-distinct" or "sum" or "average" or "min" or "max")body["maximumResults"]=1;
+                        path="/api/"+query.Path;payload=body.ToJsonString();
+                    }
+                    using var request=new HttpRequestMessage(HttpMethod.Post,path){Content=new StringContent(payload,Encoding.UTF8,"application/json")};
                     if(bearer!=null)request.Headers.Authorization=new AuthenticationHeaderValue("Bearer",bearer);
                     request.Headers.Add("Idempotency-Key",Guid.NewGuid().ToString("D"));
                     var watch=System.Diagnostics.Stopwatch.StartNew();using var response=await client.SendAsync(request);
@@ -98,13 +108,18 @@ if(mode is "count" or "count-value" or "count-distinct" or "sum" or "average" or
                     else
                     {
                         var rows=result.GetProperty("rows");Assert.AreEqual(expected,rows.GetArrayLength());
-                        if(mode is "selected" or "entity-input")
+                        if(mode is "selected" or "entity-input" or "entity-input-sql")
                         {
                             Assert.AreEqual("cql-projected-set-v1",result.GetProperty("version").GetString());
                             Assert.AreEqual(1,result.GetProperty("columns").GetArrayLength());Assert.AreEqual("kept",result.GetProperty("columns")[0].GetProperty("alias").GetString());
                             foreach(var item in rows.EnumerateArray()){Assert.AreEqual(1,item.GetArrayLength());Assert.AreEqual(row.Name,item[0].GetString());}
                         }
                         else foreach(var item in rows.EnumerateArray())Assert.AreEqual(row.Id,item.GetProperty("id").GetGuid());
+                    }
+                    if(throughSql)
+                    {
+                        Assert.AreEqual("data/query-cql/set",response.Headers.GetValues("X-OASIS-CQL-Path").Single());
+                        Assert.IsTrue(double.TryParse(response.Headers.GetValues("X-OASIS-CQL-Parse-Ms").Single(),System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out var parseMs)&&parseMs>=0);
                     }
                     var operation=await outbox.GetAsync(response.Headers.GetValues("X-OASIS-Operation-Id").Single(),CancellationToken.None);
                     Assert.AreEqual("settled",operation.State);Assert.AreEqual(1,operation.ProviderAttempts.Count);Assert.AreEqual(1,operation.Receipts.Count);
@@ -118,7 +133,10 @@ if(mode is "count" or "count-value" or "count-distinct" or "sum" or "average" or
                 foreach(var sample in new[]{(valueCountSql,"count-value",0),(distinctCountSql,"count-distinct",1)})
                 {await Send(sample.Item1,sample.Item2,ownerToken,sample.Item3);await Send(sample.Item1,sample.Item2,foreignToken,0);await Send(sample.Item1,sample.Item2,null,0);}
                 await Send(entityInputSql,"entity-input",ownerToken,2);await Send(entityInputSql,"entity-input",foreignToken,0);await Send(entityInputSql,"entity-input",null,0);
-                Assert.AreEqual(18,authority.Started.Count);Assert.AreEqual(18,authority.Settlements.Count);
+                await Send(entityInputSql,"entity-input-sql",ownerToken,2,throughSql:true);
+                await Send(entityInputSql,"entity-input-sql",foreignToken,0,throughSql:true);
+                await Send(entityInputSql,"entity-input-sql",null,0,throughSql:true);
+                Assert.AreEqual(20,authority.Started.Count);Assert.AreEqual(20,authority.Settlements.Count);
             }
             finally{await app.StopAsync();}
         }
@@ -130,7 +148,7 @@ if(mode is "count" or "count-value" or "count-distinct" or "sum" or "average" or
                 await mongo.DropDatabaseAsync(database);using var names=await mongo.ListDatabaseNamesAsync();Assert.IsFalse((await names.ToListAsync()).Contains(database));
             }
         }
-        return new NativeFixtureJourneyProof(11,1,new Dictionary<string,bool>{["serverSqlEntityInputs"]=true,["nativeEntityInputHttp"]=true,["serverSqlSelectedValueCounts"]=true,["serverSqlSetExtrema"]=true,["serverSqlNumericSetAggregates"]=true,["serverSqlCompilation"]=true,["nestedEntityWindows"]=true,
+        return new NativeFixtureJourneyProof(12,1,new Dictionary<string,bool>{["shippingSqlEndpoint"]=true,["serverSqlEntityInputs"]=true,["nativeEntityInputHttp"]=true,["serverSqlSelectedValueCounts"]=true,["serverSqlSetExtrema"]=true,["serverSqlNumericSetAggregates"]=true,["serverSqlCompilation"]=true,["nestedEntityWindows"]=true,
             ["selectedChildBindings"]=true,["nativeScalarCountBeyondPublication"]=true,["ownerForeignAnonymousBoundaries"]=true,["oneSettledNativeAttempt"]=true});
     }
 }
