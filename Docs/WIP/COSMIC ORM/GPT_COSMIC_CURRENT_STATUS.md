@@ -1,6 +1,6 @@
 # COSMIC current status
 
-Updated 2026-11-28T05:37:42.711Z. Session gpt-cosmic.
+Updated 2026-11-28T05:47:44.538Z. Session gpt-cosmic.
 
 Maintained checklist:144/168 rows green across MongoDB/SQLite/Neo4j. The historical130/164 baseline used an older denominator; all existing features remain in scope. This session completed3 full rows, each native3/3 plus actual WEB4 build and exact cleanup:
 
@@ -14,7 +14,7 @@ Earlier qualified changes reached Developmenta267db5b/Core5e8f22d7. The new nati
 
 Numeric identifiers and XML discriminator/subclass mappings passed native6/6 and actual WEB4 build in46111979889 on6d24d741/Core5ef2f9e2. Artifact15249779607 verified strictly in RAM, exact cleanup. Qualified batch preserves current Development8c7a3148 and Core provider documentation via7d00ed11; pending component implementationcfc8d0f6 is excluded. Full M04 remains OPEN and parity totals unchanged. Live acceptance remains pending.
 
-Next work: full M04 XML components are implemented through the common native owned-value codec (stored aliases, nested field predicates/hydration, constraint validation, explicit unknown-field refusal); representative native qualification46113010583 is active on source375350b5608e/Core1c9c8a6f36cb (XML3 + changed fluent codec3); native6/6 and actual WEB4 build pending. Claims remain the coordination source.
+Next work: XML components passed native6/6 + WEB4 in46113010583 (375350b5/Core1c9c8a6f), including shared fluent-owned codec. Plain business-class/constructor component support now extends the same codec in Core0fd03dede3f2; native6-case qualification is prepared (POCO3 + changed Holon XML3). Not yet deployed; full M04 remains OPEN. Main table144/168, extension4/13. Claims remain the coordination source.
 
 SQL/AI search stays backend-owned at POST /api/data/query-cql/sql and /ask; browser engines untouched. All Next phases/provider priorities remain intact. Owner baseline107 enrolled sandbox sources is retained without rechecking accepted cohorts. Hosted Neo4j stays stopped per budget; CI containers are independent. Existing TRON key action remains deferred on the one owner list; no new owner action added.
 

@@ -13,16 +13,16 @@ os.environ['OASIS_CQL_MONGO_ENTITY_PROJECTION_ROOT']=str(ROOT)
 PROJECT='Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests'
 BOUNDS=['-m:2','-nr:false','-p:UseSharedCompilation=false']
 subprocess.run(['dotnet','test',PROJECT,*BOUNDS,'--filter',
- 'FullyQualifiedName~NativeXmlComponentsBindAliasedNestedValues|FullyQualifiedName~NativeOwnedValuesUseAtomicParentStorageAndNativeLeafQueries',
- '--results-directory',str(RESULTS),'--logger','trx;LogFileName=xml-components-native.trx'],cwd=ROOT,check=True)
+ 'FullyQualifiedName~NativeXmlComponentsBindAliasedNestedValues|FullyQualifiedName~NativePocoXmlComponentsUseSameNativeValueCodec',
+ '--results-directory',str(RESULTS),'--logger','trx;LogFileName=poco-xml-components-native.trx'],cwd=ROOT,check=True)
 ns={'t':'http://microsoft.com/schemas/VisualStudio/TeamTest/2010'}
-c=ET.parse(RESULTS/'xml-components-native.trx').find('.//t:Counters',ns)
+c=ET.parse(RESULTS/'poco-xml-components-native.trx').find('.//t:Counters',ns)
 assert c is not None and c.attrib['total']=='6' and c.attrib['passed']=='6' and c.attrib['failed']=='0'
 contracts={
  'xml-components':(8,1,2,10,{'atomicComponentAdmission','aliasedNestedStorage','nativeNestedPredicateAndProjection',
  'declaredMemberHydration','nestedUpdateRoundTrip','nestedConstraintsPreserveAuthority','foreignCallerIsolated','readOnlyModelPreserved'}),
- 'owned-value-model':(6,1,2,6,{'requiredOwnedNullPreservedBeforeValidation','ownedMetadataAliasStored','typedComponentRoundtrip',
- 'nativeLeafFilterOrderProjection','nestedUpdateAcknowledged','immutableOwnedSnapshot'})}
+ 'poco-xml-components':(8,2,3,10,{'atomicOrdinaryComponentMapping','generatedKeyAcknowledgement','nativeNestedBindingAndScalarProjection',
+ 'plainClassComponentHydration','nestedMutationPersisted','constraintsPreserveStoredAuthority','foreignCallerIsolated','constructorFactoryReceivesTypedComponent'})}
 for store in ['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS']:
  for family,(checks,owned,writes,timings,groups) in contracts.items():
   r=json.loads((RESULTS/(store+'-'+family+'-native.json')).read_text(encoding='utf-8-sig'))
@@ -36,6 +36,6 @@ def git(*args):
 source=git('rev-parse','HEAD')
 assert source==os.environ['GITHUB_SHA']
 proof={'source':source,'core':git('-C','OASIS Architecture/NextGenSoftware.OASIS.API.Core','rev-parse','HEAD'),
- 'nativePassed':6,'xmlComponentsVerified':True,'ownedCodecRegressionVerified':True,'fullNHibernateParity':False,'actualWeb4Compiled':True,'ownedFixturesAbsent':True,
+ 'nativePassed':6,'xmlComponentsVerified':True,'pocoXmlComponentsVerified':True,'fullNHibernateParity':False,'actualWeb4Compiled':True,'ownedFixturesAbsent':True,
  'sharedDatabaseCalls':0,'deployed':False}
 (RESULTS/'source.json').write_text(json.dumps(proof,indent=2)+'\n',encoding='utf-8')
