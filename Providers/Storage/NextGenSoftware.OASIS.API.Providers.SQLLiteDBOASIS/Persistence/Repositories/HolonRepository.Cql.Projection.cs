@@ -102,10 +102,8 @@ public partial class HolonRepository
                     budget.Check();
                     // Mandatory scope validation must finish before the source
                     // window can hide another root's malformed traversal.
-                    await ValidateCqlRelationshipScopeAsync(translator, predicate, budget, traversal, cancellationToken).ConfigureAwait(false);
-                    if(setSql!=null)
-                        await ValidateCqlRelationshipScopeAsync(setSql.RightTranslator,setSql.RightPredicate,
-                            budget,traversal,cancellationToken).ConfigureAwait(false);
+                    if(setSql==null)
+                        await ValidateCqlRelationshipScopeAsync(translator,predicate,budget,traversal,cancellationToken).ConfigureAwait(false);
                     if (entitySql != null)
                     {
                         var options=composition?.Options??new CosmicEntityCompositionOptions(

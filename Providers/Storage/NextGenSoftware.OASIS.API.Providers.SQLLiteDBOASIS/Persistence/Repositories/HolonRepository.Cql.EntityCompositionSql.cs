@@ -38,7 +38,15 @@ public partial class HolonRepository
     {
         internal readonly string Sql;
         internal readonly int MaximumRows;
-        internal EntityCompositionSource(string sql,int maximumRows) {Sql=sql;MaximumRows=maximumRows;}
+        internal readonly CqlSqlTranslator GuardTranslator;
+        internal readonly string GuardPredicate;
+        internal readonly EntityCompositionSql Nested;
+        internal readonly CosmicEntityCompositionOptions NestedOptions;
+        internal readonly IReadOnlyList<EntityCompositionSource> NestedSources;
+        internal EntityCompositionSource(string sql,int maximumRows,CqlSqlTranslator guardTranslator=null,string guardPredicate=null,
+            EntityCompositionSql nested=null,CosmicEntityCompositionOptions nestedOptions=null,IReadOnlyList<EntityCompositionSource> nestedSources=null)
+        {Sql=sql;MaximumRows=maximumRows;GuardTranslator=guardTranslator;GuardPredicate=guardPredicate;
+            Nested=nested;NestedOptions=nestedOptions;NestedSources=nestedSources;}
     }
 
     private async Task ValidateEntityCompositionAsync(EntityCompositionSql entitySql,CosmicEntityCompositionOptions options,
@@ -51,6 +59,10 @@ public partial class HolonRepository
         var inputs=sources??new[]{new EntityCompositionSource(entitySql.Source,options.MaximumInputRows)};
         foreach(var input in inputs)
         {
+            if(input.Nested!=null)
+                await ValidateEntityCompositionAsync(input.Nested,input.NestedOptions,budget,traversal,cancellationToken,input.NestedSources).ConfigureAwait(false);
+            else if(input.GuardTranslator!=null)
+                await ValidateCqlRelationshipScopeAsync(input.GuardTranslator,input.GuardPredicate,budget,traversal,cancellationToken).ConfigureAwait(false);
             var sourceRows=0;
             var sourceQuery=_dbContext.Holons.FromSqlRaw(input.Sql,
                 entitySql.Parameters.Cast<object>().ToArray()).AsNoTracking();

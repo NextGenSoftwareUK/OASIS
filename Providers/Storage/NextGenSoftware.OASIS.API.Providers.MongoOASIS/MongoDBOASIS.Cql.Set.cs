@@ -9,8 +9,8 @@ public partial class MongoDBOASIS:ICosmicSetQueryStorageProvider
 {
     public CosmicSetQueryCapabilities SetQueryCapabilities=>new(
         CosmicSetQueryFeatures.Union|CosmicSetQueryFeatures.Concat|CosmicSetQueryFeatures.Intersect|CosmicSetQueryFeatures.Except,
-        EntityCompositionCapabilities);
+        EntityCompositionCapabilities,supportsNestedSets:true);
     public Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicSetQueryAsync<T>(
         CosmicSetQueryPlan<T> plan,int maximumResults=100,CancellationToken cancellationToken=default) where T:IHolon
-        =>ExecuteCqlRowsAsync(plan?.Left,maximumResults,cancellationToken,set:plan);
+        =>ExecuteCqlRowsAsync(plan?.Anchor,maximumResults,cancellationToken,set:plan);
 }

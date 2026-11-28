@@ -20,14 +20,14 @@ public partial class MongoDBOASIS : ICosmicSetCountQueryStorageProvider
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (plan == null || plan.Left.Targets.Count != 1 || plan.Left.Targets[0].Provider != Core.Enums.ProviderType.MongoDBOASIS)
+            if (plan == null || plan.Anchor.Targets.Count != 1 || plan.Anchor.Targets[0].Provider != Core.Enums.ProviderType.MongoDBOASIS)
                 return ScalarCqlFailure<long>("CQL_PLAN_INVALID","One exclusively Mongo set-count plan is required.");
-            var source=CqlCapabilities.AdmitPlan(plan.Left);
+            var source=CqlCapabilities.AdmitPlan(plan.Anchor);
             if (source.IsError) return ScalarCqlFailure<long>(source.ErrorCode,source.Message,source.Exception);
             var stages=CosmicSetQueryPlanner.Plan(plan.Query,Core.Enums.ProviderType.MongoDBOASIS,
                 new CosmicQueryTarget(Core.Enums.ProviderType.MongoDBOASIS,CqlCapabilities),SetQueryCapabilities,plan.Options);
             if (stages.IsError) return ScalarCqlFailure<long>(stages.ErrorCode,stages.Message,stages.Exception);
-            var command=new MongoCqlTranslator().CompileSetCount(plan);
+            var command=new MongoCqlTranslator().CompileSetCount(stages.Result);
             if (!IsProviderActivated || _holonRepository is not HolonRepository repository)
                 return ScalarCqlFailure<long>("CQL_PROVIDER_NOT_READY","Activate MongoDB before native set count.");
             var count=await repository.ExecuteNativeCqlCountAsync(command,cancellationToken).ConfigureAwait(false);

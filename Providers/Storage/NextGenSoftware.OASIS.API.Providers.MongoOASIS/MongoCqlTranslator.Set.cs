@@ -12,8 +12,9 @@ internal sealed partial class MongoCqlTranslator
     {
         if(plan==null || maximumResults<1 || maximumResults>10000)
             throw new ArgumentException("An admitted bounded native set plan is required.");
-        MongoCqlEntityInput Input(CosmicQuery<T> query,int maximum)
+        MongoCqlEntityInput Input(CosmicQuery<T> query,CosmicSetQueryPlan<T> subtree,int maximum)
         {
+            if(subtree!=null)return new MongoCqlEntityInput(CompileSet(subtree,maximum),maximum);
             var pipeline=CompileSource(query,out var envelope);
             var fetch=Math.Min(query.Limit??maximum+1,maximum+1);
             var page=SelectedWindow(query,fetch);
@@ -22,8 +23,8 @@ internal sealed partial class MongoCqlTranslator
             return new MongoCqlEntityInput(new MongoCqlCommand(pipeline.ToArray(),fetch,
                 query.Predicates.Any(HasRelationships),envelope),maximum);
         }
-        var left=Input(plan.Query.Left,plan.Options.MaximumLeftInputRows);
-        var right=Input(plan.Query.Right,plan.Options.MaximumRightInputRows);
+        var left=Input(plan.Query.Left,plan.LeftSet,plan.Options.MaximumLeftInputRows);
+        var right=Input(plan.Query.Right,plan.RightSet,plan.Options.MaximumRightInputRows);
         List<BsonDocument> Occurrences(MongoCqlEntityInput input,int side)
         {
             var current=input.Command.Pipeline.Select(x=>(BsonDocument)x.DeepClone()).ToList();

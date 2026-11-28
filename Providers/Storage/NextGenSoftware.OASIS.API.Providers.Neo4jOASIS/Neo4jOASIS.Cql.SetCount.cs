@@ -11,7 +11,7 @@ public partial class Neo4jOASIS:ICosmicSetCountQueryStorageProvider
     public async Task<OASISResult<long>> ExecuteCosmicSetCountAsync<T>(CosmicSetQueryPlan<T> plan,
         CancellationToken cancellationToken=default) where T:IHolon
     {
-        var read=await ExecuteCqlReadAsync(plan?.Left,10000,cancellationToken,countOnly:true,set:plan).ConfigureAwait(false);
+        var read=await ExecuteCqlReadAsync(plan?.Anchor,10000,cancellationToken,countOnly:true,set:plan).ConfigureAwait(false);
         var result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(read,new OASISResult<long>());
         if(!read.IsError)result.Result=read.Result.Count;
         return result;
