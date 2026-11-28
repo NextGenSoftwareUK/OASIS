@@ -57,6 +57,8 @@ public sealed partial class CqlV1Web4NativeTests
             var privateRows=await Timed("held-read-own-create",()=>transaction.ReadAsync(Query(first.Id,access),4));
             Assert.IsFalse(privateRows.IsError,privateRows.Message+privateRows.Exception);Assert.AreEqual("held-create",privateRows.Result.Single().Name);
             Assert.AreEqual(0,(await Timed("held-outside-before-commit",()=>Outside(first.Id))).Count);
+            var privateBefore=await Timed("held-private-authority-create",()=>transaction.ReadAuthorityRecordAsync(first.Id));
+            Assert.IsFalse(privateBefore.IsError,privateBefore.Message+privateBefore.Exception);Assert.AreEqual("held-create",privateBefore.Result.Name);
             var changed=(Holon)staged.Result.ReadProvisionalRows().Single();
             var revision=CosmicConcurrency.GetProviderRevisionId(changed,authority);Assert.IsTrue(revision.HasValue);
             changed.Name="held-updated";changed.IsNewHolon=false;changed.Version++;changed.VersionId=Guid.NewGuid();
@@ -93,6 +95,11 @@ public sealed partial class CqlV1Web4NativeTests
         {
             var hidden=await Timed("held-foreign",()=>transaction.ReadAsync(Query(first.Id,foreignAccess),4));
             Assert.IsFalse(hidden.IsError,hidden.Message+hidden.Exception);Assert.AreEqual(0,hidden.Result.Count);
+            var privateForeign=await Timed("held-private-authority-foreign",()=>transaction.ReadAuthorityRecordAsync(first.Id));
+            Assert.IsFalse(privateForeign.IsError,privateForeign.Message+privateForeign.Exception);Assert.AreEqual(actor,privateForeign.Result.CreatedByAvatarId);
+            Assert.IsFalse(await manager.AllowsAsync(privateForeign.Result,foreignAccess.ActorId,HolonPermission.Write),"A private authorization snapshot grants no write permission.");
+            var missing=await Timed("held-private-authority-missing",()=>transaction.ReadAuthorityRecordAsync(second.Id));
+            Assert.IsFalse(missing.IsError,missing.Message+missing.Exception);Assert.IsTrue(missing.IsLoaded);Assert.IsNull(missing.Result);
             var mismatch=await transaction.ReadAsync(Query(first.Id,access),4);Assert.IsTrue(mismatch.IsError);
             using var cancelled=new CancellationTokenSource();cancelled.Cancel();
             var stopped=await transaction.CommitAsync(cancelled.Token);Assert.IsTrue(stopped.IsError);
@@ -109,7 +116,7 @@ public sealed partial class CqlV1Web4NativeTests
         }
         var released=await Timed("held-key-after-delete",()=>nativeKeys.FindUniqueKeyHolderAsync(keyScope,first.Id.ToString("N")));
         Assert.IsFalse(released.IsError,released.Message+released.Exception);Assert.AreEqual(Guid.Empty,released.Result);
-        return new NativeFixtureJourneyProof(10,3,new Dictionary<string,bool>{["nativeUniqueClaimsShareTransaction"]=true,["heldNativeOwner"]=true,["provisionalWriteWithoutSavedAcknowledgement"]=true,
+        return new NativeFixtureJourneyProof(11,3,new Dictionary<string,bool>{["privateAuthorityReadsEnlistedWithoutGrant"]=true,["nativeUniqueClaimsShareTransaction"]=true,["heldNativeOwner"]=true,["provisionalWriteWithoutSavedAcknowledgement"]=true,
             ["readOwnUncommittedWrites"]=true,["outsideReadCannotSeeProvisionalWrites"]=true,["sequentialNativeRevisionUpdate"]=true,
             ["immutableProvisionalSnapshots"]=true,["acknowledgedCommitAndRollback"]=true,["capturedCallerPolicy"]=true,["cancelBeforeCommitDoesNotDispatch"]=true});
     }

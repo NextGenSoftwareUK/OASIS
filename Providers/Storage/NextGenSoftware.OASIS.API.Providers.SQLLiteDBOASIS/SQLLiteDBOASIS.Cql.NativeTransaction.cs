@@ -95,6 +95,14 @@ public partial class SQLLiteDBOASIS:ICosmicNativeTransactionStorageProvider
             using var cancellation=Bounded(cancellationToken);
             return await repository.ExecuteCosmicQueryAsync(plan,maximumResults,cancellation.Token).ConfigureAwait(false);
         }
+        public async Task<OASISResult<IHolon>> ReadAuthorityRecordAsync(Guid id,CancellationToken token)
+        {
+            using var cancellation=Bounded(token);
+            var plan=CosmicNativeTransactionAuthorityRead.Plan(id,Authority,CqlCapabilities);
+            if(plan.IsError)return new(){IsError=true,ErrorCount=1,ErrorCode=plan.ErrorCode,Message=plan.Message,Exception=plan.Exception};
+            var result=await repository.ExecuteCosmicQueryAsync(plan.Result,2,cancellation.Token).ConfigureAwait(false);
+            return CosmicNativeTransactionAuthorityRead.Capture(id,result);
+        }
         public Task<OASISResult<CosmicStagedUnitOfWork>> StageUnitOfWorkAsync(ConditionalHolonUnitOfWorkRequest request,CancellationToken token)
         {
             using var cancellation=Bounded(token);

@@ -11609,3 +11609,5 @@ New backend SQL lowering preserves bounded plain entity sources and post-page en
 2026-11-28 gpt-cosmic: newNeo/unique-claim sources checkpointed inGit; no local builds/env/db/install/worktree/download. RequiredNeo unique constraint is provisioned/shape-verified in writable activation instead of DDL during heldUOW; no user data backfill. Only isolatedCI executes it. Source backup remains compact ref pointer; owned indexes removed. Main148/168, kernel2/3 accepted, newnative3 pending.
 
 2026-11-28 gpt-cosmic: held15268399647(5,940B) and paired15268773316(18,509B) verified inRAM,26entries; buffersreleased, compacthashreceipts retained. AllownedCI fixturesabsent; no local env/build/runtime/db/worktree/archive/download or sharedAtlas/PIPER calls.
+
+2026-11-28 gpt-cosmic: authority-read sources and newnative checks checkpointed inGit; no local build/SDK/install/env/db/worktree/download. RuntimeDev3f23c388 pinsqualifiedCore250 only, excludesCore244 authorityWIP. NativeAPI calls remainisolatedCI;0Atlas/PIPERoperations.

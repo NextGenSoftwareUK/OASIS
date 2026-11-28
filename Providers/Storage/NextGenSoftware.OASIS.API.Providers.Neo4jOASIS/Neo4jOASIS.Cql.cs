@@ -43,7 +43,7 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider, ICosmicJoinFetchS
     private async Task<OASISResult<CqlReadOutcome>> ExecuteCqlReadAsync<T>(CosmicQueryPlan<T> plan,
         int maximumResults, CancellationToken cancellationToken, CosmicEntityCompositionPlan<T> composition=null,
         bool countOnly=false,CosmicSetQueryPlan<T> set=null,Action<string,IReadOnlyDictionary<string,object>> explain=null,
-        NeoCqlJoinFetch joinFetch=null,NeoHeldTransactionCommands held=null) where T:IHolon
+        NeoCqlJoinFetch joinFetch=null,NeoHeldTransactionCommands held=null,bool authorityRead=false) where T:IHolon
     {
         OASISResult<CqlReadOutcome> Error(string code,string message,Exception cause=null)
             => new(){IsError=true,ErrorCount=1,ErrorCode=code,Message=message,Exception=cause};
@@ -163,7 +163,7 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider, ICosmicJoinFetchS
             }
             if(held!=null)
             {
-                if(!ReferenceEquals(_driver,held.Driver)||plan.Query.ReadAccess==null||!plan.Query.ReadAccess.SamePolicy(held.Access))
+                if(!ReferenceEquals(_driver,held.Driver)||!authorityRead&&(plan.Query.ReadAccess==null||!plan.Query.ReadAccess.SamePolicy(held.Access)))
                     return Error("COSMIC_TRANSACTION_SCOPE_INVALID","The held Neo4j read changed its source driver or actor policy.");
                 return await ReadWithinOwner(held.Transaction).ConfigureAwait(false);
             }

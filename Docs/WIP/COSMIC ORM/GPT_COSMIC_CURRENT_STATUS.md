@@ -30,3 +30,6 @@ No sharedAtlas/PIPER calls, blocked535/543 changes, local builds/runtime/db/env/
 
 
 Latest native acceptance: heldkernel3/3 passed46158243226 plus paired46158243287 on84b488cd/Core250c5936,26artifact entries RAMverified. FullO03 remainsOPEN; private authority-read seam24404c3b is separatelyunqualified/excluded. Main148/168 extension4/13.
+
+
+PublishedDev3f23c388/Core250c5936 at15:22:04UTC from accepted84b488cd, Railwaypending, nextownnormalpush>=15:52:04UTC. PrivateauthorityseamCore24404c3b nowfeature-only qualificationpending, held11groups/21timings perstore; no fullO03credit.

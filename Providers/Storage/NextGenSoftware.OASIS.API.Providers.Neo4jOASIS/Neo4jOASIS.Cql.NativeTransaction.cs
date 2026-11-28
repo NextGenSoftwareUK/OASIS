@@ -78,6 +78,14 @@ public partial class Neo4jOASIS:ICosmicNativeTransactionStorageProvider
             using var cancellation=Bounded(cancellationToken);
             return await ProjectCqlRowsAsync(provider.ExecuteCqlReadAsync(plan,maximumResults,cancellation.Token,held:this)).ConfigureAwait(false);
         }
+        public async Task<OASISResult<IHolon>> ReadAuthorityRecordAsync(Guid id,CancellationToken token)
+        {
+            using var cancellation=Bounded(token);
+            var plan=CosmicNativeTransactionAuthorityRead.Plan(id,Authority,CqlCapabilities);
+            if(plan.IsError)return new(){IsError=true,ErrorCount=1,ErrorCode=plan.ErrorCode,Message=plan.Message,Exception=plan.Exception};
+            var result=await ProjectCqlRowsAsync(provider.ExecuteCqlReadAsync(plan.Result,2,cancellation.Token,held:this,authorityRead:true)).ConfigureAwait(false);
+            return CosmicNativeTransactionAuthorityRead.Capture(id,result);
+        }
         public async Task<OASISResult<CosmicStagedUnitOfWork>> StageUnitOfWorkAsync(ConditionalHolonUnitOfWorkRequest request,CancellationToken token)
         {
             using var cancellation=Bounded(token);
