@@ -97,3 +97,7 @@ CI46117709175and46117714885passed26sync+26async each, zero skips, both exact Dev
 ## 2026-11-28 — OPORTAL acceptance index and scope correction
 
 Found older community45172482199after current-router recheck46118199642; the existing Social/Activity flow should have been recognized before dispatch. Classified today’s result as compatibility, not new breadth, and retained the earlier pass. Inspected43OPORTAL WIP reports plus grouped native receipts; inventoried exact45current surfaces (42loader modals, notification panel, lazy developer, dashboard). Published CURRENT_ACCEPTANCE and historical-ledger pointer on OPORTAL dev4c4d90af/main4ecb86db. Gifts/Inventory and other accepted flows are not being rerun. No new tests, local outputs, shared Atlas or owner action for reconciliation.
+
+## 2026-11-28 — real password recovery failure and candidate
+
+One new real Startup/browser recovery46119731964: forgot200/application success, reset200/application error; selected native log confirms null-reference, all owned container/network/volume/process/DNA cleanup true. Core98952d72 corrects anonymous reset cache access, wrong-result error propagation, saved acknowledgements, one-day TTL and default reset page; async Forgot awaits save. OPORTAL8d66cb77corrects portal-home/current-host links and ReturnUrl; status messages use text nodes. Exact image/browser qualification pending. No mocks, shared Atlas, external email, deployed DNA/secret changes or local outputs.

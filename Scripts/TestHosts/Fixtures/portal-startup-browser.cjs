@@ -162,7 +162,7 @@ async function main(){
     }
     if(popupGroup==='account-recovery'&&request.method()==='POST'){
      if(url.pathname==='/api/avatar/forgot-password'){
-      assert.equal(++recoveryRequests.forgot,1);assert.deepEqual(request.postDataJSON(),{email:account.username+'@startup.invalid'});ownedOperation=true;
+      assert.equal(++recoveryRequests.forgot,1);assert.deepEqual(request.postDataJSON(),{email:account.username+'@startup.invalid',returnUrl:origin+'/reset-password.html'});ownedOperation=true;
      }else if(url.pathname==='/api/avatar/reset-password'){
       assert.equal(++recoveryRequests.reset,1);
       assert.deepEqual(request.postDataJSON(),{token:recoveryToken,newPassword:recoveryPassword,confirmNewPassword:recoveryPassword});ownedOperation=true;
@@ -242,7 +242,8 @@ async function main(){
    stage='Forgot password acknowledgement';await page.locator('#forgot-submit').click();
    await page.locator('#forgot-msg.forgot-status--success').waitFor({state:'visible'});
    const reset=ownedResetState();assert.equal(typeof reset.token,'string');assert.ok(reset.token.length>=32);
-   assert.ok(Date.parse(reset.expires)>Date.now());recoveryToken=reset.token;
+   const remaining=Date.parse(reset.expires)-Date.now();
+   assert.ok(remaining>23.9*3600000&&remaining<=24*3600000,'Reset token must match the promised one-day lifetime');recoveryToken=reset.token;
    recoveryPassword='OwnedNew!'+require('node:crypto').randomBytes(24).toString('hex');
    stage='Standalone reset form';await page.goto(origin+'/reset-password.html?token='+encodeURIComponent(recoveryToken),{waitUntil:'domcontentloaded'});
    assert.equal(await page.locator('a.logo').getAttribute('href'),'/portal.html');
