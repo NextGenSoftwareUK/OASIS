@@ -183,3 +183,5 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | Elasticsearch and Qdrant existing26-check native adapters: isolated CI wiring and acceptance | HyperDrive storage | local: gpt-hyperdrive | work/gpt-search-native-storage | 2026-11-28 05:13 UTC | DONE 8c7a3148d70e (native/search or source-matched evidence; Core README65a90d7) |
 
 | Typesense existing26-check native adapter: isolated CI wiring and acceptance | HyperDrive storage | local: gpt-hyperdrive | work/gpt-typesense-native-storage | 2026-11-28 05:30 UTC | IN PROGRESS |
+
+| Diagnose WEB6/WEB7/WEB9 failed8c7a3148deployments; preserve running configurations | Railway shipping gate | local: gpt-hyperdrive | work/gpt-railway-build-repair | 2026-11-28 05:32 UTC | IN PROGRESS |
