@@ -1,6 +1,6 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs/promises'),path=require('node:path');
-const http=require('node:http'),https=require('node:https'),{execFileSync}=require('node:child_process');
+const http=require('node:http'),https=require('node:https'),{execFileSync,spawnSync}=require('node:child_process');
 const {createOwnedAvatar}=require('./startup-authentication.cjs');
 let stage='preparation';
 const httpFacts=[];
@@ -9,10 +9,11 @@ async function main(){
  const api=new URL(process.env.OASIS_STARTUP_API_URL);assert.equal(api.hostname,'127.0.0.1');assert.equal(api.protocol,'http:');
  const api5=process.env.OASIS_STARTUP_WEB5_URL?new URL(process.env.OASIS_STARTUP_WEB5_URL):null;
  const popupGroup=process.env.OASIS_STARTUP_POPUP_GROUP||'none';
- assert.ok(['none','web5-depth','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data','social-activity','account-recovery'].includes(popupGroup));
- const selectedPopups=popupGroup==='web5-depth'?['OappMap','Launcher']:popupGroup==='account-recovery'?['AccountRecovery']:popupGroup==='social-activity'?['SocialGraph','ActivityFeed']:popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
+ assert.ok(['none','provider-migration','web5-depth','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data','social-activity','account-recovery'].includes(popupGroup));
+ const selectedPopups=popupGroup==='provider-migration'?['Migration']:popupGroup==='web5-depth'?['OappMap','Launcher']:popupGroup==='account-recovery'?['AccountRecovery']:popupGroup==='social-activity'?['SocialGraph','ActivityFeed']:popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
   popupGroup==='data-messaging'?['Data','Messaging']:
   popupGroup==='none'?[]:[{nft:'NFT',data:'Data','data-crud':'DataWrite','data-edit':'DataWrite','files-write':'FilesWrite','map-route':'MapRoute',messaging:'Messaging','messaging-read':'MessagingRead',chat:'Chat','directory-message':'DirectoryMessage',clan:'Clan'}[popupGroup]];
+ let migrationRootId,migrationChildId;const migrationReads={MongoDBOASIS:0,SQLLiteDBOASIS:0};let migrationCopies=0;
  let catalogueAppId,catalogueIdentity;const catalogueName='Owned depth catalogue';
  let recoveryToken,recoveryPassword;const recoveryRequests={forgot:0,reset:0,login:0};
  const messageText='Owned portal message '+process.env.GITHUB_RUN_ID+'-'+process.env.GITHUB_RUN_ATTEMPT;
@@ -35,6 +36,32 @@ async function main(){
   // Token output is captured in memory only; the query never contains a token or password.
   const native=JSON.parse(execFileSync('docker',['exec',mongo,'mongosh','--quiet','--eval',query],{encoding:'utf8',timeout:15000}));
   assert.equal(typeof native.token,'string');assert.ok(native.token.length>=32);return native.token;
+ }
+ async function prepareOwnedWizard(account){
+  const owner='oasis_startup_'+process.env.GITHUB_RUN_ID+'_'+process.env.GITHUB_RUN_ATTEMPT;
+  assert.match(owner,/^oasis_startup_[0-9]+_[0-9]+$/);assert.match(account.username,/^startup_[a-f0-9]{20}$/);
+  const mongo=owner+'_mongo',apiName=owner+'_api',database=owner+'_avatars';
+  for(const name of [mongo,apiName])assert.equal(execFileSync('docker',['inspect','--format','{{ index .Config.Labels "oasis.startup.owner" }}',name],{encoding:'utf8',timeout:15000}).trim(),owner);
+  const ordinary=await account.call('ordinary migration sign-in','POST','/api/avatar/authenticate',{username:account.username,password:account.password},undefined,true);
+  const refused=await fetch(api.origin+'/api/data/copy-holon/providers',{headers:{Authorization:'Bearer '+ordinary.jwtToken},signal:AbortSignal.timeout(20000)});
+  assert.equal(refused.status,403,'Ordinary role cannot enumerate admin copy providers');await refused.arrayBuffer();
+  stage='Owned Wizard native provider bootstrap';
+  try{
+   const seeded=execFileSync('docker',['exec',apiName,'dotnet','exec','--depsfile','/app/NextGenSoftware.OASIS.API.ONODE.WebAPI.deps.json','--runtimeconfig','/app/NextGenSoftware.OASIS.API.ONODE.WebAPI.runtimeconfig.json','/app/OwnedMigrationBootstrap.dll',owner,account.username,account.avatar.id],{encoding:'utf8',timeout:30000});
+   assert.ok(seeded.split(/\r?\n/).includes('OWNED_WIZARD_NATIVE_PROVIDER_SEED'));
+  }catch(error){
+   const code=String(error.stderr||'').match(/MIGRATION_BOOTSTRAP_FAILURE:[A-Z_]+/);
+   httpFacts.push({path:'/api/data/copy-holon/providers',status:0,isError:true,errorCode:'OWNED_NATIVE_BOOTSTRAP_FAILED',...(code?{routingMessage:code[0]}:{})});throw error;
+  }
+  execFileSync('docker',['restart','--time','20',apiName],{encoding:'utf8',timeout:30000});
+  const probe="(async()=>{let r;try{r=await fetch('http://127.0.0.1:8080/api/health',{signal:AbortSignal.timeout(3000)});}catch(e){if(e.cause?.code==='ECONNREFUSED')process.exit(2);throw e;}if(r.status===503)process.exit(2);if(!r.ok)throw Error('Health status');const b=await r.json();if(b.status!=='healthy'||b.service!=='OASIS API ONODE WebAPI')throw Error('Health identity');})().catch(()=>process.exit(1));";
+  const deadline=Date.now()+90000;let ready=false;
+  while(Date.now()<deadline){
+   const check=spawnSync('docker',['exec',apiName,'node','-e',probe],{encoding:'utf8',timeout:8000});
+   if(check.status===0){ready=true;break;}assert.equal(check.status,2,'Owned restart failed outside the readiness contract');
+   await new Promise(resolve=>setTimeout(resolve,1000));
+  }
+  assert.equal(ready,true,'Owned API restart ready; clears pre-grant process caches');
  }
  const root=await fs.realpath(process.env.OASIS_STARTUP_PORTAL_ROOT),owned=await fs.realpath(process.env.OASIS_PROFILE_BROWSER_RUNTIME);
  const {chromium}=require(path.join(owned,'node_modules/playwright-core'));
@@ -65,6 +92,7 @@ async function main(){
   const origin='http://127.0.0.1:'+server.address().port,proxyOrigin='https://127.0.0.1:'+proxy.address().port;
   const proxy5Origin=proxy5?'https://127.0.0.1:'+proxy5.address().port:null;
   stage='owned registration';const account=await createOwnedAvatar(api.href,readOwnedVerificationToken);
+  if(popupGroup==='provider-migration')await prepareOwnedWizard(account);
   async function admitFree(owned){
    const signed=await owned.call('free account sign-in','POST','/api/avatar/authenticate',{username:owned.username,password:owned.password},undefined,true);
    await owned.call('free subscription','POST','/api/subscription/checkout/session',{planId:'free',successUrl:origin+'/subscription?tab=mysubs',cancelUrl:origin+'/'},signed.jwtToken);
@@ -169,6 +197,15 @@ async function main(){
       assert.equal(body.id,savedHolonId);assert.equal(body.softDelete,false);
       assert.equal(body.providerType,'MongoDBOASIS');assert.deepEqual(Object.keys(body.expectedRevisions),[savedHolonId]);
       assert.match(body.expectedRevisions[savedHolonId],/^[0-9a-f-]{36}$/i);ownedOperation=true;
+     }
+    }
+    if(popupGroup==='provider-migration'&&request.method()==='POST'){
+     const body=request.postDataJSON();
+     if(url.pathname==='/api/data/load-holon'){
+      assert.equal(body.id,migrationRootId);assert.equal(body.loadChildren,false);assert.equal(body.recursive,false);
+      assert.ok(Object.hasOwn(migrationReads,body.providerType));assert.equal(++migrationReads[body.providerType],1);ownedOperation=true;
+     }else if(url.pathname==='/api/data/copy-holon'){
+      assert.equal(++migrationCopies,1);assert.deepEqual(body,{holonId:migrationRootId,sourceProvider:'MongoDBOASIS',destinationProvider:'SQLLiteDBOASIS'});ownedOperation=true;
      }
     }
     if(popupGroup==='account-recovery'&&request.method()==='POST'){
@@ -287,6 +324,14 @@ async function main(){
   await page.waitForFunction(()=>localStorage.getItem('loggedIn')==='true');
   stage='dashboard';await page.locator('#dashboard').waitFor({state:'visible'});
   assert.equal(await page.locator('#dash-name').textContent(),account.username);
+  if(popupGroup==='provider-migration'){
+   stage='Migration actual source graph create';
+   migrationRootId=require('node:crypto').randomUUID();migrationChildId=require('node:crypto').randomUUID();const operation=require('node:crypto').randomUUID();
+   const created=await context.request.post(proxyOrigin+'/api/data/save-holon',{headers:{Authorization:'Bearer '+ownedToken,'Idempotency-Key':operation},data:{holon:{id:migrationRootId,name:'Owned migration root',children:[{id:migrationChildId,parentHolonId:migrationRootId,name:'Owned migration child'}]},saveChildren:true,recursive:true,providerType:'MongoDBOASIS',operationId:operation,expectedRevisions:{[migrationRootId]:null,[migrationChildId]:null}}});
+   const wrapped=await created.json(),saved=wrapped.result;
+   httpFacts.push({path:'/api/data/save-holon',status:created.status(),isError:saved?.isError===true,...(typeof saved?.errorCode==='string'&&/^[A-Z0-9_]{1,80}$/.test(saved.errorCode)?{errorCode:saved.errorCode}:{})});
+   assert.equal(created.status(),200);assert.equal(saved.isError,false);assert.equal(saved.isSaved,true);assert.equal(saved.result.id,migrationRootId);assert.ok(saved.result.children.some(row=>row.id===migrationChildId));
+  }
   if(popupGroup==='web5-depth'){
    stage='Catalogue create actual OAPP graph';const operationId=require('node:crypto').randomUUID();
    const rootId=require('node:crypto').randomUUID(),child={id:require('node:crypto').randomUUID(),parentHolonId:rootId,holonType:'Holon',name:'Owned catalogue child',description:'Actual selected descendant'};
@@ -327,6 +372,29 @@ async function main(){
     }catch(error){console.error('PORTAL_STARTUP_POPUP_CLOSE_FAILURE:'+JSON.stringify({name,errorType:error.name,path:new URL(page.url()).pathname}));closePassed=false;passed=false;if(observedStage===name)observedStage=name+' close';}
     outcomes.push({name,passed,stage:observedStage,closePassed});
    }
+   await checkPopup('Migration','#provider-migration-modal-close-btn',async()=>{
+    stage='Migration registered real providers';await page.evaluate(()=>window.openProviderMigrationModal());
+    await page.locator('#pmig-form:not([hidden])').waitFor({state:'visible'});
+    await page.locator('#pmig-holon-id').fill(migrationRootId);await page.locator('#pmig-src').selectOption('MongoDBOASIS');await page.locator('#pmig-dst').selectOption('SQLLiteDBOASIS');
+    stage='Migration real source preview';await page.locator('#pmig-preview-source').click();
+    await page.waitForFunction(()=>document.getElementById('pmig-preview').textContent.includes('Source: Owned migration root')&&document.getElementById('pmig-preview').textContent.includes('MongoDBOASIS'));
+    stage='Migration real destination copy';await page.locator('#pmig-form button[type="submit"]').click();
+    await page.waitForFunction(id=>document.getElementById('pmig-status').textContent==='Copy confirmed by WEB4 for '+id+'.',migrationRootId);
+    stage='Migration real destination preview';await page.locator('#pmig-preview-destination').click();
+    await page.waitForFunction(()=>document.getElementById('pmig-preview').textContent.includes('Destination: Owned migration root')&&document.getElementById('pmig-preview').textContent.includes('SQLLiteDBOASIS'));
+    stage='Migration independent graph readback';
+    for(const provider of ['MongoDBOASIS','SQLLiteDBOASIS']){
+     const read=await context.request.post(proxyOrigin+'/api/data/load-holon',{headers:{Authorization:'Bearer '+ownedToken,'Idempotency-Key':require('node:crypto').randomUUID()},data:{id:migrationRootId,providerType:provider,loadChildren:true,recursive:true}});
+     const body=await read.json(),loaded=body.result;
+     httpFacts.push({path:'/api/data/load-holon',status:read.status(),isError:loaded?.isError===true,migrationShape:{provider,rootPresent:loaded?.result?.id===migrationRootId,childPresent:Array.isArray(loaded?.result?.children)&&loaded.result.children.some(row=>row.id===migrationChildId),childCount:Array.isArray(loaded?.result?.children)?loaded.result.children.length:0},...(typeof loaded?.errorCode==='string'&&/^[A-Z0-9_]{1,80}$/.test(loaded.errorCode)?{errorCode:loaded.errorCode}:{})});
+     assert.equal(read.status(),200);assert.equal(loaded.isError,false);assert.equal(loaded.result.name,'Owned migration root');assert.ok(loaded.result.children.some(row=>row.id===migrationChildId&&row.parentHolonId===migrationRootId));
+    }
+    assert.equal(migrationCopies,1);assert.deepEqual(migrationReads,{MongoDBOASIS:1,SQLLiteDBOASIS:1});
+    stage='Migration persisted native SQLite';
+    const owner='oasis_startup_'+process.env.GITHUB_RUN_ID+'_'+process.env.GITHUB_RUN_ATTEMPT;assert.match(owner,/^oasis_startup_[0-9]+_[0-9]+$/);
+    const check="const fs=require('fs'),assert=require('assert/strict');const p="+JSON.stringify('/tmp/'+owner+'_migration.sqlite')+";assert.ok(fs.statSync(p).isFile());const fd=fs.openSync(p,'r'),header=Buffer.alloc(16);try{fs.readSync(fd,header,0,16,0);}finally{fs.closeSync(fd);}assert.equal(header.subarray(0,15).toString('ascii'),'SQLite format 3');assert.equal(header[15],0);";
+    execFileSync('docker',['exec',owner+'_api','node','-e',check],{encoding:'utf8',timeout:15000});
+   });
    await checkPopup('OappMap','#oapp-map-modal-close-btn',async()=>{
     stage='OAPP map explicit depth';const [response]=await Promise.all([page.waitForResponse(r=>new URL(r.url()).pathname.toLowerCase()==='/api/oapps'),page.evaluate(()=>window.openOappMapModal())]);
     assert.equal(new URL(response.url()).searchParams.get('loadChildren'),'true');const raw=await response.json();assert.equal(raw.isError,false);assert.ok(Array.isArray(raw.result));assert.equal(raw.result.length,popupGroup==='web5-depth'?1:0);
