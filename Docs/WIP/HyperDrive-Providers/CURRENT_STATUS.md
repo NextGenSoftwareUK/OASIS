@@ -11,12 +11,13 @@ WEB6/WEB7/WEB9 deployments for8c7a3148 failed at the unconditional Miden SDK ins
 | Scope | Done/total | Evidence / limits |
 |---|---|---|
 | Tracked provider-project inventory | 238/238 | Exact tracked project-path set matches matrix;75non-storage and163storage/specialized. Includes legacy variants, not active backend admission. Earlier234/56/178headline was stale. |
-| Matrix native core-storage baseline rows | 122/163 | Both26-check modes recorded. This inventory tally combines historical accepted evidence; it is not122current-graph/hosted/all-interface certifications. |
+| Matrix native core-storage baseline rows | 123/163 | Both26-check modes recorded. This inventory tally combines historical accepted evidence; it is not123current-graph/hosted/all-interface certifications. |
 | Requested Firebase/Turso/PocketBase current-source rechecks | 3/3 | CI46099124837,46099193518,46103379382; own real fixtures and cleanup. |
 | Existing accepted CI receipts reconciled | 19/19 |17cloud-native +2Redis-family; exact provider trees unchanged. No reruns.14not-run and2smoke-only rows corrected;3already recorded. |
 | Recovered older search native receipts | 4/4 | OpenSearch source-matched pass retained; Meilisearch/Solr failures and Weaviate source changes now have separate current-source passes below. Older receipts retained, no double credit. |
 | Meilisearch/Solr current-source rechecks | 2/2 | CI46117709175and46117714885,52/52each, zero skips, exact Development67663f814422tree and owned cleanup. Existing Core fix reused. |
 | Weaviate changed-source native gate | 1/1 | CI46118279343,52/52, zero skips, exact Development67663f814422 tree and owned cleanup. |
+| New Garnet native gate | 1/1 | CI46122538895;52/52, zero skips, native DBSIZE0 and owned cleanup. |
 | New Typesense native gate | 1/1 | CI46114331452;26sync+26async, zero skips, native empty collections and owned volume cleanup. |
 | New Elasticsearch/Qdrant native gates | 2/2 | CI46111639871;52/52 each, zero skips, native empty stores and owned cleanup. |
 | Canonical public storage-switch regression | 2/2 | CI46109531969, real SQLite/LocalFile, zero skips. WEB4 shipping build46109274477passed. |
