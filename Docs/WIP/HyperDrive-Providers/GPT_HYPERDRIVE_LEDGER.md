@@ -126,3 +126,8 @@ Native/browser46130012906passed1/1provider migration journey: actual password-is
 ## 2026-11-28 — real OAPP error acceptance
 
 CI46132041520passed1/1new API contract probe through the actual current WEB5 SDK and shipping WEB5 source2e8ae614, ONODE.Coref2c6b219/STARfdc8e3a3. A cold missing-ID read returns declared400, IsError=true, OASIS_RECORD_NOT_FOUND and No Holon Found even with the isolated legacy test-data setting enabled. Original populated Map/Launcher46126474607was not rerun. Artifact15257639687(3232bytes) inspected in RAM: all5Startup cleanup conditions true; publish/browser/cache/TLS outputs absent. No shared Atlas, source DNA/Railway settings change, local runtime/download/build/database/results or new owner action. Native storage baseline123/163unchanged. Whole OPORTAL and global HyperDrive gates remain open.
+
+
+## 2026-11-28 — dev deployment metadata
+
+GitHub deployment statuses for Development5b28612aa73are7/7SUCCESS (last WEB4 update09:44:37UTC), checked through GitHub metadata only. Portaldevfe794415Vercel status SUCCESS and one static portal.html request returned200 with migration controls/current3SDK cache keys. No hosted sign-in/browser/API/database verification is implied. Core1b24c629AvatarManager tree matches recovery-qualified6247348c (read-only diff empty). No shared Atlas operations.

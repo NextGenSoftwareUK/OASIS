@@ -13,6 +13,14 @@
       "migrationControls": true,
       "currentSdkCacheKeys": "3/3",
       "scope": "One static HTML request; no browser execution/sign-in/backend request"
+    },
+    "deploymentMetadata": {
+      "oasisRevision": "5b28612aa73dbd1836630b661b8d72131ffb33c6",
+      "done": 7,
+      "total": 7,
+      "status": "success",
+      "lastUpdated": "2026-11-28T09:44:37Z",
+      "scope": "GitHub deployment metadata only, not hosted functional acceptance"
     }
   },
   "providers": {
