@@ -322,6 +322,30 @@
       "report": "TestResults/HyperDrive-Providers/CloudflareCurrent/conformance-controlled-current.json",
       "sha256": "9cf5b1d9580db76ea77a53a3de73e192d01a6eff974b9f1300e5dc70f2839107",
       "blockers": []
+    },
+    {
+      "provider": "FirebaseOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/firebaseoasis-development-2026-11-27.json",
+      "sha256": "16f29990903d2b086d8d12bd53ea8aa004886ea9368d2a5bcade5eff4b642d36",
+      "blockers": [
+        "Current Development d91bf074fa16a7e6f15f78fd87ad7314c90d72c7 passed native suite in CI 46099124837 with owned cleanup. Hosted credentials/rules, retained data and full-interface acceptance remain separate."
+      ]
+    },
+    {
+      "provider": "TursoOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/tursooasis-development-2026-11-27.json",
+      "sha256": "8de8a07cde86ed3a691c7858197c09ea91a27a8a3b66ca67e1fb6c31b8a8aec3",
+      "blockers": [
+        "Current Development d91bf074fa16a7e6f15f78fd87ad7314c90d72c7 passed native suite in CI 46099193518 with owned cleanup. Hosted credentials/rules, retained data and full-interface acceptance remain separate."
+      ]
     }
   ],
   "providerBlockers": {
@@ -399,7 +423,7 @@
       "Native core-storage-v2 baseline52/52 verified in fresh isolated demo Pod on retained pinned CSS environment, sync/async26 each and exact fixture cleanup complete.362 controlled tests pass. Original delete outcomes independently reconciled without replay. CQL point/index profile and full common demo remain open; storage conformance is not CQL enrollment."
     ],
     "FirebaseOASIS": [
-      "Firebase Realtime Database REST adapter:23 controlled tests pass after read/protocol error preservation and JSON-safe query encoding;15 regression cases reproduced red before fix. Native shared-suite binding and Realtime Database runtime/access pending. Existing Firestore emulator is a different product; no native acceptance claim."
+      "Current Development d91bf074fa16a7e6f15f78fd87ad7314c90d72c7 passed native suite in CI 46099124837 with owned cleanup. Hosted credentials/rules, retained data and full-interface acceptance remain separate."
     ],
     "AppwriteOASIS": [
       "Appwrite REST read boundary:19 controlled unit cases pass;13 targeted regressions reproduced red before fixes. HTTP point/page failures and malformed/incomplete envelopes now fail visibly; boolean selector array syntax fixed. Native service, shared-suite run, deployed API query/pagination compatibility and full interfaces remain open."
