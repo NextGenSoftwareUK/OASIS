@@ -22,7 +22,7 @@ public partial class MongoDBOASIS:ICosmicQueryStorageProvider,ICosmicJoinFetchSt
 
     private async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCqlRowsAsync<T>(CosmicQueryPlan<T> plan,
         int maximumResults, CancellationToken cancellationToken, CosmicEntityCompositionPlan<T> composition=null,CosmicSetQueryPlan<T> set=null,
-        Action<MongoCqlCommand> explain=null,MongoCqlJoinFetch joinFetch=null) where T:IHolon
+        Action<MongoCqlCommand> explain=null,MongoCqlJoinFetch joinFetch=null,MongoHeldTransactionCommands held=null) where T:IHolon
     {
         try
         {
@@ -60,13 +60,18 @@ public partial class MongoDBOASIS:ICosmicQueryStorageProvider,ICosmicJoinFetchSt
             if(explain!=null){explain(command);return new OASISResult<IReadOnlyList<IHolon>>(Array.Empty<IHolon>()){IsLoaded=true};}
             if(!IsProviderActivated||_holonRepository is not HolonRepository repository)
                 return CqlFailure("CQL_PROVIDER_NOT_READY","Activate MongoDB before native CQL execution.");
+            if(held!=null&&(!ReferenceEquals(repository,held.Repository)||(plan.Query.ReadAccess==null||!plan.Query.ReadAccess.SamePolicy(held.Access))))
+                return CqlFailure("COSMIC_TRANSACTION_SCOPE_INVALID","The held native owner no longer matches this read policy or storage instance.");
             if(plan.Query.GraphOptions!=null)
             {
+                if(held!=null)throw new NotSupportedException("Held native transactions currently expose bounded flat reads without graph expansion.");
                 var graph=await repository.ExecuteNativeCqlGraphAsync(command,maximumResults,plan.Query.GraphOptions,cancellationToken,plan.Query.ReadAccess).ConfigureAwait(false);
                 graph.IsLoaded=!graph.IsError;
                 return graph;
             }
-            var rows=await repository.ExecuteNativeCqlAsync(command,joinFetch==null?maximumResults:maximumResults+1,cancellationToken,joinFetch).ConfigureAwait(false);
+            var rows=held==null
+                ?await repository.ExecuteNativeCqlAsync(command,joinFetch==null?maximumResults:maximumResults+1,cancellationToken,joinFetch).ConfigureAwait(false)
+                :await repository.ExecuteNativeCqlWithinTransactionAsync(command,maximumResults,held.Session,held.Remaining,cancellationToken).ConfigureAwait(false);
             return new OASISResult<IReadOnlyList<IHolon>>(rows){IsLoaded=true};
         }
         catch(System.IO.InvalidDataException cause){return CqlFailure("CQL_DATA_INVALID",cause.Message,cause);}

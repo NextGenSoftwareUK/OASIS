@@ -120,4 +120,18 @@ public partial class HolonRepository
             }
         cancellationToken.ThrowIfCancellationRequested();return rows.AsReadOnly();
     }
+
+    internal async Task<IReadOnlyList<IHolon>> ExecuteNativeCqlWithinTransactionAsync(MongoCqlCommand command,int maximumResults,
+        IClientSessionHandle session,Func<TimeSpan> remaining,CancellationToken token)
+    {
+        if(session==null||!session.IsInTransaction)throw new InvalidOperationException("A held MongoDB transaction is required.");
+        AggregateOptions Options()
+        {
+            token.ThrowIfCancellationRequested();var duration=remaining();
+            if(duration<=TimeSpan.Zero)throw new MongoCqlGraphTimeoutException();
+            return new AggregateOptions{Collation=Collation.Simple,MaxTime=TimeSpan.FromMilliseconds(Math.Ceiling(duration.TotalMilliseconds)),
+                BatchSize=16,AllowDiskUse=false};
+        }
+        return await ReadNativeCqlRowsAsync(command,maximumResults,64*1024*1024,session,Options,token).ConfigureAwait(false);
+    }
 }
