@@ -87,7 +87,7 @@ def main():
     processes=ExitStack();web5_process=None;catalogue_proxy=None
     web5_app=os.environ.get('OASIS_STARTUP_WEB5_APP', '')
     popup_group=os.environ.get('OASIS_STARTUP_POPUP_GROUP', '') or 'none'
-    if popup_group not in ('none', 'map-visit', 'map-search', 'map-renderer', 'map-geo', 'map-places', 'onet', 'web5-diff', 'web5-errors', 'provider-migration', 'web5-depth', 'nft', 'data', 'data-crud', 'data-edit', 'files-write', 'map-route', 'messaging', 'messaging-read', 'chat', 'chat-directory', 'directory-message', 'clan', 'portal-breadth', 'chat-hyperdrive', 'data-messaging', 'nft-messaging-data', 'social-activity', 'account-recovery'):
+    if popup_group not in ('none', 'clan-leave', 'clan-membership', 'map-purpose', 'map-visit', 'map-search', 'map-renderer', 'map-geo', 'map-places', 'onet', 'web5-diff', 'web5-errors', 'provider-migration', 'web5-depth', 'nft', 'data', 'data-crud', 'data-edit', 'files-write', 'map-route', 'messaging', 'messaging-read', 'chat', 'chat-directory', 'directory-message', 'clan', 'portal-breadth', 'chat-hyperdrive', 'data-messaging', 'nft-messaging-data', 'social-activity', 'account-recovery'):
         raise ValueError('Unknown owned popup group.')
     popup_breadth=os.environ.get('OASIS_STARTUP_POPUP_BREADTH') == 'true'
     if popup_breadth and popup_group != 'none':
@@ -164,7 +164,7 @@ def main():
                     diff_id='-'.join((digest[:8],digest[8:12],digest[12:16],digest[16:20],digest[20:]))
                     admission['routes'] += [{'method':'POST','path':path,'policy':dict(write_policy)}
                         for path in ('/api/holons','/api/holons/'+diff_id+'/publish')]
-                if popup_group == 'map-visit':
+                if popup_group in ('map-visit','map-purpose'):
                     catalogue=admission['routes'][0]['policy']['pricingCatalogueVersion']
                     admission['storageTariffs']=[{'provider':'MongoDBOASIS','operation':operation,'costUsd':0,'catalogueVersion':catalogue}
                         for operation in ('LoadAvatar','LoadHolon','LoadAllHolons','LoadHolonsForParent','LoadHolonsForParentByProviderKey','SaveHolon','SaveHolons','LoadHolonByProviderKey','DeleteHolon','ReadConditionalHolonWriteOutcome','ReadHolonWritePreparation')]
@@ -283,6 +283,14 @@ console.log(JSON.stringify(b));
                 web5_process=processes.enter_context(OwnedWeb5Process(web5_app, web5_dna, web5_environment))
                 browser_env['OASIS_STARTUP_WEB5_URL']=web5_process.url
             browser = run_owned_browser(['node', str(root / 'Scripts/TestHosts/Fixtures/portal-startup-browser.cjs')], browser_env)
+            if popup_group == 'map-purpose' and browser.returncode == 0:
+                purpose_proof=re.search(r'PORTAL_STARTUP_MAP_PURPOSE_CONTRACT:(\{[^\n]*\})',browser.stdout)
+                assert purpose_proof, 'Actual SDK purpose acknowledgement required.'
+                proof=json.loads(purpose_proof.group(1))
+                assert set(proof)=={'actualSdk','jsonStringBody','savedAcknowledgement','persistedPurpose','identityMatched','visitWrites'}
+                assert all(proof[key] is True for key in ('actualSdk','jsonStringBody','savedAcknowledgement','persistedPurpose','identityMatched')) and proof['visitWrites']==1
+                (out/'map-purpose-contract.json').write_text(json.dumps({'source':package['source'],'image':image,'portal':subprocess.check_output(['git','-C',portal_root,'rev-parse','HEAD'],text=True).strip(),'done':1,'total':1,'checks':proof,'hosted':False},indent=2))
+                print('PORTAL_STARTUP_MAP_PURPOSE_CONTRACT:'+json.dumps(proof,separators=(',',':')),flush=True)
             search_proof=re.search(r'PORTAL_STARTUP_MAP_SEARCH_CONTRACTS:(\{[^\n]*\})',browser.stdout)
             if popup_group == 'map-search' and browser.returncode == 0:
                 assert search_proof, 'Real map search transport acknowledgements required.'
@@ -299,7 +307,7 @@ console.log(JSON.stringify(b));
                 assert isinstance(outcomes,list) and 1 <= len(outcomes) <= 3
                 for item in outcomes:
                     assert set(item) <= {'name','passed','stage','closePassed'}
-                    assert item['name'] in ('MapVisit','MapRenderer','MapGeo','MapPlaces','ONET','HolonDiff','CatalogueErrors','Migration','OappMap','Launcher','NFT','Data','DataWrite','FilesWrite','MapRoute','Messaging','MessagingRead','Chat','DirectoryMessage','Clan','HyperDrive','SocialGraph','ActivityFeed','AccountRecovery') and isinstance(item['passed'],bool)
+                    assert item['name'] in ('ClanLeave','ClanMembership','MapVisit','MapRenderer','MapGeo','MapPlaces','ONET','HolonDiff','CatalogueErrors','Migration','OappMap','Launcher','NFT','Data','DataWrite','FilesWrite','MapRoute','Messaging','MessagingRead','Chat','DirectoryMessage','Clan','HyperDrive','SocialGraph','ActivityFeed','AccountRecovery') and isinstance(item['passed'],bool)
                     assert isinstance(item['closePassed'],bool)
                     assert re.fullmatch(r'[A-Za-z0-9 /-]{1,80}',item['stage'])
                 portal_source=subprocess.check_output(['git','-C',portal_root,'rev-parse','HEAD'],text=True).strip()

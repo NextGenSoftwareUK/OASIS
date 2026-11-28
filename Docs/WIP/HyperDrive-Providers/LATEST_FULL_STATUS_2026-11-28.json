@@ -2,10 +2,9 @@
   "date": "2026-11-28",
   "status": "in-progress-not-whole-portal-or-hyperdrive-certified",
   "source": {
-    "oasisDevelopment": "52110089779019065be2ef9dbd720e8962538368",
     "portalDev": "0a3c854185f2b9ae669dcc07733f661a4ae38e22",
-    "portalDocsMain": "400c5975ec142ef735357e29cd5268d3831df179",
-    "corePinned": "fa4ea2e254b59e55ab4c5f4fa031199b887ecabb",
+    "portalDocsMain": "0df89738093eb70f7d51afc963646f791deb8a73",
+    "corePinned": "4b4ee0aa2c154630d1f14247fbf8df10ded2622e",
     "runningCurrentDeploymentsVerified": false,
     "portalStaticAssetsVerified": {
       "url": "https://dev.oportal.oasisomniverse.one/portal.html",
@@ -22,10 +21,22 @@
       "lastUpdated": "2026-11-28T11:14:43Z",
       "scope": "GitHub status metadata only; no hosted sign-in/functionality or current running revision certification"
     },
-    "observationScope": "Shared branch observed before this documentation-only batch; exact native qualifications remain separately source-bound.",
+    "observationScope": "Shared branch observed immediately before this verified scoped batch; the Git revision containing this report defines merged source. Exact native source receipts remain frozen; current merged graph and hosted acceptance are separate.",
     "qualifiedMapApi": "e60162c2aa1f94298a7cac0d1f8fcedd663df15f",
     "qualifiedCore": "f799bc0c97ac2e7150838d615dec4882bca0f491",
-    "integratedCore": "2d076f7cb13d021f3e2ae3aeed05d880d49cd749"
+    "integratedCore": "2d076f7cb13d021f3e2ae3aeed05d880d49cd749",
+    "oasisDevelopmentObservedBeforeBatch": "8143052a4f9e7b729af3106b7ae48d05799ce784",
+    "web6Pinned": "ce6d258c8fa425d84c7c49eb934ee81a540e2b3f",
+    "qualifiedClanActorSource": "e6b5dfdf2c3bfab2fff3bb090506388253a936b0",
+    "qualifiedClanActorCore": "43a70495e4b5722b0f5c0fc148b590e119132013",
+    "previousCompletedDeploymentMetadata": {
+      "oasisRevision": "d22ee3127f3c3e31fe12bc64bd77a6604f26f8df",
+      "done": 7,
+      "total": 7,
+      "status": "success",
+      "scope": "GitHub Railway deployment status metadata only; no hosted sign-in/backend or running-setting verification"
+    },
+    "newActorRolloutVerification": "Pending after scoped integration; prior7/7metadata is historical, no shared backend calls."
   },
   "providers": {
     "trackedProjects": {
@@ -49,8 +60,8 @@
     },
     "fullyAccepted": false,
     "latestSelectedNativeBrowser": {
-      "done": 9,
-      "total": 9,
+      "done": 11,
+      "total": 11,
       "runs": {
         "recovery": 46123580498,
         "populatedMapLauncher": 46126474607,
@@ -59,7 +70,9 @@
         "holonDiff": 46136436169,
         "populatedGeoLayers": 46142470160,
         "mapRenderer": 46146049497,
-        "mapVisit": 46152223451
+        "mapVisit": 46152223451,
+        "clanOwnerRemoval": 46153889539,
+        "clanSelfLeave": 46156859773
       }
     },
     "sdkDelivery": {
@@ -134,6 +147,31 @@
       "total": 1,
       "run": 46152223451,
       "scope": "One actual UI visit, saved acknowledgement, independent private history/stats and normal close; not physical place karma"
+    },
+    "mapPurpose": {
+      "done": 1,
+      "total": 1,
+      "run": 46153459167,
+      "scope": "Actual delivered SDK JSON-string purpose, saved raw acknowledgement and independent private stored purpose; separate API contract"
+    },
+    "clanOwnerRemoval": {
+      "done": 1,
+      "total": 1,
+      "run": 46153889539,
+      "scope": "Owner UI member removal, independent stored membership/owner and normal close; self-leave separate"
+    },
+    "clanSelfLeave": {
+      "done": 1,
+      "total": 1,
+      "run": 46156859773,
+      "firstFailure": 46154472548,
+      "scope": "Ordinary member UI self-leave, no owner controls, independent membership/owner and authenticated ModifiedByAvatarId, normal close; historical audit untouched"
+    },
+    "clanActorSourceCompiler": {
+      "done": 1,
+      "total": 1,
+      "run": 46156654176,
+      "scope": "Actual shipping MCP tools against exact paired Core; compiler-only, no native MCP/GraphQL/gRPC or hosted actor certification"
     }
   },
   "hyperdrive": {
@@ -153,6 +191,11 @@
       "core": "18dad5ae096288129097a29352de4e010e335c4e",
       "unity": "7e9e3490ce9658e9543dfab6f103120683c76025",
       "status": "Source-only: real public catalogue46140605906timeout/46141372411upstream failure; no visit/karma credit or source promotion."
+    },
+    {
+      "item": "SDK docs generator arity and Map.Search DTO metadata",
+      "branch": "work/gpt-sdk-body-binding",
+      "status": "Claimed source-doc follow-up; runtime SDK unchanged, no accepted native suite replay"
     }
   ],
   "ownerActions": {
@@ -190,5 +233,5 @@
     }
   },
   "completedPendingIntegration": [],
-  "asOfUtc": "2026-11-28T13:58:57.234Z"
+  "asOfUtc": "2026-11-28T14:56:30.910Z"
 }

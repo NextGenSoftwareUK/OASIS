@@ -10,13 +10,18 @@ on:
       - Scripts/TestHosts/owned_docker_resources.py
   workflow_dispatch:
     inputs:
+      clan_actor_compile:
+        description: Compile only changed shipping MCP actor bindings; skip native package journeys
+        required: false
+        type: boolean
+        default: false
       source:
         description: Exact built source commit
         required: true
         type: string
       digest:
-        description: Published full image sha256 digest
-        required: true
+        description: Immutable image digest, required for native package checks
+        required: false
         type: string
       package_profile:
         description: Exact image scope to verify
@@ -68,7 +73,7 @@ on:
         description: New popup journey only; reuses the exact shipping image without rebuilding
         required: false
         type: choice
-        options: [none, map-visit, map-search, map-renderer, map-geo, map-places, onet, web5-diff, web5-errors, provider-migration, web5-depth, nft, data, data-crud, data-edit, files-write, map-route, messaging, messaging-read, chat, chat-directory, directory-message, clan, portal-breadth, chat-hyperdrive, data-messaging, nft-messaging-data, social-activity, account-recovery]
+        options: [none, clan-leave, clan-membership, map-purpose, map-visit, map-search, map-renderer, map-geo, map-places, onet, web5-diff, web5-errors, provider-migration, web5-depth, nft, data, data-crud, data-edit, files-write, map-route, messaging, messaging-read, chat, chat-directory, directory-message, clan, portal-breadth, chat-hyperdrive, data-messaging, nft-messaging-data, social-activity, account-recovery]
         default: none
       retained_waku:
         description: Verify the packaged native Waku runtime with the aged original archive
@@ -93,10 +98,15 @@ jobs:
       - name: Verify startup probe error contract without native images
         run: python3 -B Scripts/TestHosts/test_web4_combined_startup.py
   package:
-    if: github.event_name == 'workflow_dispatch' && inputs.startup_popup_group != 'map-geo' && inputs.startup_popup_group != 'web5-depth' && inputs.startup_popup_group != 'web5-errors' && inputs.startup_popup_group != 'web5-diff'
+    if: github.event_name == 'workflow_dispatch' && !inputs.clan_actor_compile && inputs.startup_popup_group != 'map-geo' && inputs.startup_popup_group != 'web5-depth' && inputs.startup_popup_group != 'web5-errors' && inputs.startup_popup_group != 'web5-diff'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
+      - name: Require an immutable digest for native package checks
+        shell: bash
+        env:
+          NATIVE_DIGEST: ${{ inputs.digest }}
+        run: '[[ "$NATIVE_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]'
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
@@ -313,3 +323,100 @@ jobs:
       portal: ${{ inputs.startup_portal }}
       popup_group: ${{ inputs.startup_popup_group }}
     secrets: inherit
+
+  clan-actor-source:
+    if: github.event_name == 'workflow_dispatch' && inputs.clan_actor_compile
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ inputs.source }}
+          path: OASIS
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - name: Validate exact graph and read non-secret sibling pins
+        id: pins
+        working-directory: OASIS
+        shell: bash
+        env:
+          EXPECTED_SOURCE: ${{ inputs.source }}
+        run: |
+          set -euo pipefail
+          [[ "$EXPECTED_SOURCE" =~ ^[0-9a-f]{40}$ ]]
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE"
+          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          python3 -B Scripts/sync_railway_dependency_manifest.py --check-ref "$EXPECTED_SOURCE"
+          grep -E '^(LIBRARIES_COMMIT|HOLOCHAIN_COMMIT)=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.pins.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.pins.outputs.HOLOCHAIN_COMMIT }}
+          path: holochain-client-csharp
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Own disposable compiler caches
+        shell: bash
+        run: |
+          set -euo pipefail
+          owned="$RUNNER_TEMP/oportal-clan-actor-$GITHUB_RUN_ID"
+          test "$(realpath -m "$owned")" = "$owned"
+          printf '%s\n' "DOTNET_CLI_HOME=$owned/dotnet-home" "NUGET_PACKAGES=$owned/nuget" "NUGET_HTTP_CACHE_PATH=$owned/nuget-http" "DOTNET_CLI_TELEMETRY_OPTOUT=1" "DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1" "DOTNET_GENERATE_ASPNET_CERTIFICATE=false" >> "$GITHUB_ENV"
+      - name: Compile actual shipping MCP tools against paired Core
+        id: compile
+        working-directory: OASIS
+        shell: pwsh
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner oportal-clan-actor-mcp-ci -Operation {
+            dotnet build 'WEB6/NextGenSoftware.OASIS.MCP.Tools/NextGenSoftware.OASIS.MCP.Tools.csproj' -c Release -m:2 -nr:false -p:UseSharedCompilation=false
+            if ($LASTEXITCODE) { throw 'Actual MCP clan actor source compilation failed.' }
+          }
+      - name: Clean owned compiler outputs and retain compact receipt
+        if: always()
+        shell: bash
+        env:
+          EXPECTED_SOURCE: ${{ inputs.source }}
+          COMPILE_OUTCOME: ${{ steps.compile.outcome }}
+        run: |
+          set -euo pipefail
+          workspace="$(realpath "$GITHUB_WORKSPACE")"
+          for name in OASIS NextGenSoftware-Libraries holochain-client-csharp; do
+            repo="$workspace/$name"
+            if [ -d "$repo/.git" ] || [ -f "$repo/.git" ]; then
+              test "$(realpath "$repo")" = "$repo"
+              git -C "$repo" submodule foreach --recursive 'git clean -qfdX'
+              git -C "$repo" clean -qfdX
+            fi
+          done
+          owned="$RUNNER_TEMP/oportal-clan-actor-$GITHUB_RUN_ID"
+          test "$(realpath -m "$owned")" = "$owned"
+          rm -rf -- "$owned"
+          test ! -e "$owned"
+          python3 - <<'PY'
+          import json,os,pathlib
+          receipt={'source':os.environ['EXPECTED_SOURCE'],'mcpCompilerPassed':os.environ['COMPILE_OUTCOME']=='success','ownedIgnoredOutputsCleaned':True,'ownedCacheAbsent':True,'backendCalls':0,'nativeTransportAcceptance':False,'hostedAcceptance':False}
+          pathlib.Path(os.environ['GITHUB_WORKSPACE'],'oportal-clan-actor-source-receipt.json').write_text(json.dumps(receipt,indent=2))
+          PY
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: oportal-clan-actor-source
+          path: oportal-clan-actor-source-receipt.json
+          retention-days: 14
+      - name: Remove uploaded owned receipt
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          receipt="$GITHUB_WORKSPACE/oportal-clan-actor-source-receipt.json"
+          test "$(realpath -m "$receipt")" = "$(realpath "$GITHUB_WORKSPACE")/oportal-clan-actor-source-receipt.json"
+          rm -f -- "$receipt"
