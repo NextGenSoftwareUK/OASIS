@@ -121,3 +121,8 @@ Native/browser46126474607passed2/2new populated OAPP Map/Launcher journeys on cu
 ## 2026-11-28 — provider migration accepted
 
 Native/browser46130012906passed1/1provider migration journey: actual password-issued Wizard, source preview, one Mongo→SQLite copy, destination preview, complete parent/child readback from both stores/source retained, native SQLite file and close. Portalbdbec73c, immutable fbea API image. Artifact15257412281(4462bytes) inspected in RAM;5Startup cleanup flags/package absence/browser-runtime-cache-TLS absence verified. Private bootstrap refs/project/output deleted immediately; copied entry DLL/SQLite file removed with owned API container. Source role seeded through actual shipping provider; no direct DB role patch, synthetic JWT, shared Atlas, real funds or local outputs. Native123/163baseline unchanged; automatic HyperDrive and whole portal remain open. No new owner action.
+
+
+## 2026-11-28 — ONET breadth in progress
+
+Claimed unaccepted ONET popup scope before implementation; CI46132765901runs one real local read/start/stop journey on immutable fbea API and portalfe794415. Existing ONODE native/config tests not repeated. Local browser JavaScript and Python syntax checks passed. No local runtime/download/build/database/results; only source Git objects/private index, index removed immediately. Existing disposable native Mongo/Wizard provider bootstrap and finally cleanup reused. Public discovery/bootstrap/HyperDrive workers disabled in isolated fixture; no shared Atlas or source/deployed DNA changes. No acceptance until native result/cleanup. Native123/163unchanged; OPORTAL/global HyperDrive open.
