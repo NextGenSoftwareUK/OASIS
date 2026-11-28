@@ -2,6 +2,12 @@
 
 Updated2026-11-28UTC. Shared Atlas is not a test backend; protected deliveries535/543 remain untouched. Work uses owned branch refs and isolated CI, preserving concurrent physical checkouts.
 
+## Latest portal continuation — 28 November,11:00UTC
+
+Selected new native/browser continuation6/6(recovery1, populated Map/Launcher2, migration1, ONET1, Holon Diff1), separate OAPP error contract1/1 and SDK delivery3/3. Holon46136436169accepts actual publication/comparison and correct stored-ID seal dispatch, not a particular verification status or cryptographic sealing. Qualified source is integrated Development308ed7cf/Corec0e8f2b8/STARbda2d2a8, preserving CQL49f8f1c7. Hosted rollout acceptance is separate.
+
+Generic app-labelled place visits are implemented in sourceb0c2f5a6/Core18dad5ae/Unity9d4d53c1; immutable WEB4 build46138363710is running. Native API/browser, website/SDK guide checks and Unity hosted/device gates remain open. No shared Atlas test or new owner action. Whole OPORTAL/global HyperDrive remain open;123/163native storage/specialized baseline within238projects unchanged. [Current structured report](LATEST_FULL_STATUS_2026-11-28.json).
+
 ## Latest accepted integrations
 
 OASIS Development `5b28612aa73d` and OPORTAL dev `fe7944157ed9` contain the verified portal continuation. Selected new real native/browser journeys: **4/4** (recovery1, populated Map/Launcher2, provider migration1). Current WEB4/WEB5/WEB6 SDK deliveries: **3/3**. Storage native baseline: **123/163** project rows; **238/238** tracked provider projects inventoried. These counts do not certify all45portal surfaces or global HyperDrive v2 reliability. See `LATEST_FULL_STATUS_2026-11-28.json` and the portal CURRENT_ACCEPTANCE index for remaining scope. Running deployment and hosted acceptance are separate from these saved commits.

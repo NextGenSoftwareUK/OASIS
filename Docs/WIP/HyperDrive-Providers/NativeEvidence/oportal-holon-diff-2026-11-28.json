@@ -1,0 +1,28 @@
+{
+  "date": "2026-11-28",
+  "run": 46136436169,
+  "conclusion": "success",
+  "done": 1,
+  "total": 1,
+  "source": "f6d4d602706b790aa9f33375253ed3bb29530644",
+  "core": "c0e8f2b8e0ffee1a3e8993db5b068ff26ed6c1d8",
+  "star": "bda2d2a8f9a3d2177cadf202771756d9cfb9f333",
+  "control": "a8b6bf2d95b8e7ce6d9810a3ffe7e45f59f8cafe",
+  "portal": "61f68f16cb3defc2729b34e4427be2ff4a364c81",
+  "artifact": 15260206717,
+  "artifactBytes": 3348,
+  "scope": "Cold history, real typed create/two metadata publications, populated UI comparison, stored-ID seal dispatch and close",
+  "sealStatusSpecificOrCryptographicVerificationAccepted": false,
+  "cleanup": {
+    "ownedContainersAbsent": true,
+    "ownedNetworkAbsent": true,
+    "ephemeralDatabaseVolumesRemoved": true,
+    "web5ProcessStopped": true,
+    "web5DnaAbsent": true,
+    "publishBrowserCacheTlsAbsent": true
+  },
+  "sharedAtlasTouched": false,
+  "wholePortalAccepted": false,
+  "nativeBaselineDone": 123,
+  "nativeBaselineTotal": 163
+}

@@ -2,10 +2,10 @@
   "date": "2026-11-28",
   "status": "in-progress-not-whole-portal-or-hyperdrive-certified",
   "source": {
-    "oasisDevelopment": "7c8bb492b613ae653c4dee372588de3efb246ce0",
-    "portalDev": "61f68f16cb3defc2729b34e4427be2ff4a364c81",
-    "portalDocsMain": "e114e9bf0d800ba9199286b306b39f691ddae787",
-    "corePinned": "1b24c6291c6500888d735e9eb9d81b30b802d1e8",
+    "oasisDevelopment": "308ed7cff9f24bf76d6e7d0df7e2b74674d4ca93",
+    "portalDev": "3d2d0b0b1d0d6757877b53e77c876afb2e64d5e7",
+    "portalDocsMain": "d7a73d895b44d17101753e55bff6a8e8a49ec554",
+    "corePinned": "c0e8f2b8e0ffee1a3e8993db5b068ff26ed6c1d8",
     "runningCurrentDeploymentsVerified": false,
     "portalStaticAssetsVerified": {
       "url": "https://dev.oportal.oasisomniverse.one/portal.html",
@@ -15,12 +15,12 @@
       "scope": "One static HTML request; no browser execution/sign-in/backend request"
     },
     "deploymentMetadata": {
-      "oasisRevision": "5b28612aa73dbd1836630b661b8d72131ffb33c6",
+      "oasisRevision": "7c8bb492b613ae653c4dee372588de3efb246ce0",
       "done": 7,
       "total": 7,
       "status": "success",
-      "lastUpdated": "2026-11-28T09:44:37Z",
-      "scope": "GitHub deployment metadata only, not hosted functional acceptance"
+      "lastUpdated": "2026-11-28T10:16:07Z",
+      "scope": "GitHub deployment metadata only; no hosted sign-in or functional certification"
     }
   },
   "providers": {
@@ -45,13 +45,14 @@
     },
     "fullyAccepted": false,
     "latestSelectedNativeBrowser": {
-      "done": 5,
-      "total": 5,
+      "done": 6,
+      "total": 6,
       "runs": {
         "recovery": 46123580498,
         "populatedMapLauncher": 46126474607,
         "providerMigration": 46130012906,
-        "onet": 46133501110
+        "onet": 46133501110,
+        "holonDiff": 46136436169
       }
     },
     "sdkDelivery": {
@@ -81,6 +82,13 @@
       "total": 1,
       "run": 46133501110,
       "scope": "Real reads and local start/stop; peer/broadcast/HoloNET/hosted remain open"
+    },
+    "holonDiff": {
+      "done": 1,
+      "total": 1,
+      "run": 46136436169,
+      "scope": "Cold history, real two metadata publications, populated comparison, distinct stored-ID seal dispatch and close",
+      "specificSealStatusOrCryptographicVerificationAccepted": false
     }
   },
   "hyperdrive": {
@@ -94,12 +102,13 @@
   },
   "activeWork": [
     {
-      "item": "Holon Diff recovered shared startup and real published-version browser flow",
-      "branch": "work/gpt-oportal-holon-diff",
-      "source": "233dad7b2e7e5f01060ef5f855674a8b90187354",
-      "control": "b0334d9781d906c8beba89c1e4a02ec7b3613fce",
-      "run": 46134066175,
-      "status": "running; not accepted or deployed"
+      "item": "Generic application-labelled place visits and Our World/OPORTAL map integration",
+      "branch": "work/gpt-oportal-map-integration",
+      "source": "b0c2f5a6a5cda64b607594096189d4f02833a18b",
+      "core": "18dad5ae096288129097a29352de4e010e335c4e",
+      "unity": "9d4d53c1137cdad67415b2668ad5cebd38f6d6c0",
+      "imageBuild": 46138363710,
+      "status": "source implemented, image build running; native API/browser and guide synchronization pending"
     }
   ],
   "ownerActions": {
@@ -125,16 +134,12 @@
     "releaseGates": "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md",
     "portal": "https://github.com/NextGenSoftwareUK/OPORTAL-JS/blob/dev/Docs/WIP/CURRENT_ACCEPTANCE.md"
   },
-  "completedPendingIntegration": [
-    {
-      "item": "Truthful OAPP detail errors",
-      "candidate": "5e225f8d7ba9d59670a764a22874576afca5387e",
-      "run": 46132041520
-    },
-    {
-      "item": "ONET reads/local lifecycle qualification",
-      "source": "4de930514ea6e58f980ba8fa275023b9253cb08c",
-      "run": 46133501110
-    }
-  ]
+  "completedPendingIntegration": [],
+  "latestIntegrated": {
+    "commit": "308ed7cff9f24bf76d6e7d0df7e2b74674d4ca93",
+    "integratedAt": "2026-11-28T11:00:50Z",
+    "scope": "Qualified Holon history/publication/comparison and metadata-read tariff contract",
+    "run": 46136436169,
+    "hostedFunctionalAcceptance": false
+  }
 }
