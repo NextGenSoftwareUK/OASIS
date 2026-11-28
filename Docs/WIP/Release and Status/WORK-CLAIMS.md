@@ -204,4 +204,4 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 
 | AvatarManager recovery root fixes exposed by real browser46119731964: anonymous cache dereference, write-error acknowledgement, one-day token lifetime and default reset page path | OPORTAL/Core recovery | local: gpt-hyperdrive | work/gpt-oportal-account-recovery | 2026-11-28T07:09:40.664Z | IN PROGRESS; preserve Core0fd03de/COSMIC, real shipping image required before acceptance |
 
-| GarnetOASIS native core-storage52 acceptance using existing Redis-family shipping SDK and isolated official server; skip accepted KeyDB/Dragonfly cases | HyperDrive providers | local: gpt-hyperdrive | work/gpt-garnet-native-storage | 2026-11-28T07:24:37.365Z | IN PROGRESS; account recovery image46120364405continues independently |
+| GarnetOASIS native core-storage52 acceptance using existing Redis-family shipping SDK and isolated official server; skip accepted KeyDB/Dragonfly cases | HyperDrive providers | local: gpt-hyperdrive | work/gpt-garnet-native-storage | 2026-11-28T07:24:37.365Z | DONE 3cb6bbe7ed6a; native CI46122538895passed52/52; cleanup verified; hosted durability separate |
