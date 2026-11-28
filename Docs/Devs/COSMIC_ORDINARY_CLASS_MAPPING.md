@@ -1,6 +1,6 @@
 # Ordinary classes in COSMIC ORM
 
-Qualification: implementation published on work/gpt-m01; native three-store acceptance and Development deployment remain pending. Exact evidence belongs in Docs/WIP/COSMIC ORM/GPT_M01_LEDGER_2026-11-28.md.
+Qualification: native MongoDB, SQLite and Neo4j acceptance plus actual WEB4 build passed46104535369 on Core0623246c. Development integration/deployment remains pending. Exact evidence belongs in Docs/WIP/COSMIC ORM/GPT_M01_LEDGER_2026-11-28.md.
 
 Business classes need no Holon base, IHolon interface, OASIS attributes or generic new() constraint. An immutable CosmicPocoModel<T> describes stored properties. CosmicPocoContext<T> binds that model to one actor and one shipping provider. Internal canonical Holon envelopes own native identities, audit and accepted revisions; business values use declared metadata fields. Existing native CQL and transaction owners enforce queries, permissions and acknowledged writes.
 
