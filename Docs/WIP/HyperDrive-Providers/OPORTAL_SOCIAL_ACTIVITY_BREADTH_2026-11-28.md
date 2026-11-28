@@ -1,3 +1,5 @@
+> Scope correction2026-11-28: original native Startup run45172482199already accepted Social Graph and Activity Feed. Today’s46118199642is current-router compatibility, not two new completed screens. Earlier preparation text below describes the session discovery sequence. Consult OPORTAL-JS CURRENT_ACCEPTANCE.md before any new dispatch.
+
 # OPORTAL Social Graph and Activity Feed breadth
 
 Status: two new representative shipping-page journeys prepared; CI acceptance pending. Existing accepted popup journeys are not selected or repeated.

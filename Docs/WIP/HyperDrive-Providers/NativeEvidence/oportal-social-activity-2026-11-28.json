@@ -73,5 +73,11 @@
     "No hosted/deployed signed-in acceptance",
     "No populated activity/live-poll acceptance",
     "No paid Stripe or whole-portal acceptance"
-  ]
+  ],
+  "classification": "Current-router compatibility recheck of previously accepted flows; not new functional breadth",
+  "priorAcceptance": {
+    "run": 45172482199,
+    "portal": "bab60d68ff606f6567ec875ded4454bcd82e1807",
+    "report": "OPORTAL-JS/Docs/WIP/COMMUNITY_ACCEPTANCE_2026-11-23.md"
+  }
 }
