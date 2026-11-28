@@ -63,3 +63,7 @@ SQLite compiles each child through the existing set/entity-stage compiler using 
 One shared journey now selects Mongo+SQLite trees (10groups/4IDs/1writebatch/12timings each) plus3existing count controls, requiring5passed cases, actual WEB4 and exact cleanup. The Mongo-only source6402cd13 continues its active46117421264 run; no observation timeout is treated as a failure. This changed combined graph gets its own exact qualification. Full parent rows still OPEN; main144/168 + extension4/13.
 
 Cleanup: retained source-only LocalState/COSMIC/GPT_Q50_SQLITE_TREE_DRAFTS.json. No local build/database/runtime/env/container/image/install/download/archive/shared Atlas/PIPER call or new David action. Source/name parameters are bound; no managed set evaluation or provider fallback.
+
+### Current exact-source gates
+
+Combined Mongo+SQLite tree source7e834b164575 runs46118224678; Mongo-only6402cd13 still runs46117421264. Both handles confirmed live. Next code is Neo recursive selection integrated with existing AppendCqlEntityStages/Publication; failure state must survive windows and every source remain authorized/complete. No native acceptance or full parent credit yet. No local build/env/download/test output; SQLite source-only recovery JSON retained.
