@@ -188,12 +188,14 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 
 | COSMIC Q50/Q51/Q53/Q54 nested set composition and scalar terminals | COSMIC ORM | local: gpt-cosmic | work/gpt-q50 | 2026-11-28T06:48:57.529Z | IN PROGRESS — count3/3 accepted46116059517, batch8ed94e27/Core0fd03ded pushed dev06:31 (next>=07:01). Mongo+SQLite recursive7e834b16/Core4e3e3e85 in CI46118224678 (tree2+count3), predecessor46117421264 still live. Neo/selected trees/SQL/wire open; main144/168 + extension4/13. |
 
-| OPORTAL existing signed-in breadth suite: inspect isolated real-API harness and fill demonstrated screen gaps | OPORTAL | local: gpt-hyperdrive | work/gpt-oportal-isolated-breadth | 2026-11-28T06:20:52.225Z | IN PROGRESS |
+| OPORTAL existing signed-in breadth suite: inspect isolated real-API harness and fill demonstrated screen gaps | OPORTAL | local: gpt-hyperdrive | work/gpt-oportal-isolated-breadth | 2026-11-28T06:20:52.225Z | DONE f6bd091d; router compatibility recheck2/2 CI46118199642; prior45172482199found later, no new-screen credit |
 
 | Reconcile HoloOASIS.Desktop matrix with owner obsolete decision (documentation only; preserve canonical HoloOASIS) | HyperDrive inventory | local: gpt-hyperdrive | work/gpt-provider-obsolete-status | 2026-11-28T06:24:46.581Z | DONE 67663f814422; scoped source/evidence only, known native failures retained |
 
 | Recover existing Meilisearch/OpenSearch/Solr/Weaviate native CI receipts only; preserve original source/CI wiring claim, no backend reruns | HyperDrive evidence | local: gpt-hyperdrive | work/gpt-search-evidence-reconciliation | 2026-11-28T06:29:46.413Z | DONE 67663f814422; scoped source/evidence only, known native failures retained |
 
-| Meilisearch/Solr failed native gates: current-source recheck after existing Corec19b8e1 interface-value creation fix (stale original scope takeover) | HyperDrive providers | local: gpt-hyperdrive | work/gpt-search-native-recheck | 2026-11-28T06:37:10.638Z | IN PROGRESS; retry only two failed providers, no accepted OpenSearch/other suite rerun |
+| Meilisearch/Solr failed native gates: current-source recheck after existing Corec19b8e1 interface-value creation fix (stale original scope takeover) | HyperDrive providers | local: gpt-hyperdrive | work/gpt-search-native-recheck | 2026-11-28T06:37:10.638Z | DONE 1cc45db2; both current52/52 CI46117709175and46117714885 |
 
-| Weaviate current-source native recheck after query-client binding and existing Core deserializer fix (original25Nov scope stale; branch unchanged since26Nov04:09UTC) | HyperDrive providers | local: gpt-hyperdrive | work/gpt-search-native-recheck | 2026-11-28T06:44:58.830Z | IN PROGRESS; preserve12Nov native proof, qualify changed current source only |
+| Weaviate current-source native recheck after query-client binding and existing Core deserializer fix (original25Nov scope stale; branch unchanged since26Nov04:09UTC) | HyperDrive providers | local: gpt-hyperdrive | work/gpt-search-native-recheck | 2026-11-28T06:44:58.830Z | DONE 8e15c7bb; current52/52 CI46118279343 |
+
+| Reconcile existing OPORTAL component acceptance reports with current source inventory before any new test; repair stale central status | OPORTAL evidence | local: gpt-hyperdrive | work/gpt-oportal-isolated-breadth | 2026-11-28T06:52:45.913Z | IN PROGRESS;43loader surfaces + lazy developer + dashboard =45; preserve prior native/Startup proofs |
