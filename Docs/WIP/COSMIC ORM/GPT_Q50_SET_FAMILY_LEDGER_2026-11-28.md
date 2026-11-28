@@ -315,3 +315,8 @@ New backend SQL lowering preserves bounded plain entity sources and post-page en
 - Set-tree parameters and node names have a unique shared namespace; entity work/output parameters use the existing binder. Aggregate snapshot character lower bound is checked before native publication; canonical guard enforces exact UTF8 bytes after transfer.
 - All three new source enrollments are explicit. Existing selected journey now27groups/41timings per provider, same4owned IDs/1successfulwrite. Source kinds/visible aliases, duplicate occurrences, source windows, caller isolation and input bounds before outer Take(0) remain represented. New native3 acceptance pending; Mongo46149700249 and Mongo+SQLite46150404741 CI succeeded separately (artifacts awaiting inspection).
 - Main144/168 extension4/13 unchanged; full parent rows and backend JSON/SQL capture for this source family remain open. Development stays52110089/Corefa4ea2e2; no live promotion from unqualified work. No Atlas/PIPER calls or local builds/installs/databases/worktrees/download files.
+
+
+### 2026-11-28 — first two late identity owners accepted
+- Mongo Root4ba8b8f55128500e84b0d249dcfd748c25767095 CI46149700249 and Mongo+SQLite Roota4643c591ad848af25a9600aed6c1e1b2e13b126 CI46150404741 both SUCCESS on Coreb4ddeb4a. Each archive independently verified:18 entries,18 compiler/15 native, actual WEB4 build, exact cleanup, zero shared database calls. New-owner native scope1/3 then2/3; selected journey27groups/41timings for enrolled owners.
+- Compact receipt records archive SHA256 and original source provenance. ZIPs processed only in RAM and released. Native3 Rootb23498a5 remains pending, independent Neo review found no concrete blockers. Main144/168 extension4/13 unchanged; full parent rows OPEN.
