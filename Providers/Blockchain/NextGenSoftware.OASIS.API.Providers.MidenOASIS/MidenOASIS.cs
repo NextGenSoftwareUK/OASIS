@@ -29,33 +29,38 @@ using NextGenSoftware.OASIS.API.Providers.MidenOASIS.Infrastructure.Services.Mid
 using NextGenSoftware.OASIS.API.Providers.MidenOASIS.Models;
 using NextGenSoftware.OASIS.Common;
 using System.Text.Json;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
 {
-    public partial class MidenOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISBlockchainStorageProvider, IOASISNETProvider, IOASISSmartContractProvider
+    /// <summary>
+    /// Miden provider. OASIS storage is committed to a public Miden account: each record is an encrypted envelope on a
+    /// Kubo node, and the account's <c>oasis::kv</c> storage map holds its SHA-256, written by account transactions through
+    /// the pinned Miden SDK worker (see <see cref="MidenLedgerKeyValueBackend"/>). Avatar, avatar-detail and holon
+    /// semantics come from <see cref="KeyValueStorageProviderBase"/>. Private notes, proofs and the bridge use the Miden services.
+    /// </summary>
+    public partial class MidenOASIS : KeyValueStorageProviderBase, IOASISStorageProvider, IOASISBlockchainStorageProvider, IOASISNETProvider, IOASISSmartContractProvider
     {
-        /// <summary>Miden nodes speak gRPC and keep state in account storage and notes; there is no OASIS record store yet.
-        /// The storage members saved through private notes but loaded and deleted through a REST API (/api/holons) that no
-        /// Miden node serves, so no round trip could succeed; they now fail explicitly until a Miden storage design exists.</summary>
-        private static OASISResult<T> NoRecordStore<T>()
-        {
-            var result = new OASISResult<T>();
-            OASISErrorHandling.HandleError(ref result, "MidenOASIS has no OASIS record store yet; Miden storage requires account storage or notes over the node's gRPC API.");
-            return result;
-        }
-
         private readonly MidenAPIClient _apiClient;
         private readonly string _apiBaseUrl;
         private readonly string _apiKey;
         private readonly string _network;
 
-        private IMidenService _midenService;
-        private MidenBridgeService _bridgeService;
+        private readonly IMidenService _midenService;
+        private readonly MidenBridgeService _bridgeService;
 
-        public MidenOASIS(string apiBaseUrl = null, string apiKey = null, string network = "testnet")
+        /// <param name="rpcUrl">Miden node RPC endpoint used for storage (for example http://127.0.0.1:57291).</param>
+        /// <param name="storageAccountId">Hex id of the public storage account that carries the oasis::kv component.</param>
+        /// <param name="storageKeySeed">32-byte hex seed of the account's Falcon signing key.</param>
+        /// <param name="kuboApi">Kubo HTTP API that holds the encrypted record envelopes.</param>
+        /// <param name="encryptionKey">32-byte record encryption key; envelopes are compressed then encrypted.</param>
+        public MidenOASIS(string apiBaseUrl = null, string apiKey = null, string network = "testnet", string rpcUrl = null,
+            string storageAccountId = null, string storageKeySeed = null, string kuboApi = null, byte[] encryptionKey = null)
+            : base(CreateBackend(rpcUrl, storageAccountId, storageKeySeed, kuboApi, encryptionKey))
         {
             ProviderName = nameof(MidenOASIS);
-            ProviderDescription = "Miden Privacy Provider with STARK Proofs";
+            ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.MidenOASIS);
+            ProviderDescription = "Miden provider - account-storage committed, encrypted record storage and STARK-proven notes";
             this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
             this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
             this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
@@ -67,6 +72,31 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
             _network = network;
 
             _apiClient = new MidenAPIClient(_apiBaseUrl, _apiKey);
+            _midenService = new MidenService(_apiClient);
+            _bridgeService = new MidenBridgeService(_midenService);
+        }
+
+        private static IKeyValueBackend CreateBackend(string rpcUrl, string accountId, string keySeed, string kuboApi, byte[] encryptionKey)
+        {
+            if (rpcUrl == null && accountId == null && keySeed == null && kuboApi == null && encryptionKey == null)
+                return new UnconfiguredMidenStorageBackend();
+            if (string.IsNullOrWhiteSpace(rpcUrl) || string.IsNullOrWhiteSpace(accountId) || string.IsNullOrWhiteSpace(keySeed) || string.IsNullOrWhiteSpace(kuboApi))
+                throw new ArgumentException("Miden storage requires a node RPC endpoint, the storage account id and key seed, and a Kubo endpoint.");
+            if (encryptionKey == null || encryptionKey.Length != 32)
+                throw new ArgumentException("Miden storage requires an explicit 32-byte record encryption key.", nameof(encryptionKey));
+            var ledger = new MidenLedgerKeyValueBackend(new MidenSdkBridge(), rpcUrl, accountId, keySeed, kuboApi);
+            return new PrivateKeyValueBackend(ledger, encryptionKey, compress: true);
+        }
+
+        private sealed class UnconfiguredMidenStorageBackend : IKeyValueBackend
+        {
+            private static Exception Missing() => new InvalidOperationException(
+                "Miden storage requires an explicit node RPC endpoint, storage account, Kubo endpoint and record encryption key.");
+            public Task<string> GetAsync(string key, CancellationToken cancellationToken = default) => Task.FromException<string>(Missing());
+            public Task PutAsync(string key, string value, CancellationToken cancellationToken = default) => Task.FromException(Missing());
+            public Task DeleteAsync(string key, CancellationToken cancellationToken = default) => Task.FromException(Missing());
+            public Task<IReadOnlyList<string>> ListKeysAsync(string prefix, CancellationToken cancellationToken = default) => Task.FromException<IReadOnlyList<string>>(Missing());
+            public Task VerifyAsync(CancellationToken cancellationToken = default) => Task.FromException(Missing());
         }
 
     }

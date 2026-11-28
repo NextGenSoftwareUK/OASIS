@@ -53,6 +53,14 @@
     </ItemGroup>
 
     <ItemGroup>
+      <None Include="SdkBridge\worker.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="MidenSdkBridge\worker.mjs" />
+      <None Include="SdkBridge\oasis_kv.masm" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="MidenSdkBridge\oasis_kv.masm" />
+      <None Include="SdkBridge\package.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="MidenSdkBridge\package.json" />
+      <None Include="SdkBridge\package-lock.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="MidenSdkBridge\package-lock.json" />
+      <InternalsVisibleTo Include="NextGenSoftware.OASIS.API.Providers.MidenOASIS.UnitTests" />
+    </ItemGroup>
+
+    <ItemGroup>
       <None Update="README.md">
         <PackagePath>\</PackagePath>
         <Pack>True</Pack>

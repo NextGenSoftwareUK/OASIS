@@ -34,13 +34,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
 {
     public partial class MidenOASIS
     {
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true) { await Task.CompletedTask; return NoRecordStore<bool>(); }
-
-        public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true) => NoRecordStore<bool>();
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) { await Task.CompletedTask; return NoRecordStore<IEnumerable<IHolon>>(); }
-
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NoRecordStore<IEnumerable<IHolon>>();
 
         public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
         {
@@ -99,22 +92,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
             }
             return result;
         }
-
-        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0) { await Task.CompletedTask; return NoRecordStore<IEnumerable<IAvatarDetail>>(); }
-
-        public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0) => NoRecordStore<IEnumerable<IAvatarDetail>>();
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) { await Task.CompletedTask; return NoRecordStore<IEnumerable<IHolon>>(); }
-
-        public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => NoRecordStore<IEnumerable<IHolon>>();
-
-        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons) { await Task.CompletedTask; return NoRecordStore<bool>(); }
-
-        public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => NoRecordStore<bool>();
-
-        public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) => NoRecordStore<ISearchResults>();
-
-        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) { await Task.CompletedTask; return NoRecordStore<ISearchResults>(); }
 
     }
 }
