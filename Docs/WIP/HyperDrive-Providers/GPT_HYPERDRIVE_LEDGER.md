@@ -25,3 +25,7 @@
 - OPORTAL dev/checkout203executed checks pass per target,80authenticated checks skipped. Only artifact-upload quota fails; no unnecessary rerun.35superseded artifacts/9649851300bytes removed, release/latest-good builds retained; exact receipt is in OPORTAL-JS Docs/WIP/CI_ARTIFACT_CLEANUP_2026-11-27.json.
 - Consolidated OPORTAL-CI1 custody and MIDEN-HOSTED1 persistent-fixture actions in the single owner list. Miden accepted source reused; current-graph/shipped-SDK qualification pending46104748678. Public switcher source audit recorded without prematurely running global backend gates.
 - Preserved concurrent COSMIC O07 Core6613656a and dependency manifest. Miden’s superseded queued46104588888 cancelled before replacement; no other agent’s runs cancelled. No local SDK/build/env/download/database/test output or shared Atlas operation. Private indexes removed in finally.
+
+## 2026-11-28 — Miden native lifecycle accepted
+
+Reused Claude0289f57c; completed locked SDK installation in all7shipping API images and normal constructor configuration. CI46106768815 on6fd58ec3 passed26sync+26async and one real worker-loss/reopen/disposal case, zero skips. Disposable ledger/Kubo volumes, SDK fixture stores and published output removed. Runtime signing journals intentionally retained in deterministic account namespaces. No laptop runtime/build/download/output or shared Atlas operation. Rechecks3/3; programme estimate about115/234 unchanged pending consolidated recount. Hosted admission remains MIDEN-HOSTED1. Concurrent COSMIC Core5e8f22d preserved.

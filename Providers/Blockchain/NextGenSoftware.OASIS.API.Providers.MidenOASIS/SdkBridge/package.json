@@ -1,0 +1,8 @@
+{
+  "name": "oasis-miden-sdk-bridge",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@miden-sdk/miden-sdk": "0.18.1"
+  }
+}

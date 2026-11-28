@@ -1,0 +1,12 @@
+# COSMIC current session status
+
+Updated2026-11-28T04:21:28.926Z UTC; session gpt-cosmic.
+
+- Maintained checklist144/168 rows green across the three primary stores. Historical owner baseline130/164 used an older denominator; no existing feature is removed. This session completed3 rows: O07, M01, M09, each native3/3 plus actual WEB4 build and owned cleanup. Existing accepted rows are preserved without agent-initiated rechecks.
+- O07: sourcecdefa9ee/Core6613656a; CI46103037019; integrated Development6f3e. Newer81e also includes it. WEB4 deployment metadata latest81e BUILDING at last observation; no live acceptance inferred.
+- M01: source20ff7eee/Core0623246c; CI46104535369. Ordinary-class/constructor/shadow identity persistence and native queries, tracking, permissions, revisions, soft delete verified.
+- M09: source926bc3f8/Corea30df79c; CI46105605228. Logical composite primary keys use atomic native full-tuple claims, actor-bound lookup, immutable identity and delete/reuse, with rollback proof.
+- This commit combines qualified M01/M09 and the qualified ordinary-XML M04 increment in one Development batch, preserving peer work and the30-minute interval. Runtime acceptance for this new batch remains pending.
+- M04 XML ordinary-class/identity increment: source289471b9/Core5e8f22d7; CI46105933887 passed native3/3, actual WEB4 and exact cleanup. Full M04 remains open for relationships, inheritance/table/schema, custom types and remaining generators, even if this increment passes. Current implementation branchwork/gpt-m04; claims branch is the coordination authority. Full M04 remains IN PROGRESS.
+- SQL/AI search engines stay in backend POST /api/data/query-cql/sql and /ask; browser engine files untouched. Next roadmap phases and all provider priorities remain intact. Owner baseline107 sandbox sources is preserved, not newly retested here. TRON key remains on the existing owner list; hosted Neo4j stays stopped per owner budget decision, with CI containers independent.
+- No application API, PIPER or shared Atlas calls/tests. Native checks use isolated CI stores. No new local runtime/database/build environment/downloaded archive. C free34.94GiB at last measurement. Compact proofs retained; native zips read only in RAM and released. Cleanup exceptions: owned source recovery draft LocalState/COSMIC/GPT_M09_FIXTURE_DRAFT.cs about8KB; generated tool-profile C:/Source/OASIS2/null,1file/36bytes, retained as configuration under source/config preservation policy. No owner action added.
