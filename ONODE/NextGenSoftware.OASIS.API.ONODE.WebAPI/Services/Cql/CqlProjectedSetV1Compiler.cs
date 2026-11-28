@@ -18,16 +18,25 @@ public static partial class CqlV1Compiler
         _=ValidateSetRequest(request,reduction);
         if(request.OutputColumns!=null||request.EntityStages!=null||!UsesSelectedSet(request)||request.IncludeMetadata)
             throw new ArgumentException("Selected sets require explicit selected leaves and no entity metadata expansion.");
-        CosmicProjectionQuery<Holon,CosmicProjectionRecord> Selection(CqlSetV1Source source)
+        CosmicProjectedSetInput<Holon,CosmicProjectionRecord> Leaf(CqlSetV1Source source)
         {
             if(source.Columns==null||source.Columns.Length is <1 or >32)throw new ArgumentException("Select one to32 columns per input.");
-            var selected=RequiredSet(SetSource(source,actor,provider,access).SelectColumns(source.Columns.Select(ProjectionColumn).ToArray()));
-            return source.Stages==null?selected:ApplyCompositionStages(selected,source.Stages);
+            var captured=SetSource(source,actor,provider,access);var columns=source.Columns.Select(ProjectionColumn).ToArray();
+            if(source.EntityStages!=null)
+            {
+                var entity=ApplyEntitySourceStages(RequiredSet(captured.Compose()),source.EntityStages);
+                var entitySelection=RequiredSet(entity.SelectColumns(columns));
+                if(source.Stages!=null)entitySelection=RequiredSet(entitySelection.WithSelectedPipeline(ApplyCompositionStages(entitySelection.Selection,source.Stages)));
+                return RequiredSet(CosmicProjectedSetInput<Holon,CosmicProjectionRecord>.FromEntityProjection(entitySelection));
+            }
+            var selected=RequiredSet(captured.SelectColumns(columns));
+            if(source.Stages!=null)selected=ApplyCompositionStages(selected,source.Stages);
+            return RequiredSet(CosmicProjectedSetInput<Holon,CosmicProjectionRecord>.FromSource(selected));
         }
         CosmicProjectedSetQuery<Holon,CosmicProjectionRecord> Node(CqlSetV1Node node)
         {
             CosmicProjectedSetInput<Holon,CosmicProjectionRecord> Input(CqlSetV1Source source)=>source.Set==null
-                ?RequiredSet(CosmicProjectedSetInput<Holon,CosmicProjectionRecord>.FromSource(Selection(source)))
+                ?Leaf(source)
                 :RequiredSet(CosmicProjectedSetInput<Holon,CosmicProjectionRecord>.FromSet(Node(source.Set)));
             var query=RequiredSet(CosmicProjectedSetQuery<Holon,CosmicProjectionRecord>.CreateTree(
                 Input(node.Left),Input(node.Right),ParseNativeSetKind(node.Kind)));

@@ -930,6 +930,37 @@
           }
         }
       ]
+    },
+    {
+      "name": "Entity-stage selected set input (qualification pending)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{bearerToken}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "{{$guid}}"
+          }
+        ],
+        "url": "{{web4BaseUrl}}/api/data/query-cql/set",
+        "description": "EntityStages apply after the input source window, before Columns and Stages. Both inputs use the same provider and actor. This is JSON transport; SQL lowering for this input family is separate.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"provider\": \"{{provider}}\",\n  \"kind\": \"Concat\",\n  \"left\": {\n    \"orderBy\": \"Name\",\n    \"take\": 2,\n    \"entityStages\": [\n      {\n        \"operation\": \"Where\",\n        \"where\": {\n          \"kind\": \"Filter\",\n          \"filter\": {\n            \"field\": \"Name\",\n            \"operator\": \"Equal\",\n            \"value\": \"a\"\n          }\n        }\n      }\n    ],\n    \"columns\": [\n      {\n        \"field\": \"Name\",\n        \"alias\": \"Label\"\n      }\n    ]\n  },\n  \"right\": {\n    \"orderBy\": \"Name\",\n    \"take\": 2,\n    \"columns\": [\n      {\n        \"field\": \"Name\",\n        \"alias\": \"Label\"\n      }\n    ]\n  },\n  \"maximumLeftRows\": 8,\n  \"maximumRightRows\": 8,\n  \"maximumResults\": 10\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
     }
   ]
 }

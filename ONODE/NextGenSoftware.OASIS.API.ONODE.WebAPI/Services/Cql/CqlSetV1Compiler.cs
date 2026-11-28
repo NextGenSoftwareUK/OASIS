@@ -37,6 +37,11 @@ public static partial class CqlV1Compiler
     }
 
     private static CosmicSetQuery<Holon> ApplyEntitySetOrdering(CosmicSetQuery<Holon> query,CqlV1Ordering[] ordering)
+        =>ApplyEntityOrdering(query,ordering,(q,d,a)=>new SetOrderingConsumer(q,d,a),q=>RequiredSet(q.ThenBy(row=>row.Id)));
+    private static CosmicEntityCompositionQuery<Holon> ApplyEntitySourceOrdering(CosmicEntityCompositionQuery<Holon> query,CqlV1Ordering[] ordering)
+        =>ApplyEntityOrdering(query,ordering,(q,d,a)=>new EntitySourceOrderingConsumer(q,d,a),q=>RequiredSet(q.ThenBy(row=>row.Id)));
+    private static TQuery ApplyEntityOrdering<TQuery>(TQuery query,CqlV1Ordering[] ordering,
+        Func<TQuery,bool,bool,ISelectionConsumer<TQuery>> consumer,Func<TQuery,TQuery> identityTie)
     {
         if(ordering!=null)
         {
@@ -47,13 +52,21 @@ public static partial class CqlV1Compiler
                 if(term?.Field is not ("Name" or "Description" or "Version" or "Id") || !fields.Add(term.Field))
                     throw new ArgumentException("Set ordering requires unique declared entity fields.");
                 query=CompileSelection(new CqlProjectionV1Column {Alias=term.Field,Field=term.Field},
-                    new SetOrderingConsumer(query,term.Descending,fields.Count>1));
+                    consumer(query,term.Descending,fields.Count>1));
             }
-            if(!fields.Contains("Id"))query=RequiredSet(query.ThenBy(row=>row.Id));
+            if(!fields.Contains("Id"))query=identityTie(query);
         }
         return query;
     }
     private static CosmicSetQuery<Holon> ApplyEntitySetStages(CosmicSetQuery<Holon> query,CqlSetV1EntityStage[] stages)
+        =>ApplyEntityStages(query,stages,(q,p)=>RequiredSet(q.Where(p)),ApplyEntitySetOrdering,
+            (q,count,take)=>RequiredSet(take?q.Take(count):q.Skip(count)),q=>RequiredSet(q.Reverse()));
+    private static CosmicEntityCompositionQuery<Holon> ApplyEntitySourceStages(CosmicEntityCompositionQuery<Holon> query,CqlSetV1EntityStage[] stages)
+        =>ApplyEntityStages(query,stages,(q,p)=>RequiredSet(q.Where(p)),ApplyEntitySourceOrdering,
+            (q,count,take)=>RequiredSet(take?q.Take(count):q.Skip(count)),q=>RequiredSet(q.Reverse()));
+    private static TQuery ApplyEntityStages<TQuery>(TQuery query,CqlSetV1EntityStage[] stages,
+        Func<TQuery,Expression<Func<Holon,bool>>,TQuery> where,Func<TQuery,CqlV1Ordering[],TQuery> ordering,
+        Func<TQuery,int,bool,TQuery> window,Func<TQuery,TQuery> reverse)
     {
         if(stages==null)return query;
         if(stages.Length is <1 or >16)throw new ArgumentException("Use one to16 ordered entity stages.");
@@ -68,24 +81,24 @@ public static partial class CqlV1Compiler
                         throw new ArgumentException("Entity Where requires only a bounded predicate.");
                     ValidateWhere(stage.Where,ref filters,ref relationships);
                     var row=Expression.Parameter(typeof(Holon),"row");
-                    query=RequiredSet(query.Where(Expression.Lambda<Func<Holon,bool>>(WhereExpression(stage.Where,row),row)));
+                    query=where(query,Expression.Lambda<Func<Holon,bool>>(WhereExpression(stage.Where,row),row));
                     break;
                 case "OrderBy":
                     if(stage.Where!=null || stage.Count!=null || stage.Ordering==null)
                         throw new ArgumentException("Entity OrderBy requires only declared ordering terms.");
-                    query=ApplyEntitySetOrdering(query,stage.Ordering);
+                    query=ordering(query,stage.Ordering);
                     break;
                 case "Skip":
                 case "Take":
                     if(stage.Where!=null || stage.Ordering!=null || !stage.Count.HasValue ||
                         stage.Count<0 || stage.Count>(stage.Operation=="Take"?100:10000))
                         throw new ArgumentException("Entity Skip/Take requires only a bounded nonnegative Count.");
-                    query=RequiredSet(stage.Operation=="Take"?query.Take(stage.Count.Value):query.Skip(stage.Count.Value));
+                    query=window(query,stage.Count.Value,stage.Operation=="Take");
                     break;
                 case "Reverse":
                     if(stage.Where!=null || stage.Ordering!=null || stage.Count!=null)
                         throw new ArgumentException("Entity Reverse has no additional fields.");
-                    query=RequiredSet(query.Reverse());break;
+                    query=reverse(query);break;
                 default:throw new ArgumentException("Unknown entity set stage.");
             }
         }
@@ -120,6 +133,13 @@ public static partial class CqlV1Compiler
         :ISelectionConsumer<CosmicSetQuery<Holon>>
     {
         public CosmicSetQuery<Holon> Bind<TValue>(string alias,Expression<Func<Holon,TValue>> selector)
+            =>RequiredSet(append?(descending?source.ThenByDescending(selector):source.ThenBy(selector))
+                :(descending?source.OrderByDescending(selector):source.OrderBy(selector)));
+    }
+    private sealed class EntitySourceOrderingConsumer(CosmicEntityCompositionQuery<Holon> source,bool descending,bool append)
+        :ISelectionConsumer<CosmicEntityCompositionQuery<Holon>>
+    {
+        public CosmicEntityCompositionQuery<Holon> Bind<TValue>(string alias,Expression<Func<Holon,TValue>> selector)
             =>RequiredSet(append?(descending?source.ThenByDescending(selector):source.ThenBy(selector))
                 :(descending?source.OrderByDescending(selector):source.OrderBy(selector)));
     }

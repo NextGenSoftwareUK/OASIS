@@ -30,6 +30,7 @@ internal static class CqlRequestCapture
                 Where=copy.Where,Filters=copy.Filters,AnyOf=copy.AnyOf,AnyChildren=copy.AnyChildren,
                 AnyDescendants=copy.AnyDescendants,OrderBy=copy.OrderBy,Descending=copy.Descending,
                 Skip=copy.Skip,Take=source.Take.HasValue?copy.Take:null,
+                EntityStages=CaptureSetEntityStages(source.EntityStages),
                 Columns=source.Columns==null?null:CaptureColumns(source.Columns),
                 Stages=source.Stages==null?null:CaptureSelectedStages(source.Stages)
             };

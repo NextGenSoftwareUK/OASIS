@@ -249,3 +249,10 @@ Representative selected journey now26groups/37timings: direct ordinary entity-se
 
 
 2026-11-28 source check found the new native fixture needs public runtime-column capture after entity stages; added SelectColumns and exact-source/physical-column WithSelectedPipeline through existing projection capture in Core. This supports the native dynamic-record boundary and the next backend transport work, without a new execution path. Previous candidate23d1 superseded for the missing capture API. No full parity credit before native CI; main144/168 extension4/13 unchanged.
+
+
+## 2026-11-28 backend JSON entity-stage selected operands (qualification pending)
+
+Existing set source DTO now optionally captures EntityStages after the original source window and before Columns/selected Stages. The nullable field is omitted from flat fingerprints. Nested envelopes cannot smuggle leaf stages; entity stages without explicit Columns are rejected. One shared backend validator/order binder handles both entity-set output and entity source stages. The same native FromEntityProjection and exact-source selected pipeline captures are used, not a second execution engine.
+
+Added one compiler/capture control and a real JWT owner/foreign/anonymous set HTTP journey using right-leaf entity stages; expected compiler18/native15/actual WEB4/cleanup. Existing HTTP journey now10groups/28timings/18settled operations, with no new fixture writes. Updated native-data Postman example and contract. Existing generic SDK/MCP JSON forwarding uses the same route; dedicated typed gRPC/GraphQL set operations remain a known gap. SQL text lowering for this input family and identity-set late-projection operands remain OPEN. Main144/168 extension4/13 unchanged; browser engines/shared Atlas/PIPER untouched.

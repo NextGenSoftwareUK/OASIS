@@ -53,5 +53,20 @@ public sealed class CqlRecursiveSetV1CompilerTests
         request.ReductionColumn=null;
         Assert.Throws<ArgumentException>(()=>CqlV1Compiler.CompileProjectedSetReduction(request,Guid.NewGuid(),ProviderType.MongoDBOASIS));
     }
+    [Fact] public void EntityInputStagesCaptureAfterSourceWindowAndRejectNestedSmuggling()
+    {
+        var request=Tree();var leaf=request.Left.Set!.Left;
+        leaf.EntityStages=new[]{new CqlSetV1EntityStage{Operation="Take",Count=1}};
+        var copy=CqlRequestCapture.Capture(request);leaf.EntityStages[0].Count=0;
+        Assert.Equal(1,copy.Left.Set!.Left.EntityStages![0].Count);
+        var actor=Guid.NewGuid();var query=CqlV1Compiler.CompileProjectedSet(copy,actor,ProviderType.MongoDBOASIS);
+        Assert.True(query.HasEntityInputs);var entity=query.LeftSet!.LeftInput.EntityProjection;
+        Assert.NotNull(entity);Assert.Equal(2,entity!.Source.Source.Limit);
+        Assert.Single(entity.Source.Stages);Assert.Equal(actor,entity.Selection.Source.ReadAccess.ActorId);
+        copy.Left.EntityStages=new[]{new CqlSetV1EntityStage{Operation="Take",Count=0}};
+        Assert.Throws<ArgumentException>(()=>CqlV1Compiler.CompileProjectedSet(copy,actor,ProviderType.MongoDBOASIS));
+        copy.Left.EntityStages=null;copy.Left.Set.Left.Columns=null;
+        Assert.Throws<ArgumentException>(()=>CqlV1Compiler.CompileProjectedSet(copy,actor,ProviderType.MongoDBOASIS));
+    }
 
 }

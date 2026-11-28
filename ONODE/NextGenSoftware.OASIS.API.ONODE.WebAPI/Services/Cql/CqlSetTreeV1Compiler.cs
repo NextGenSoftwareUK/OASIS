@@ -26,15 +26,15 @@ public static partial class CqlV1Compiler
             {
                 if(source.Where!=null||source.Filters?.Length is >0||source.AnyOf?.Length is >0
                     ||source.AnyChildren?.Length is >0||source.AnyDescendants?.Length is >0
-                    ||source.Columns!=null||source.Stages!=null||source.OrderBy!="Name"||source.Descending
+                    ||source.Columns!=null||source.Stages!=null||source.EntityStages!=null||source.OrderBy!="Name"||source.Descending
                     ||source.Skip!=0||source.Take.HasValue)
                     throw new ArgumentException("A nested set operand cannot also contain leaf source settings; put its stages inside Set.");
                 return Node(source.Set,depth+1);
             }
             if(++leaves>CosmicSetQuery<Holon>.MaximumTreeLeaves)
                 throw new ArgumentException("The set request exceeds its leaf bound.");
-            if(source.Columns==null&&source.Stages!=null)
-                throw new ArgumentException("Selected input stages require explicit selected columns.");
+            if(source.Columns==null&&(source.Stages!=null||source.EntityStages!=null))
+                throw new ArgumentException("Entity/selected input stages require explicit selected columns.");
             return source.Columns!=null;
         }
         bool Node(CqlSetV1Node node,int depth)

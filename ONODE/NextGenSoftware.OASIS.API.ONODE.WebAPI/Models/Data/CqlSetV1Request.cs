@@ -51,6 +51,9 @@ public sealed class CqlSetV1Source
     public int Skip { get; set; }
     public int? Take { get; set; }
     public CqlProjectionV1Column[]? Columns {get;set;}
+    /// <summary>Native entity stages after this source window and before explicit Columns. Requires Columns.</summary>
+    [JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)]
+    public CqlSetV1EntityStage[]? EntityStages {get;set;}
     /// <summary>Native selected stages after this input window, before set equality.</summary>
     public CqlCompositionV1Stage[]? Stages {get;set;}
     public CqlV1Graph? Graph { get; set; }
