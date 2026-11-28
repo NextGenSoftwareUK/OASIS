@@ -33,3 +33,5 @@ Reused Claude0289f57c; completed locked SDK installation in all7shipping API ima
 ## 2026-11-28 — canonical provider switching (verification pending)
 
 Core907cd4b preserves COSMIC5e8f22d and replaces duplicate registry/selection state with the canonical manager. Activation must succeed before global selection is published; failed activation preserves the healthy borrowed provider and global default. Helper selection delegates to the shared engine. Successful telemetry failures remain explicit warnings rather than falsely reporting an uncommitted transition. Public method manifest synchronized. Compile-only CI first; native control acceptance remains pending. No local build outputs or shared Atlas operations.
+
+- Build46109051091 passed the public method gate and exposed3pre-existing unreviewed CQL routes. Reviewed: sidecar status delegates to supervisor HTTP; sql/ask delegate to the compiled typed CQL boundary. Added only those3inventory rows, without endpoint behavior changes.
