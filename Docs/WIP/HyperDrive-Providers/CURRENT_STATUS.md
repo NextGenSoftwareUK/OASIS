@@ -58,9 +58,7 @@ EclipseOASIS: done by the hyperdrive-triad session (f2717b1b); the duplicate `wo
 
 Classified non-storage: LoomOASIS (PLAN_LOOM_CLASSIFICATION_2026-11-25.md) and FarcasterOASIS (no keyed, durable app-data message type; see FARCASTER_STORAGE_CLASSIFICATION_2026-11-25.md).
 
-Known gap: providers that delegate storage (Eclipse to Solana, Telos to EOSIO) stamp saved records with the inner
-provider's ProviderUniqueStorageKey type; routing by the outer type does not find them. Fix is to make the stamped type
-configurable in SolanaOASIS/EOSIOOASIS.
+Delegated storage identity: Telos and SEEDS now preserve their outer provider keys through EOSIO; saves and provider-key reads use the same canonical app-record repositories. Both modes pass in CI (Telos46101946563; SEEDS46101275004), including key round trips and independent native table cleanup. Eclipse/Solana adaptation remains on `work/gpt-delegated-storage-keys` pending Eclipse CI46101901966.
 
 Summary (cloud-hyperdrive-A, 2026-11-26): every self-hostable storage provider this session took on now passes the
 native core-storage suite in CI (20 above). Nothing self-hostable is left unclaimed; the remaining providers need David:
@@ -71,7 +69,7 @@ native core-storage suite in CI (20 above). Nothing self-hostable is left unclai
 - Decisions needed: retire Fauna, Vercel KV and Polybase (services discontinued); what PLAN is, or retire PLANOASIS;
   approve the pinned community ceramic-one CI image.
 - Classified non-storage: FarcasterOASIS, LoomOASIS.
-- Known gap: delegating providers (Eclipse to Solana, Telos to EOSIO) stamp records with the inner provider type.
+- Remaining delegated-provider gate: Eclipse/Solana, pending the scoped native CI run. Telos/SEEDS canonical identities are verified separately above.
 
 ## Branches
 

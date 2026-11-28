@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "scope": "EOSIO canonical storage identities composed by Telos and SEEDS",
+  "implementationSource": "f750261ca4a1a70b41428f5836c46fc020cca921",
+  "checksPerMode": 26,
+  "modes": [
+    "sync",
+    "async"
+  ],
+  "nativeRuns": [
+    {
+      "provider": "TelosOASIS",
+      "run": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/46101946563",
+      "conclusion": "success"
+    },
+    {
+      "provider": "SEEDSOASIS",
+      "run": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/46101275004",
+      "conclusion": "success"
+    }
+  ],
+  "additional": "Fresh avatars and holons carry outer-provider keys; load by key and avatar update round-trip in both modes.",
+  "cleanup": "Both runs independently verified avatar/avatardetail/holon tables empty and removed owned node/wallet/fixture directories.",
+  "limits": "Eclipse/Solana integration remains on the feature branch; hosted chain acceptance and global HyperDrive v2 gates are not claimed."
+}

@@ -98,6 +98,9 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.IntegrationTests
                 $"{report.CurrentCase}: {report.FailureType} {report.FailureContract}; {report.Passed.Count} checks passed.");
             Assert.IsTrue(report.FixtureCleanupComplete);
             Assert.AreEqual(CoreStorageConformance.ChecksPerMode, report.Passed.Count);
+            await DelegatedStorageIdentityConformance.RunAsync(provider,
+                NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TelosOASIS,
+                NextGenSoftware.OASIS.API.Core.Enums.ProviderType.EOSIOOASIS, mode == "sync");
         }
 
         private static string Require(string name) =>

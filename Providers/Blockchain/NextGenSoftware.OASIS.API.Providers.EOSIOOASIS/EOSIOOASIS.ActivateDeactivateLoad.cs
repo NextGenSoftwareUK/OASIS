@@ -184,7 +184,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
                 result.Result =
                     allAvatarsDTOs
-                        .Select(avatarDto => avatarDto.GetBaseAvatar())
+                        .Select(avatarDto => WithStorageIdentity(avatarDto.GetBaseAvatar()))
                         .ToList();
                 result.IsLoaded = true;
                 result.IsError = false;
@@ -208,7 +208,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
                 result.Result =
                     allAvatarsDTOs
-                        .Select(avatarDto => avatarDto.GetBaseAvatar())
+                        .Select(avatarDto => WithStorageIdentity(avatarDto.GetBaseAvatar()))
                         .ToList();
                 result.IsLoaded = true;
                 result.IsError = false;
@@ -235,7 +235,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             try
             {
                 var avatarDto = await _avatarRepository.Read(Id).ConfigureAwait(false);
-                var avatarEntity = avatarDto is { IsDeleted: false } ? avatarDto.GetBaseAvatar() : null;
+                var avatarEntity = avatarDto is { IsDeleted: false } ? WithStorageIdentity(avatarDto.GetBaseAvatar()) : null;
                 if (avatarEntity == null)
                 {
                     result.IsLoaded = false;
@@ -260,11 +260,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public override Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
             => FindStoredIdentityAsync<IAvatar>(async () => (await _avatarRepository.ReadAll().ConfigureAwait(false))
-                .Select(row => row.GetBaseAvatar()), avatar => avatar.Email, avatarEmail);
+                .Select(row => WithStorageIdentity(row.GetBaseAvatar())), avatar => avatar.Email, avatarEmail);
 
         public override Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
             => FindStoredIdentityAsync<IAvatar>(async () => (await _avatarRepository.ReadAll().ConfigureAwait(false))
-                .Select(row => row.GetBaseAvatar()), avatar => avatar.Username, avatarUsername);
+                .Select(row => WithStorageIdentity(row.GetBaseAvatar())), avatar => avatar.Username, avatarUsername);
 
         private static async Task<OASISResult<T>> FindStoredIdentityAsync<T>(
             Func<Task<IEnumerable<T>>> read, Func<T, string> selector, string value) where T : class
@@ -306,63 +306,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             return LoadAvatarByEmailAsync(avatarEmail, version).Result;
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey,
-            int version = 0)
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
             try
             {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                // Load avatar by provider key from EOSIO blockchain
-                var avatarData = await _eosClient.GetAccount(new GetAccountDtoRequest()
-                {
-                    AccountName = providerKey
-                });
-                if (avatarData != null)
-                {
-                    // Convert EOSIO account data to OASIS Avatar
-                    var avatar = new Avatar
-                    {
-                        Id = CreateDeterministicGuid($"{Core.Enums.ProviderType.EOSIOOASIS}:{avatarData.AccountName ?? "eosio_user"}"),
-                        Username = avatarData.AccountName ?? "",
-                        Email = "", // EOSIO doesn't store email directly
-                        CreatedDate = DateTime.TryParse(avatarData.Created, out var createdDate) ? createdDate : DateTime.UtcNow,
-                        ModifiedDate = DateTime.UtcNow,
-                        AvatarType = new EnumValue<AvatarType>(AvatarType.User),
-                        MetaData = new Dictionary<string, object>
-                        {
-                            ["EOSIOAccountName"] = avatarData.AccountName,
-                            ["EOSIOHeadBlockNum"] = avatarData.HeadBlockNum,
-                            ["EOSIOHeadBlockTime"] = avatarData.HeadBlockTime,
-                            ["EOSIOCoreLiquidBalance"] = avatarData.CoreLiquidBalance,
-                            ["EOSIORamUsage"] = avatarData.RamUsage,
-                            ["EOSIOPrivileged"] = avatarData.Privileged,
-                            ["Provider"] = "EOSIOOASIS"
-                        }
-                    };
-                    result.Result = avatar;
-                    result.IsError = false;
-                    result.Message = "Avatar loaded successfully by provider key from EOSIO";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Avatar not found by provider key on EOSIO blockchain");
-                }
+                return await LoadAvatarAsync(ParseStorageKey(providerKey), version).ConfigureAwait(false);
             }
-            catch (Exception ex)
+            catch (Exception error)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by provider key from EOSIO: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, "EOSIO avatar storage-key lookup failed.", error);
+                return result;
             }
-            return result;
         }
 
         public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
