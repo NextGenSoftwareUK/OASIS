@@ -8,11 +8,12 @@
 - OPORTAL: preserve Claude’s recent fixes, correct verified MCP server source links in separate OPORTAL-JS batch. No new owner action.
 - No shared Atlas tests, protected queue changes, local build/env/download or extra worktree. Temporary indexes removed in finally.
 
-## 2026-11-27 — delegated storage identities (in progress)
+## 2026-11-27 — Antelope composing-provider keys
 
-- Claimed integration of existing `6c95573c` rather than duplicate its implementation. Adapted Eclipse to the newer `_solana` composition.
-- EOSIO invariant: contract record IDs are canonical storage keys. Save/read/delete by provider key must use the same repository and composing-provider type. Avatar/detail snapshots persist keys before commit; caller identity is acknowledged after a successful repository write.
-- Added focused native key round trips for Eclipse and Telos to their existing real Agave/Antelope suites, sync + async. CI pending; no acceptance or Development deployment claimed. SEEDS outer identity requires separate follow-up; existing SEEDS native suite remains part of Antelope regression.
-- No local builds/downloads/envs or shared Atlas calls; private indexes cleaned in finally.
-
-- Follow-up in the same batch: SEEDS also delegates to Telos; claimed separately. Give it an immutable delegate configured for SEEDSOASIS without mutating the injected Telos instance. Route provider-key entry points through that same canonical implementation and add real native key round trips. Telos/EOSIO corrected candidate passed Antelope CI46100505028 (both modes, including SEEDS existing26-check regressions); SEEDS identity changes now require their own acceptance.
+- Integrated the EOSIO/Telos portion of existing6c95573c, then fixed the canonical EOSIO record repository/key mismatch. Avatar/detail saves persist keys in a snapshot; source identity is acknowledged after the repository write.
+- SEEDS uses an immutable Telos storage delegate configured for SEEDSOASIS, preserving the injected Telos instance. Provider-key entry points share the canonical repository implementation.
+- Telos CI46101946563 and SEEDS CI46101275004 pass26sync+26async each plus native provider-key/update round trips; independent tables empty, nodes/wallets/fixtures removed. Earlier constructor/type-check failures are superseded, not counted as acceptance.
+- Eligible verified slice only: Eclipse/Solana source stays on the feature branch pending Eclipse CI46101901966. Solana native26+26 passed within46100237006, which failed later compiling the then-old Eclipse test helper; no green whole-run claim.
+- Programme remains about115/234; existing-provider identity fixes do not add providers. Rechecks2/3, PocketBase retained by its owner. Hosted/global v2 gates stay open.
+- OPORTAL: corrected private-source public-link exposure, runtime label mismatch, bounded transient artifact retention; removed9138068830bytes of superseded failed reports. GitHub quota recount pending; no claim that laptop disk grew by this amount.
+- No local runtime/env/download/build/database/output, no shared Atlas/protected delivery operations. Private Git indexes removed in finally; compact receipts retained.
