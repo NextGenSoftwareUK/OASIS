@@ -282,3 +282,15 @@ New backend SQL lowering preserves bounded plain entity sources and post-page en
 - Exact Root5e07576b9ce2a499e83daf573f3b7d313359b070 / Corecf34fb1ae9a6777e58320d11b8fb24e5dff98481; CI46142342992 SUCCESS:18 compiler controls,15 native journeys across MongoDB/SQLite/Neo4j, actual WEB4 build and exact owned cleanup. Server parser has41 local controls.
 - Native HTTP coverage11 groups/28 timings per provider uses shipping compiler+typed set action. The additional real `/sql` middleware/action check is separately pending46143154521 on5a8241a; review passed, expected12groups/31timings/20settlements. Do not confuse these scopes.
 - Artifact15262986896,17,861bytes/18entries independently verified in RAM, SHA256 d0f98aca28476ad93b978481125a63c6785f83199f5eb2b8d849629b30b7fa6b; no ZIP retained. Shared DB operations0. Main144/168, extension4/13 unchanged; identity-set late projection and standalone staged entity SQL remain open.
+
+
+2026-11-28 SQL endpoint fixture correction:46143154521 failed compilation because the isolated native test project linked CqlTextCompiler but not CqlTextMiddleware or the shipping text action/models. Linked those four exact shipping sources; no duplicate controller or middleware implementation. No native endpoint acceptance claimed. Existing backend SQL46142342992 remains accepted. Local build/download/database outputs0; failed CI owned Mongo stopped by cleanup. Main144/168 extension4/13 unchanged.
+
+
+### 2026-11-28 — direct shipping SQL endpoint native acceptance
+- Root1b18b510fa082e4bfc054c2d94977eccab4b2b57 / Corecf34fb1ae9a6777e58320d11b8fb24e5dff98481; CI46143984744 SUCCESS:18compiler/15native/actualWEB4/exactcleanup. The exact shipping middleware, text controller and request models are linked into the isolated host.
+- Per-store HTTP12groups/31timings: owner, foreign caller and anonymous directly POST SQL text; parse/compiled route headers checked.20 settled native operations with exactly1 provider attempt and1 receipt each; anonymous requests have no reservation. Same1owned record/1write. No WEB6 drafting call, hosted browser acceptance or shared Atlas call is claimed.
+- Artifact15262354681 (17,972bytes),18entries verified in RAM, SHA256 da74cfd8cc877684a7b4e4575d03ebeb47cede195cf064d515c0bd35e5939a40. ZIP buffer released; compact receipt retained. Earlier fixture source-linkage failure46143154521 corrected, no runtime workaround. Main144/168, extension4/13 unchanged.
+
+
+2026-11-28 backend catalogue inspection: configured preset contract currently admits Rows/Federation only. A selected-set SQL preset must get a matching typed preset/admission contract and thin UI treatment; do not relabel a Row preset with different Set SQL. Current advanced set syntax remains available through the backend SQL endpoint and documented/Postman examples. No browser parser/prompt engine copy was edited.

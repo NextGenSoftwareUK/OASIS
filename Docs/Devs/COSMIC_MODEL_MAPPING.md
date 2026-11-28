@@ -484,7 +484,23 @@ Native MongoDB/SQLite/Neo4j qualification46134517647 verified initial acknowledg
 
 ## Registered XML custom scalar types
 
-ImportNHibernateXml(xml, contracts, customTypes) accepts an explicit IReadOnlyDictionary<string,CosmicValueConverter>. A property type attribute may name one of these registrations, for example type="scaled-units" with a CosmicValueConverter<int,long>. The converter ModelType must exactly match that CLR property; storage, typed query parameters, projections, hydration and session updates use its native ProviderType and declared equality/ordering semantics. The application supplies converters; XML cannot instantiate classes, load assemblies or execute callback text. Registered names are frozen during atomic import (up to128 bounded names); later dictionary edits do not change the model. Canonical Holon fields cannot be replaced by custom XML conversions. This scope is scalar property mapping, not full NHibernate IUserType/SQL type/schema/component parity. Native qualification pending.
+ImportNHibernateXml(xml, contracts, customTypes) accepts an explicit IReadOnlyDictionary<string,CosmicValueConverter>. A property type attribute may name one of these registrations, for example type="scaled-units" with a CosmicValueConverter<int,long>. The converter ModelType must exactly match that CLR property; storage, typed query parameters, projections, hydration and session updates use its native ProviderType and declared equality/ordering semantics. The application supplies converters; XML cannot instantiate classes, load assemblies or execute callback text. Registered names are frozen during atomic import (up to128 bounded names); later dictionary edits do not change the model. Canonical Holon fields cannot be replaced by custom XML conversions. This scope is scalar property mapping, not full NHibernate IUserType/SQL type/schema/component parity.
 
 
-Registered XML scalar qualification: exact13a6e233/Core0a4074ec passed46138409566 (native6/admission2/actual WEB4/cleanup) and paired CQL46138409613 (compiler17/native15/actual WEB4/cleanup). This supersedes the pending note above. Full NHibernate XML remains incomplete; Development publication of this slice is still pending the normal cadence.
+Registered XML scalar qualification: exact13a6e233/Core0a4074ec passed46138409566 (native6/admission2/actual WEB4/cleanup) and paired CQL46138409613 (compiler17/native15/actual WEB4/cleanup). Development13a6e233/Core0a4074ec is serving this slice (Railway deployment a426a71c-b9db-4f4d-9cad-efd80049ed79 SUCCESS). Full NHibernate XML remains incomplete; no new hosted data walkthrough is claimed.
+
+
+## Ordinary-class native scalar converters
+
+CosmicPocoModelBuilder<T>.Property(selector).HasConversion(converter) maps a business property through the existing immutable CosmicValueConverter<TModel,TProvider>. The matching XML overload is ImportNHibernateXml(xml, entityName, customTypes); scalar property type names resolve only through that explicit bounded registry. The model property domain must match exactly. XML loads no assemblies or callback code.
+
+The ordinary-class codec writes native provider-domain metadata and decodes it before materialization. Native query binding uses the same converted-value marker as Holon models: typed filters, ordering and projections operate in the declared equality/ordering-preserving provider domain. Model constraints apply after decoding; a prefix or scale does not redefine a business length/precision constraint. Built mappings retain their converters after registry edits or later builder changes. Canonical GUID identity, caller visibility and acknowledged writes retain their existing owners.
+
+Representative MongoDB/SQLite/Neo4j qualification passed46145616196 on52110089/Corefa4ea2e2, with paired CQL46145616238, actual WEB4 build and exact cleanup. Full NHibernate XML relationships, collection mappings, table/schema placement and IUserType parity remain open.
+
+
+## XML scalar bags and sets
+
+For Holon contracts, `<bag name="Tags"><element type="String"/></bag>` binds a List<string> or string[] through the native owned collection codec. `<set name="Numbers"><element type="Int32"/></set>` requires HashSet<int>. The property name is the metadata key; exact scalar element domains are checked against the declared CLR collection. Native bags retain element order, duplicates and nulls; sets retain their scalar set representation. Existing model snapshots, caller permissions and acknowledged writes own execution.
+
+This is owned-value mapping. Explicit tables, relationship keys, collection modifiers, composite element mappings, scalar element converters and ordinary-class XML collections remain separate unsupported scope; they are rejected instead of silently reinterpreted. No additional child table or replicated child holons are invented. Representative3-store qualification passed46145616196 on52110089/Corefa4ea2e2, plus paired CQL46145616238 and exact cleanup. This does not complete M04.

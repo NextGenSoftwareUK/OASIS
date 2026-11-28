@@ -9282,3 +9282,18 @@ Qualified a6407f06/Coreed51f44d in CI46132720360: 16 compiler/capture cases, 15 
 Canonical XML version mapping additionally qualified in46134517647 (native3/admission1/WEB4/exact cleanup), and CQL regression46134517653 passed on the combined Core551ac0d8. All5 XML artifact entries inspected, native stale-write/caller controls verified; independent exact-ref review found no blockers. This supersedes the pending/excluded note above: both qualified increments are included in this one scoped batch. Full M04 and set-parent rows remain open; main144/168 extension4/13 unchanged.
 
 Development49f8f1c7/Core551ac0d8 pushed2026-11-28T10:30:43.703Z. This master update is documentation/evidence only; no runtime or private dependency promotion.
+
+
+### 2026-11-28 — direct shipping SQL endpoint native acceptance
+- Root1b18b510fa082e4bfc054c2d94977eccab4b2b57 / Corecf34fb1ae9a6777e58320d11b8fb24e5dff98481; CI46143984744 SUCCESS:18compiler/15native/actualWEB4/exactcleanup. The exact shipping middleware, text controller and request models are linked into the isolated host.
+- Per-store HTTP12groups/31timings: owner, foreign caller and anonymous directly POST SQL text; parse/compiled route headers checked.20 settled native operations with exactly1 provider attempt and1 receipt each; anonymous requests have no reservation. Same1owned record/1write. No WEB6 drafting call, hosted browser acceptance or shared Atlas call is claimed.
+- Artifact15262354681 (17,972bytes),18entries verified in RAM, SHA256 da74cfd8cc877684a7b4e4575d03ebeb47cede195cf064d515c0bd35e5939a40. ZIP buffer released; compact receipt retained. Earlier fixture source-linkage failure46143154521 corrected, no runtime workaround. Main144/168, extension4/13 unchanged.
+
+
+### 2026-11-28 — ordinary-class converters and scalar XML collections accepted
+- Exact Root52110089779019065be2ef9dbd720e8962538368 / Corefa4ea2e254b59e55ab4c5f4fa031199b887ecabb: XML46145616196 SUCCESS,12native+2admission controls, actualWEB4 and exactcleanup. Paired CQL46145616238 SUCCESS,18compiler+15native, actualWEB4 and exactcleanup. Both exact-ref reviews passed.
+- Independently inspected all32artifact entries in RAM: XML15263856910 SHA256 05dfb549b9c31054809107feaf08b590a2a958e0fa1f8930c7eae54c075af47c (9,277bytes/14entries), paired15263384153 SHA256 c3021c1bb7be529ae21aded179966d55234b3837fe0090f7ce2a0666ab09d613 (17,920bytes/18entries). ZIP buffers released; compact receipt retained.
+- Ordinary-class fluent/XML converters:9checkgroups/9timings per store,2acknowledged writes/1ownedID. Scalar XMLbags/sets:6groups/5timings,2writes/1ID. Prior SQLite raw JsonElement fixture assertion corrected at canonical serialization boundary; allthree now pass.
+- Main144/168, extension4/13 unchanged. Full M04 relationships, composite collection elements, table/schema placement, full IUserType and remaining generators stay open; no full XML parity credit. No Atlas/PIPER calls or data changes, no local builds/installs/DBs/worktrees/download files.
+
+Exact qualified XML candidate52110089/Corefa4ea2e2 published Development2026-11-28T12:48:01.532Z; rollout pending. No local disposable outputs created; RAM archives released.
