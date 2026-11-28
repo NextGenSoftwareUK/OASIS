@@ -4,6 +4,8 @@ on:
   push:
     branches: [work/gpt-m01]
     paths:
+      - "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests.csproj"
+      - "Docker/oasis-dependency-versions.env"
       - "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.OrdinaryClasses.cs"
       - ".github/workflows/qualify-cql-ordinary-class-native.yml"
   workflow_dispatch:
