@@ -598,6 +598,30 @@
       "blockers": [
         "Existing CI45753785312 passed52/52 and independent empty-key checks. Provider tree unchanged throughbfaf7957; hosted/full-interface and shared-graph gates remain separate. No rerun."
       ]
+    },
+    {
+      "provider": "ElasticsearchOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/elasticsearchoasis-ci-2026-11-28.json",
+      "sha256": "d66035c040c3e569742d77b9a5980586e449ee3b5b09434d1d1389d00923ff76",
+      "blockers": [
+        "Native CI46111639871 passed26sync+26async with zero skips, independent empty-store checks and owned cleanup; hosted/full-interface acceptance remains separate."
+      ]
+    },
+    {
+      "provider": "QdrantOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/qdrantoasis-ci-2026-11-28.json",
+      "sha256": "66b4f5d071b5588b0548b10fe8d69bc7ebbe0834dbebeb9efba28cd89c54a7cc",
+      "blockers": [
+        "Native CI46111639871 passed26sync+26async with zero skips, independent empty-store checks and owned cleanup; hosted/full-interface acceptance remains separate."
+      ]
     }
   ],
   "providerBlockers": {
@@ -753,6 +777,12 @@
     ],
     "SignProtocolOASIS": [
       "Accepted existing CI45713760017 native26sync+26async; provider tree unchanged throughbfaf79570927. Hosted custody, full interfaces and retained-data compatibility remain separate. No rerun."
+    ],
+    "ElasticsearchOASIS": [
+      "Native CI46111639871 passed26sync+26async with zero skips, independent empty-store checks and owned cleanup; hosted/full-interface acceptance remains separate."
+    ],
+    "QdrantOASIS": [
+      "Native CI46111639871 passed26sync+26async with zero skips, independent empty-store checks and owned cleanup; hosted/full-interface acceptance remains separate."
     ]
   },
   "suites": [

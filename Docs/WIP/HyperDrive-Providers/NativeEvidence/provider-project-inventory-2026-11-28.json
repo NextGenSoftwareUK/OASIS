@@ -5,7 +5,7 @@
     "projects": 238,
     "nonStorage": 75,
     "storage": 163,
-    "nativeRows": 115
+    "nativeRows": 117
   },
   "providers": [
     {
@@ -1104,7 +1104,7 @@
       "provider": "ElasticsearchOASIS",
       "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS/NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS.csproj",
       "family": "Search/vector storage",
-      "nativeBaseline": false
+      "nativeBaseline": true
     },
     {
       "provider": "FastlyOASIS",
@@ -1272,7 +1272,7 @@
       "provider": "QdrantOASIS",
       "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.QdrantOASIS/NextGenSoftware.OASIS.API.Providers.QdrantOASIS.csproj",
       "family": "Search/vector storage",
-      "nativeBaseline": false
+      "nativeBaseline": true
     },
     {
       "provider": "QuestDBOASIS",

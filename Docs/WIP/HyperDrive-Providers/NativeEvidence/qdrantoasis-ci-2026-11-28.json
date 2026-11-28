@@ -1,0 +1,18 @@
+{
+  "provider": "QdrantOASIS",
+  "suite": "core-storage-v2",
+  "mode": "native",
+  "source": "5f03746c7ac9c6208f33678b387703aa6b62a2cb",
+  "core": "907cd4b46040793f64c9973ad16a8b089bcea637",
+  "run": 46111639871,
+  "url": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/46111639871",
+  "sync": 26,
+  "async": 26,
+  "passed": 52,
+  "total": 52,
+  "skipped": 0,
+  "conclusion": "success",
+  "backend": "Official Qdrant1.16.3 image digest0425e3e03e7fd9b3dc95c4214546afe19de2eb2e28ca621441a56663ac6e1f46",
+  "cleanup": "Per-mode fresh containers removed, native indices/collections empty, report/fixture directory removed by EXIT trap; no local build/download/database or shared Atlas IO",
+  "scope": "Shipping provider/native core-storage suite on recorded source; hosted/full-interface acceptance separate"
+}

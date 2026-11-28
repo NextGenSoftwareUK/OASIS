@@ -7,9 +7,10 @@ Updated2026-11-28UTC. Shared Atlas is not a test backend; protected deliveries53
 | Scope | Done/total | Evidence / limits |
 |---|---|---|
 | Tracked provider-project inventory | 238/238 | Exact tracked project-path set matches matrix;75non-storage and163storage/specialized. Includes legacy variants, not active backend admission. Earlier234/56/178headline was stale. |
-| Matrix native core-storage baseline rows | 115/163 | Both26-check modes recorded. This inventory tally combines historical accepted evidence; it is not115current-graph/hosted/all-interface certifications. |
+| Matrix native core-storage baseline rows | 117/163 | Both26-check modes recorded. This inventory tally combines historical accepted evidence; it is not115current-graph/hosted/all-interface certifications. |
 | Requested Firebase/Turso/PocketBase current-source rechecks | 3/3 | CI46099124837,46099193518,46103379382; own real fixtures and cleanup. |
 | Existing accepted CI receipts reconciled | 19/19 |17cloud-native +2Redis-family; exact provider trees unchanged. No reruns.14not-run and2smoke-only rows corrected;3already recorded. |
+| New Elasticsearch/Qdrant native gates | 2/2 | CI46111639871;52/52 each, zero skips, native empty stores and owned cleanup. |
 | Canonical public storage-switch regression | 2/2 | CI46109531969, real SQLite/LocalFile, zero skips. WEB4 shipping build46109274477passed. |
 
 See [provider matrix](PROVIDER_MATRIX.md), [reconciliation](ACCEPTED_CI_RECONCILIATION_2026-11-28.md), hash-bound NativeEvidence receipts, and [release gates](HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md). The original about115/234programme estimate is historical; do not increase it by requalification/reconciliation counts.

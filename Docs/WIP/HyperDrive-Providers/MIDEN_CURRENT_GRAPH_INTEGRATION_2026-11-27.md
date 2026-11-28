@@ -1,19 +1,15 @@
-# Miden current-graph integration — 2026-11-27
+# Miden shipping SDK and native acceptance — 2026-11-28
 
-Reused Claude’s native implementation0289f57c (52/52 CI45753725053) rather than rewriting it. Applied only its17Miden files to Development6426cde3, preserving all existing Docker memory/on-demand and other-provider work. Core differs (526ebc2b →41e46d93), so current-graph native acceptance is required.
+Reused Claude0289f57c rather than rewriting the native implementation. Published baseline4f826954/CI46104748678 passed52/52. Changed session/store lifecycle6fd58ec3/CI46106768815 passed26sync+26async plus one native worker-loss/reopen/disposal case, zero skips. These use a real disposable miden-node0.18.3network, official @miden-sdk/miden-sdk0.18.1and Kubo.
 
-Shipping gaps fixed: normal constructor reads existing fixture-named environment settings; all7API Docker builds install the locked official SDK into the published bridge; NuGet assets include worker/component/manifests/installer. Native CI uses the same installer and runs from published test output, through the shipping constructor. SDK process remains lazy/long-lived; no startup download is introduced. No DNA setting or deployment secret changed. Hosted account/node/Kubo/encryption-key admission remains separate.
+All7API Docker builds install the locked SDK into the published bridge using the shared installer. Normal constructor configuration reads the fixture-named environment settings; worker/component/manifests/installer are shipping assets. No runtime/startup download is introduced. Shared Core6613656a was used for native lifecycle qualification; later COSMIC-only5e8f22d is preserved inside907cd4b, whose WEB4 shipping build46109274477passed. Hosted credentials/account admission is not implied.
 
-Current CI pending: no100% provider or live acceptance claimed. Temporary npm cache, local-network containers/volumes, fixture and published output have explicit cleanup. No laptop build/download/env/database/test output or shared Atlas calls. Private Git indexes removed in finally.
+Official SDK Node stores persist under ~/.miden/stores. Random names accumulated persistent stores; the shipping worker now reuses a deterministic node/account namespace and preserves runtime signing/journal data. CI supplies absolute .db paths inside its owned fixture, including a separate deployment store. The provider owns both encrypted wrapper and physical SDK backend, and disposal waits for its actual worker exit before fixture deletion.
 
-## Accepted published baseline and lifecycle fix
+A lost worker invalidates session initialization. The failed operation returns an explicit error; a later operation reinitializes without replaying the failed operation. The native lifecycle case verifies an acknowledged record survives worker loss/reopen at the same version and workers exit on disposal.
 
-Current Core6613656a/published SDK/shipping-constructor baseline passed52/52 in CI46104748678. Source4f8269545cb9f9556235fa15d42a75ede18d77fb is retained as accepted evidence.
+Cleanup confirmed in CI: owned node/Kubo containers and volumes, SDK fixture stores and published SDK/test output removed. No laptop runtime, SDK download, environment, build or database created. Private Git indexes removed in finally. Persistent deployed account journals are not disposable cache.
 
-Official SDK0.18.1 source confirms named Node stores persist at `~/.miden/stores/<name>`; the previous random name created a fresh persistent store every worker start. The fix reuses a deterministic node/account namespace and preserves runtime signing/journal data. CI supplies an absolute `.db` path inside its owned fixture. Managed provider disposal owns both crypto wrapper and physical SDK backend, so worker processes exit before fixture deletion. Session initialization is invalidated after a lost worker; a future operation reinitializes without replaying the failed operation.
+Remaining hosted custody is logged once as MIDEN-HOSTED1 in ACTIONS-FOR-DAVID.md. No source DNA setting or Railway secret changed. Native core storage and SDK lifecycle acceptance do not certify all provider capabilities or global HyperDrive v2.
 
-One native lifecycle case verifies explicit error after an injected worker loss, subsequent read/reopen of an acknowledged record at the same version, actual worker exit on disposal, and no SDK home-directory stores in CI. Both26-check modes remain required on the changed initializer. Lifecycle acceptance pending; no global or live-provider100% claim. Official pinned source: https://github.com/0xMiden/web-sdk/blob/v0.18.1/crates/web-client/js/node/client-factory.js
-
-## Accepted lifecycle revision
-
-CI46106768815 on6fd58ec3 passed both26-check modes plus the native SDK lifecycle case, zero skips. Published output and fixture stores were removed. The subsequent merge preserves COSMIC-only Core5e8f22d; its shipping build is checked separately. Hosted admission is not implied.
+Official pinned SDK store contract: https://github.com/0xMiden/web-sdk/blob/v0.18.1/crates/web-client/js/node/client-factory.js
