@@ -68,3 +68,8 @@ No local build/runtime/database/install/worktree/archive, sharedAtlas/PIPER call
 ### 2026-11-28 — private typed transaction after-images
 
 Added a private typed after-image capture to the shared owned-save preparation. It preserves planned identity and parent, does not publish caller values or accept tracking revisions, and lets later session flushes retain native revisions privately. Representative native fixture now asserts the caller remains unassigned and unaccepted after capture. CI qualification pending; O03 remains open and total remains 148/168. No local build outputs, installs, live database calls or owner actions.
+
+
+### 2026-11-28 — shared owned preparation qualified, session acceptance extracted
+
+CI46160301140 passed nine native cases on exact Root233898eb/Core290d4697: three held-owner cases (11 groups/store), three ordinary owned-UOW cases (26 groups/store), and three owned-preparation cases (6 groups/store). All eleven artifact entries verified in memory; WEB4 compiled, owned fixtures absent, shared database calls zero. Paired CQL46160301161 still running. Extracted existing acknowledged session bookkeeping into one method for ordinary and future held-commit use; no public transaction API added. Full O03 still open; main148/168. SQL and Ask engines remain backend-owned, browser unchanged.
