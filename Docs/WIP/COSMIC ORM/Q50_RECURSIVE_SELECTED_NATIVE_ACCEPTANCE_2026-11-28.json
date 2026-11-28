@@ -1,0 +1,63 @@
+{
+  "date": "2026-11-28T07:49:46.400Z",
+  "run": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/46122169495",
+  "root": "7f7974aac772c7ca47a967623a91bb825082c7c0",
+  "core": "c14e31908b3678b8a7e383af2e90d9cf960f3556",
+  "artifact": {
+    "id": 15254526014,
+    "bytes": 4442,
+    "sha256": "70c5d139fcdc1eb8b935bdf18eeae71efdfd13f07901edf2f7669578cc8f9e3b",
+    "inspectedInMemory": true,
+    "retainedEntries": 7,
+    "detailedSelectedJsonAndTrxRetained": false
+  },
+  "source": {
+    "source": "7f7974aac772c7ca47a967623a91bb825082c7c0",
+    "core": "c14e31908b3678b8a7e383af2e90d9cf960f3556",
+    "nativePassed": 12,
+    "nativeSetPublicationCountsVerified": true,
+    "nativeRecursiveEntitySetProviders": [
+      "MongoDBOASIS",
+      "SQLLiteDBOASIS",
+      "Neo4jOASIS"
+    ],
+    "nativeRecursiveSelectedSetProviders": [
+      "MongoDBOASIS",
+      "SQLLiteDBOASIS",
+      "Neo4jOASIS"
+    ],
+    "fullSetParentsComplete": false,
+    "actualWeb4Compiled": true,
+    "ownedFixturesAbsent": true,
+    "sharedDatabaseCalls": 0,
+    "deployed": false
+  },
+  "qualification": {
+    "nativePassed": 12,
+    "recursiveSelectedProviders": [
+      "MongoDBOASIS",
+      "SQLLiteDBOASIS",
+      "Neo4jOASIS"
+    ],
+    "selectedChecksPerProvider": 11,
+    "selectedTimingsPerProvider": 12,
+    "flatTupleControls": 3,
+    "entityAndCountControls": 6,
+    "actualWeb4Compiled": true,
+    "ownedFixturesAbsent": true,
+    "evidenceChain": "Exact-source CI runner asserts all12 TRX results and all selected/flat/entity/count JSON fields before writing source.json; source.json retained and verified.",
+    "retentionGap": "Upload paths retained entity/count reports and source.json only. Next count candidate fixes upload to retain all JSON/TRX. No additional behavior rerun solely for this documentation gap."
+  },
+  "mainDone": 144,
+  "mainTotal": 168,
+  "extensionDone": 4,
+  "extensionTotal": 13,
+  "fullSetParentsComplete": false,
+  "remaining": [
+    "native selected scalar terminals",
+    "backend SQL/wire recursion",
+    "remaining output-shape composition"
+  ],
+  "sharedDatabaseCalls": 0,
+  "deployed": false
+}

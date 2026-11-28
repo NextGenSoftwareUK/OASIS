@@ -29,3 +29,6 @@ SQL and AI Search are backend-owned at **POST /api/data/query-cql/sql** and **/a
 ## Cleanup and test isolation
 
 No local .NET builds, runtimes, environments, databases, containers, images, installs, downloads or artifact archives. Artifact zips inspected only in RAM and released; compact evidence and source-only recovery drafts retained. Owned CI stores/fixtures require exact cleanup and artifacts expire after2days. No shared Atlas/PIPER data/API calls. Last measured free34.19GiB; no reclamation claim. Unrelated working-tree changes/configuration are preserved. Scoped temporary Git index is removed after each commit.
+
+
+Accepted selected-tree/LINQ cohort:46122169495 PASSED12/12 on7f7974aa/Corec14e3190, actual WEB4 and exact cleanup. Every selected report/TRX was checked by the runner before source.json; artifact15254526014 retains source.json+6entity/count reports but omits detailed selected/TRX due stale upload patterns. Retention corrected in the upcoming count candidate. New Count/LongCount/Any/All native headers and no-constructor execution are local source drafts, excluded from this accepted revision. Main144/168 + extension4/13 unchanged.
