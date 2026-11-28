@@ -27,7 +27,7 @@ internal sealed partial class MongoCqlTranslator
     {
         var rows=input.Select(stage=>(BsonDocument)stage.DeepClone()).ToList();
         rows.Add(new("$project",new BsonDocument{{"_id",0},{"rank",1},{"values",new BsonArray(
-            Enumerable.Range(0,intent.ColumnIndex+1).Select(index=>(BsonValue)("$k"+index+".value")))}}));
+            Enumerable.Range(0,intent.ColumnIndex+1).Select(index=>(BsonValue)("$v"+index)))}}));
         return SelectedIntegerReduction(rows,intent);
     }
     internal static CosmicProjectionCompositionExecutionLimits ProjectedSetInputLimits(CosmicProjectionCompositionOptions options)
@@ -43,7 +43,7 @@ internal sealed partial class MongoCqlTranslator
             =>child==null?null:CompileProjectedSet(child,ProjectedSetInputLimits(child.LeftInputOptions),
                 ProjectedSetInputLimits(child.RightInputOptions),collection);
         var leftSet=Child(plan.LeftSet);var rightSet=Child(plan.RightSet);
-        List<BsonDocument> Input(BsonDocument[] pipeline,CosmicProjectionQuery<T,TResult> query,int side)
+        List<BsonDocument> Input(BsonDocument[] pipeline,CosmicProjectionQuery<T,TResult> query,int side,bool subtree)
         {
             var rows=pipeline.Select(stage=>(BsonDocument)stage.DeepClone()).ToList();
             rows.Add(new("$setWindowFields",new BsonDocument{{"sortBy",new BsonDocument("rank",1)},
@@ -51,12 +51,17 @@ internal sealed partial class MongoCqlTranslator
             var fields=new BsonDocument{{"_id",0},{"side",Literal(side)},
                 {"index",new BsonDocument("$subtract",new BsonArray{"$occurrence",1L})}};
             for(var index=0;index<query.OutputColumnIndices.Count;index++)
-                fields.Add("k"+index,"$k"+query.OutputColumnIndices[index]);
+            {
+                var original=query.OutputColumnIndices[index];
+                fields.Add("k"+index,"$k"+original);
+                fields.Add("v"+index,subtree?(BsonValue)("$v"+original)
+                    :new BsonDocument("$arrayElemAt",new BsonArray{"$values",original}));
+            }
             rows.Add(new("$project",fields));return rows;
         }
-        var current=Input(leftSet?.Rows??left.Rows,plan.Query.LeftInput.Anchor,0);
+        var current=Input(leftSet?.Rows??left.Rows,plan.Query.LeftInput.Anchor,0,leftSet!=null);
         current.Add(new("$unionWith",new BsonDocument{{"coll",collection},
-            {"pipeline",new BsonArray(Input(rightSet?.Rows??right.Rows,plan.Query.RightInput.Anchor,1))}}));
+            {"pipeline",new BsonArray(Input(rightSet?.Rows??right.Rows,plan.Query.RightInput.Anchor,1,rightSet!=null))}}));
         if(plan.Query.Kind!=CosmicSetQueryKind.Concat)
         {
             var tuple=new BsonDocument();
