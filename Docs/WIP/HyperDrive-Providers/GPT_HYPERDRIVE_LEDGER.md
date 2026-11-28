@@ -41,3 +41,17 @@ Core907cd4b preserves COSMIC5e8f22d and replaces duplicate registry/selection st
 ## 2026-11-28 — canonical switch accepted, scoped batch ready
 
 Shipping build46109274477 passed3manifest gates and WEB4 compilation. Native46109531969 on5366da3 passed2/2, zero skips, with real SQLite/LocalFile and asserted owned cleanup. Core907cd4b preserves COSMIC5e8f22d; parent manifest/gitlink paired. No local runtime/build/test artifacts or Atlas operations. Docs-only master synchronization excludes executable CSV inventories until source release. Global/hosted v2 acceptance remains open.
+
+## 2026-11-28 — accepted CI evidence reconciliation
+
+Reconciled17/17existing native receipts; provider-directory trees match Developmentbfaf7957. Corrected14stale matrix rows and bound17compact receipts in registry. No reruns/downloads/environments/database/processes; Git objects and compact reports only. Matrix inventory tally113/163native52-check rows; approximate115/234programme carry-forward is not increased by17. Hosted/full-interface/shared-dependency graph gates remain distinct.
+
+- Source reconciliation found the inherited headline stale:238tracked matching provider projects,75matrix non-storage and163storage/specialized. Exact project-path set matches matrix238/238, with no duplicate/missing rows. Inventory includes legacy variants; do not advertise238active/fully implemented backends. Earlier234/56/178are historical.
+
+- Recovered already-green KeyDB/Dragonfly CI45753785312,52/52 each and independent DBSIZE0. Credited original owner claim DONE6b5464451fe; no backend rerun. Reconciliation19/19; matrix115/163native-baseline rows.
+
+- Updated current root guides/README and2oasisweb4.com text nodes to238tracked provider projects; Provider-Summary now163storage/75non-storage with explicit legacy/acceptance limits. Historical dated checkpoints retained. React review: text-only changes; no hooks, fetches, event handlers, imports, bundle, layout or accessibility behavior changed. No build/install required. Separate live-site repositories are being inspected before any scoped count correction.
+
+## 2026-11-28 — Elasticsearch and Qdrant native accepted
+
+Existing shipping-provider suites now run in isolated CI46111639871 on5f03746c7ac9c6208f33678b387703aa6b62a2cb. Both passed26sync+26async, zero skips, independent native empty-store checks and all fixture/container/output cleanup. Existing accepted popular matrix skipped. Native matrix baseline rows117/163; inventory238/75non-storage unchanged. Core README65a90d7 corrects nonexistent migration classes and canonical ownership; its only diff from accepted907cd4b is documentation, so no provider reruns.

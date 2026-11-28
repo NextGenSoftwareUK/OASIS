@@ -1,6 +1,6 @@
 # OASIS Provider Inventory & Roadmap
 
-The [current inventory](WIP/HyperDrive-Providers/PROVIDER_MATRIX.md) lists 234 shipping provider projects. The tables below record the October 2026 roadmap.
+The [current inventory](WIP/HyperDrive-Providers/PROVIDER_MATRIX.md) lists 238 tracked provider projects. The tables below record the October 2026 roadmap.
 
 ---
 

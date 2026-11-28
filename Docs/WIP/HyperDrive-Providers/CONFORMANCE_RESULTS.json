@@ -58,16 +58,6 @@
       "blockers": []
     },
     {
-      "provider": "KeyDBOASIS",
-      "suite": "core-storage-v2",
-      "mode": "controlled",
-      "passed": 52,
-      "total": 52,
-      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-keydboasis-current.json",
-      "sha256": "9124c51e0d60cb846abe62385f3287c71b1b5b8f3650c3c95dc255869b76c748",
-      "blockers": []
-    },
-    {
       "provider": "ValKeyOASIS",
       "suite": "core-storage-v2",
       "mode": "controlled",
@@ -75,16 +65,6 @@
       "total": 52,
       "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-valkeyoasis-current.json",
       "sha256": "797522ac338635f66e84d1671aa5acdaf224e725af05b1e3c1d218e752e7aa5e",
-      "blockers": []
-    },
-    {
-      "provider": "DragonflyOASIS",
-      "suite": "core-storage-v2",
-      "mode": "controlled",
-      "passed": 52,
-      "total": 52,
-      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-dragonflyoasis-current.json",
-      "sha256": "072ee08b11cb18e35e7362bb01a538f3b2cda2cbd03b579e29237a54e900ef10",
       "blockers": []
     },
     {
@@ -370,6 +350,258 @@
       "blockers": [
         "Published shipping SDK/native initializer and lifecycle passed CI46106768815; hosted account/RPC/Kubo/signing-key custody remains MIDEN-HOSTED1."
       ]
+    },
+    {
+      "provider": "DaprOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/daproasis-ci-reconciled-2026-11-28.json",
+      "sha256": "449470966cb4a26b5939270ad12fdbb511a9ff1b858bb2eb041ea79dd8462da7",
+      "blockers": [
+        "Accepted existing CI45519314086 native26sync+26async; provider tree unchanged throughbfaf79570927. Hosted custody, full interfaces and retained-data compatibility remain separate. No rerun."
+      ]
+    },
+    {
+      "provider": "GUNOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/gunoasis-ci-reconciled-2026-11-28.json",
+      "sha256": "2bb959eaf8dddb8a3b86360f3b963fbd1194b9dca42d1e3f799d9c6f7062e79f",
+      "blockers": [
+        "Accepted existing CI45520161955 native26sync+26async; provider tree unchanged throughbfaf79570927. Hosted custody, full interfaces and retained-data compatibility remain separate. No rerun."
+      ]
+    },
+    {
+      "provider": "MatrixOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/matrixoasis-ci-reconciled-2026-11-28.json",
+      "sha256": "72169621a4a1a4fbcefbfe16afd6a103126773fb0cefdc79536cd7c9676abbe0",
+      "blockers": [
+        "Accepted existing CI45535697095 native26sync+26async; provider tree unchanged throughbfaf79570927. Hosted custody, full interfaces and retained-data compatibility remain separate. No rerun."
+      ]
+    },
+    {
+      "provider": "OrbitDBOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/orbitdboasis-ci-reconciled-2026-11-28.json",
+      "sha256": "88d88e74b4ddde9b06cb2891050c8b1aa3d2b597672a64be4f103f3123f3f3fe",
+      "blockers": [
+        "Accepted existing CI45535697095 native26sync+26async; provider tree unchanged throughbfaf79570927. Hosted custody, full interfaces and retained-data compatibility remain separate. No rerun."
+      ]
+    },
+    {
+      "provider": "ArweaveOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/arweaveoasis-ci-reconciled-2026-11-28.json",
+      "sha256": "f0f4f994a9c7e6b723a430c55732bc29556f16f534a9ae0b7a35eb89c5209b30",
+      "blockers": [
+        "Accepted existing CI45535697095 native26sync+26async; provider tree unchanged throughbfaf79570927. Hosted custody, full interfaces and retained-data compatibility remain separate. No rerun."
+      ]
+    },
+    {
+      "provider": "ScuttlebuttOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/scuttlebuttoasis-ci-reconciled-2026-11-28.json",
+      "sha256": "e973d5ae23181250552cb088715e8e9d49af8d56b2ff7a6fc39a1b8e72ff9bc9",
+      "blockers": [
+        "Accepted existing CI45535697095 native26sync+26async; provider tree unchanged throughbfaf79570927. Hosted custody, full interfaces and retained-data compatibility remain separate. No rerun."
+      ]
+    },
+    {
+      "provider": "AppwriteOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/appwriteoasis-ci-reconciled-2026-11-28.json",
+      "sha256": "a3b0d7591989cc41a790bddefff2eceab5efbcf0d15f76b1246ca0af476563e5",
+      "blockers": [
+        "Accepted existing CI45535697095 native26sync+26async; provider tree unchanged throughbfaf79570927. Hosted custody, full interfaces and retained-data compatibility remain separate. No rerun."
+      ]
+    },
+    {
+      "provider": "PineconeOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/pineconeoasis-ci-reconciled-2026-11-28.json",
+      "sha256": "508d8e832f38099dfb2bdff18d27c57bde63ef92faee5fd6b9a3b8a57dbc153b",
+      "blockers": [
+        "Accepted existing CI45535697095 native26sync+26async; provider tree unchanged throughbfaf79570927. Hosted custody, full interfaces and retained-data compatibility remain separate. No rerun."
+      ]
+    },
+    {
+      "provider": "TablelandOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/tablelandoasis-ci-reconciled-2026-11-28.json",
+      "sha256": "5dfa7be315b078061b94c60a817d7c0138fc2de6830be264a35bd579d8354628",
+      "blockers": [
+        "Accepted existing CI45535697095 native26sync+26async; provider tree unchanged throughbfaf79570927. Hosted custody, full interfaces and retained-data compatibility remain separate. No rerun."
+      ]
+    },
+    {
+      "provider": "CelestiaOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/celestiaoasis-ci-reconciled-2026-11-28.json",
+      "sha256": "ee0cef6a29bfb94ce6127a469cea29776db0a10f8b549416607dbec23598f7fd",
+      "blockers": [
+        "Accepted existing CI45535697095 native26sync+26async; provider tree unchanged throughbfaf79570927. Hosted custody, full interfaces and retained-data compatibility remain separate. No rerun."
+      ]
+    },
+    {
+      "provider": "CeramicOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/ceramicoasis-ci-reconciled-2026-11-28.json",
+      "sha256": "133e840b32c93d524ffa867c96f909a7894765df52b2f00d5cad36f0943d7738",
+      "blockers": [
+        "Accepted existing CI45535697095 native26sync+26async; provider tree unchanged throughbfaf79570927. Hosted custody, full interfaces and retained-data compatibility remain separate. No rerun."
+      ]
+    },
+    {
+      "provider": "BlueSkyOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/blueskyoasis-ci-reconciled-2026-11-28.json",
+      "sha256": "2f1edf4ad263141b4c4a4c3019a4fdfb5b191fcdc53f4a178324b970760811ea",
+      "blockers": [
+        "Accepted existing CI45535697095 native26sync+26async; provider tree unchanged throughbfaf79570927. Hosted custody, full interfaces and retained-data compatibility remain separate. No rerun."
+      ]
+    },
+    {
+      "provider": "FilecoinOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/filecoinoasis-ci-reconciled-2026-11-28.json",
+      "sha256": "a696a842c3066649ba2cb2b052e91d6dc096548deb8dcd6888f7d8134693b735",
+      "blockers": [
+        "Accepted existing CI45700279460 native26sync+26async; provider tree unchanged throughbfaf79570927. Hosted custody, full interfaces and retained-data compatibility remain separate. No rerun."
+      ]
+    },
+    {
+      "provider": "UrbitOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/urbitoasis-ci-reconciled-2026-11-28.json",
+      "sha256": "d45b7d3ed68ac6a8f029fde4bc79b6eca46ff1f4e34bf2a7071016dbe4b4420c",
+      "blockers": [
+        "Accepted existing CI45704685480 native26sync+26async; provider tree unchanged throughbfaf79570927. Hosted custody, full interfaces and retained-data compatibility remain separate. No rerun."
+      ]
+    },
+    {
+      "provider": "RadixOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/radixoasis-ci-reconciled-2026-11-28.json",
+      "sha256": "72946e8f0ed3f39276ca8986e2d27df6bfe522f2021a1c08d196bd2b2e6c9abc",
+      "blockers": [
+        "Accepted existing CI45709199011 native26sync+26async; provider tree unchanged throughbfaf79570927. Hosted custody, full interfaces and retained-data compatibility remain separate. No rerun."
+      ]
+    },
+    {
+      "provider": "ONION-Protocol",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/onion-protocol-ci-reconciled-2026-11-28.json",
+      "sha256": "1392cf2517d572b1c30857a01164a0cad7b0b98238cec08333eae864b2db5716",
+      "blockers": [
+        "Accepted existing CI45711682481 native26sync+26async; provider tree unchanged throughbfaf79570927. Hosted custody, full interfaces and retained-data compatibility remain separate. No rerun."
+      ]
+    },
+    {
+      "provider": "SignProtocolOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/signprotocoloasis-ci-reconciled-2026-11-28.json",
+      "sha256": "14cd82234a8d4ce32bf627dfc1593891d5b2ff24b260e91cb9da3da26286d5f7",
+      "blockers": [
+        "Accepted existing CI45713760017 native26sync+26async; provider tree unchanged throughbfaf79570927. Hosted custody, full interfaces and retained-data compatibility remain separate. No rerun."
+      ]
+    },
+    {
+      "provider": "KeyDBOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/keydboasis-ci-reconciled-2026-11-28.json",
+      "sha256": "ad3f76c954f1db17fc5a9572717710fe9bee6b94fc129c65167450f955c8c928",
+      "blockers": [
+        "Existing CI45753785312 passed52/52 and independent empty-key checks. Provider tree unchanged throughbfaf7957; hosted/full-interface and shared-graph gates remain separate. No rerun."
+      ]
+    },
+    {
+      "provider": "DragonflyOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/dragonflyoasis-ci-reconciled-2026-11-28.json",
+      "sha256": "e45196368376ed7c7bf379791a53d9ab9c6cc9c094e6d0ecacd7a09035b05af9",
+      "blockers": [
+        "Existing CI45753785312 passed52/52 and independent empty-key checks. Provider tree unchanged throughbfaf7957; hosted/full-interface and shared-graph gates remain separate. No rerun."
+      ]
+    },
+    {
+      "provider": "ElasticsearchOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/elasticsearchoasis-ci-2026-11-28.json",
+      "sha256": "d66035c040c3e569742d77b9a5980586e449ee3b5b09434d1d1389d00923ff76",
+      "blockers": [
+        "Native CI46111639871 passed26sync+26async with zero skips, independent empty-store checks and owned cleanup; hosted/full-interface acceptance remains separate."
+      ]
+    },
+    {
+      "provider": "QdrantOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/qdrantoasis-ci-2026-11-28.json",
+      "sha256": "66b4f5d071b5588b0548b10fe8d69bc7ebbe0834dbebeb9efba28cd89c54a7cc",
+      "blockers": [
+        "Native CI46111639871 passed26sync+26async with zero skips, independent empty-store checks and owned cleanup; hosted/full-interface acceptance remains separate."
+      ]
     }
   ],
   "providerBlockers": {
@@ -416,14 +648,13 @@
     ],
     "RedisOASIS": [],
     "KeyDBOASIS": [
-      "Four native avatar and holon save/load checks passed against the digest-pinned KeyDB image in [run 43051825070](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43051825070). The separate native KeyDB 6.3.4 job passed encrypted CQL restart and MongoDB federation. Development includes the verified fixture wiring at ea54de967e. The shared 52/52 result is controlled. Full native lifecycle, hosted TLS and legacy plaintext migration remain open."
+      "Existing CI45753785312 passed52/52 and independent empty-key checks. Provider tree unchanged throughbfaf7957; hosted/full-interface and shared-graph gates remain separate. No rerun."
     ],
     "ValKeyOASIS": [
       "Official Valkey 9.0.4 passed 52/52 through the shipping StackExchange.Redis adapter in [run 43091045329](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43091045329). Both modes passed exact fixture cleanup and the native database ended empty. Earlier native smoke and CQL restart/federation evidence carries forward. Hosted TLS and plaintext migration remain open."
     ],
-    "DragonflyOASIS": [      "Native Dragonfly passed four avatar and holon save/load smoke cases in [Development CI 43059249089](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43059249089). A separate Dragonfly 2.0.2 job passed encrypted CQL, restart and MongoDB federation. The shared 52/52 result is controlled. Full native lifecycle, hosted TLS and legacy plaintext migration remain open."    ],
-    "GarnetOASIS": [
-      "Official Garnet 2.2.5 Windows native coverage is split across 18/26 initial checks per mode and three focused sync/async pairs for tombstone and avatar cleanup, remaining root/batch/import cleanup, and parented-child relationship index cleanup. See the [hash-verified split evidence](NativeEvidence/garnet-split-storage-v2.json). Full provider acceptance and a single registered native shared report remain open. The legacy plaintext layout is refused and has no automatic migration."
+    "DragonflyOASIS": [
+      "Existing CI45753785312 passed52/52 and independent empty-key checks. Provider tree unchanged throughbfaf7957; hosted/full-interface and shared-graph gates remain separate. No rerun."
     ],
     "IPFSOASIS": [
       "Native core-storage-v2 baseline52/52 verified, sync/async26 each, exact fixture cleanup complete;178 controlled tests pass. Fresh Kubo 0.43.1 fixtures passed graceful restart ([run 43007340696](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43007340696)) and separate-process concurrent publication on [Windows](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43010855757) and [Linux](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43011806925). Historical-data recovery on the retained repository and CQL enrollment remain open."
@@ -432,7 +663,7 @@
       "Real authenticated pin/gateway HTTP transport exists, but mutable GUID index, encrypted record contract, result acknowledgements and graph/version semantics need canonical-suite binding/review; existing pin service is not interchangeable with Kubo repository ownership. No configured isolated account/fixture used; no public pin/write dispatched."
     ],
     "FilecoinOASIS": [
-      "Lotus HTTP RPC reads actors/CIDs, but shipping SaveAvatar and SaveAvatarDetail explicitly reject record persistence; chain addresses are not an implementation of the common avatar record contract. Email lookup and metadata query explicitly unsupported. Native RPC/SDK detection is not storage conformance; no public RPC or paid deal submitted."
+      "Accepted existing CI45700279460 native26sync+26async; provider tree unchanged throughbfaf79570927. Hosted custody, full interfaces and retained-data compatibility remain separate. No rerun."
     ],
     "SOLANAOASIS": [
       "Current canonical v2 native gate remains4/52: activation/avatar-save pass both modes, avatar-id fails. Hash-bound read-only probe of both original IDs proves collection decoding fails at DecodeStoredMemoAsync line68 because a referenced finalized memo chunk is unavailable. No cause/timing of chunk unavailability or affected commit identity proved; do not label this an acknowledgement bug or silently skip broken history. Two original synthetic avatars/ledger/report preserved; no replay/reset/cleanup/new application writes. Durable retrieval/history completeness remains an implementation/acceptance blocker, not a conformance pass."
@@ -450,7 +681,7 @@
       "Current Development d91bf074fa16a7e6f15f78fd87ad7314c90d72c7 passed native suite in CI 46099124837 with owned cleanup. Hosted credentials/rules, retained data and full-interface acceptance remain separate."
     ],
     "AppwriteOASIS": [
-      "Appwrite REST read boundary:19 controlled unit cases pass;13 targeted regressions reproduced red before fixes. HTTP point/page failures and malformed/incomplete envelopes now fail visibly; boolean selector array syntax fixed. Native service, shared-suite run, deployed API query/pagination compatibility and full interfaces remain open."
+      "Accepted existing CI45535697095 native26sync+26async; provider tree unchanged throughbfaf79570927. Hosted custody, full interfaces and retained-data compatibility remain separate. No rerun."
     ],
     "PocketBaseOASIS": [
       "Current Development6426cde360bd passed native26sync+26async in CI46103379382; runtime/data/output removed. Hosted access/rules, retained-data compatibility and full interfaces remain separate."
@@ -481,6 +712,57 @@
     ],
     "CloudflareOASIS": [
       "Shared encrypted record/history/query adapter over real Workers KV REST;52/52 controlled core checks and25protocol/metadata controls pass, two native cases gated. No configured owned account/namespace/token found in process or three standard Wrangler profile locations inspected. Native eventual consistency, same-key write limit and absence of CAS/transactions prevent immediate-visibility or concurrency certification; no sleep/cache/fake-CAS workaround. Hosted/native/full-interface and global routing gates remain open."
+    ],
+    "DaprOASIS": [
+      "Accepted existing CI45519314086 native26sync+26async; provider tree unchanged throughbfaf79570927. Hosted custody, full interfaces and retained-data compatibility remain separate. No rerun."
+    ],
+    "GUNOASIS": [
+      "Accepted existing CI45520161955 native26sync+26async; provider tree unchanged throughbfaf79570927. Hosted custody, full interfaces and retained-data compatibility remain separate. No rerun."
+    ],
+    "MatrixOASIS": [
+      "Accepted existing CI45535697095 native26sync+26async; provider tree unchanged throughbfaf79570927. Hosted custody, full interfaces and retained-data compatibility remain separate. No rerun."
+    ],
+    "OrbitDBOASIS": [
+      "Accepted existing CI45535697095 native26sync+26async; provider tree unchanged throughbfaf79570927. Hosted custody, full interfaces and retained-data compatibility remain separate. No rerun."
+    ],
+    "ArweaveOASIS": [
+      "Accepted existing CI45535697095 native26sync+26async; provider tree unchanged throughbfaf79570927. Hosted custody, full interfaces and retained-data compatibility remain separate. No rerun."
+    ],
+    "ScuttlebuttOASIS": [
+      "Accepted existing CI45535697095 native26sync+26async; provider tree unchanged throughbfaf79570927. Hosted custody, full interfaces and retained-data compatibility remain separate. No rerun."
+    ],
+    "PineconeOASIS": [
+      "Accepted existing CI45535697095 native26sync+26async; provider tree unchanged throughbfaf79570927. Hosted custody, full interfaces and retained-data compatibility remain separate. No rerun."
+    ],
+    "TablelandOASIS": [
+      "Accepted existing CI45535697095 native26sync+26async; provider tree unchanged throughbfaf79570927. Hosted custody, full interfaces and retained-data compatibility remain separate. No rerun."
+    ],
+    "CelestiaOASIS": [
+      "Accepted existing CI45535697095 native26sync+26async; provider tree unchanged throughbfaf79570927. Hosted custody, full interfaces and retained-data compatibility remain separate. No rerun."
+    ],
+    "CeramicOASIS": [
+      "Accepted existing CI45535697095 native26sync+26async; provider tree unchanged throughbfaf79570927. Hosted custody, full interfaces and retained-data compatibility remain separate. No rerun."
+    ],
+    "BlueSkyOASIS": [
+      "Accepted existing CI45535697095 native26sync+26async; provider tree unchanged throughbfaf79570927. Hosted custody, full interfaces and retained-data compatibility remain separate. No rerun."
+    ],
+    "UrbitOASIS": [
+      "Accepted existing CI45704685480 native26sync+26async; provider tree unchanged throughbfaf79570927. Hosted custody, full interfaces and retained-data compatibility remain separate. No rerun."
+    ],
+    "RadixOASIS": [
+      "Accepted existing CI45709199011 native26sync+26async; provider tree unchanged throughbfaf79570927. Hosted custody, full interfaces and retained-data compatibility remain separate. No rerun."
+    ],
+    "ONION-Protocol": [
+      "Accepted existing CI45711682481 native26sync+26async; provider tree unchanged throughbfaf79570927. Hosted custody, full interfaces and retained-data compatibility remain separate. No rerun."
+    ],
+    "SignProtocolOASIS": [
+      "Accepted existing CI45713760017 native26sync+26async; provider tree unchanged throughbfaf79570927. Hosted custody, full interfaces and retained-data compatibility remain separate. No rerun."
+    ],
+    "ElasticsearchOASIS": [
+      "Native CI46111639871 passed26sync+26async with zero skips, independent empty-store checks and owned cleanup; hosted/full-interface acceptance remains separate."
+    ],
+    "QdrantOASIS": [
+      "Native CI46111639871 passed26sync+26async with zero skips, independent empty-store checks and owned cleanup; hosted/full-interface acceptance remains separate."
     ]
   },
   "suites": [

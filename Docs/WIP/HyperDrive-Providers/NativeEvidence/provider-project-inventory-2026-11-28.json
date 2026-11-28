@@ -1,0 +1,1440 @@
+{
+  "source": "bfaf7957092735dfe31d83f5284b46ad738f5b5d",
+  "selection": "Tracked Providers/**/*.csproj; stem NextGenSoftware.OASIS.API.Providers.; excludes Template and test/harness/example/sample/demo/benchmark path components. Includes legacy project variants; not active backend admission.",
+  "counts": {
+    "projects": 238,
+    "nonStorage": 75,
+    "storage": 163,
+    "nativeRows": 117
+  },
+  "providers": [
+    {
+      "provider": "BittensorOASIS",
+      "project": "Providers/AI/NextGenSoftware.OASIS.API.Providers.BittensorOASIS/NextGenSoftware.OASIS.API.Providers.BittensorOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "GaladrielOASIS",
+      "project": "Providers/AI/NextGenSoftware.OASIS.API.Providers.GaladrielOASIS/NextGenSoftware.OASIS.API.Providers.GaladrielOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "RitualOASIS",
+      "project": "Providers/AI/NextGenSoftware.OASIS.API.Providers.RitualOASIS/NextGenSoftware.OASIS.API.Providers.RitualOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "AbstractOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.AbstractOASIS/NextGenSoftware.OASIS.API.Providers.AbstractOASIS.csproj",
+      "family": "EVM",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "AlgorandOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.AlgorandOASIS/NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.csproj",
+      "family": "Non-EVM chain",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "AptosOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.AptosOASIS/NextGenSoftware.OASIS.API.Providers.AptosOASIS.csproj",
+      "family": "Non-EVM chain",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "ArbitrumOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS/NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.csproj",
+      "family": "EVM",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "AvalancheOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.AvalancheOASIS/NextGenSoftware.OASIS.API.Providers.AvalancheOASIS.csproj",
+      "family": "EVM",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "AxelarOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.AxelarOASIS/NextGenSoftware.OASIS.API.Providers.AxelarOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "AztecOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.AztecOASIS/NextGenSoftware.OASIS.API.Providers.AztecOASIS.csproj",
+      "family": "Non-EVM chain",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "BasechainOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BasechainOASIS/NextGenSoftware.OASIS.API.Providers.BasechainOASIS.csproj",
+      "family": "Non-EVM chain",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "BaseOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BaseOASIS/NextGenSoftware.OASIS.API.Providers.BaseOASIS.csproj",
+      "family": "EVM",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "BerachainOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BerachainOASIS/NextGenSoftware.OASIS.API.Providers.BerachainOASIS.csproj",
+      "family": "EVM",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "BitcoinOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.csproj",
+      "family": "Non-EVM chain",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "BlockStackOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BlockStackOASIS/NextGenSoftware.OASIS.API.Providers.BlockStackOASIS.csproj",
+      "family": "Non-EVM chain",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "BNBChainOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BNBChainOASIS/NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.csproj",
+      "family": "EVM",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "CardanoOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.CardanoOASIS/NextGenSoftware.OASIS.API.Providers.CardanoOASIS.csproj",
+      "family": "Non-EVM chain",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "CeramicOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.CeramicOASIS/NextGenSoftware.OASIS.API.Providers.CeramicOASIS.csproj",
+      "family": "Non-EVM chain",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "ChainflipOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ChainflipOASIS/NextGenSoftware.OASIS.API.Providers.ChainflipOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "ChainlinkFunctionsOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ChainlinkFunctionsOASIS/NextGenSoftware.OASIS.API.Providers.ChainlinkFunctionsOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "ChainLinkOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS/NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "ConnextOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ConnextOASIS/NextGenSoftware.OASIS.API.Providers.ConnextOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "CosmosBlockChainOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.csproj",
+      "family": "Non-EVM chain",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "deBridgeOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.deBridgeOASIS/NextGenSoftware.OASIS.API.Providers.deBridgeOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "EigenLayerOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EigenLayerOASIS/NextGenSoftware.OASIS.API.Providers.EigenLayerOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "ElrondOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ElrondOASIS/NextGenSoftware.OASIS.API.Providers.ElrondOASIS.csproj",
+      "family": "Non-EVM chain",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "EOSIOOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.csproj",
+      "family": "Non-EVM chain",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "EspressoSystemsOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EspressoSystemsOASIS/NextGenSoftware.OASIS.API.Providers.EspressoSystemsOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "EthereumOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EthereumOASIS/NextGenSoftware.OASIS.API.Providers.EthereumOASIS.csproj",
+      "family": "EVM",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "FantomOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.FantomOASIS/NextGenSoftware.OASIS.API.Providers.FantomOASIS.csproj",
+      "family": "EVM",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "FhenixOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.FhenixOASIS/NextGenSoftware.OASIS.API.Providers.FhenixOASIS.csproj",
+      "family": "EVM",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "FilecoinOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.FilecoinOASIS/NextGenSoftware.OASIS.API.Providers.FilecoinOASIS.csproj",
+      "family": "IPFS/content-addressed",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "GelatoNetworkOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.GelatoNetworkOASIS/NextGenSoftware.OASIS.API.Providers.GelatoNetworkOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "HashgraphOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.csproj",
+      "family": "Non-EVM chain",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "HyperlaneOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HyperlaneOASIS/NextGenSoftware.OASIS.API.Providers.HyperlaneOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "LayerZeroV2OASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.LayerZeroV2OASIS/NextGenSoftware.OASIS.API.Providers.LayerZeroV2OASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "LineaOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.LineaOASIS/NextGenSoftware.OASIS.API.Providers.LineaOASIS.csproj",
+      "family": "EVM",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "MidenOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.MidenOASIS/NextGenSoftware.OASIS.API.Providers.MidenOASIS.csproj",
+      "family": "Non-EVM chain",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "MonadOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.MonadOASIS/NextGenSoftware.OASIS.API.Providers.MonadOASIS.csproj",
+      "family": "EVM",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "MoralisOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.MoralisOASIS/NextGenSoftware.OASIS.API.Providers.MoralisOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "NEAROASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.NEAROASIS/NextGenSoftware.OASIS.API.Providers.NEAROASIS.csproj",
+      "family": "Non-EVM chain",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "OpenZeppelinDefenderOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.OpenZeppelinDefenderOASIS/NextGenSoftware.OASIS.API.Providers.OpenZeppelinDefenderOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "OptimismOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.OptimismOASIS/NextGenSoftware.OASIS.API.Providers.OptimismOASIS.csproj",
+      "family": "EVM",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "PolkadotOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.csproj",
+      "family": "Non-EVM chain",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "PolygonOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolygonOASIS/NextGenSoftware.OASIS.API.Providers.PolygonOASIS.csproj",
+      "family": "EVM",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "RadixOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.RadixOASIS/NextGenSoftware.OASIS.API.Providers.RadixOASIS.csproj",
+      "family": "Non-EVM chain",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "RootstockOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.RootstockOASIS/NextGenSoftware.OASIS.API.Providers.RootstockOASIS.csproj",
+      "family": "EVM",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "ScrollOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ScrollOASIS/NextGenSoftware.OASIS.API.Providers.ScrollOASIS.csproj",
+      "family": "EVM",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "SeiOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SeiOASIS/NextGenSoftware.OASIS.API.Providers.SeiOASIS.csproj",
+      "family": "EVM",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "SOLANAOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.csproj",
+      "family": "Non-EVM chain",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "StargateOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.StargateOASIS/NextGenSoftware.OASIS.API.Providers.StargateOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "StarknetOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.StarknetOASIS/NextGenSoftware.OASIS.API.Providers.StarknetOASIS.csproj",
+      "family": "Non-EVM chain",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "StellarOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.StellarOASIS/NextGenSoftware.OASIS.API.Providers.StellarOASIS.csproj",
+      "family": "Non-EVM chain",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "SuiOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SuiOASIS/NextGenSoftware.OASIS.API.Providers.SuiOASIS.csproj",
+      "family": "Non-EVM chain",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "SynapseOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SynapseOASIS/NextGenSoftware.OASIS.API.Providers.SynapseOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "TelosOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.TelosOASIS/NextGenSoftware.OASIS.API.Providers.TelosOASIS.csproj",
+      "family": "Non-EVM chain",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "TONOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.TONOASIS/NextGenSoftware.OASIS.API.Providers.TONOASIS.csproj",
+      "family": "Non-EVM chain",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "TRONOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.TRONOASIS/NextGenSoftware.OASIS.API.Providers.TRONOASIS.csproj",
+      "family": "Non-EVM chain",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "Web3CoreOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.csproj",
+      "family": "EVM",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "WormholeOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.WormholeOASIS/NextGenSoftware.OASIS.API.Providers.WormholeOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "XRPLOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.XRPLOASIS/NextGenSoftware.OASIS.API.Providers.XRPLOASIS.csproj",
+      "family": "Non-EVM chain",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "ZcashOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ZcashOASIS/NextGenSoftware.OASIS.API.Providers.ZcashOASIS.csproj",
+      "family": "Non-EVM chain",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "ZkSyncOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ZkSyncOASIS/NextGenSoftware.OASIS.API.Providers.ZkSyncOASIS.csproj",
+      "family": "EVM",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "AppwriteOASIS",
+      "project": "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.AppwriteOASIS/NextGenSoftware.OASIS.API.Providers.AppwriteOASIS.csproj",
+      "family": "Document",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "AWSOASIS",
+      "project": "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.AWSOASIS/NextGenSoftware.OASIS.API.Providers.AWSOASIS.csproj",
+      "family": "Document",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "AWSS3OASIS",
+      "project": "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.AWSS3OASIS/NextGenSoftware.OASIS.API.Providers.AWSS3OASIS.csproj",
+      "family": "Key-value/object",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "AzureCosmosDBOASIS",
+      "project": "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS/NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.csproj",
+      "family": "Document",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "AzureStorageOASIS",
+      "project": "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS/NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS.csproj",
+      "family": "Key-value/object",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "CloudflareD1OASIS",
+      "project": "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.CloudflareD1OASIS/NextGenSoftware.OASIS.API.Providers.CloudflareD1OASIS.csproj",
+      "family": "SQL",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "CloudflareOASIS",
+      "project": "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.CloudflareOASIS/NextGenSoftware.OASIS.API.Providers.CloudflareOASIS.csproj",
+      "family": "Key-value/object",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "ConvexOASIS",
+      "project": "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.ConvexOASIS/NextGenSoftware.OASIS.API.Providers.ConvexOASIS.csproj",
+      "family": "Document",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "DynamoDBOASIS",
+      "project": "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.csproj",
+      "family": "Document",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "FaunaOASIS",
+      "project": "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.FaunaOASIS/NextGenSoftware.OASIS.API.Providers.FaunaOASIS.csproj",
+      "family": "Document",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "FirebaseOASIS",
+      "project": "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.FirebaseOASIS/NextGenSoftware.OASIS.API.Providers.FirebaseOASIS.csproj",
+      "family": "Document",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "GoogleCloudOASIS",
+      "project": "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS/NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.csproj",
+      "family": "Document",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "NeonOASIS",
+      "project": "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.NeonOASIS/NextGenSoftware.OASIS.API.Providers.NeonOASIS.csproj",
+      "family": "SQL",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "OracleObjectStorageOASIS",
+      "project": "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.OracleObjectStorageOASIS/NextGenSoftware.OASIS.API.Providers.OracleObjectStorageOASIS.csproj",
+      "family": "Key-value/object",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "PocketBaseOASIS",
+      "project": "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS/NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS.csproj",
+      "family": "Document",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "SupabaseOASIS",
+      "project": "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.csproj",
+      "family": "SQL",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "TursoOASIS",
+      "project": "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.TursoOASIS/NextGenSoftware.OASIS.API.Providers.TursoOASIS.csproj",
+      "family": "SQL",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "UpstashOASIS",
+      "project": "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.UpstashOASIS/NextGenSoftware.OASIS.API.Providers.UpstashOASIS.csproj",
+      "family": "Key-value/object",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "ENSOffchainOASIS",
+      "project": "Providers/Identity/NextGenSoftware.OASIS.API.Providers.ENSOffchainOASIS/NextGenSoftware.OASIS.API.Providers.ENSOffchainOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "HolonymOASIS",
+      "project": "Providers/Identity/NextGenSoftware.OASIS.API.Providers.HolonymOASIS/NextGenSoftware.OASIS.API.Providers.HolonymOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "PolygonIDOASIS",
+      "project": "Providers/Identity/NextGenSoftware.OASIS.API.Providers.PolygonIDOASIS/NextGenSoftware.OASIS.API.Providers.PolygonIDOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "PrivyServerWalletsOASIS",
+      "project": "Providers/Identity/NextGenSoftware.OASIS.API.Providers.PrivyServerWalletsOASIS/NextGenSoftware.OASIS.API.Providers.PrivyServerWalletsOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "ProofOfHumanityOASIS",
+      "project": "Providers/Identity/NextGenSoftware.OASIS.API.Providers.ProofOfHumanityOASIS/NextGenSoftware.OASIS.API.Providers.ProofOfHumanityOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "SelfProtocolOASIS",
+      "project": "Providers/Identity/NextGenSoftware.OASIS.API.Providers.SelfProtocolOASIS/NextGenSoftware.OASIS.API.Providers.SelfProtocolOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "zkPassOASIS",
+      "project": "Providers/Identity/NextGenSoftware.OASIS.API.Providers.zkPassOASIS/NextGenSoftware.OASIS.API.Providers.zkPassOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "DecentralandOASIS",
+      "project": "Providers/Maps/NextGenSoftware.OASIS.API.Providers.DecentralandOASIS/NextGenSoftware.OASIS.API.Providers.DecentralandOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "GOMapOASIS",
+      "project": "Providers/Maps/NextGenSoftware.OASIS.API.Providers.GOMapOASIS/NextGenSoftware.OASIS.API.Providers.GOMapOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "GoogleMapsOASIS",
+      "project": "Providers/Maps/NextGenSoftware.OASIS.API.Providers.GoogleMapsOASIS/NextGenSoftware.OASIS.API.Providers.GoogleMapsOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "HEREMapsOASIS",
+      "project": "Providers/Maps/NextGenSoftware.OASIS.API.Providers.HEREMapsOASIS/NextGenSoftware.OASIS.API.Providers.HEREMapsOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "MapboxOASIS",
+      "project": "Providers/Maps/NextGenSoftware.OASIS.API.Providers.MapboxOASIS/NextGenSoftware.OASIS.API.Providers.MapboxOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "MapLibreOASIS",
+      "project": "Providers/Maps/NextGenSoftware.OASIS.API.Providers.MapLibreOASIS/NextGenSoftware.OASIS.API.Providers.MapLibreOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "NianticLightshipOASIS",
+      "project": "Providers/Maps/NextGenSoftware.OASIS.API.Providers.NianticLightshipOASIS/NextGenSoftware.OASIS.API.Providers.NianticLightshipOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "ReadyPlayerMeOASIS",
+      "project": "Providers/Maps/NextGenSoftware.OASIS.API.Providers.ReadyPlayerMeOASIS/NextGenSoftware.OASIS.API.Providers.ReadyPlayerMeOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "TheSandboxOASIS",
+      "project": "Providers/Maps/NextGenSoftware.OASIS.API.Providers.TheSandboxOASIS/NextGenSoftware.OASIS.API.Providers.TheSandboxOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "WRLD3DOASIS",
+      "project": "Providers/Maps/NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS/NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "ActivityPubOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS/NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "AkashOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.AkashOASIS/NextGenSoftware.OASIS.API.Providers.AkashOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "AlchemyOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.AlchemyOASIS/NextGenSoftware.OASIS.API.Providers.AlchemyOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "AnkrOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.AnkrOASIS/NextGenSoftware.OASIS.API.Providers.AnkrOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "BlockscoutOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.BlockscoutOASIS/NextGenSoftware.OASIS.API.Providers.BlockscoutOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "CelestiaOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.CelestiaOASIS/NextGenSoftware.OASIS.API.Providers.CelestiaOASIS.csproj",
+      "family": "Non-EVM chain",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "CivicOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.CivicOASIS/NextGenSoftware.OASIS.API.Providers.CivicOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "CovalentOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.CovalentOASIS/NextGenSoftware.OASIS.API.Providers.CovalentOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "DuneAnalyticsOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.DuneAnalyticsOASIS/NextGenSoftware.OASIS.API.Providers.DuneAnalyticsOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "EclipseOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.EclipseOASIS/NextGenSoftware.OASIS.API.Providers.EclipseOASIS.csproj",
+      "family": "Non-EVM chain",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "ENSOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.ENSOASIS/NextGenSoftware.OASIS.API.Providers.ENSOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "GitcoinPassportOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.GitcoinPassportOASIS/NextGenSoftware.OASIS.API.Providers.GitcoinPassportOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "GoldskyOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.GoldskyOASIS/NextGenSoftware.OASIS.API.Providers.GoldskyOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "HoloOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/NextGenSoftware.OASIS.API.Providers.HoloOASIS.csproj",
+      "family": "Distributed application storage",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "HoloOASIS.Desktop",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop.csproj",
+      "family": "Distributed application storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "HoloOASIS.Edge",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge.csproj",
+      "family": "Edge Runtime replication target (not an `IOASISStorageProvider`)",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "HoloOASIS.Unity",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity.csproj",
+      "family": "Distributed application storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "InfuraOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.InfuraOASIS/NextGenSoftware.OASIS.API.Providers.InfuraOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "IPFSOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.IPFSOASIS/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.csproj",
+      "family": "IPFS/content-addressed",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "LayerZeroOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.LayerZeroOASIS/NextGenSoftware.OASIS.API.Providers.LayerZeroOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "LivepeerOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.LivepeerOASIS/NextGenSoftware.OASIS.API.Providers.LivepeerOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "MoralisStreamsOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.MoralisStreamsOASIS/NextGenSoftware.OASIS.API.Providers.MoralisStreamsOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "NansenOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.NansenOASIS/NextGenSoftware.OASIS.API.Providers.NansenOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "NATSJetStreamOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS/NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS.csproj",
+      "family": "Key-value/object",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "PinataOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.PinataOASIS/NextGenSoftware.OASIS.API.Providers.PinataOASIS.csproj",
+      "family": "IPFS/content-addressed",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "PolybaseOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.PolybaseOASIS/NextGenSoftware.OASIS.API.Providers.PolybaseOASIS.csproj",
+      "family": "Document",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "PrivyOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.PrivyOASIS/NextGenSoftware.OASIS.API.Providers.PrivyOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "PushProtocolOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.PushProtocolOASIS/NextGenSoftware.OASIS.API.Providers.PushProtocolOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "QuickNodeOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.QuickNodeOASIS/NextGenSoftware.OASIS.API.Providers.QuickNodeOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "ReclaimProtocolOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.ReclaimProtocolOASIS/NextGenSoftware.OASIS.API.Providers.ReclaimProtocolOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "ReservoirOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.ReservoirOASIS/NextGenSoftware.OASIS.API.Providers.ReservoirOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "SafeOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.SafeOASIS/NextGenSoftware.OASIS.API.Providers.SafeOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "ScuttlebuttOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS/NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS.csproj",
+      "family": "Federated web",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "SOLIDOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.csproj",
+      "family": "Federated web",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "SubqueryOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.SubqueryOASIS/NextGenSoftware.OASIS.API.Providers.SubqueryOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "SuiZkLoginOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.SuiZkLoginOASIS/NextGenSoftware.OASIS.API.Providers.SuiZkLoginOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "TablelandOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.TablelandOASIS/NextGenSoftware.OASIS.API.Providers.TablelandOASIS.csproj",
+      "family": "SQL",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "TelegramOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.TelegramOASIS/NextGenSoftware.OASIS.API.Providers.TelegramOASIS.csproj",
+      "family": "Federated web",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "TenderlyOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.TenderlyOASIS/NextGenSoftware.OASIS.API.Providers.TenderlyOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "ThreeFoldOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS/NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS.csproj",
+      "family": "Key-value/object",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "WakuOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.WakuOASIS/NextGenSoftware.OASIS.API.Providers.WakuOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "ZapperOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.ZapperOASIS/NextGenSoftware.OASIS.API.Providers.ZapperOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "ZkSyncSSOOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.ZkSyncSSOOASIS/NextGenSoftware.OASIS.API.Providers.ZkSyncSSOOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "CargoOASIS",
+      "project": "Providers/Other/NextGenSoftware.OASIS.API.Providers.CargoOASIS/NextGenSoftware.OASIS.API.Providers.CargoOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "DaprOASIS",
+      "project": "Providers/Other/NextGenSoftware.OASIS.API.Providers.DaprOASIS/NextGenSoftware.OASIS.API.Providers.DaprOASIS.csproj",
+      "family": "Key-value/object",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "GUNOASIS",
+      "project": "Providers/Other/NextGenSoftware.OASIS.API.Providers.GUNOASIS/NextGenSoftware.OASIS.API.Providers.GUNOASIS.csproj",
+      "family": "Document",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "IntelOpenVINOOASIS",
+      "project": "Providers/Other/NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS/NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "ONION-Protocol",
+      "project": "Providers/Other/NextGenSoftware.OASIS.API.Providers.ONION-Protocol/NextGenSoftware.OASIS.API.Providers.ONION-Protocol.csproj",
+      "family": "Distributed application storage",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "OrbitDBOASIS",
+      "project": "Providers/Other/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS.csproj",
+      "family": "Document",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "OrionProtocolOASIS",
+      "project": "Providers/Other/NextGenSoftware.OASIS.API.Providers.OrionProtocolOASIS/NextGenSoftware.OASIS.API.Providers.OrionProtocolOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "PLANOASIS",
+      "project": "Providers/Other/NextGenSoftware.OASIS.API.Providers.PLANOASIS/NextGenSoftware.OASIS.API.Providers.PLANOASIS.csproj",
+      "family": "Distributed application storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "SEEDSOASIS",
+      "project": "Providers/Other/NextGenSoftware.OASIS.API.Providers.SEEDSOASIS/NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.csproj",
+      "family": "Non-EVM chain",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "TemporalOASIS",
+      "project": "Providers/Other/NextGenSoftware.OASIS.API.Providers.TemporalOASIS/NextGenSoftware.OASIS.API.Providers.TemporalOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "UrbitOASIS",
+      "project": "Providers/Other/NextGenSoftware.OASIS.API.Providers.UrbitOASIS/NextGenSoftware.OASIS.API.Providers.UrbitOASIS.csproj",
+      "family": "Federated web",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "BlueSkyOASIS",
+      "project": "Providers/Social/NextGenSoftware.OASIS.API.Providers.BlueSkyOASIS/NextGenSoftware.OASIS.API.Providers.BlueSkyOASIS.csproj",
+      "family": "Federated web",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "DiscordOASIS",
+      "project": "Providers/Social/NextGenSoftware.OASIS.API.Providers.DiscordOASIS/NextGenSoftware.OASIS.API.Providers.DiscordOASIS.csproj",
+      "family": "Federated web",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "FarcasterOASIS",
+      "project": "Providers/Social/NextGenSoftware.OASIS.API.Providers.FarcasterOASIS/NextGenSoftware.OASIS.API.Providers.FarcasterOASIS.csproj",
+      "family": "Federated web",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "LensOASIS",
+      "project": "Providers/Social/NextGenSoftware.OASIS.API.Providers.LensOASIS/NextGenSoftware.OASIS.API.Providers.LensOASIS.csproj",
+      "family": "Federated web",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "LensV2OASIS",
+      "project": "Providers/Social/NextGenSoftware.OASIS.API.Providers.LensV2OASIS/NextGenSoftware.OASIS.API.Providers.LensV2OASIS.csproj",
+      "family": "Federated web",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "LitProtocolOASIS",
+      "project": "Providers/Social/NextGenSoftware.OASIS.API.Providers.LitProtocolOASIS/NextGenSoftware.OASIS.API.Providers.LitProtocolOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "LoomOASIS",
+      "project": "Providers/Social/NextGenSoftware.OASIS.API.Providers.LoomOASIS/NextGenSoftware.OASIS.API.Providers.LoomOASIS.csproj",
+      "family": "Federated web",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "MatrixOASIS",
+      "project": "Providers/Social/NextGenSoftware.OASIS.API.Providers.MatrixOASIS/NextGenSoftware.OASIS.API.Providers.MatrixOASIS.csproj",
+      "family": "Federated web",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "NostrOASIS",
+      "project": "Providers/Social/NextGenSoftware.OASIS.API.Providers.NostrOASIS/NextGenSoftware.OASIS.API.Providers.NostrOASIS.csproj",
+      "family": "Federated web",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "StoryProtocolOASIS",
+      "project": "Providers/Social/NextGenSoftware.OASIS.API.Providers.StoryProtocolOASIS/NextGenSoftware.OASIS.API.Providers.StoryProtocolOASIS.csproj",
+      "family": "Federated web",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "TheGraphOASIS",
+      "project": "Providers/Social/NextGenSoftware.OASIS.API.Providers.TheGraphOASIS/NextGenSoftware.OASIS.API.Providers.TheGraphOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "WorldIDOASIS",
+      "project": "Providers/Social/NextGenSoftware.OASIS.API.Providers.WorldIDOASIS/NextGenSoftware.OASIS.API.Providers.WorldIDOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "AlgoliaOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.AlgoliaOASIS/NextGenSoftware.OASIS.API.Providers.AlgoliaOASIS.csproj",
+      "family": "Search/vector storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "ArangoDBOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS/NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS.csproj",
+      "family": "Graph",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "ArcadeDBOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS/NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS.csproj",
+      "family": "Graph",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "ArweaveOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.ArweaveOASIS/NextGenSoftware.OASIS.API.Providers.ArweaveOASIS.csproj",
+      "family": "IPFS/content-addressed",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "BigQueryOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.BigQueryOASIS/NextGenSoftware.OASIS.API.Providers.BigQueryOASIS.csproj",
+      "family": "Analytical SQL",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "CassandraOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.CassandraOASIS/NextGenSoftware.OASIS.API.Providers.CassandraOASIS.csproj",
+      "family": "Wide-column",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "ChromaOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.ChromaOASIS/NextGenSoftware.OASIS.API.Providers.ChromaOASIS.csproj",
+      "family": "Search/vector storage",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "ClickHouseOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS/NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS.csproj",
+      "family": "Analytical SQL",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "CloudinaryOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.CloudinaryOASIS/NextGenSoftware.OASIS.API.Providers.CloudinaryOASIS.csproj",
+      "family": "Key-value/object",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "CockroachDBOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.CockroachDBOASIS/NextGenSoftware.OASIS.API.Providers.CockroachDBOASIS.csproj",
+      "family": "SQL",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "CouchbaseOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS/NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS.csproj",
+      "family": "Document",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "CouchDBOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.CouchDBOASIS/NextGenSoftware.OASIS.API.Providers.CouchDBOASIS.csproj",
+      "family": "Document",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "DatabricksOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.DatabricksOASIS/NextGenSoftware.OASIS.API.Providers.DatabricksOASIS.csproj",
+      "family": "Analytical SQL",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "DenoDeployOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.DenoDeployOASIS/NextGenSoftware.OASIS.API.Providers.DenoDeployOASIS.csproj",
+      "family": "Key-value/object",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "DragonflyOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.DragonflyOASIS/NextGenSoftware.OASIS.API.Providers.DragonflyOASIS.csproj",
+      "family": "Key-value/object",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "DruidOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.DruidOASIS/NextGenSoftware.OASIS.API.Providers.DruidOASIS.csproj",
+      "family": "Analytical SQL",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "DuckDBOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.DuckDBOASIS/NextGenSoftware.OASIS.API.Providers.DuckDBOASIS.csproj",
+      "family": "SQL",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "EdgeSQLiteOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.EdgeSQLiteOASIS/NextGenSoftware.OASIS.API.Providers.EdgeSQLiteOASIS.csproj",
+      "family": "Edge Runtime sync journal (not an `IOASISStorageProvider`)",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "ElasticsearchOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS/NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS.csproj",
+      "family": "Search/vector storage",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "FastlyOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.FastlyOASIS/NextGenSoftware.OASIS.API.Providers.FastlyOASIS.csproj",
+      "family": "Key-value/object",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "FlyIOOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.FlyIOOASIS/NextGenSoftware.OASIS.API.Providers.FlyIOOASIS.csproj",
+      "family": "SQL",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "GarnetOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.GarnetOASIS/NextGenSoftware.OASIS.API.Providers.GarnetOASIS.csproj",
+      "family": "Key-value/object",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "InfluxDBOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.InfluxDBOASIS/NextGenSoftware.OASIS.API.Providers.InfluxDBOASIS.csproj",
+      "family": "Analytical SQL",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "KeyDBOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.KeyDBOASIS/NextGenSoftware.OASIS.API.Providers.KeyDBOASIS.csproj",
+      "family": "Key-value/object",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "LanceDBOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.LanceDBOASIS/NextGenSoftware.OASIS.API.Providers.LanceDBOASIS.csproj",
+      "family": "Search/vector storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "LocalFileOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.LocalFileOASIS/NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.csproj",
+      "family": "Filesystem",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "MarqoOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MarqoOASIS/NextGenSoftware.OASIS.API.Providers.MarqoOASIS.csproj",
+      "family": "Search/vector storage",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "MeilisearchOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS/NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS.csproj",
+      "family": "Search/vector storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "MemcachedOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MemcachedOASIS/NextGenSoftware.OASIS.API.Providers.MemcachedOASIS.csproj",
+      "family": "Key-value/object",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "MilvusOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MilvusOASIS/NextGenSoftware.OASIS.API.Providers.MilvusOASIS.csproj",
+      "family": "Search/vector storage",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "MinIOOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MinIOOASIS/NextGenSoftware.OASIS.API.Providers.MinIOOASIS.csproj",
+      "family": "Key-value/object",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "MongoDBOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj",
+      "family": "Document",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "MotherDuckOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MotherDuckOASIS/NextGenSoftware.OASIS.API.Providers.MotherDuckOASIS.csproj",
+      "family": "SQL",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.csproj",
+      "family": "Graph",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "Neo4jOASIS.Aura",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura.csproj",
+      "family": "Graph",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "Neo4jOASIS2",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2.csproj",
+      "family": "Graph",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "NetlifyBlobsOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.NetlifyBlobsOASIS/NextGenSoftware.OASIS.API.Providers.NetlifyBlobsOASIS.csproj",
+      "family": "Key-value/object",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "NileOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.NileOASIS/NextGenSoftware.OASIS.API.Providers.NileOASIS.csproj",
+      "family": "SQL",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "OpenSearchOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS/NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS.csproj",
+      "family": "Search/vector storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "OracleDBOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.csproj",
+      "family": "SQL",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "PgVectorOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.PgVectorOASIS/NextGenSoftware.OASIS.API.Providers.PgVectorOASIS.csproj",
+      "family": "SQL",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "PineconeOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.PineconeOASIS/NextGenSoftware.OASIS.API.Providers.PineconeOASIS.csproj",
+      "family": "Search/vector storage",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "PinotOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.PinotOASIS/NextGenSoftware.OASIS.API.Providers.PinotOASIS.csproj",
+      "family": "Analytical SQL",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "PlanetScaleOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS/NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS.csproj",
+      "family": "SQL",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "PostgreSQLOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS/NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS.csproj",
+      "family": "SQL",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "PouchDBOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.PouchDBOASIS/NextGenSoftware.OASIS.API.Providers.PouchDBOASIS.csproj",
+      "family": "Document",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "QdrantOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.QdrantOASIS/NextGenSoftware.OASIS.API.Providers.QdrantOASIS.csproj",
+      "family": "Search/vector storage",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "QuestDBOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.QuestDBOASIS/NextGenSoftware.OASIS.API.Providers.QuestDBOASIS.csproj",
+      "family": "Analytical SQL",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "RavenDBOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.RavenDBOASIS/NextGenSoftware.OASIS.API.Providers.RavenDBOASIS.csproj",
+      "family": "Document",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "RedisOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.RedisOASIS/NextGenSoftware.OASIS.API.Providers.RedisOASIS.csproj",
+      "family": "Key-value/object",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "RedshiftOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.RedshiftOASIS/NextGenSoftware.OASIS.API.Providers.RedshiftOASIS.csproj",
+      "family": "Analytical SQL",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "ScyllaDBOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS/NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS.csproj",
+      "family": "Wide-column",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "SnowflakeOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SnowflakeOASIS/NextGenSoftware.OASIS.API.Providers.SnowflakeOASIS.csproj",
+      "family": "Analytical SQL",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "SolrOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SolrOASIS/NextGenSoftware.OASIS.API.Providers.SolrOASIS.csproj",
+      "family": "Search/vector storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj",
+      "family": "SQL",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "SQLServerDBOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS.csproj",
+      "family": "SQL",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "SurrealDBOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS/NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS.csproj",
+      "family": "Document",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "TigrisOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.TigrisOASIS/NextGenSoftware.OASIS.API.Providers.TigrisOASIS.csproj",
+      "family": "Key-value/object",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "TimescaleDBOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.TimescaleDBOASIS/NextGenSoftware.OASIS.API.Providers.TimescaleDBOASIS.csproj",
+      "family": "SQL",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "TypesenseOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS.csproj",
+      "family": "Search/vector storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "ValKeyOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.ValKeyOASIS/NextGenSoftware.OASIS.API.Providers.ValKeyOASIS.csproj",
+      "family": "Key-value/object",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "VercelKVOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.VercelKVOASIS/NextGenSoftware.OASIS.API.Providers.VercelKVOASIS.csproj",
+      "family": "Key-value/object",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "WeaviateOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.WeaviateOASIS/NextGenSoftware.OASIS.API.Providers.WeaviateOASIS.csproj",
+      "family": "Search/vector storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "XataOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.XataOASIS/NextGenSoftware.OASIS.API.Providers.XataOASIS.csproj",
+      "family": "Search/vector storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "ZillizOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.ZillizOASIS/NextGenSoftware.OASIS.API.Providers.ZillizOASIS.csproj",
+      "family": "Search/vector storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "EASOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.EASOASIS/NextGenSoftware.OASIS.API.Providers.EASOASIS.csproj",
+      "family": "Key-value/object",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "FlowOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.FlowOASIS/NextGenSoftware.OASIS.API.Providers.FlowOASIS.csproj",
+      "family": "Non-EVM chain",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "ImmutableZkEVMOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ImmutableZkEVMOASIS/NextGenSoftware.OASIS.API.Providers.ImmutableZkEVMOASIS.csproj",
+      "family": "Non-EVM chain",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "RoninOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.RoninOASIS/NextGenSoftware.OASIS.API.Providers.RoninOASIS.csproj",
+      "family": "Non-EVM chain",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "SignProtocolOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.SignProtocolOASIS/NextGenSoftware.OASIS.API.Providers.SignProtocolOASIS.csproj",
+      "family": "Key-value/object",
+      "nativeBaseline": true
+    },
+    {
+      "provider": "BiconomyOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.BiconomyOASIS/NextGenSoftware.OASIS.API.Providers.BiconomyOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "PimlicoOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.PimlicoOASIS/NextGenSoftware.OASIS.API.Providers.PimlicoOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "XMTPOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.XMTPOASIS/NextGenSoftware.OASIS.API.Providers.XMTPOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    },
+    {
+      "provider": "ZeroDevOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.ZeroDevOASIS/NextGenSoftware.OASIS.API.Providers.ZeroDevOASIS.csproj",
+      "family": "Non-storage",
+      "nativeBaseline": false
+    }
+  ]
+}

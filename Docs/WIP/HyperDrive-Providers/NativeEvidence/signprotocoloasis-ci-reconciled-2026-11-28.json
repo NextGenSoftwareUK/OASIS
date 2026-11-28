@@ -1,0 +1,18 @@
+{
+  "provider": "SignProtocolOASIS",
+  "suite": "core-storage-v2",
+  "mode": "native",
+  "run": 45713760017,
+  "url": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/45713760017",
+  "job": "storage (SignProtocol)",
+  "source": "772c1f45fa6b6bd8c2daf26b1555ad8a984eb6b1",
+  "providerTree": "473de7e891e296acb4df4138602e7d728aa4321f",
+  "currentParent": "bfaf7957092735dfe31d83f5284b46ad738f5b5d",
+  "currentProviderTree": "473de7e891e296acb4df4138602e7d728aa4321f",
+  "sync": 26,
+  "async": 26,
+  "conclusion": "success",
+  "evidence": "GitHub run/job success and source workflow enforces Succeeded, FixtureCleanupComplete and26checks in both modes; compact receipt, not raw case report.",
+  "cleanup": "Existing CI trap stops owned processes/containers and removes its fixture. This reconciliation creates no runtime, backend or downloaded report.",
+  "scope": "Provider directory unchanged from accepted source. Shared dependencies have evolved; historical accepted native baseline, not a new current-graph or hosted/full-interface certification."
+}

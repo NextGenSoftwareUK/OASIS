@@ -1,0 +1,18 @@
+{
+  "provider": "DaprOASIS",
+  "suite": "core-storage-v2",
+  "mode": "native",
+  "run": 45519314086,
+  "url": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/45519314086",
+  "job": "storage (Dapr)",
+  "source": "e6affb96ba17997a0dabdd447371240e6620a3b6",
+  "providerTree": "b6c4edcc4e9312fa7402c49dfb42fe73591c6e50",
+  "currentParent": "bfaf7957092735dfe31d83f5284b46ad738f5b5d",
+  "currentProviderTree": "b6c4edcc4e9312fa7402c49dfb42fe73591c6e50",
+  "sync": 26,
+  "async": 26,
+  "conclusion": "success",
+  "evidence": "GitHub run/job success and source workflow enforces Succeeded, FixtureCleanupComplete and26checks in both modes; compact receipt, not raw case report.",
+  "cleanup": "Existing CI trap stops owned processes/containers and removes its fixture. This reconciliation creates no runtime, backend or downloaded report.",
+  "scope": "Provider directory unchanged from accepted source. Shared dependencies have evolved; historical accepted native baseline, not a new current-graph or hosted/full-interface certification."
+}
