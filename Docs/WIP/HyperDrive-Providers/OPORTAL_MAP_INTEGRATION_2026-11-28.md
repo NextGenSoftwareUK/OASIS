@@ -48,3 +48,6 @@ Portalc41c5fe1binds its9camera/loaded-target actions to the actual MapLibre inst
 
 
 Renderer46144542600passed actual authorized MapLocation create, independent Nearby read and popup loaded-target list; failed at real renderer initialization, so0camera/render acceptance. All5owned cleanup receipts true; artifact15262804121(3814B), no local files. Added bounded/redacted renderer status, actual-instance/WebGL-presence and error-class/source-line diagnostics to identify the initialization cause; no guard bypass, fake renderer or shipping timeout change. Failed scenario only remains selected.
+
+
+Renderer diagnostic46145478623proved an actual MapLibre instance and WebGL2 context; UI layer setup ran, but readiness failed with one blocked pinned asset. The real6.19ESM module resolves ./maplibre-gl-worker.mjs (not the legacy CSP worker filename). Admit only that exact verified official worker asset; no broad CDN allowance or fake worker, production source unchanged. Native controls still unaccepted until the corrected real journey passes.

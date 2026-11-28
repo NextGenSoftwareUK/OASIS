@@ -256,7 +256,7 @@ async function main(){
     if(request.method()!=='GET'&&request.method()!=='OPTIONS'){otherServices.push('unadmitted WEB5 mutation');return route.abort();}
     return route.continue({url:proxy5Origin+url.pathname+url.search});
    }
-   if(popupGroup==='map-renderer'&&url.origin==='https://unpkg.com'&&['/maplibre-gl@6.19.0/dist/maplibre-gl.mjs','/maplibre-gl@6.19.0/dist/maplibre-gl.css','/maplibre-gl@6.19.0/dist/maplibre-gl-csp-worker.js'].includes(url.pathname))return route.continue();
+   if(popupGroup==='map-renderer'&&url.origin==='https://unpkg.com'&&['/maplibre-gl@6.19.0/dist/maplibre-gl.mjs','/maplibre-gl@6.19.0/dist/maplibre-gl.css','/maplibre-gl@6.19.0/dist/maplibre-gl-worker.mjs'].includes(url.pathname))return route.continue();
    if(url.origin===origin||['data:','blob:'].includes(url.protocol)||['fonts.googleapis.com','fonts.gstatic.com'].includes(url.hostname))return route.continue();
    otherServices.push(request.method()+' '+url.origin+url.pathname);return route.abort();
    } catch (error) {
