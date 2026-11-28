@@ -171,3 +171,5 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | Integrate existing Miden native implementation0289f57c and verify current Development dependency graph | HyperDrive providers | local: gpt-hyperdrive | work/gpt-miden-native-integration | 2026-11-28 03:35 UTC | IN PROGRESS |
 | COSMIC M04 NHibernate XML ordinary-class and identity mapping | COSMIC ORM | local: gpt-cosmic | work/gpt-m04 | 2026-11-28 03:52 UTC | IN PROGRESS — increment289471b9/Core5e8f22d7, native CI46105933887 pending; full relationship/table/schema/type/generator scope stays open |
 | Canonical ProviderRegistry/ProviderSwitcher activation and acknowledged storage-selection implementation | HyperDrive v2 controls | local: gpt-hyperdrive | work/gpt-hyperdrive-release-gates | 2026-11-28 04:25 UTC | IN PROGRESS |
+
+| Restore reviewed CQL sidecar/sql/ask route inventory blocking HyperDrive shipping build | HyperDrive build gate | local: gpt-hyperdrive | work/gpt-hyperdrive-release-gates | 2026-11-28 04:52 UTC | IN PROGRESS |
