@@ -158,3 +158,4 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 
 - DONE 2026-11-26 (Web4Site 4b6ed77; docs Development e35bfad9, master e55de16c) by CQL sandbox session (local_b7903255): AFTER_DEMO_BACKLOG "Full native payload mapping for browser demo copies" - string native payload carried exactly with PayloadSchema 2; typed scalars and legacy-copy upgrade remain open.
 | WEB4 memory at rest: on-demand sandbox sidecars | Docker sidecar supervisor, CqlV1Providers, SandboxSettings DNA | local: web4-memory-654103 | claude/web4-memory-654103 | 2026-11-27 | DONE 2026-11-27; open: IPFS/SOLID production queries, Holochain on demand |
+| COSMIC O07 transaction-safe execution strategy | COSMIC ORM | local: gpt-cosmic | work/gpt-o07 | 2026-11-28 02:32 | IN PROGRESS |
