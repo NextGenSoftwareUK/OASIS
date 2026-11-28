@@ -179,3 +179,5 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | Correct ProviderManager architecture README after accepted canonical facade fix (documentation only) | HyperDrive controls | local: gpt-hyperdrive | work/gpt-hyperdrive-release-gates | 2026-11-28 05:04 UTC | IN PROGRESS |
 
 | Synchronize current provider inventory references with tracked238-project receipt (preserve historical checkpoints) | Provider docs/sites | local: gpt-hyperdrive | work/gpt-provider-evidence-reconciliation | 2026-11-28 05:05 UTC | IN PROGRESS |
+
+| Elasticsearch and Qdrant existing26-check native adapters: isolated CI wiring and acceptance | HyperDrive storage | local: gpt-hyperdrive | work/gpt-search-native-storage | 2026-11-28 05:13 UTC | IN PROGRESS |
