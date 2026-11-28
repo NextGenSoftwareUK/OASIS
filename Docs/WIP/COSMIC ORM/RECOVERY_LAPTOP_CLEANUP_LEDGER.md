@@ -11532,3 +11532,9 @@ New backend SQL lowering preserves bounded plain entity sources and post-page en
 
 
 2026-11-28: SQL endpoint qualification exact5a8241a runs in existing CI containers. Automatic run46143154521 retained; redundant manually queued46143168518 canceled immediately. No local runtime/build/database/ZIP files created. Backend ownership recorded in AGENTS.md; native endpoint review found no blockers.
+
+
+### 2026-11-28 — backend SQL entity-input lowering accepted
+- Exact Root5e07576b9ce2a499e83daf573f3b7d313359b070 / Corecf34fb1ae9a6777e58320d11b8fb24e5dff98481; CI46142342992 SUCCESS:18 compiler controls,15 native journeys across MongoDB/SQLite/Neo4j, actual WEB4 build and exact owned cleanup. Server parser has41 local controls.
+- Native HTTP coverage11 groups/28 timings per provider uses shipping compiler+typed set action. The additional real `/sql` middleware/action check is separately pending46143154521 on5a8241a; review passed, expected12groups/31timings/20settlements. Do not confuse these scopes.
+- Artifact15262986896,17,861bytes/18entries independently verified in RAM, SHA256 d0f98aca28476ad93b978481125a63c6785f83199f5eb2b8d849629b30b7fa6b; no ZIP retained. Shared DB operations0. Main144/168, extension4/13 unchanged; identity-set late projection and standalone staged entity SQL remain open.
