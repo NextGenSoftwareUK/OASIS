@@ -35,7 +35,7 @@ export default function Home() {
               <AccountBalanceWallet sx={{ fontSize: 40, color: 'primary.main', mb: 2 }} />
               <Typography variant="h5" gutterBottom>Universal Wallet</Typography>
               <Typography color="text.secondary">
-                Manage assets on supported Web2 and Web3 services from one interface. The OASIS inventory includes 234 provider projects.
+                Manage assets on supported Web2 and Web3 services from one interface. The OASIS inventory includes 238 provider projects.
               </Typography>
             </CardContent>
             <CardActions>

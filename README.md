@@ -32,7 +32,7 @@ The OASIS (Open Advanced Secure Interoperable Scalable-System) is a revolutionar
 
 ## 🌐 Supported Providers
 
-The [OASIS provider inventory](Docs/WIP/HyperDrive-Providers/PROVIDER_MATRIX.md) tracks 234 shipping provider projects across multiple categories. Capabilities and live verification vary by provider.
+The [OASIS provider inventory](Docs/WIP/HyperDrive-Providers/PROVIDER_MATRIX.md) tracks 238 tracked provider projects across multiple categories. Capabilities and live verification vary by provider.
 
 ### **Blockchain Providers**
 - **Bitcoin** - Original cryptocurrency blockchain
@@ -1001,7 +1001,7 @@ Sophisticated tokenomics with:
 - Cost optimization algorithms
 
 ### 🌐 Universal Connectivity
-- [234 shipping provider projects](Docs/WIP/HyperDrive-Providers/PROVIDER_MATRIX.md) in the OASIS inventory
+- [238 tracked provider projects](Docs/WIP/HyperDrive-Providers/PROVIDER_MATRIX.md) in the OASIS inventory
 - Web2 and Web3 integration
 - Cross-platform compatibility
 - Protocol translation
@@ -1163,7 +1163,7 @@ OASIS represents the culmination of years of research, development, and vision. 
 
 ### Evolution Highlights
 - **From Concept to Reality**: What started as a vision for universal connectivity has become a working system
-- **Technology Integration**: [234 Web2 and Web3 provider projects](Docs/WIP/HyperDrive-Providers/PROVIDER_MATRIX.md) in the OASIS inventory
+- **Technology Integration**: [238 Web2 and Web3 provider projects](Docs/WIP/HyperDrive-Providers/PROVIDER_MATRIX.md) in the OASIS inventory
 - **Community Growth**: Built a global community of developers, users, and contributors
 - **Innovation Leadership**: Pioneered auto-failover technology and universal data aggregation
 
@@ -2837,7 +2837,7 @@ private static void _holoOASIS_OnInitialized(object sender, EventArgs e)
             Console.WriteLine("Initialized.");
             Console.WriteLine("Saving Avatar...");
 
-            _savedAvatar = new Avatar { Username = "dellams", Email = "david@nextgensoftware.co.uk", Password = "1234", FirstName = "David", LastName = "Ellams", DOB = "11/04/1980", Id = Guid.NewGuid(), Title = "Mr", PlayerAddress = "blahahahaha" };
+            _savedAvatar = new Avatar { Username = "dellams", Email = "david@nextgensoftware.co.uk", Password = "1238", FirstName = "David", LastName = "Ellams", DOB = "11/04/1980", Id = Guid.NewGuid(), Title = "Mr", PlayerAddress = "blahahahaha" };
             _savedAvatar.AddKarma(999);
 
             _holoOASIS.SaveAvatarsync(_savedAvatar);
@@ -2881,7 +2881,7 @@ private static void _holoOASIS_OnInitialized(object sender, EventArgs e)
             Console.WriteLine("Initialized.");
             Console.WriteLine("Saving Avatar...");
 
-            _savedAvatar = new Avatar { Username = "dellams", Email = "david@nextgensoftware.co.uk", Password = "1234", FirstName = "David", LastName = "Ellams", DOB = "11/04/1980", Id = Guid.NewGuid(), Title = "Mr", PlayerAddress = "blahahahaha" };
+            _savedAvatar = new Avatar { Username = "dellams", Email = "david@nextgensoftware.co.uk", Password = "1238", FirstName = "David", LastName = "Ellams", DOB = "11/04/1980", Id = Guid.NewGuid(), Title = "Mr", PlayerAddress = "blahahahaha" };
             _savedAvatar.AddKarma(999);
 
             _holoOASIS.SaveAvatarAsync(_savedAvatar);

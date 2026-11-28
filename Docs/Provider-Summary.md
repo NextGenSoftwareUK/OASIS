@@ -1,8 +1,8 @@
 # OASIS Provider Summary
 
-The OASIS inventory lists **234 shipping provider projects** as of 11 November 2026. That includes 178 storage and specialized-storage projects and 56 non-storage projects. Alternate implementations count separately. Consult the [provider matrix](WIP/HyperDrive-Providers/PROVIDER_MATRIX.md) for backend verification by project and capability.
+The OASIS inventory lists **238 tracked provider projects** as of 28 November 2026. That includes 163 storage and specialized-storage projects and 75 non-storage projects. Alternate and legacy implementations count separately; this inventory is not a count of active or fully verified backends. Consult the [provider matrix](WIP/HyperDrive-Providers/PROVIDER_MATRIX.md) for backend verification by project and capability.
 
-The public registries list the same 234 projects. [Web4Site registry](https://web4.oasisomniverse.one/providers.html) · [OASIS Web4 registry](https://www.oasisweb4.com/providers)
+The public registries list the same 238 projects. [Web4Site registry](https://web4.oasisomniverse.one/providers.html) · [OASIS Web4 registry](https://www.oasisweb4.com/providers)
 
 The project inventory includes the obsolete HoloOASIS.Desktop compatibility wrapper. Ongoing Holochain provider acceptance is tracked under canonical HoloOASIS.
 

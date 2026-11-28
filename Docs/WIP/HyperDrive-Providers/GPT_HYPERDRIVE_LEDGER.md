@@ -49,3 +49,5 @@ Reconciled17/17existing native receipts; provider-directory trees match Developm
 - Source reconciliation found the inherited headline stale:238tracked matching provider projects,75matrix non-storage and163storage/specialized. Exact project-path set matches matrix238/238, with no duplicate/missing rows. Inventory includes legacy variants; do not advertise238active/fully implemented backends. Earlier234/56/178are historical.
 
 - Recovered already-green KeyDB/Dragonfly CI45753785312,52/52 each and independent DBSIZE0. Credited original owner claim DONE6b5464451fe; no backend rerun. Reconciliation19/19; matrix115/163native-baseline rows.
+
+- Updated current root guides/README and2oasisweb4.com text nodes to238tracked provider projects; Provider-Summary now163storage/75non-storage with explicit legacy/acceptance limits. Historical dated checkpoints retained. React review: text-only changes; no hooks, fetches, event handlers, imports, bundle, layout or accessibility behavior changed. No build/install required. Separate live-site repositories are being inspected before any scoped count correction.
