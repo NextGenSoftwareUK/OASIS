@@ -175,3 +175,5 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | Restore reviewed CQL sidecar/sql/ask route inventory blocking HyperDrive shipping build | HyperDrive build gate | local: gpt-hyperdrive | work/gpt-hyperdrive-release-gates | 2026-11-28 04:52 UTC | DONE bfaf7957092735dfe31d83f5284b46ad738f5b5d |
 
 | Reconcile existing cloud-hyperdrive-A and Redis-family accepted CI evidence into matrix/registry (no reruns) | HyperDrive evidence | local: gpt-hyperdrive | work/gpt-provider-evidence-reconciliation | 2026-11-28 04:56 UTC | IN PROGRESS |
+
+| Correct ProviderManager architecture README after accepted canonical facade fix (documentation only) | HyperDrive controls | local: gpt-hyperdrive | work/gpt-hyperdrive-release-gates | 2026-11-28 05:18 UTC | IN PROGRESS |
