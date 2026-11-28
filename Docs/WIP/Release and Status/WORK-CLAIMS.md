@@ -195,3 +195,5 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | Recover existing Meilisearch/OpenSearch/Solr/Weaviate native CI receipts only; preserve original source/CI wiring claim, no backend reruns | HyperDrive evidence | local: gpt-hyperdrive | work/gpt-search-evidence-reconciliation | 2026-11-28T06:29:46.413Z | DONE 67663f814422; scoped source/evidence only, known native failures retained |
 
 | Meilisearch/Solr failed native gates: current-source recheck after existing Corec19b8e1 interface-value creation fix (stale original scope takeover) | HyperDrive providers | local: gpt-hyperdrive | work/gpt-search-native-recheck | 2026-11-28T06:37:10.638Z | IN PROGRESS; retry only two failed providers, no accepted OpenSearch/other suite rerun |
+
+| Weaviate current-source native recheck after query-client binding and existing Core deserializer fix (original25Nov scope stale; branch unchanged since26Nov04:09UTC) | HyperDrive providers | local: gpt-hyperdrive | work/gpt-search-native-recheck | 2026-11-28T06:44:58.830Z | IN PROGRESS; preserve12Nov native proof, qualify changed current source only |
