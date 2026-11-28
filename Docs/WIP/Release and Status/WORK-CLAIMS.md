@@ -184,6 +184,8 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 
 | Typesense existing26-check native adapter: isolated CI wiring and acceptance | HyperDrive storage | local: gpt-hyperdrive | work/gpt-typesense-native-storage | 2026-11-28 05:30 UTC | IN PROGRESS |
 
-| Diagnose WEB6/WEB7/WEB9 failed8c7a3148deployments; preserve running configurations | Railway shipping gate | local: gpt-hyperdrive | work/gpt-railway-build-repair | 2026-11-28 05:32 UTC | IN PROGRESS |
+| Diagnose WEB6/WEB7/WEB9 failed8c7a3148deployments; preserve running configurations | Railway shipping gate | local: gpt-hyperdrive | work/gpt-railway-build-repair | 2026-11-28 05:32 UTC | DONE 03bf0ef24bcf; CI46113637170 packaging2/2 and Railway dev7/7 SUCCESS |
 
 | COSMIC Q50/Q51/Q53/Q54 nested set composition and scalar terminals | COSMIC ORM | local: gpt-cosmic | work/gpt-q50 | 2026-11-28T06:05:05.043Z | IN PROGRESS — Mongo native count publication-cap invariant fixed762f4f25, three-store CI46115004145 active; immutable recursive set plan/native compiler extension remains next. Preserve all accepted source/stage/HTTP cohorts. All4 parent rows OPEN, main144/168 + extension4/13. |
+
+| OPORTAL existing signed-in breadth suite: inspect isolated real-API harness and fill demonstrated screen gaps | OPORTAL | local: gpt-hyperdrive | work/gpt-oportal-isolated-breadth | 2026-11-28T06:20:52.225Z | IN PROGRESS |
