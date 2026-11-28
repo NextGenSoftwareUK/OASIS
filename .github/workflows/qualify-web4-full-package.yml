@@ -20,8 +20,8 @@ on:
         required: true
         type: string
       digest:
-        description: Published full image sha256 digest
-        required: true
+        description: Immutable image digest, required for native package checks
+        required: false
         type: string
       package_profile:
         description: Exact image scope to verify
@@ -102,6 +102,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
+      - name: Require an immutable digest for native package checks
+        shell: bash
+        env:
+          NATIVE_DIGEST: ${{ inputs.digest }}
+        run: '[[ "$NATIVE_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]'
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
