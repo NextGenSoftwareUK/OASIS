@@ -285,3 +285,9 @@ New backend SQL lowering preserves bounded plain entity sources and post-page en
 
 
 2026-11-28 SQL endpoint fixture correction:46143154521 failed compilation because the isolated native test project linked CqlTextCompiler but not CqlTextMiddleware or the shipping text action/models. Linked those four exact shipping sources; no duplicate controller or middleware implementation. No native endpoint acceptance claimed. Existing backend SQL46142342992 remains accepted. Local build/download/database outputs0; failed CI owned Mongo stopped by cleanup. Main144/168 extension4/13 unchanged.
+
+
+### 2026-11-28 — direct shipping SQL endpoint native acceptance
+- Root1b18b510fa082e4bfc054c2d94977eccab4b2b57 / Corecf34fb1ae9a6777e58320d11b8fb24e5dff98481; CI46143984744 SUCCESS:18compiler/15native/actualWEB4/exactcleanup. The exact shipping middleware, text controller and request models are linked into the isolated host.
+- Per-store HTTP12groups/31timings: owner, foreign caller and anonymous directly POST SQL text; parse/compiled route headers checked.20 settled native operations with exactly1 provider attempt and1 receipt each; anonymous requests have no reservation. Same1owned record/1write. No WEB6 drafting call, hosted browser acceptance or shared Atlas call is claimed.
+- Artifact15262354681 (17,972bytes),18entries verified in RAM, SHA256 da74cfd8cc877684a7b4e4575d03ebeb47cede195cf064d515c0bd35e5939a40. ZIP buffer released; compact receipt retained. Earlier fixture source-linkage failure46143154521 corrected, no runtime workaround. Main144/168, extension4/13 unchanged.

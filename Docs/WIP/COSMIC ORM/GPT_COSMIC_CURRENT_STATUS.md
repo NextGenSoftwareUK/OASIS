@@ -1,6 +1,6 @@
 # COSMIC current status
 
-Updated 2026-11-28 12:12 UTC. Session gpt-cosmic; implementation branch work/gpt-q50. Detailed evidence/history: GPT_Q50_SET_FAMILY_LEDGER_2026-11-28.md and GPT_M04_LEDGER_2026-11-28.md.
+Updated 2026-11-28T12:32:04.406Z. Session gpt-cosmic; implementation branch work/gpt-q50. Detailed evidence/history: GPT_Q50_SET_FAMILY_LEDGER_2026-11-28.md and GPT_M04_LEDGER_2026-11-28.md.
 
 ## Progress
 
@@ -23,9 +23,11 @@ Each latest artifact has18entries inspected in RAM, hash-bound compact acceptanc
 
 ## Current gate
 
-**5a8241a4114cc44fdbb1d31376816b0f16263b80**, CI **46143154521 failed isolated-host source linkage; corrected1b18b510 CI46143984744 pending**: posts one representative owner/foreign/anonymous SQL trio directly to the shipping /api/data/query-cql/sql middleware/action, then existing typed native execution. No client compiler for those calls. Expected12HTTPgroups/31timings and20settled native operations per store; one owned fixture write, exact cleanup. Independent review found no blockers. Superseded duplicate queued46143168518 canceled.
+Root **ddf1ec64 / Core5e83d673**: ordinary-class fluent/XML scalar conversions await XML46144735944 and paired CQL46144736023. Independent review found no blockers. Expected XML9native/2controls, WEB4 and cleanup. Full M04 remains open.
 
-Remaining selected-set families: identity-set late-projection operands and standalone staged entity-derived SQL requests. Full M04 relationships/collections, schema/table placement, full IUserType and remaining generators stay open. Other open parity rows remain in the checklist.
+Direct shipping SQL endpoint **1b18b510 / Corecf34fb1a** is accepted **46143984744**:18compiler/15native/WEB4/cleanup. HTTP12groups/31timings per store,20 settled operations each with1 native attempt/receipt. Anonymous queries reserve nothing. Artifact18entries inspected in RAM; receipt Q50_SHIPPING_SQL_HTTP_NATIVE_ACCEPTANCE_2026-11-28.json. This qualifies the isolated endpoint flow, not a hosted browser walkthrough.
+
+Remaining selected-set families: identity-set late-projection operands and standalone staged entity-derived SQL requests. Full M04 relationships/collections, schema/table placement, full IUserType and remaining generators stay open. Main144/168 extension4/13 unchanged.
 
 ## Backend ownership and remaining phases
 
