@@ -75,3 +75,7 @@ Read-only selected build logs prove WEB6/7/9failed at my unconditional Miden SDK
 - Before rollout fetched7934f8bd9c8, the other session native-qualified XML batch; preserved it and Core7d00ed1with paired manifest. Core delta contains query/model implementation files only, no project/SDK publish-graph changes. Accepted packaging/native cases are not replayed.
 
 - Railway dev rollout03bf0ef24bcf verified7/7 GitHub deployment statuses SUCCESS on2026-11-28T06:20Z. This verifies deployment, not hosted provider admission or all backend operations.
+
+## 2026-11-28 — obsolete Desktop inventory reconciliation
+
+Corrected the stale HoloOASIS.Desktop matrix row to obsolete, consistent with its existing README and owner decision. Retained canonical HoloOASIS priority and original historical CI45723092086; no new Desktop tests, source deletion, runtime change, build or download. Inventory238 and native-baseline118/163 remain unchanged; denominator includes retained legacy variants.
