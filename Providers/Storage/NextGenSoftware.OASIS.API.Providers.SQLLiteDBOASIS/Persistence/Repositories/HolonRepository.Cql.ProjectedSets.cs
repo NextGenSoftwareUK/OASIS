@@ -42,6 +42,10 @@ public partial class HolonRepository
             try
             {
                 using var budget=new SqliteCqlReadBudget(connection,cancellationToken);
+                using var floating=limits.NumericReduction!=null&&FloatingNumeric(limits.NumericReduction.InputType)
+                    ?new SqliteCqlFloatingAggregates(connection,budget.Check):null;
+                using var checkedAverage=limits.NumericReduction?.UsesInt64DoubleAverage==true
+                    ?new SqliteCqlCheckedInt64Average(connection,budget.Check):null;
                 using var traversal=setSql.HasRelationship
                     ? new SqliteCqlTraversalGuard(connection,budget.Check):null;
                 void Check(){budget.Check();traversal?.Check();}
@@ -115,6 +119,20 @@ public partial class HolonRepository
                     var final=stages.Length==0?members:stages[stages.Length-1];
                     if(final.Count>nodeLimits.MaximumResults)
                         throw new SqliteCqlResourceException("Native selected-set result count exceeds its admitted bound.");
+                    if(nodeLimits.NumericReduction is {} numericIntent)
+                    {
+                        if(checked(work+final.Count)>node.Options.MaximumStageRows
+                            ||checked(proofBytes+9L+8L*CqlSqlTranslator.SelectedNumericPartCount(numericIntent.InputType))>node.Options.MaximumProofPayloadBytes)
+                            throw new SqliteCqlResourceException("Native selected-set numeric work/proof exceeds its shared bound.");
+                        using var numericCommand=connection.CreateCommand();
+                        numericCommand.Transaction=_dbContext.Database.CurrentTransaction?.GetDbTransaction() as SqliteTransaction;
+                        numericCommand.CommandText=CqlSqlTranslator.SelectedNumericReduction(numericIntent,"("+native.Rows+")",native.Rank);
+                        foreach(var parameter in parameters)
+                            numericCommand.Parameters.Add(new SqliteParameter(parameter.ParameterName,parameter.SqliteType){Value=parameter.Value});
+                        var numeric=await ReadSelectedNumericPacketAsync(numericCommand,numericIntent,Check,cancellationToken).ConfigureAwait(false);
+                        return CosmicProjectedSetPacket.FromNumeric(left.Proof,right.Proof,new(members),
+                            stages.Select(stage=>new CosmicProjectedSetStageProof(stage)).ToArray(),nativeCount,numeric,work);
+                    }
                     if(nodeLimits.CountOnly)
                         return CosmicProjectedSetPacket.FromCount(left.Proof,right.Proof,new(members),
                             stages.Select(stage=>new CosmicProjectedSetStageProof(stage)).ToArray(),nativeCount,work);
@@ -140,6 +158,7 @@ public partial class HolonRepository
             }
             finally{if(opened)await _dbContext.Database.CloseConnectionAsync().ConfigureAwait(false);}
         }
+        catch(SqliteCqlNumericException cause){return Error(cause.Code,cause.Message,cause);}
         catch(InvalidDataException cause){return Error("CQL_DATA_INVALID",cause.Message,cause);}
         catch(OverflowException cause){return Error("CQL_DATA_INVALID",cause.Message,cause);}
         catch(SqliteCqlDeadlineException cause){return Error("CQL_QUERY_TIMEOUT",cause.Message,cause);}

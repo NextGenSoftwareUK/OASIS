@@ -64,12 +64,24 @@ public partial class Neo4jOASIS
         var binder=new NeoCqlTranslator("h","p",parameters,null);
         var carried=AppendSelectedStages(text,node.Query.Output,binder,"leftProof,rightProof,input,s0",
             binder.Bind(node.Options.MaximumStageRows),binder.Bind(node.Options.MaximumProofPayloadBytes),referenceBytes:5);
+        if(!exportRows&&limits.NumericReduction is {} numericIntent)
+        {
+            var final="s"+node.Query.Output.ResultStages.Count;
+            var import="input,work,proofBytes,"+final;
+            var numericText=new StringBuilder();
+            AppendSelectedIntegerReduction(numericText,import,final,0,binder.Bind(node.Options.MaximumStageRows),
+                binder.Bind(node.Options.MaximumProofPayloadBytes),numericIntent,binder.Bind);
+            const string unionPrefix="UNION ALL ";
+            text.Append("CALL { WITH ").Append(import).Append(' ')
+                .Append(numericText.ToString().Substring(unionPrefix.Length)).Append(" } ");
+        }
         var members="[position IN s0 | {side:input[position].side,index:input[position].index}]";
         var stages=Enumerable.Range(1,node.Query.Output.ResultStages.Count)
             .Select(index=>"[position IN s"+index+" | {side:input[position].side,index:input[position].index}]");
         text.Append("RETURN leftProof,rightProof,").Append(members).Append(" AS members,[")
             .Append(string.Join(",",stages)).Append("] AS stages,work ");
         if(!exportRows&&limits.CountOnly)text.Append(",size(s"+node.Query.Output.ResultStages.Count+") AS nativeCount ");
+        if(!exportRows&&limits.NumericReduction!=null)text.Append(",{proof:proof,count:nativeCount} AS numeric ");
         if(exportRows)text.Append(",[position IN s"+node.Query.Output.ResultStages.Count+" | {values:input[position].values}] AS rows ");
         if(text.Length>1024*1024)throw new NeoCqlLimitException("Native selected-set statement exceeds its bounded size.");
         return text.ToString();

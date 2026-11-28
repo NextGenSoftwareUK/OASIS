@@ -36,10 +36,10 @@ public static partial class CqlV1Endpoint
         if(!result.IsLoaded || result.Result==null || result.Result.Providers.Count!=1)
             return Failure(503,"CQL_PROVIDER_RESULT_INVALID","Selected-value set execution did not publish one acknowledged native result.");
         var output=result.Result.Providers.Single();
-        if(output.Provider!=selected || intent.Left.Source.ReadAccess?.ActorId!=actor ||
-            intent.Right.Source.ReadAccess?.ActorId!=actor)
+        if(output.Provider!=selected || intent.LeftInput.Anchor.Source.ReadAccess?.ActorId!=actor ||
+            intent.RightInput.Anchor.Source.ReadAccess?.ActorId!=actor)
             return Failure(503,"CQL_VISIBILITY_VIOLATION","Selected-value set provenance or actor differs from its admitted scope.");
-        var columns=SelectedWireColumns(intent.Output.Columns);
+        var columns=SelectedWireColumns(intent.Output);
         var rows=SelectedWireRows(output.Rows,deadline.Token);
         deadline.Token.ThrowIfCancellationRequested();
         return JsonResponse(new OASISResult<object>(new{

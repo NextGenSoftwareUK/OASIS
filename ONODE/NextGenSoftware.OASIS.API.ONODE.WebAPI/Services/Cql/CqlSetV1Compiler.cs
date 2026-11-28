@@ -19,16 +19,23 @@ public static partial class CqlV1Compiler
     private static CosmicSetQuery<Holon> CompileEntitySetSource(CqlSetV1Request request,Guid actor,
         ProviderType? provider,CosmicQueryReadAccess access,bool reduction=false)
     {
-        var kind=ValidateSetRequest(request,reduction);
-        if(request.Left.Columns!=null || request.Right.Columns!=null || request.Left.Stages!=null || request.Right.Stages!=null)
-            throw new ArgumentException("Explicit selected columns require the selected-value set compiler.");
-        var query=RequiredSet(CosmicSetQuery<Holon>.Create(SetSource(request.Left,actor,provider,access),SetSource(request.Right,actor,provider,access),kind));
-        query=ApplyEntitySetOrdering(query,request.Ordering);
-        if(request.Reverse)query=RequiredSet(query.Reverse());
-        if(request.Skip!=0)query=RequiredSet(query.Skip(request.Skip));
-        if(request.Take.HasValue)query=RequiredSet(query.Take(request.Take.Value));
-        return ApplyEntitySetStages(query,request.EntityStages);
+        _=ValidateSetRequest(request,reduction);
+        if(UsesSelectedSet(request))throw new ArgumentException("Selected columns require the selected-value set compiler.");
+        CosmicSetQuery<Holon> Node(CqlSetV1Node node)
+        {
+            CosmicSetInput<Holon> Input(CqlSetV1Source source)=>source.Set==null
+                ?RequiredSet(CosmicSetInput<Holon>.FromSource(SetSource(source,actor,provider,access)))
+                :RequiredSet(CosmicSetInput<Holon>.FromSet(Node(source.Set)));
+            var query=RequiredSet(CosmicSetQuery<Holon>.CreateTree(Input(node.Left),Input(node.Right),ParseNativeSetKind(node.Kind)));
+            query=ApplyEntitySetOrdering(query,node.Ordering);
+            if(node.Reverse)query=RequiredSet(query.Reverse());
+            if(node.Skip!=0)query=RequiredSet(query.Skip(node.Skip));
+            if(node.Take.HasValue)query=RequiredSet(query.Take(node.Take.Value));
+            return ApplyEntitySetStages(query,node.EntityStages);
+        }
+        return Node(RootSetNode(request,false));
     }
+
     private static CosmicSetQuery<Holon> ApplyEntitySetOrdering(CosmicSetQuery<Holon> query,CqlV1Ordering[] ordering)
     {
         if(ordering!=null)
@@ -90,18 +97,15 @@ public static partial class CqlV1Compiler
             throw new ArgumentException("Scalar set reductions require their independent compiler.");
         if(reduction && (request.Reduction is not ("Count" or "LongCount" or "Any" or "All")
             || request.Reduction=="All" && request.ReductionWhere==null
-            || request.IncludeMetadata || request.OutputColumns!=null || request.SelectedStages!=null))
+            || request.IncludeMetadata || request.OutputColumns!=null || request.SelectedStages!=null&&!UsesSelectedSet(request)))
             throw new ArgumentException("A native entity set reduction and unambiguous scalar output are required.");
         if(request?.Left==null || request.Right==null || request.Left.Graph!=null || request.Right.Graph!=null ||
             request.MaximumLeftRows is <1 or >1000 || request.MaximumRightRows is <1 or >1000 ||
             request.MaximumResults is <1 or >100 || request.Skip is <0 or >10000 ||
             request.Take is <0 or >100)
             throw new ArgumentException("Two bounded native entity sources without graph expansion are required.");
-        return request.Kind switch {
-            "Union"=>CosmicSetQueryKind.Union,"Concat"=>CosmicSetQueryKind.Concat,
-            "Intersect"=>CosmicSetQueryKind.Intersect,"Except"=>CosmicSetQueryKind.Except,
-            _=>throw new ArgumentException("Unknown native set operation.")
-        };
+        _=UsesSelectedSet(request);
+        return ParseNativeSetKind(request.Kind);
     }
     private static CosmicQuery<Holon> SetSource(CqlSetV1Source source,Guid actor,ProviderType? provider,CosmicQueryReadAccess access)
         =>CompileSource(actor,provider,source.Filters,source.AnyOf,source.AnyChildren,source.AnyDescendants,

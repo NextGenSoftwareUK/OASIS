@@ -2,7 +2,7 @@
 using System;
 using System.Text.Json.Serialization;
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
-/// <summary>Two independently bounded native entity windows under one server-selected read policy.</summary>
+/// <summary>A bounded native set tree under one server-selected provider and read policy.</summary>
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed class CqlSetV1Request
 {
@@ -35,6 +35,9 @@ public sealed class CqlSetV1Request
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed class CqlSetV1Source
 {
+    /// <summary>Nested sequence; leaf settings must remain at their defaults. Bounds and policy come from the enclosing operand.</summary>
+    [JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)]
+    public CqlSetV1Node? Set {get;set;}
     public CqlWhereV1Predicate? Where { get; set; }
     public CqlV1Filter[] Filters { get; set; } = Array.Empty<CqlV1Filter>();
     public CqlV1Filter[] AnyOf { get; set; } = Array.Empty<CqlV1Filter>();
@@ -57,4 +60,20 @@ public sealed class CqlSetV1EntityStage
     public CqlWhereV1Predicate? Where {get;set;}
     public CqlV1Ordering[]? Ordering {get;set;}
     public int? Count {get;set;}
+}
+
+/// <summary>A sequence node has no provider, actor, credentials or independent budget override.
+/// It inherits the enclosing operand limits. Entity and selected-value inputs cannot mix.</summary>
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed class CqlSetV1Node
+{
+    public string Kind {get;set;}="Union";
+    public CqlSetV1Source Left {get;set;}=new();
+    public CqlSetV1Source Right {get;set;}=new();
+    public int Skip {get;set;}
+    public int? Take {get;set;}
+    public CqlV1Ordering[]? Ordering {get;set;}
+    public bool Reverse {get;set;}
+    public CqlSetV1EntityStage[]? EntityStages {get;set;}
+    public CqlCompositionV1Stage[]? SelectedStages {get;set;}
 }

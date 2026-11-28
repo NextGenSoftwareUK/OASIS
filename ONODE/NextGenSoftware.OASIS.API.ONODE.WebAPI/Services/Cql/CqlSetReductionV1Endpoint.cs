@@ -16,6 +16,8 @@ public static partial class CqlV1Endpoint
         ICqlV1Providers providers,Guid actor,ProviderType selected,CosmicQueryReadAccess access,
         IOASISProvider storage,ICosmicQueryStorageProvider rowAdapter)
     {
+        if(CqlV1Compiler.UsesSelectedSet(request))
+            return await ExecuteProjectedSetReductionAsync(http,request,providers,actor,selected,access,storage,rowAdapter);
         if(rowAdapter is not ICosmicSetCountQueryStorageProvider {SupportsSetCount:true} adapter)
             return Failure(400,"CQL_CAPABILITY_UNSUPPORTED","The provider has no native set reduction contract.");
         var intent=CqlV1Compiler.CompileSetReduction(request,actor,selected,access);
@@ -30,19 +32,23 @@ public static partial class CqlV1Endpoint
         var result=await manager.ExecuteSetCountQueryAsync(planned.Result,new ICosmicQueryStorageProvider[]{adapter},deadline.Token);
         if(result.IsError)return QueryFailure(http,result.ErrorCode);
         var output=result.Result.Providers.Single();
-        if(!result.IsLoaded || output.Provider!=selected || intent.Left.ReadAccess?.ActorId!=actor)
+        if(!result.IsLoaded || output.Provider!=selected || intent.Anchor.ReadAccess?.ActorId!=actor)
             return Failure(503,"CQL_PROVIDER_RESULT_INVALID","Native reduction provenance differs from its admitted caller/provider.");
         deadline.Token.ThrowIfCancellationRequested();
+        return SetReductionResponse(http,request,selected,output.Value,deadline.Token);
+    }
+    private static IActionResult SetReductionResponse(HttpContext http,CqlSetV1Request request,ProviderType selected,long count,CancellationToken token)
+    {
         object value=request.Reduction switch{
-            "Count"=>ProjectionWireValue(checked((int)output.Value)),
-            "LongCount"=>ProjectionWireValue(output.Value),
-            "Any"=>output.Value!=0,
-            "All"=>output.Value==0,
+            "Count"=>ProjectionWireValue(checked((int)count)),
+            "LongCount"=>ProjectionWireValue(count),
+            "Any"=>count!=0,
+            "All"=>count==0,
             _=>throw new ArgumentException("Unknown admitted set reduction.")};
         var response=JsonResponse(new OASISResult<object>(new{
             version="cql-scalar-v1",provider=selected.ToString(),operation=request.Reduction,
             valueType=request.Reduction=="Count"?"Int32":request.Reduction=="LongCount"?"Int64":"Boolean",value
         }){IsLoaded=true});
-        deadline.Token.ThrowIfCancellationRequested();return response;
+        token.ThrowIfCancellationRequested();return response;
     }
 }

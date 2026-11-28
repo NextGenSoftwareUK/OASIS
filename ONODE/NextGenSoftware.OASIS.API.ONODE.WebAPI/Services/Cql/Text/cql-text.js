@@ -170,6 +170,32 @@
       if (token.trim() && !token.startsWith('--') && !token.startsWith('/*')) tokens.push(token);
     }
     const rawTokens = tokens.slice();
+    function wholeParentheses(parts) {
+      if(parts[0]!=='('||parts.at(-1)!==')')return false;
+      let depth=0;
+      for(let position=0;position<parts.length;position++) {
+        if(parts[position]==='(')depth++;
+        else if(parts[position]===')')depth--;
+        if(depth===0&&position!==parts.length-1)return false;
+        if(depth<0)return false;
+      }
+      return depth===0;
+    }
+    const wrappedTokens=rawTokens.at(-1)===';'?rawTokens.slice(0,-1):rawTokens;
+    if(wholeParentheses(wrappedTokens))return compileQuery(wrappedTokens.slice(1,-1).join(' '),discoveredProfiles,parameters,cteScope,compileDepth+1);
+    function setSourceColumns(source) {return source.set?setVisibleColumns(source.set):source.columns;}
+    function setVisibleColumns(body) {
+      const columns=body.outputColumns??setSourceColumns(body.left);
+      return Array.isArray(columns)?visibleSelectedColumns(columns,body.selectedStages??[]):undefined;
+    }
+    function setInputsBounded(body) {return [body.left,body.right].every(source=>source.set?setInputsBounded(source.set):Number.isInteger(source.take)&&source.take>=0&&source.take<=100);}
+    function checkSetTree(body,depth=1) {
+      if(depth>8)throw new Error('Native set trees allow at most eight levels.');
+      let leaves=0;
+      for(const source of [body.left,body.right])leaves+=source.set?checkSetTree(source.set,depth+1):1;
+      if(leaves>32)throw new Error('Native set trees allow at most32 leaf sources.');
+      return leaves;
+    }
 
     function cteIdentifier(token, description) {
       const value = token?.startsWith('"') ? token.slice(1,-1).replace(/""/g, '"') : token;
@@ -196,20 +222,14 @@
       });
     }
     function frame(compiled) {
-      if (compiled.path === 'data/query-cql/set' &&
-          !compiled.body.left.columns && !compiled.body.right.columns &&
-          !compiled.body.outputColumns) {
-        return {entitySet:true, provider:compiled.body.provider, columns:[], stages:[]};
-      }
-      if(compiled.path==='data/query-cql/set' && compiled.body.outputColumns &&
-          !compiled.body.left.columns && !compiled.body.right.columns) {
-        if(!['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS'].includes(compiled.body.provider) ||
-            !Array.isArray(compiled.body.outputColumns) || compiled.body.outputColumns.length<1 ||
-            compiled.body.outputColumns.length>32)
-          throw new Error('Late entity-set selected stages require bounded native database columns.');
-        const stages=(compiled.body.selectedStages ?? []).slice();
-        return {provider:compiled.body.provider,setBody:compiled.body,stages,
-          columns:visibleSelectedColumns(compiled.body.outputColumns,stages)};
+      if(compiled.path==='data/query-cql/set') {
+        if(compiled.body.reduction)throw new Error('A scalar set reduction cannot be a sequence source.');
+        if(!['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS'].includes(compiled.body.provider))
+          throw new Error('Selected set stages require one native database.');
+        const columns=setVisibleColumns(compiled.body);
+        if(!columns)return {entitySet:true,provider:compiled.body.provider,columns:[],stages:[]};
+        if(columns.length<1||columns.length>32)throw new Error('A set source requires one to32 visible columns.');
+        return {provider:compiled.body.provider,setBody:compiled.body,stages:(compiled.body.selectedStages??[]).slice(),columns};
       }
       if (!['data/query-cql/projection','data/query-cql/composition'].includes(compiled.path))
         throw new Error('A WITH source requires explicit selected columns from one native database.');
@@ -278,14 +298,14 @@
         }
         if (depth) throw new Error('Unbalanced WITH source parentheses.');
         const sourceTokens = rawTokens.slice(begin,cursor-1);
-        if (sourceTokens[0]?.toUpperCase() !== 'SELECT')
+        if(sourceTokens[0]?.toUpperCase()!=='SELECT'&&sourceTokens[0]!=='(')
           throw new Error('Declare selected WITH sources together, in dependency order.');
         const from = topFrom(sourceTokens);
         const sourceName = sourceTokens[from+1]?.replace(/^"|"$/g,'');
         const inherited = from >= 0 && (sourceTokens[from+1] === '(' || Object.hasOwn(scope, sourceName?.toLowerCase()));
-        if (!inherited && !explicitPage(sourceTokens))
-          throw new Error('Give the initial WITH source an explicit TOP, LIMIT or FETCH bound; an editor default page is not a complete source.');
         let compiled = compileQuery(sourceTokens.join(' '), discoveredProfiles, parameters, scope, compileDepth+1);
+        if(!inherited&&!explicitPage(sourceTokens)&&!(compiled.path==='data/query-cql/set'&&setInputsBounded(compiled.body)))
+          throw new Error('Give the initial WITH source an explicit TOP, LIMIT or FETCH bound; an editor default page is not a complete source.');
         const captured = frame(compiled);
         if (declaredAliases.length) {
           if (captured.entitySet) throw new Error('Select explicit columns after the entity set before declaring WITH column aliases.');
@@ -528,7 +548,14 @@
       const distinct = accept('DISTINCT');
       const leadingTake=readTop();
       const output=[];
-      if (accept('*')) input.columns.forEach(item=>output.push({alias:item.alias,sourceAlias:item.alias}));
+      let setReduction,scalarAlias;
+      if(input.setBody&&['COUNT','ANY'].includes(peek())&&tokens[index+1]==='(') {
+        const operation=tokens[index++].toUpperCase();expect('(');
+        if(!accept('*')&&!accept('1'))throw new Error('A selected-set reduction accepts COUNT(*)/COUNT(1) or ANY(*).');
+        expect(')');setReduction=operation==='COUNT'?'LongCount':'Any';
+        scalarAlias=readColumnAlias(operation==='COUNT'?'Count':'Any');
+        input.columns.forEach(item=>output.push({alias:item.alias,sourceAlias:item.alias}));
+      } else if (accept('*')) input.columns.forEach(item=>output.push({alias:item.alias,sourceAlias:item.alias}));
       else do {
         const selected=column();
         const alias=readColumnAlias(selected.alias);
@@ -543,6 +570,15 @@
       if (accept('WHERE')) {
         const parts=clauses(normalize(alternatives(1)));
         for (const part of parts) stages.push({operation:'Where',...(part.length === 1 ? {filters:part} : {anyOf:part})});
+      }
+      if(setReduction) {
+        if(distinct||leadingTake!==undefined)throw new Error('Put DISTINCT and input windows inside the selected set before reducing.');
+        accept(';');
+        if(index!==tokens.length)throw new Error('Apply ordering and windows inside the selected source before its reduction.');
+        if(stages.length>16||stages.reduce((sum,stage)=>sum+(stage.filters?.length??0)+(stage.anyOf?.length??0),0)>32)
+          throw new Error('Selected reduction exceeds16 stages or32 comparisons.');
+        const result=stages.length?bindSelectedFrame(input,stages):{path:'data/query-cql/set',body:input.setBody};
+        return {path:result.path,body:{...result.body,includeMetadata:false,reduction:setReduction},scalarAlias};
       }
       // SQL DISTINCT compares only this SELECT's visible tuple, before its order/page.
       // Earlier native source and result windows remain separate stages.
@@ -599,7 +635,7 @@
       }
       if (depth) throw new Error('Unbalanced selected subquery parentheses.');
       const sourceTokens = rawTokens.slice(begin,cursor-1);
-      if (sourceTokens[0]?.toUpperCase() !== 'SELECT')
+      if(sourceTokens[0]?.toUpperCase()!=='SELECT'&&sourceTokens[0]!=='(')
         throw new Error('A derived table requires one selected query.');
       if (rawTokens[cursor]?.toUpperCase() === 'AS') cursor++;
       const alias = cteIdentifier(rawTokens[cursor++], 'derived table alias');
@@ -610,9 +646,9 @@
       const innerName = sourceTokens[innerFrom+1]?.replace(/^"|"$/g,'').toLowerCase();
       const inherited = innerFrom >= 0 && (sourceTokens[innerFrom+1] === '(' ||
         Object.hasOwn(cteScope,innerName));
-      if (!inherited && !explicitPage(sourceTokens))
-        throw new Error('Give the initial derived source an explicit TOP, LIMIT or FETCH bound.');
       const captured = compileQuery(sourceTokens.join(' '),discoveredProfiles,parameters,cteScope,compileDepth+1);
+      if(!inherited&&!explicitPage(sourceTokens)&&!(captured.path==='data/query-cql/set'&&setInputsBounded(captured.body)))
+        throw new Error('Give the initial derived source an explicit TOP, LIMIT or FETCH bound.');
       frame(captured);
       completeSelectedBounds.add(captured);
       const scope = Object.assign(Object.create(null),cteScope);
@@ -646,22 +682,15 @@
       if (setDepth < 0) throw new Error('Unbalanced set-query parentheses.');
     }
     if (setOperators.length) {
-      if (setDepth || setOperators.length !== 1)
-        throw new Error('Use two parenthesized SELECT operands for a native set query.');
-      const position = setOperators[0];
+      if(setDepth)throw new Error('Unbalanced native set query.');
+      const lower=setOperators.filter(position=>rawTokens[position].toUpperCase()!=='INTERSECT');
+      const position=(lower.length?lower:setOperators).at(-1);
       let kind = rawTokens[position].toUpperCase(), rightStart = position + 1;
       if (kind === 'UNION' && rawTokens[rightStart]?.toUpperCase() === 'ALL') {
         kind = 'Concat'; rightStart++;
       } else kind = {UNION:'Union',INTERSECT:'Intersect',EXCEPT:'Except'}[kind];
       const rightTokens = rawTokens.slice(rightStart);
       if (rightTokens.at(-1) === ';') rightTokens.pop();
-      let rightEnd = -1, rightDepth = 0;
-      if (rightTokens[0] === '(') {
-        for (let position = 0; position < rightTokens.length; position++) {
-          if (rightTokens[position] === '(') rightDepth++;
-          else if (rightTokens[position] === ')' && --rightDepth === 0) { rightEnd = position; break; }
-        }
-      }
       function topWindow(parts) {
         let depth = 0;
         for (let position = 0; position < parts.length; position++) {
@@ -671,15 +700,27 @@
         }
         return -1;
       }
-      const trailingWindow = rightEnd >= 0 ? rightEnd + 1 : topWindow(rightTokens);
+      const trailingWindow = topWindow(rightTokens);
       const outputWindow = trailingWindow >= 0 ? rightTokens.splice(trailingWindow) : [];
       function operand(parts) {
-        const parenthesized = parts[0] === '(' && parts.at(-1) === ')';
-        if (!parenthesized && (parts[0]?.toUpperCase() !== 'SELECT' || topWindow(parts) >= 0))
+        const parenthesized = wholeParentheses(parts);
+        let operandDepth=0,compound=false;
+        for(const token of parts) {
+          if(token==='(')operandDepth++;else if(token===')')operandDepth--;
+          else if(!operandDepth&&['UNION','INTERSECT','EXCEPT'].includes(token.toUpperCase()))compound=true;
+        }
+        if(!parenthesized&&((parts[0]?.toUpperCase()!=='SELECT'&&!compound)||topWindow(parts)>=0))
           throw new Error('Wrap an independently ordered or paged SELECT operand in parentheses.');
         let compiled = compileQuery((parenthesized ? parts.slice(1,-1) : parts).join(' '),
           discoveredProfiles,parameters,cteScope,compileDepth+1);
         const inheritedBound = completeSelectedBounds.has(compiled);
+        if(compiled.path==='data/query-cql/set') {
+          if(compiled.body.reduction||compiled.body.outputColumns)
+            throw new Error('A nested set operand must remain an entity or selected-value sequence without a late entity projection.');
+          const {provider,includeMetadata,maximumLeftRows,maximumRightRows,maximumResults,...node}=compiled.body;
+          checkSetTree(node);
+          return {provider,includeMetadata,source:{set:node},columns:setVisibleColumns(node)};
+        }
         let visibleColumns;
         if (compiled.path === 'data/query-cql/composition') {
           const input = frame(compiled);
@@ -717,8 +758,8 @@
       const left = operand(rawTokens.slice(0,position)), right = operand(rightTokens);
       if (left.provider !== right.provider)
         throw new Error('Native set operands must use the same provider.');
-      const selected = Array.isArray(left.source.columns);
-      if (selected !== Array.isArray(right.source.columns))
+      const selected = Array.isArray(left.columns);
+      if (selected !== Array.isArray(right.columns))
         throw new Error('Use SELECT * on both inputs or explicit columns on both inputs.');
       if (selected && left.columns.length !== right.columns.length)
         throw new Error('Selected set inputs must have the same column count.');
@@ -761,11 +802,10 @@
           ...(ordering ? {ordering:page.body.ordering ?? [{field:page.body.orderBy,descending:!!page.body.descending}]} : {})
         };
       }
-      return {path:'data/query-cql/set',body:{
-        provider:left.provider,kind,left:left.source,right:right.source,...window,
+      const body={provider:left.provider,kind,left:left.source,right:right.source,...window,
         maximumLeftRows:100,maximumRightRows:100,maximumResults:100,
-        includeMetadata:!selected && !!(left.includeMetadata || right.includeMetadata)
-      }};
+        includeMetadata:!selected && !!(left.includeMetadata || right.includeMetadata)};
+      checkSetTree(body);return {path:'data/query-cql/set',body};
     }
     tokens.length = 0;
     for (let position = 0; position < rawTokens.length; position++) {

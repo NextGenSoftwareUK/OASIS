@@ -1,11 +1,50 @@
 using System;
 using System.Linq;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Data.Sqlite;
 using NextGenSoftware.OASIS.API.Core.Queries;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Repositories;
 
 public partial class HolonRepository
 {
+    private static async Task<CosmicProjectedNumericPacket> ReadSelectedNumericPacketAsync(SqliteCommand numericCommand,
+        CosmicProjectedNumericIntent numeric,Action check,CancellationToken cancellationToken)
+    {
+        var width=CqlSqlTranslator.SelectedNumericPartCount(numeric.InputType);
+        var floatingInput=FloatingNumeric(numeric.InputType);
+        var inputType=Nullable.GetUnderlyingType(numeric.InputType)??numeric.InputType;
+        var decimalInput=inputType==typeof(decimal);
+            await using var reader = await numericCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false)
+                || reader.FieldCount != (floatingInput ? 2 : decimalInput ? 1 + width : numeric.UsesInt64DoubleAverage ? 4 : 3))
+                throw new InvalidDataException("Selected numeric reduction requires one exact native packet.");
+            check();
+            bool? prefixOverflow = null;
+            if (numeric.UsesInt64DoubleAverage)
+            {
+                var flag = reader.GetInt64(3);
+                if (flag is not (0 or 1)) throw new InvalidDataException("Checked numeric reduction requires its exact prefix acknowledgement.");
+                prefixOverflow = flag == 1;
+            }
+            var participating = reader.GetInt64(0);
+            long[] words;
+            if (floatingInput)
+            {
+                var decoded = SqliteCqlFloatingAggregates.ReadPacket((byte[])reader.GetValue(1), inputType == typeof(float));
+                if (decoded.IsError) throw new SqliteCqlNumericException(decoded.ErrorCode, decoded.Message);
+                if (decoded.Result.Count != participating)
+                    throw new InvalidDataException("Selected floating participation disagrees with its native packet.");
+                words = decoded.Result.Parts;
+            }
+            else words = Enumerable.Range(1, width).Select(reader.GetInt64).ToArray();
+            var packet = new CosmicProjectedNumericPacket(participating, words, prefixOverflow);
+            if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                throw new InvalidDataException("Selected numeric reduction returned multiple packets.");
+        check();return packet;
+    }
     private sealed partial class CqlSqlTranslator
     {
         internal static int SelectedNumericPartCount(Type declared)

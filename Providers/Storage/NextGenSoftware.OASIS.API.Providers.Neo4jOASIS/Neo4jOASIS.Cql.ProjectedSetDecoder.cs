@@ -24,7 +24,7 @@ public partial class Neo4jOASIS
             CosmicProjectedSetExecutionLimits nodeLimits,IReadOnlyDictionary<string,object> record)
         {
             check();
-            if(record.Count!=(nodeLimits.CountOnly?6:5))throw Invalid("Native selected-set snapshot requires one exact envelope.");
+            if(record.Count!=(nodeLimits.NumericReduction!=null?7:nodeLimits.CountOnly?6:5))throw Invalid("Native selected-set snapshot requires one exact envelope.");
             var left=Input("leftProof",node.Left,node.LeftSet,node.Options.Bounds.MaximumLeftInputRows);
             var right=Input("rightProof",node.Right,node.RightSet,node.Options.Bounds.MaximumRightInputRows);
             long proofBytes=0;
@@ -60,6 +60,16 @@ public partial class Neo4jOASIS
             {
                 var nativeCount=Number(record,"nativeCount");
                 if(nativeCount<0||nativeCount>nodeLimits.MaximumResults)throw new NeoCqlLimitException("Native selected-set count exceeds its admitted bound.");
+                if(nodeLimits.NumericReduction is {} numericIntent)
+                {
+                    if(checked(work+final.Count)>node.Options.MaximumStageRows
+                        ||checked(proofBytes+9L+8L*SelectedNumericWidth(numericIntent.InputType))>node.Options.MaximumProofPayloadBytes)
+                        throw new NeoCqlLimitException("Native numeric work/proof exceeds its selected-set bound.");
+                    var header=record["numeric"].As<IReadOnlyDictionary<string,object>>();
+                    if(header.Count!=2)throw Invalid("Native selected-set numeric header is malformed.");
+                    var numeric=ReadSelectedIntegerReduction(header["proof"],Number(header,"count"),numericIntent);
+                    return CosmicProjectedSetPacket.FromNumeric(left.Proof,right.Proof,members,stages,nativeCount,numeric,work);
+                }
                 return CosmicProjectedSetPacket.FromCount(left.Proof,right.Proof,members,stages,nativeCount,work);
             }
             var rows=new List<CosmicProjectionRow>();long outputBytes=0;

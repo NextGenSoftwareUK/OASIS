@@ -119,12 +119,76 @@ public sealed partial class CqlV1Web4NativeTests
         var shaped=await Timed("nested-reselected-visible-tuple",()=>manager.ExecuteProjectedSetQueryAsync(Plan(narrowed.Result),new[]{adapter},10));
         Assert.IsFalse(shaped.IsError,shaped.Message+shaped.Exception);
         CollectionAssert.AreEqual(new[]{"x","y","z"},shaped.Result.Providers.Single().Rows.Select(row=>(string)row["Only"]).ToArray());
+        var na=EntitySource(access,0).Select(row=>row.Version).Result;
+        var nb=EntitySource(access,1).Select(row=>row.Version).Result;
+        var nc=EntitySource(access,2).Select(row=>row.Version).Result;
+        var ordinaryNumericPlan=CosmicProjectedNumericPlanner.Plan<Holon,int,int>(na,0,CosmicScalarOperation.Sum,
+            adapter.QueryProviderType,new[]{target});
+        Assert.IsFalse(ordinaryNumericPlan.IsError,ordinaryNumericPlan.Message);
+        var ordinaryNumeric=await Timed("ordinary-selected-numeric-control",()=>CosmicProjectedNumericExecutor.ExecuteAsync(ordinaryNumericPlan.Result,new[]{adapter}));
+        Assert.IsFalse(ordinaryNumeric.IsError,ordinaryNumeric.Message+ordinaryNumeric.Exception);
+        Assert.AreEqual(2,ordinaryNumeric.Result.Providers.Single().Value);
+        var numberChild=CosmicProjectedSetQuery<Holon,int>.Create(na,nb,CosmicSetQueryKind.Concat).Result.Take(3).Result;
+        var numberTree=CosmicProjectedSetQuery<Holon,int>.CreateTree(
+            CosmicProjectedSetInput<Holon,int>.FromSet(numberChild).Result,CosmicProjectedSetInput<Holon,int>.FromSource(nc).Result,CosmicSetQueryKind.Concat).Result;
+        async Task<TValue> Numeric<TValue>(string name,CosmicProjectedSetQuery<Holon,int> source,CosmicScalarOperation operation)
+        {
+            var plan=CosmicProjectedSetNumericPlanner.Plan<Holon,int,TValue>(source,0,operation,adapter.QueryProviderType,target,
+                native.ProjectedSetCapabilities,new CosmicProjectedSetOptions(new CosmicSetQueryOptions(8,8,1048576,1)));
+            Assert.IsFalse(plan.IsError,plan.Message+plan.Exception);
+            var result=await Timed(name,()=>manager.ExecuteProjectedSetNumericQueryAsync(plan.Result,new[]{adapter}));
+            Assert.IsFalse(result.IsError,result.Message+result.Exception);Assert.IsTrue(result.IsLoaded);
+            return result.Result.Providers.Single().Value;
+        }
+        Assert.AreEqual(5,await Numeric<int>("native-set-sum-beyond-publication",numberTree,CosmicScalarOperation.Sum));
+        Assert.AreEqual(1d,await Numeric<double>("native-set-average-after-windows",numberTree,CosmicScalarOperation.Average));
+        var numberUnion=CosmicProjectedSetQuery<Holon,int>.Create(na,nc,CosmicSetQueryKind.Union).Result;
+        Assert.AreEqual(1,await Numeric<int>("native-set-sum-visible-distinct",numberUnion,CosmicScalarOperation.Sum));
+        var nf=EntitySource(CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result,0).Select(row=>row.Version).Result;
+        var numberForeign=CosmicProjectedSetQuery<Holon,int>.Create(nf,nf,CosmicSetQueryKind.Concat).Result;
+        Assert.AreEqual(0,await Numeric<int>("native-set-foreign-sum",numberForeign,CosmicScalarOperation.Sum));
+        var nla=CosmicLinq.Create(manager,adapter,EntitySource(access,0),maximumResults:4).Result.Select(row=>row.Version);
+        var nlb=CosmicLinq.Create(manager,adapter,EntitySource(access,1),maximumResults:4).Result.Select(row=>row.Version);
+        var nlc=CosmicLinq.Create(manager,adapter,EntitySource(access,2),maximumResults:4).Result.Select(row=>row.Version);
+        var nativeNumbers=nla.Concat(nlb).Take(3).Concat(nlc);
+        var lsum=await Timed("linq-selected-native-sum",()=>nativeNumbers.ToCosmicSumAsync());
+        Assert.IsFalse(lsum.IsError,lsum.Message+lsum.Exception);Assert.AreEqual(5,lsum.Result);
+        var lavg=await Timed("linq-selected-native-average",()=>nativeNumbers.ToCosmicAverageAsync());
+        Assert.IsFalse(lavg.IsError,lavg.Message+lavg.Exception);Assert.AreEqual(1d,lavg.Result);
+        SelectedFinalProbe.ConstructorCalls=0;SelectedCountProbe.ConstructorCalls=0;
+        var typedView=probe.Select(row=>new SelectedFinalProbe{Label=row.Category}).Where(row=>row.Label=="x")
+            .Distinct().OrderBy(row=>row.Label).Select(row=>new{Value=row.Label});
+        var typedResult=await Timed("native-typed-final-shape",()=>typedView.ToCosmicListAsync());
+        Assert.IsFalse(typedResult.IsError,typedResult.Message+typedResult.Exception);
+        CollectionAssert.AreEqual(new[]{"x"},typedResult.Result.Select(row=>row.Value).ToArray());
+        var typedCount=await Timed("typed-view-native-count",()=>typedView.ToCosmicCountAsync());
+        Assert.IsFalse(typedCount.IsError,typedCount.Message+typedCount.Exception);Assert.AreEqual(1,typedCount.Result);
+        var typedMin=await Timed("typed-view-native-min",()=>typedView.ToCosmicMinAsync(row=>row.Value));
+        Assert.IsFalse(typedMin.IsError,typedMin.Message+typedMin.Exception);Assert.AreEqual("x",typedMin.Result);
+        var typedNumberView=nativeNumbers.Select(number=>new{Number=number}).Where(row=>row.Number>0);
+        var typedSum=await Timed("typed-view-native-sum",()=>typedNumberView.ToCosmicSumAsync(row=>row.Number));
+        Assert.IsFalse(typedSum.IsError,typedSum.Message+typedSum.Exception);Assert.AreEqual(5,typedSum.Result);
+        var typedRight=lc.Select(row=>new SelectedFinalProbe{Label=row.Category}).Select(row=>new{Value=row.Label});
+        var recombined=typedView.Union(typedRight).OrderBy(row=>row.Value);
+        var combinedTypedRows=await Timed("typed-view-recombined-native-union",()=>recombined.ToCosmicListAsync());
+        Assert.IsFalse(combinedTypedRows.IsError,combinedTypedRows.Message+combinedTypedRows.Exception);
+        CollectionAssert.AreEqual(new[]{"x","z"},combinedTypedRows.Result.Select(row=>row.Value).ToArray());
+        var typedLast=await Timed("typed-view-native-last",()=>recombined.ToCosmicLastAsync());
+        Assert.IsFalse(typedLast.IsError,typedLast.Message+typedLast.Exception);Assert.AreEqual("z",typedLast.Result.Value);
+        Assert.AreEqual(0,SelectedCountProbe.ConstructorCalls,"Do not construct the original set DTO.");
+        Assert.AreEqual(0,SelectedFinalProbe.ConstructorCalls,"Do not construct an intermediate final shape that was reselected.");
         using var cancel=new CancellationTokenSource();cancel.Cancel();
         var stopped=await Timed("selected-cancel",()=>manager.ExecuteProjectedSetQueryAsync(Plan(query),new[]{adapter},10,cancellationToken:cancel.Token));
         Assert.IsTrue(stopped.IsError);Assert.AreEqual("CQL_QUERY_CANCELLED",stopped.ErrorCode);
-        return new NativeFixtureJourneyProof(16,1,new Dictionary<string,bool>{["nestedVisibleOutputBindings"]=true,["nativeScalarExtremaAfterWindows"]=true,["nativeCountIndependentOfPublication"]=true,["nativeCardinalityWithoutConstructors"]=true,["foreignNativeCount"]=true,["registeredLinqLeftTree"]=true,["registeredLinqRightTree"]=true,["explicitTreeAdmission"]=true,["concatOccurrences"]=true,
+        return new NativeFixtureJourneyProof(25,1,new Dictionary<string,bool>{["typedViewsFeedFurtherNativeSets"]=true,["typedViewNativeElements"]=true,["typedViewCardinalityAndExtrema"]=true,["typedViewNumericTerminal"]=true,["typedFinalSelectionWithoutIntermediateConstructors"]=true,["registeredLinqNativeSumAverage"]=true,["sharedOrdinaryNumericDecoderControl"]=true,["nativeSumAverageAfterSetWindows"]=true,["numericVisibleEqualityAndForeignScope"]=true,["nestedVisibleOutputBindings"]=true,["nativeScalarExtremaAfterWindows"]=true,["nativeCountIndependentOfPublication"]=true,["nativeCardinalityWithoutConstructors"]=true,["foreignNativeCount"]=true,["registeredLinqLeftTree"]=true,["registeredLinqRightTree"]=true,["explicitTreeAdmission"]=true,["concatOccurrences"]=true,
             ["visibleTupleUnion"]=true,["visibleTupleIntersectExcept"]=true,["nodeWindows"]=true,["rightNested"]=true,
             ["foreignIsolation"]=true,["childBoundBeforeEmpty"]=true,["cancellation"]=true});
+    }
+    public sealed class SelectedFinalProbe
+    {
+        public static int ConstructorCalls;
+        public string Label {get;set;}="";
+        public SelectedFinalProbe(){ConstructorCalls++;}
     }
     public sealed class SelectedCountProbe
     {
