@@ -55,3 +55,13 @@ Reconciled17/17existing native receipts; provider-directory trees match Developm
 ## 2026-11-28 — Elasticsearch and Qdrant native accepted
 
 Existing shipping-provider suites now run in isolated CI46111639871 on5f03746c7ac9c6208f33678b387703aa6b62a2cb. Both passed26sync+26async, zero skips, independent native empty-store checks and all fixture/container/output cleanup. Existing accepted popular matrix skipped. Native matrix baseline rows117/163; inventory238/75non-storage unchanged. Core README65a90d7 corrects nonexistent migration classes and canonical ownership; its only diff from accepted907cd4b is documentation, so no provider reruns.
+
+## 2026-11-28 — Railway SDK publish-graph repair (qualification pending)
+
+Read-only selected build logs prove WEB6/7/9failed at my unconditional Miden SDK install. Fix the shared packaging owner, remove7unconditional Docker steps and require complete SDK assets whenever the Miden provider assembly is actually shipped. New packaging-only CI uses real Miden consumer and WEB6publish graphs on Docker-pinned Node24.19.0, with owned/app/publish cleanup and no ledger/native rerun. This is agent-owned engineering work; no owner action, DNA/secret change or shared Atlas operation.
+
+- Packaging46113155793passed both real publish/install steps; only cleanup failed because the CI runner cannot unlink/app/publishfrom its root-owned parent/app. Corrected the single validated owned-directory removal to use sudo. Both ownership-marker and exact realpath guards remain. The runner discarded the already-cleared empty directory; no local/user data was involved. Repeat only this failed packaging qualification, not native ledger checks.
+
+- SDK packaging46113637170nowpassed2/2real graphs and owned output cleanup. No native ledger rerun.11site repos updated;10public inventory pages/catalogues observed238(the WEB8change is README-only); publication receipt records exact commits and scope. No new owner action or local artifacts. Typesense remains unaccepted pending its isolated data-volume retry; do not increase117native rows yet.
+
+- Before rollout fetched7934f8bd9c8, the other session native-qualified XML batch; preserved it and Core7d00ed1with paired manifest. Core delta contains query/model implementation files only, no project/SDK publish-graph changes. Accepted packaging/native cases are not replayed.
