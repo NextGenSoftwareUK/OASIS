@@ -91,10 +91,21 @@ public sealed partial class CqlV1Web4NativeTests
         var foreignTree=CosmicSetQuery<Holon>.CreateTree(Node(foreignChild),Leaf(foreign),CosmicSetQueryKind.Concat).Result;
         var denied=await Timed("foreign-tree-count",()=>manager.ExecuteSetCountQueryAsync(Plan(foreignTree),new[]{adapter}));
         Assert.IsFalse(denied.IsError,denied.Message+denied.Exception);Assert.AreEqual(0L,denied.Result.Providers[0].Value);
+        var la=CosmicLinq.Create(manager,adapter,a,maximumResults:8).Result;
+        var lb=CosmicLinq.Create(manager,adapter,b,maximumResults:8).Result;
+        var lc=CosmicLinq.Create(manager,adapter,c,maximumResults:8).Result;
+        var lchild=la.Concat(lb).Take(3);
+        var lrows=await Timed("linq-left-nested-window",()=>lchild.Concat(lc).Skip(1).Take(3).ToCosmicListAsync());
+        Assert.IsFalse(lrows.IsError,lrows.Message+lrows.Exception);CollectionAssert.AreEqual(new[]{ids[1],ids[1],ids[2]},lrows.Result.Select(row=>row.Id).ToArray());
+        var lr=await Timed("linq-right-nested",()=>la.Concat(lchild).ToCosmicListAsync());
+        Assert.IsFalse(lr.IsError,lr.Message+lr.Exception);CollectionAssert.AreEqual(new[]{ids[0],ids[1],ids[0],ids[1],ids[1]},lr.Result.Select(row=>row.Id).ToArray());
+        var ln=await Timed("linq-nested-native-count",()=>lchild.Concat(lc).ToCosmicLongCountAsync());
+        Assert.IsFalse(ln.IsError,ln.Message+ln.Exception);Assert.AreEqual(5L,ln.Result);
         using var cancel=new CancellationTokenSource();cancel.Cancel();
         var cancelled=await Timed("cancel-tree",()=>manager.ExecuteTypedSetQueryAsync(Plan(intent),new[]{adapter},10,cancel.Token));
         Assert.IsTrue(cancelled.IsError);Assert.AreEqual("CQL_QUERY_CANCELLED",cancelled.ErrorCode);
-        return new NativeFixtureJourneyProof(10,1,new Dictionary<string,bool>{
+        return new NativeFixtureJourneyProof(13,1,new Dictionary<string,bool>{
+            ["registeredLinqLeftTree"]=true,["registeredLinqRightTree"]=true,["registeredLinqNativeCount"]=true,
             ["sharedActorAuthorityModelAdmission"]=true,["boundedTreeAndExplicitEnrollment"]=true,["nestedConcatOccurrenceOrder"]=true,
             ["perNodeWindowsPreserved"]=true,["allFourNativeIdentityOperators"]=true,["countIndependentOfPublication"]=true,
             ["rightNestedInput"]=true,["deepSourceAndChildOutputBoundsBeforeEmpty"]=true,["foreignPolicyPreserved"]=true,["cancellationPreserved"]=true});

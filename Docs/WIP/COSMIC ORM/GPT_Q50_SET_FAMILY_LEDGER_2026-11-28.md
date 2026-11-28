@@ -77,3 +77,8 @@ Mongo-only CI46117421264 failed: count3 passed, recursive1 failed before provide
 ### Neo4j recursive compiler — native0/3 pending CI
 
 Neo4j now recursively compiles set nodes as native Cypher subqueries. Each returns ordered occurrences plus all leaf proofs and inherited schema/traversal/input/work failures. Node windows run through the existing entity-stage compiler with unique parameter prefixes. Native identity membership and Concat duplicates remain in Cypher; publication happens once. Decoder proof/count bounds use the admitted total leaf window rather than only the outer two inputs. Existing flat compilation is retained for flat queries. Expanded cohort requires tree3 + count3, actual WEB4 and exact fixture/container cleanup. Core admission fix0534cb49 is included. No full parent credit; main144/168 + extension4/13. No local build/runtime/database/download or shared Atlas/PIPER access.
+
+
+### Registered nested LINQ capture — qualification pending
+
+Core39488eac gives each set provider a registered constant root and binds every source/subtree through its owning provider. Source+tree, tree+source and tree+tree share one manager/native adapter and immutable CreateTree admission. No expression compilation or managed set evaluation. Deferred binding captures current parameters through registered state. Three native journey assertions add left nested windows, right nested operands and LongCount; tree cohort now13 groups/15timings per store, plus unchanged count3 controls. Full set rows remain OPEN; main144/168 + extension4/13. No local runtime/build/download/database or shared Atlas/PIPER access.

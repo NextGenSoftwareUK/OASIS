@@ -27,9 +27,9 @@ for store in ['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS']:
  assert set(r['evidence'])==groups and all(r['evidence'].values()) and len(r['queryElapsedMilliseconds'])==12
 for store in ['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS']:
  tree=json.loads((RESULTS/(store+'-recursive-entity-set-native.json')).read_text(encoding='utf-8-sig'))
- assert tree['provider']==store and tree['checks']==10 and tree['ownedCleanupIds']==4 and tree['successfulHolonWrites']==1
- assert tree['nativeProviderVerified'] is True and tree['exactCleanupVerified'] is True and len(tree['queryElapsedMilliseconds'])==12
- assert set(tree['evidence'])=={'sharedActorAuthorityModelAdmission','boundedTreeAndExplicitEnrollment','nestedConcatOccurrenceOrder',
+ assert tree['provider']==store and tree['checks']==13 and tree['ownedCleanupIds']==4 and tree['successfulHolonWrites']==1
+ assert tree['nativeProviderVerified'] is True and tree['exactCleanupVerified'] is True and len(tree['queryElapsedMilliseconds'])==15
+ assert set(tree['evidence'])=={'registeredLinqLeftTree','registeredLinqRightTree','registeredLinqNativeCount','sharedActorAuthorityModelAdmission','boundedTreeAndExplicitEnrollment','nestedConcatOccurrenceOrder',
   'perNodeWindowsPreserved','allFourNativeIdentityOperators','countIndependentOfPublication','rightNestedInput',
   'deepSourceAndChildOutputBoundsBeforeEmpty','foreignPolicyPreserved','cancellationPreserved'} and all(tree['evidence'].values())
 subprocess.run(['dotnet','build','ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI',*BOUNDS],cwd=ROOT,check=True)
