@@ -40,8 +40,12 @@ public sealed partial class CqlV1Web4NativeTests
         return builder;
     }
 
-    private static async Task<NativeFixtureJourneyProof> VerifyInheritanceJourney(
+    private static Task<NativeFixtureJourneyProof> VerifyInheritanceJourney(
         IOASISStorageProvider provider,List<Guid> owned,Dictionary<string,long> timings)
+        =>VerifyMappedInheritanceJourney(provider,owned,timings,TphBuilder);
+
+    private static async Task<NativeFixtureJourneyProof> VerifyMappedInheritanceJourney(
+        IOASISStorageProvider provider,List<Guid> owned,Dictionary<string,long> timings,Func<CosmicModelBuilder> mapping)
     {
         var adapter=(ICosmicQueryStorageProvider)provider;
         var dna=new OASISDNA{OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS{
@@ -75,7 +79,7 @@ public sealed partial class CqlV1Web4NativeTests
         colliding.Entity<TphAnimalHolon>().Property(row=>row.Sound).HasMetadataKey("tph_kind");
         colliding.Entity<TphAnimalHolon>().HasDiscriminator("tph_kind");
         Assert.IsTrue(colliding.Build().IsError);
-        var built=TphBuilder().Build();Assert.IsFalse(built.IsError,built.Message);
+        var built=mapping().Build();Assert.IsFalse(built.IsError,built.Message);
         var model=built.Result;
         Assert.IsTrue(model.TryGetDiscriminator(typeof(TphPuppyHolon),out var key,out var puppyValue));
         Assert.AreEqual("tph_kind",key);Assert.AreEqual("puppy",puppyValue);
@@ -131,7 +135,7 @@ public sealed partial class CqlV1Web4NativeTests
         checks++;
 
         // 6. The hierarchy restriction survives application-filter bypass.
-        var filtered=TphBuilder();filtered.Entity<TphDogHolon>().HasQueryFilter(row=>row.Breed=="husky");
+        var filtered=mapping();filtered.Entity<TphDogHolon>().HasQueryFilter(row=>row.Breed=="husky");
         var filteredModel=filtered.Build().Result;
         using(var filteredReader=CosmicSession.Create(manager,adapter,access,filteredModel).Result)
         {
