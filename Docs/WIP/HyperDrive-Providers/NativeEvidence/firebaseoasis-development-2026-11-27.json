@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "provider": "FirebaseOASIS",
+  "suite": "core-storage-v2",
+  "mode": "native",
+  "sourceRef": "Development",
+  "sourceCommit": "d91bf074fa16a7e6f15f78fd87ad7314c90d72c7",
+  "runUrl": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/46099124837",
+  "conclusion": "success",
+  "checks": {
+    "sync": 26,
+    "async": 26
+  },
+  "backend": "Official Firebase Realtime Database emulator v4.11.2",
+  "additionalVerification": "20 write-acknowledgement unit checks; 2 native graph/deletion checks",
+  "verificationBasis": "CI passed both native suite test rows; test code asserts the shared 26 checks and FixtureCleanupComplete for each mode. This is a compact acceptance receipt, not a copy of raw suite reports.",
+  "cleanup": {
+    "confirmed": true,
+    "logMarker": "Removed the owned RTDB emulator, fixture and reports.",
+    "localDownloads": 0,
+    "localBuilds": 0,
+    "sharedAtlasOperations": 0
+  },
+  "scopeLimit": "Isolated native backend acceptance; hosted credentials/rules, retained-data compatibility, all interfaces and global HyperDrive release gates are separate."
+}

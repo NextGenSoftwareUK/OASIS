@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "provider": "TursoOASIS",
+  "suite": "core-storage-v2",
+  "mode": "native",
+  "sourceRef": "Development",
+  "sourceCommit": "d91bf074fa16a7e6f15f78fd87ad7314c90d72c7",
+  "runUrl": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/46099193518",
+  "conclusion": "success",
+  "checks": {
+    "sync": 26,
+    "async": 26
+  },
+  "backend": "libSQL server ghcr.io/tursodatabase/libsql-server@sha256:1bc51611928ccc51229bdc40ca0defcb915907f8f9f6a664b43529de0ca45fab",
+  "additionalVerification": "2 native avatar deletion rollback and wallet selector checks",
+  "verificationBasis": "CI passed both native suite test rows; test code asserts the shared 26 checks and FixtureCleanupComplete for each mode. This is a compact acceptance receipt, not a copy of raw suite reports.",
+  "cleanup": {
+    "confirmed": true,
+    "logMarker": "Removed the owned libSQL container, database and test output.",
+    "localDownloads": 0,
+    "localBuilds": 0,
+    "sharedAtlasOperations": 0
+  },
+  "scopeLimit": "Isolated native backend acceptance; hosted credentials/rules, retained-data compatibility, all interfaces and global HyperDrive release gates are separate."
+}
