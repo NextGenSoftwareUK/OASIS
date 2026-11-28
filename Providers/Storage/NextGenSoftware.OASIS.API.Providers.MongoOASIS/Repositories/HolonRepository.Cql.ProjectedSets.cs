@@ -24,8 +24,8 @@ public partial class HolonRepository
                 MongoCqlProjectedSetCommand native,CosmicProjectedSetExecutionLimits nodeLimits)
             {
                 async Task<(CosmicProjectedSetInputPacket Proof,IReadOnlyList<CosmicProjectionRow> Rows)> Input(
-                    CosmicProjectionCompositionPlan<T,TResult> leaf,CosmicProjectedSetPlan<T,TResult> child,
-                    MongoCqlCompositionCommand leafCommand,MongoCqlProjectedSetCommand childCommand,int maximum)
+                    CosmicProjectionCompositionPlan<T,TResult> leaf,CosmicProjectedSetPlan<T,TResult> child,CosmicSetProjectionPlan<T,TResult> identity,
+                    MongoCqlCompositionCommand leafCommand,MongoCqlProjectedSetCommand childCommand,MongoCqlSetProjectionCompositionCommand identityCommand,int maximum)
                 {
                     if(child!=null)
                     {
@@ -33,12 +33,21 @@ public partial class HolonRepository
                             new CosmicProjectedSetExecutionLimits(child.Options,maximum,nodeLimits.MaximumPayloadBytes)).ConfigureAwait(false);
                         return(new(null,packet),packet.Rows);
                     }
+                    if(identity!=null)
+                    {
+                        var inputLimits=MongoCqlTranslator.ProjectedSetInputLimits(identity.SelectedOptions);
+                        var baseCommand=new MongoCqlTranslator().CompileSetProjection(identity,inputLimits.MaximumInputRows);
+                        var input=await ReadNativeCqlProjectionWithinOwnerAsync(baseCommand,identity.Selection.Query.Columns,
+                            inputLimits.MaximumInputRows,inputLimits.MaximumInputPayloadBytes,session,Options,token).ConfigureAwait(false);
+                        var packet=await ReadNativeSetProjectionCompositionAsync(identityCommand,inputLimits,session,Options,input,token).ConfigureAwait(false);
+                        return(CosmicProjectedSetInputPacket.FromIdentitySelection(packet,identity.Query.Source.TreeDepth,identity.Query.Source.LeafCount),packet.Rows);
+                    }
                     var read=await ReadNativeSelectedPacketAsync(leafCommand,leaf.Query,
                         MongoCqlTranslator.ProjectedSetInputLimits(leaf.Options),session,Options,token).ConfigureAwait(false);
                     return(new(read.Proof,null),read.Proof.Rows.Select(row=>row.Row).ToArray());
                 }
-                var left=await Input(node.Left,node.LeftSet,native.Left,native.LeftSet,node.Options.Bounds.MaximumLeftInputRows).ConfigureAwait(false);
-                var right=await Input(node.Right,node.RightSet,native.Right,native.RightSet,node.Options.Bounds.MaximumRightInputRows).ConfigureAwait(false);
+                var left=await Input(node.Left,node.LeftSet,node.LeftIdentity,native.Left,native.LeftSet,native.LeftIdentity,node.Options.Bounds.MaximumLeftInputRows).ConfigureAwait(false);
+                var right=await Input(node.Right,node.RightSet,node.RightIdentity,native.Right,native.RightSet,native.RightIdentity,node.Options.Bounds.MaximumRightInputRows).ConfigureAwait(false);
             long proofBytes=0;
             async Task<List<CosmicProjectedSetOccurrence>> Read(BsonDocument[] pipeline)
             {

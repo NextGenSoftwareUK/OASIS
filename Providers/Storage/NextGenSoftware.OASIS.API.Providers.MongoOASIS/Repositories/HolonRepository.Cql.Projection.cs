@@ -46,21 +46,49 @@ public partial class HolonRepository
             using var session = command.RequiresSnapshot
                 ? await _dbContext.MongoClient.StartSessionAsync(new ClientSessionOptions { Snapshot = true, CausalConsistency = false }, deadline.Token).ConfigureAwait(false)
                 : null;
+            var rows=await ReadNativeCqlSelectedRowsWithinOwnerAsync(command,maximumResults,maximumPayloadBytes,decode,session,Options,deadline.Token).ConfigureAwait(false);
+            deadline.Token.ThrowIfCancellationRequested();
+            if(selectedContinuation!=null)
+            {
+                if(session==null || !command.RequiresSnapshot)
+                    throw new InvalidDataException("Selected set continuation requires its admitted native snapshot owner.");
+                await selectedContinuation(session,Options,rows,deadline.Token).ConfigureAwait(false);
+                deadline.Token.ThrowIfCancellationRequested();
+            }
+            return rows;
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && deadline.IsCancellationRequested)
+        { throw new MongoCqlGraphTimeoutException(); }
+    }
+
+    internal Task<IReadOnlyList<CosmicProjectionRow>> ReadNativeCqlProjectionWithinOwnerAsync(
+        MongoCqlProjectionCommand command,IReadOnlyList<CosmicProjectionColumn> columns,int maximumResults,int maximumPayloadBytes,
+        IClientSessionHandle session,Func<AggregateOptions> options,CancellationToken token)
+        =>ReadNativeCqlSelectedRowsWithinOwnerAsync(command,maximumResults,maximumPayloadBytes,
+            document=>ReadNativeCqlProjectionRow(document,columns),session,options,token);
+
+    private async Task<IReadOnlyList<TRow>> ReadNativeCqlSelectedRowsWithinOwnerAsync<TRow>(MongoCqlProjectionCommand command,
+        int maximumResults,int maximumPayloadBytes,Func<BsonDocument,TRow> decode,
+        IClientSessionHandle session,Func<AggregateOptions> options,CancellationToken token)
+    {
+        token.ThrowIfCancellationRequested();
+        if(command.RequiresSnapshot&&session==null)
+            throw new InvalidDataException("A guarded native projection requires its admitted snapshot owner.");
             if (command.RequiresMembership)
             {
                 if (session == null) throw new InvalidOperationException("Projection membership validation requires its snapshot owner.");
-                await ValidateCqlMembershipAsync(session, Options, deadline.Token).ConfigureAwait(false);
+                await ValidateCqlMembershipAsync(session, options, token).ConfigureAwait(false);
             }
             if(command.EntityComposition!=null)
-                await ValidateNativeEntityStagesAsync(command.EntityComposition,session,Options,deadline.Token).ConfigureAwait(false);
+                await ValidateNativeEntityStagesAsync(command.EntityComposition,session,options,token).ConfigureAwait(false);
             using var cursor = session == null
-                ? await _dbContext.Holon.AggregateAsync<BsonDocument>(command.Pipeline, Options(), deadline.Token).ConfigureAwait(false)
-                : await _dbContext.Holon.AggregateAsync<BsonDocument>(session, command.Pipeline, Options(), deadline.Token).ConfigureAwait(false);
+                ? await _dbContext.Holon.AggregateAsync<BsonDocument>(command.Pipeline, options(), token).ConfigureAwait(false)
+                : await _dbContext.Holon.AggregateAsync<BsonDocument>(session, command.Pipeline, options(), token).ConfigureAwait(false);
             var rows = new List<TRow>(); long bytes = 0;
-            while (await cursor.MoveNextAsync(deadline.Token).ConfigureAwait(false))
+            while (await cursor.MoveNextAsync(token).ConfigureAwait(false))
                 foreach (var document in cursor.Current)
                 {
-                    deadline.Token.ThrowIfCancellationRequested();
+                    token.ThrowIfCancellationRequested();
                     var data = document;
                     if (command.HasTraversalEnvelope)
                     {
@@ -77,18 +105,8 @@ public partial class HolonRepository
                     if (bytes > maximumPayloadBytes) throw new MongoCqlLimitException();
                     rows.Add(decode(data));
                 }
-            deadline.Token.ThrowIfCancellationRequested();
-            if(selectedContinuation!=null)
-            {
-                if(session==null || !command.RequiresSnapshot)
-                    throw new InvalidDataException("Selected set continuation requires its admitted native snapshot owner.");
-                await selectedContinuation(session,Options,rows.AsReadOnly(),deadline.Token).ConfigureAwait(false);
-                deadline.Token.ThrowIfCancellationRequested();
-            }
-            return rows.AsReadOnly();
-        }
-        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && deadline.IsCancellationRequested)
-        { throw new MongoCqlGraphTimeoutException(); }
+        token.ThrowIfCancellationRequested();
+        return rows.AsReadOnly();
     }
 
     internal static CosmicProjectionRow ReadNativeCqlProjectionRow(BsonDocument document, IReadOnlyList<CosmicProjectionColumn> columns)

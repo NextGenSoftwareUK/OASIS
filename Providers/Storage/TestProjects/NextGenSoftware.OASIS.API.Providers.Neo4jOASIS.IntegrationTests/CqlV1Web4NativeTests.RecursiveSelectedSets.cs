@@ -204,12 +204,39 @@ public sealed partial class CqlV1Web4NativeTests
         var guardedPlan=Plan(guardedSet,new CosmicProjectedSetOptions(new CosmicSetQueryOptions(1,8,1048576,10)));
         var guardedRead=await Timed("entity-source-bound-before-empty-set",()=>manager.ExecuteProjectedSetQueryAsync(guardedPlan,new[]{adapter},10));
         Assert.IsTrue(guardedRead.IsError,"A late empty selected set must not hide an oversized original entity input.");
+        var identityEnrolled=adapter.QueryProviderType==ProviderType.MongoDBOASIS;
+        if(identityEnrolled)
+        {
+            var identityA=CosmicLinq.Create(manager,adapter,EntitySource(access,0),maximumResults:8).Result;
+            var identityC=CosmicLinq.Create(manager,adapter,EntitySource(access,2),maximumResults:8).Result;
+            var lateA=identityA.Concat(identityA).Where(row=>row.Description=="x")
+                .Select(row=>new{Name=row.Name,Category=row.Description}).Skip(1);
+            var lateC=identityC.Union(identityC).OrderBy(row=>row.Description)
+                .Select(row=>new{Name=row.Name,Category=row.Description}).Where(row=>row.Name=="b");
+            var lateControl=await Timed("identity-selected-ordinary-control",()=>lateA.ToCosmicListAsync());
+            Assert.IsFalse(lateControl.IsError,lateControl.Message+lateControl.Exception);
+            CollectionAssert.AreEqual(new[]{"a|x"},lateControl.Result.Select(row=>row.Name+"|"+row.Category).ToArray());
+            var lateRows=await Timed("identity-selected-feed-native-sets",()=>lateA.Concat(lateC).Concat(lc).ToCosmicListAsync());
+            Assert.IsFalse(lateRows.IsError,lateRows.Message+lateRows.Exception);
+            CollectionAssert.AreEqual(new[]{"a|x","b|z","a|x","b|z"},lateRows.Result.Select(row=>row.Name+"|"+row.Category).ToArray());
+            var hiddenBase=CosmicLinq.Create(manager,adapter,EntitySource(foreign.Source.ReadAccess,0),maximumResults:8).Result;
+            var hiddenLate=hiddenBase.Concat(hiddenBase).Select(row=>new{Name=row.Name,Category=row.Description});
+            var hiddenPlain=hiddenBase.Select(row=>new{Name=row.Name,Category=row.Description});
+            var hiddenRows=await Timed("identity-selected-foreign",()=>hiddenLate.Concat(hiddenPlain).ToCosmicListAsync());
+            Assert.IsFalse(hiddenRows.IsError,hiddenRows.Message+hiddenRows.Exception);Assert.AreEqual(0,hiddenRows.Result.Count);
+            var oversized=CosmicLinq.Create(manager,adapter,unbounded,maximumResults:1).Result;
+            var lateEmpty=oversized.Concat(oversized).Select(row=>new{Name=row.Name,Category=row.Description}).Concat(lc).Take(0);
+            var refused=await Timed("identity-source-bound-before-empty",()=>lateEmpty.ToCosmicListAsync());
+            Assert.IsTrue(refused.IsError,"An empty outer result cannot hide oversized original identity-set inputs.");
+        }
         using var cancel=new CancellationTokenSource();cancel.Cancel();
         var stopped=await Timed("selected-cancel",()=>manager.ExecuteProjectedSetQueryAsync(Plan(query),new[]{adapter},10,cancellationToken:cancel.Token));
         Assert.IsTrue(stopped.IsError);Assert.AreEqual("CQL_QUERY_CANCELLED",stopped.ErrorCode);
-        return new NativeFixtureJourneyProof(26,1,new Dictionary<string,bool>{["nativeEntityStageSelectedOperands"]=true,["typedViewsFeedFurtherNativeSets"]=true,["typedViewNativeElements"]=true,["typedViewCardinalityAndExtrema"]=true,["typedViewNumericTerminal"]=true,["typedFinalSelectionWithoutIntermediateConstructors"]=true,["registeredLinqNativeSumAverage"]=true,["sharedOrdinaryNumericDecoderControl"]=true,["nativeSumAverageAfterSetWindows"]=true,["numericVisibleEqualityAndForeignScope"]=true,["nestedVisibleOutputBindings"]=true,["nativeScalarExtremaAfterWindows"]=true,["nativeCountIndependentOfPublication"]=true,["nativeCardinalityWithoutConstructors"]=true,["foreignNativeCount"]=true,["registeredLinqLeftTree"]=true,["registeredLinqRightTree"]=true,["explicitTreeAdmission"]=true,["concatOccurrences"]=true,
+        var journeyEvidence=new Dictionary<string,bool>{["nativeEntityStageSelectedOperands"]=true,["typedViewsFeedFurtherNativeSets"]=true,["typedViewNativeElements"]=true,["typedViewCardinalityAndExtrema"]=true,["typedViewNumericTerminal"]=true,["typedFinalSelectionWithoutIntermediateConstructors"]=true,["registeredLinqNativeSumAverage"]=true,["sharedOrdinaryNumericDecoderControl"]=true,["nativeSumAverageAfterSetWindows"]=true,["numericVisibleEqualityAndForeignScope"]=true,["nestedVisibleOutputBindings"]=true,["nativeScalarExtremaAfterWindows"]=true,["nativeCountIndependentOfPublication"]=true,["nativeCardinalityWithoutConstructors"]=true,["foreignNativeCount"]=true,["registeredLinqLeftTree"]=true,["registeredLinqRightTree"]=true,["explicitTreeAdmission"]=true,["concatOccurrences"]=true,
             ["visibleTupleUnion"]=true,["visibleTupleIntersectExcept"]=true,["nodeWindows"]=true,["rightNested"]=true,
-            ["foreignIsolation"]=true,["childBoundBeforeEmpty"]=true,["cancellation"]=true});
+            ["foreignIsolation"]=true,["childBoundBeforeEmpty"]=true,["cancellation"]=true};
+        if(identityEnrolled)journeyEvidence.Add("nativeIdentitySelectedOperands",true);
+        return new NativeFixtureJourneyProof(identityEnrolled?27:26,1,journeyEvidence);
     }
     public sealed class SelectedFinalProbe
     {

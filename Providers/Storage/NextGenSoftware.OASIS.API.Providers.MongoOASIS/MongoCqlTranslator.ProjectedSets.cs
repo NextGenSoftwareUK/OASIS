@@ -8,6 +8,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 internal sealed class MongoCqlProjectedSetCommand
 {
     internal MongoCqlCompositionCommand Left,Right;
+    internal MongoCqlSetProjectionCompositionCommand LeftIdentity,RightIdentity;
     internal MongoCqlProjectedSetCommand LeftSet,RightSet;
     internal BsonDocument[] Rows;
     internal BsonDocument[] Members;
@@ -37,8 +38,10 @@ internal sealed partial class MongoCqlTranslator
         CosmicProjectionCompositionExecutionLimits leftLimits,CosmicProjectionCompositionExecutionLimits rightLimits,
         string collection) where T:IHolon
     {
-        var left=plan.LeftSet==null?CompileSelected(plan.Query.Left,leftLimits,entity:plan.Left.EntitySource):null;
-        var right=plan.RightSet==null?CompileSelected(plan.Query.Right,rightLimits,entity:plan.Right.EntitySource):null;
+        var leftIdentity=plan.LeftIdentity==null?null:CompileSetProjectionComposition(plan.LeftIdentity,leftLimits,terminalSource:true);
+        var rightIdentity=plan.RightIdentity==null?null:CompileSetProjectionComposition(plan.RightIdentity,rightLimits,terminalSource:true);
+        var left=plan.LeftSet==null&&leftIdentity==null?CompileSelected(plan.Query.Left,leftLimits,entity:plan.Left.EntitySource):null;
+        var right=plan.RightSet==null&&rightIdentity==null?CompileSelected(plan.Query.Right,rightLimits,entity:plan.Right.EntitySource):null;
         MongoCqlProjectedSetCommand Child(CosmicProjectedSetPlan<T,TResult> child)
             =>child==null?null:CompileProjectedSet(child,ProjectedSetInputLimits(child.LeftInputOptions),
                 ProjectedSetInputLimits(child.RightInputOptions),collection);
@@ -59,9 +62,9 @@ internal sealed partial class MongoCqlTranslator
             }
             rows.Add(new("$project",fields));return rows;
         }
-        var current=Input(leftSet?.Rows??left.Rows,plan.Query.LeftInput.Anchor,0,leftSet!=null);
+        var current=Input(leftSet?.Rows??leftIdentity?.Rows??left.Rows,plan.Query.LeftInput.Anchor,0,leftSet!=null);
         current.Add(new("$unionWith",new BsonDocument{{"coll",collection},
-            {"pipeline",new BsonArray(Input(rightSet?.Rows??right.Rows,plan.Query.RightInput.Anchor,1,rightSet!=null))}}));
+            {"pipeline",new BsonArray(Input(rightSet?.Rows??rightIdentity?.Rows??right.Rows,plan.Query.RightInput.Anchor,1,rightSet!=null))}}));
         if(plan.Query.Kind!=CosmicSetQueryKind.Concat)
         {
             var tuple=new BsonDocument();
@@ -89,6 +92,6 @@ internal sealed partial class MongoCqlTranslator
         var stages=CompileSelectedStages(plan.Query.Output,current,occurrences:true);
         var rawRows=current.Select(stage=>(BsonDocument)stage.DeepClone()).ToArray();
         ValidatePipeline(current);
-        return new(){Left=left,Right=right,LeftSet=leftSet,RightSet=rightSet,Rows=rawRows,Members=members.ToArray(),Stages=stages};
+        return new(){Left=left,Right=right,LeftIdentity=leftIdentity,RightIdentity=rightIdentity,LeftSet=leftSet,RightSet=rightSet,Rows=rawRows,Members=members.ToArray(),Stages=stages};
     }
 }

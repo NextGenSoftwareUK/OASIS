@@ -294,3 +294,10 @@ New backend SQL lowering preserves bounded plain entity sources and post-page en
 
 
 2026-11-28 backend catalogue inspection: configured preset contract currently admits Rows/Federation only. A selected-set SQL preset must get a matching typed preset/admission contract and thin UI treatment; do not relabel a Row preset with different Set SQL. Current advanced set syntax remains available through the backend SQL endpoint and documented/Postman examples. No browser parser/prompt engine copy was edited.
+
+
+### 2026-11-28 — late identity-set operands, Mongo native qualification pending
+- Coreb4ddeb4a89482f985a46946116dd5e42a27a45e5 captures late identity projections, preserves original identity membership and selected stages, counts all nested source leaves, shares occurrence proof validation and conservative source/stage budgets, and binds registered LINQ late selections. Other shipping providers retain closed independent admission until their owners are implemented.
+- Mongo compiler reuses the native identity-set/late-selection pipeline for outer native selected sets. Native source guards, base cell read, selected occurrence proof and outer set commands share the original snapshot/deadline. Existing projection reader factored once for this shared owner; no nested read session, fabricated Guid or managed predicate/set execution.
+- Changed existing owned journey for Mongo only: direct late control, asymmetric identity operands plus plain leaf, foreign isolation, original source bound refusal before outer Take(0);4newtimings,27groups/41timings total, same4owned records/1successfulwrite. SQLite/Neo remain26/37 and independently unsupported for this new source family. Expected15native+18compiler plusWEB4/cleanup; new gate pending. Full Q50/Q51/Q53/Q54 OPEN; main144/168 extension4/13.
+- Current running Development52110089/Corefa4ea2e2 is SUCCESS (Railway0f3e0497-3beb-4615-b07d-8ff92180772c); unqualified identity work is feature-only. No Atlas/PIPER operations, staging/production rollout, local builds/environments/download files or new worktrees.
