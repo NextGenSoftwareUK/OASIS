@@ -10,3 +10,6 @@ Fixture-only explicit tariffs cover physical parent reads and writes; exact admi
 ### Source audit: generated scalar-body metadata
 
 The frozen WEB4 SDK endpoint catalogue already declares Map.VisitLocation bodyParam=purpose, but generate-modules.js does not pass bodyParam and routeHelper.js sends every remaining argument as an object. Seven catalogue operations carry bodyParam (Chat.SendMessage, Eggs.DiscoverEgg, HyperDrive.SetHyperDriveMode, Map.VisitLocation, Messaging.SendMessageToAvatar, Video.JoinVideoCall, Wallet.TransferBetweenWalletsAsync). This is a generator binding gap, not evidence that each current OPORTAL screen is broken: several UI paths already call the matching raw HTTP shapes. Preserve existing generated-client compatibility and validate actual controller contracts before a cohesive correction. No source, npm or hosted acceptance has been recorded for that correction.
+
+
+First native46151941939 reached parsed browser outcomes but the new MapVisit name was omitted from the fixture result validator. Fixed only that explicit allowlist; no product change or acceptance credited. Artifact15266083448 reports full-package container absent/dataWrites0 and all five combined-startup cleanup flags true. Retry uses the same immutable image and only this new journey.
