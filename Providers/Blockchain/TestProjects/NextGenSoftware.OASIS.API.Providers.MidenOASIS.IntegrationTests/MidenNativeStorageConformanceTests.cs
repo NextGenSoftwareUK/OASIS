@@ -56,7 +56,6 @@ public sealed class MidenNativeStorageConformanceTests
         Assert.IsTrue(new Uri(Env("OASIS_MIDEN_KUBO")).IsLoopback);
         var storeFile = Path.GetFullPath(Env("OASIS_MIDEN_SDK_STORE_FILE"));
         StringAssert.StartsWith(storeFile, fixture + Path.DirectorySeparatorChar);
-        Assert.IsTrue(File.Exists(storeFile), "The deployment SDK store must be inside the owned fixture.");
 
         var holon = new NextGenSoftware.OASIS.API.Core.Holons.Holon
         {
@@ -67,6 +66,7 @@ public sealed class MidenNativeStorageConformanceTests
         using var first = new MidenOASIS(network: "local");
         var activated = await first.ActivateProviderAsync();
         Assert.IsFalse(activated.IsError, activated.Message);
+        Assert.IsTrue(File.Exists(storeFile), "The real SDK store must be inside the owned fixture.");
         var saved = await first.SaveHolonAsync(holon, saveChildren: false);
         Assert.IsTrue(saved.IsSaved && !saved.IsError, saved.Message);
         var version = saved.Result.Version;

@@ -92,8 +92,8 @@ jobs:
             [[ "$attempt" != 120 ]]; sleep 5
           done
 
-          mkdir "$fixture/sdk-store"
-          export OASIS_MIDEN_SDK_STORE_FILE="$fixture/sdk-store/store.db"
+          mkdir "$fixture/sdk-deploy" "$fixture/sdk-store"
+          export OASIS_MIDEN_SDK_STORE_FILE="$fixture/sdk-deploy/store.db"
           # Create, fund and deploy the public storage account once; the provider imports it by id.
           account_seed="$(openssl rand -hex 32)"; key_seed="$(openssl rand -hex 32)"
           echo "::add-mask::$account_seed"
@@ -104,6 +104,7 @@ jobs:
           reply="$(printf '%s\n' "$request" | (cd "$BRIDGE" && node worker.mjs) | sed -n 's/^@@OASIS-MIDEN@@//p')"
           jq -e '.ok' <<<"$reply" >/dev/null || { jq -c '{ok, error}' <<<"$reply" >&2; exit 1; }
           account="$(jq -r .result.accountId <<<"$reply")"
+          export OASIS_MIDEN_SDK_STORE_FILE="$fixture/sdk-store/store.db"
           echo "Storage account $account funded with $(jq -r .result.balance <<<"$reply")"
 
           export OASIS_NATIVE_STORAGE_FIXTURE="$fixture" OASIS_MIDEN_RPC_URL="http://127.0.0.1:57291" \
