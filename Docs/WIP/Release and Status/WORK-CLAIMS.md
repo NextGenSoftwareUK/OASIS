@@ -221,3 +221,5 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | OPORTAL Holon Diff native breadth: published version history/detail and stored-ID seal reads; inspect current implementation and qualify only missing path | OPORTAL/WEB5 | local: gpt-hyperdrive | work/gpt-oportal-holon-diff | 2026-11-28T10:03:01.027Z | IN PROGRESS source trace; preserve prior seal identity fixes and owned data only |
 
 | OPORTAL Holon publish native metadata-read tariff contract: admit real LoadHolonsByMetaData/Pairs names in StorageAttemptTariff, preserve CQL route policies | Core billing/OPORTAL | local: gpt-hyperdrive | work/gpt-oportal-holon-diff | 2026-11-28T10:32:36.525Z | IN PROGRESS; actual write requires metadata read but SupportedOperations rejects both names; no tariff bypass or CQL route edits |
+
+| OPORTAL map visits/rewards and GeoNFT/hotspot/quest integration breadth: inspect actual Our World writers and map API/popup; retain accepted GPX route proof, no repeat | OPORTAL/Our World/Map API | local: gpt-hyperdrive | work/gpt-oportal-map-integration | 2026-11-28T10:41:29.840Z | IN PROGRESS source trace; no routing provider/CQL ownership changes |
