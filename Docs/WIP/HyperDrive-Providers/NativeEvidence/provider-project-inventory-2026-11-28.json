@@ -5,7 +5,7 @@
     "projects": 238,
     "nonStorage": 75,
     "storage": 163,
-    "nativeRows": 117
+    "nativeRows": 119
   },
   "providers": [
     {
@@ -1224,7 +1224,7 @@
       "provider": "OpenSearchOASIS",
       "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS/NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS.csproj",
       "family": "Search/vector storage",
-      "nativeBaseline": false
+      "nativeBaseline": true
     },
     {
       "provider": "OracleDBOASIS",
@@ -1350,7 +1350,7 @@
       "provider": "TypesenseOASIS",
       "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS.csproj",
       "family": "Search/vector storage",
-      "nativeBaseline": false
+      "nativeBaseline": true
     },
     {
       "provider": "ValKeyOASIS",
