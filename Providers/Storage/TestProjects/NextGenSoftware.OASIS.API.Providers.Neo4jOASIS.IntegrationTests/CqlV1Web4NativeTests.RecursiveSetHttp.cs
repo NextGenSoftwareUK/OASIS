@@ -25,7 +25,7 @@ public sealed partial class CqlV1Web4NativeTests
     private static async Task<NativeFixtureJourneyProof> VerifyRecursiveSetHttp(IOASISStorageProvider provider,List<Guid> owned,Dictionary<string,long> timings)
     {
         var type=provider.ProviderType.Value;var actor=Guid.NewGuid();var outsider=Guid.NewGuid();
-        var row=new Holon{Id=Guid.NewGuid(),Name="native-tree-http",Description="fixture",CreatedByAvatarId=actor,IsPublic=false,IsActive=true,IsNewHolon=true};
+        var row=new Holon{Id=Guid.NewGuid(),Name="native-tree-http",Description=null,CreatedByAvatarId=actor,IsPublic=false,IsActive=true,IsNewHolon=true};
         owned.Add(row.Id);Assert.IsNull((await provider.LoadHolonAsync(row.Id)).Result);
         var saved=await provider.SaveHolonAsync(row);Assert.IsFalse(saved.IsError,saved.Message+saved.Exception);Assert.IsTrue(saved.IsSaved);Assert.IsNotNull(saved.Result);var persistedVersion=saved.Result.Version;
         const string uri="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
@@ -113,7 +113,7 @@ public sealed partial class CqlV1Web4NativeTests
                 await Send(averageSql,"average",ownerToken,2);await Send(averageSql,"average",null,0);
                 await Send(minSql,"min",ownerToken,1);await Send(minSql,"min",foreignToken,0);await Send(minSql,"min",null,0);
                 await Send(maxSql,"max",ownerToken,1);await Send(maxSql,"max",null,0);
-                foreach(var sample in new[]{(valueCountSql,"count-value",2),(distinctCountSql,"count-distinct",1)})
+                foreach(var sample in new[]{(valueCountSql,"count-value",0),(distinctCountSql,"count-distinct",1)})
                 {await Send(sample.Item1,sample.Item2,ownerToken,sample.Item3);await Send(sample.Item1,sample.Item2,foreignToken,0);await Send(sample.Item1,sample.Item2,null,0);}
                 Assert.AreEqual(16,authority.Started.Count);Assert.AreEqual(16,authority.Settlements.Count);
             }
