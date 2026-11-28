@@ -11460,3 +11460,8 @@ Owned Chrome stopped; marker/path and process absence verified before normal rec
 
 
 2026-11-28T10:00:16.370Z — Composition native artifact15257792940 16747bytes/18entries inspected in RAM and released; compact accepted source/hash/CI proof retained. No local build/env/install/database/container/download archive/test output. Native owned fixtures absent; CI artifacts2day retention. Existing Node parser20controls emits no files. Shared Atlas/PIPER operations0; temporary snapshot index removed. No unrelated cleanup or space-reclamation claim.
+
+
+## 2026-11-28 canonical XML version acceptance
+
+CI46134517647 qualified d36a143c/Core551ac0d8: native3/3 plus one atomic-admission control, actual WEB4 build and exact owned cleanup. All five artifact entries inspected in RAM; artifact15259323174 SHA256 dae858c2187682d2c573df7eeaeba425bba536844c57a976e7b0444315fe0c8b. Each provider verified acknowledged Version, next-version increment, stale-write rejection, preserved winner and foreign-reader isolation (five groups/six timings). CQL regression46134517653 also passed. Full M04 OPEN; main144/168 extension4/13 unchanged. No shared Atlas/PIPER operations. Review/deployment pending.

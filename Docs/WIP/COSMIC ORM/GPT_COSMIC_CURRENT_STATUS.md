@@ -26,3 +26,8 @@ No local .NET builds, runtime installs, environments, databases, containers or r
 
 
 M04 canonical XML version source implemented in Core551ac0d8302dfe66415b3a9b78b5d16fc0b08590; explicit optimistic version mapping, atomic admission and native stale-write/winner/caller-policy fixture pending4-case CI+actualWEB4. Full M04 stays OPEN. Backend SQL Sum/Avg46132720360 now PASSED16compiler/native15+WEB4/cleanup; artifact15258119047 all18entries verified in RAM, SHA256 1f41718057bc17533c2b6ceb69433a9d2dcda56a6087d939fa1805f804d8d5fd; next allowed normal Dev>=10:29:01UTC.
+
+
+## 2026-11-28 canonical XML version acceptance
+
+CI46134517647 qualified d36a143c/Core551ac0d8: native3/3 plus one atomic-admission control, actual WEB4 build and exact owned cleanup. All five artifact entries inspected in RAM; artifact15259323174 SHA256 dae858c2187682d2c573df7eeaeba425bba536844c57a976e7b0444315fe0c8b. Each provider verified acknowledged Version, next-version increment, stale-write rejection, preserved winner and foreign-reader isolation (five groups/six timings). CQL regression46134517653 also passed. Full M04 OPEN; main144/168 extension4/13 unchanged. No shared Atlas/PIPER operations. Review/deployment pending.
