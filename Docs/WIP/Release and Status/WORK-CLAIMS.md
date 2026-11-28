@@ -126,7 +126,7 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | BlockStackOASIS Gaia hub auth (signed v1 token) and native storage on a local gaia-hub | HyperDrive providers | local: HyperDrive provider programme | work/hyperdrive-triad | 2026-11-25 21:45 | DONE 187cc1c8+f5f12410 (blockstack-native-storage run 45740673393: 26/26 both modes, Gaia v2.8.1) |
 | COSMIC Q30 DateOnly/TimeOnly/DateTimeOffset/TimeSpan translation | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-q30 | 2026-11-25 21:30 | DONE f953fca (Core) CI 45708197502 |
 | MidenOASIS native storage (local miden-node via @miden-sdk/miden-sdk worker) | HyperDrive providers | local: testharness-build-fix | work/miden-native-storage | 2026-11-25 | DONE 0289f57c265 (native52/52 CI45753725053; unmerged, integration claimed separately) |
-| Meilisearch, OpenSearch, Solr, Weaviate native storage: wire the existing (never-run) suites into popular-providers-native-storage.yml | HyperDrive providers | local: HyperDrive provider programme | work/blockstack-gaia | 2026-11-25 22:55 | IN PROGRESS |
+| Meilisearch, OpenSearch, Solr, Weaviate native storage: wire existing suites | HyperDrive providers | local: HyperDrive provider programme | work/blockstack-gaia | 2026-11-25 22:55 | PARTIAL / STALE Meilisearch+Solr scope2026-11-28: branch6b546445 last26Nov04:09UTC, no later activity; current recheck taken separately. OpenSearch45721795632 accepted; Weaviate current source gate retained. |
 | COSMIC A13 join-fetch strategy and per-query split/join switch | COSMIC ORM | cloud: cloud-cosmic-B | work/cloud-cosmic-a13 | 2026-11-25 22:00 | DONE b23ebdf (Core) CI 45714298575 |
 | ONION-Protocol (OnionOASIS) native storage (local Tor onion service) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-onion | 2026-11-25 22:05 | DONE 88565ee3 (popular-providers run 45711682481 green) |
 | HoloOASIS.Desktop native storage (local Holochain conductor) | HyperDrive providers | cloud: cloud-hyperdrive-A | work/cloud-hd-holo-desktop | 2026-11-25 22:05 | DONE bdd1632e (holo-desktop-provider-build storage run 45723092086 green) |
@@ -178,11 +178,11 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 
 | Correct ProviderManager architecture README after accepted canonical facade fix (documentation only) | HyperDrive controls | local: gpt-hyperdrive | work/gpt-hyperdrive-release-gates | 2026-11-28 05:04 UTC | DONE 8c7a3148d70e (native/search or source-matched evidence; Core README65a90d7) |
 
-| Synchronize current provider inventory references with tracked238-project receipt (preserve historical checkpoints) | Provider docs/sites | local: gpt-hyperdrive | work/gpt-provider-evidence-reconciliation | 2026-11-28 05:05 UTC | IN PROGRESS |
+| Synchronize current provider inventory references with tracked238-project receipt (preserve historical checkpoints) | Provider docs/sites | local: gpt-hyperdrive | work/gpt-provider-evidence-reconciliation | 2026-11-28 05:05 UTC | DONE 67663f814422; scoped source/evidence only, known native failures retained |
 
 | Elasticsearch and Qdrant existing26-check native adapters: isolated CI wiring and acceptance | HyperDrive storage | local: gpt-hyperdrive | work/gpt-search-native-storage | 2026-11-28 05:13 UTC | DONE 8c7a3148d70e (native/search or source-matched evidence; Core README65a90d7) |
 
-| Typesense existing26-check native adapter: isolated CI wiring and acceptance | HyperDrive storage | local: gpt-hyperdrive | work/gpt-typesense-native-storage | 2026-11-28 05:30 UTC | IN PROGRESS |
+| Typesense existing26-check native adapter: isolated CI wiring and acceptance | HyperDrive storage | local: gpt-hyperdrive | work/gpt-typesense-native-storage | 2026-11-28 05:30 UTC | DONE 67663f814422; scoped source/evidence only, known native failures retained |
 
 | Diagnose WEB6/WEB7/WEB9 failed8c7a3148deployments; preserve running configurations | Railway shipping gate | local: gpt-hyperdrive | work/gpt-railway-build-repair | 2026-11-28 05:32 UTC | DONE 03bf0ef24bcf; CI46113637170 packaging2/2 and Railway dev7/7 SUCCESS |
 
@@ -190,6 +190,8 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 
 | OPORTAL existing signed-in breadth suite: inspect isolated real-API harness and fill demonstrated screen gaps | OPORTAL | local: gpt-hyperdrive | work/gpt-oportal-isolated-breadth | 2026-11-28T06:20:52.225Z | IN PROGRESS |
 
-| Reconcile HoloOASIS.Desktop matrix with owner obsolete decision (documentation only; preserve canonical HoloOASIS) | HyperDrive inventory | local: gpt-hyperdrive | work/gpt-provider-obsolete-status | 2026-11-28T06:24:46.581Z | IN PROGRESS |
+| Reconcile HoloOASIS.Desktop matrix with owner obsolete decision (documentation only; preserve canonical HoloOASIS) | HyperDrive inventory | local: gpt-hyperdrive | work/gpt-provider-obsolete-status | 2026-11-28T06:24:46.581Z | DONE 67663f814422; scoped source/evidence only, known native failures retained |
 
-| Recover existing Meilisearch/OpenSearch/Solr/Weaviate native CI receipts only; preserve original source/CI wiring claim, no backend reruns | HyperDrive evidence | local: gpt-hyperdrive | work/gpt-search-evidence-reconciliation | 2026-11-28T06:29:46.413Z | IN PROGRESS |
+| Recover existing Meilisearch/OpenSearch/Solr/Weaviate native CI receipts only; preserve original source/CI wiring claim, no backend reruns | HyperDrive evidence | local: gpt-hyperdrive | work/gpt-search-evidence-reconciliation | 2026-11-28T06:29:46.413Z | DONE 67663f814422; scoped source/evidence only, known native failures retained |
+
+| Meilisearch/Solr failed native gates: current-source recheck after existing Corec19b8e1 interface-value creation fix (stale original scope takeover) | HyperDrive providers | local: gpt-hyperdrive | work/gpt-search-native-recheck | 2026-11-28T06:37:10.638Z | IN PROGRESS; retry only two failed providers, no accepted OpenSearch/other suite rerun |
