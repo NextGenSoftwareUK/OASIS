@@ -87,7 +87,7 @@ def main():
     processes=ExitStack();web5_process=None
     web5_app=os.environ.get('OASIS_STARTUP_WEB5_APP', '')
     popup_group=os.environ.get('OASIS_STARTUP_POPUP_GROUP', '') or 'none'
-    if popup_group not in ('none', 'nft', 'data', 'data-crud', 'data-edit', 'files-write', 'map-route', 'messaging', 'messaging-read', 'chat', 'chat-directory', 'directory-message', 'clan', 'portal-breadth', 'chat-hyperdrive', 'data-messaging', 'nft-messaging-data', 'social-activity', 'account-recovery'):
+    if popup_group not in ('none', 'web5-depth', 'nft', 'data', 'data-crud', 'data-edit', 'files-write', 'map-route', 'messaging', 'messaging-read', 'chat', 'chat-directory', 'directory-message', 'clan', 'portal-breadth', 'chat-hyperdrive', 'data-messaging', 'nft-messaging-data', 'social-activity', 'account-recovery'):
         raise ValueError('Unknown owned popup group.')
     popup_breadth=os.environ.get('OASIS_STARTUP_POPUP_BREADTH') == 'true'
     if popup_breadth and popup_group != 'none':
@@ -135,7 +135,7 @@ def main():
                 # This explicit new-image scenario needs collection authority under passive boot.
                 admission=json.loads(fixture_env['PREPARED_STORAGE_ADMISSION_JSON'])
                 admission['authoritativeProvider']='MongoDBOASIS'
-                if popup_group in ('data-crud', 'data-edit', 'files-write', 'map-route'):
+                if popup_group in ('data-crud', 'data-edit', 'files-write', 'map-route', 'web5-depth'):
                     # Same free ordinary-operation tariff kinds as the admitted dev write profile.
                     catalogue=admission['routes'][0]['policy']['pricingCatalogueVersion']
                     admission['storageTariffs']=[{'provider':'MongoDBOASIS','operation':operation,'costUsd':0,'catalogueVersion':catalogue}
@@ -145,6 +145,8 @@ def main():
                         for method,path in ((('POST','/api/map/routes'),) if popup_group == 'map-route' else
                             ((('POST','/api/files/upload-file'),) if popup_group == 'files-write' else
                              (('POST','/api/data/save-holon'),('DELETE','/api/data/delete-holon'))))]
+                if popup_group == 'web5-depth':
+                    admission['routes'].append({'method':'POST','path':'/api/oapps','policy':dict(write_policy)})
                 fixture_env['PREPARED_STORAGE_ADMISSION_JSON']=json.dumps(admission,separators=(',', ':'))
             if web5_app:
                 fixture_env['SUBSCRIPTION_SERVICE_KEY_WEB5']=secrets.token_hex(32)
@@ -203,6 +205,8 @@ console.log(JSON.stringify(b));
                     SUBSCRIPTION_OUTBOX_DATABASE=marker+'_web5_outbox')
                 web5_admission=json.loads(web5_environment['PREPARED_STORAGE_ADMISSION_JSON'])
                 web5_admission['authoritativeProvider']='MongoDBOASIS'
+                if popup_group == 'web5-depth':
+                    web5_admission['storageTariffs'].append({'provider':'MongoDBOASIS','operation':'LoadAvatar','costUsd':0,'catalogueVersion':web5_admission['routes'][0]['policy']['pricingCatalogueVersion']})
                 web5_environment['PREPARED_STORAGE_ADMISSION_JSON']=json.dumps(web5_admission,separators=(',', ':'))
                 web5_environment.pop('OASIS_DNA_JSON', None)
                 web5_process=processes.enter_context(OwnedWeb5Process(web5_app, web5_dna, web5_environment))
@@ -214,20 +218,25 @@ console.log(JSON.stringify(b));
                 assert isinstance(outcomes,list) and 1 <= len(outcomes) <= 3
                 for item in outcomes:
                     assert set(item) <= {'name','passed','stage','closePassed'}
-                    assert item['name'] in ('NFT','Data','DataWrite','FilesWrite','MapRoute','Messaging','MessagingRead','Chat','DirectoryMessage','Clan','HyperDrive','SocialGraph','ActivityFeed','AccountRecovery') and isinstance(item['passed'],bool)
+                    assert item['name'] in ('OappMap','Launcher','NFT','Data','DataWrite','FilesWrite','MapRoute','Messaging','MessagingRead','Chat','DirectoryMessage','Clan','HyperDrive','SocialGraph','ActivityFeed','AccountRecovery') and isinstance(item['passed'],bool)
                     assert isinstance(item['closePassed'],bool)
                     assert re.fullmatch(r'[A-Za-z0-9 /-]{1,80}',item['stage'])
                 portal_source=subprocess.check_output(['git','-C',portal_root,'rev-parse','HEAD'],text=True).strip()
                 assert re.fullmatch(r'[a-f0-9]{40}',portal_source)
-                (out/'portal-popup-outcomes.json').write_text(json.dumps({'source':package['source'],'image':image,'portal':portal_source,'group':popup_group,'outcomes':outcomes},indent=2))
+                (out/'portal-popup-outcomes.json').write_text(json.dumps({'source':package['source'],'image':image,'web5Source':subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True).strip() if web5_process else None,'portal':portal_source,'group':popup_group,'outcomes':outcomes},indent=2))
                 print('PORTAL_STARTUP_POPUP_OUTCOMES:'+json.dumps(outcomes,separators=(',',':')),flush=True)
             if browser.returncode:
                 facts = re.search(r'PORTAL_STARTUP_HTTP_FACTS:(\[[^\n]*\])', browser.stderr)
                 if facts:
                     selected = json.loads(facts.group(1))
                     assert isinstance(selected, list) and len(selected) <= 64
-                    assert all(set(item) <= {'path','status','isError','errorCode','json','routingMessage','resultShape','resultCount','routeShape','routePage'} for item in selected)
+                    assert all(set(item) <= {'path','status','isError','errorCode','json','routingMessage','resultShape','resultCount','routeShape','routePage','oappShape'} for item in selected)
                     for item in selected:
+                        if 'oappShape' in item:
+                            shape=item['oappShape']
+                            assert set(shape)=={'loadChildren','rootPresent','childrenArray','childPresent','childCount'}
+                            assert all(isinstance(shape[key],bool) for key in ('loadChildren','rootPresent','childrenArray','childPresent'))
+                            assert isinstance(shape['childCount'],int) and shape['childCount']>=0
                         if 'routePage' in item:
                             assert set(item['routePage']) <= {'items','nextOffsetPresent','nextOffsetNull','nextOffsetInteger'}
                             assert all(isinstance(value,bool) for value in item['routePage'].values())
