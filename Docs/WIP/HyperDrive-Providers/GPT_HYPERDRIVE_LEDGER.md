@@ -163,3 +163,6 @@ Root fix restores earlier0bc4d64f shared Holon boot filter/demo-substitution rem
 
 
 2026-11-28: Existing accepted baseline123/163within238projects unchanged. Reconciled stale Garnet/search gate rows from retained52check receipts without reruns. Holon qualified308ed7cf preserved by peerCQL13a6e233;7/7service statuses through11:14:43UTC, not live functional certification. Map source/image b0c2f5a6/46138363710 remains unaccepted after real catalogue46140605906/46141372411failures; both cleaned. Geo fixture46141859638missed matching-backend allowlist; corrected46142470160running, no acceptance yet. Guides Docs/Learn live2/2(SDKsource3e8d07c3); AI35/35model/source identity trace only68338f00. No new owner action/shared Atlas/local builds.
+
+
+2026-11-28: Actual MapLibre controls46146049497accepted1/1(9actions), portal830a97e6integrated with exact qualified map assets; earlier geo46142470160retained. Aggregate selected8/8not45screens. API search46ce43e9fixes SDK JSON/validated non-REST actor, image46146213659built, native46148591025running. No sourceApp/legacy remote runtime/full portal/HyperDrive certification;123/163baseline unchanged.
