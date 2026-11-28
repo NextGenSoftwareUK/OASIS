@@ -87,7 +87,7 @@ def main():
     processes=ExitStack();web5_process=None;catalogue_proxy=None
     web5_app=os.environ.get('OASIS_STARTUP_WEB5_APP', '')
     popup_group=os.environ.get('OASIS_STARTUP_POPUP_GROUP', '') or 'none'
-    if popup_group not in ('none', 'map-search', 'map-renderer', 'map-geo', 'map-places', 'onet', 'web5-diff', 'web5-errors', 'provider-migration', 'web5-depth', 'nft', 'data', 'data-crud', 'data-edit', 'files-write', 'map-route', 'messaging', 'messaging-read', 'chat', 'chat-directory', 'directory-message', 'clan', 'portal-breadth', 'chat-hyperdrive', 'data-messaging', 'nft-messaging-data', 'social-activity', 'account-recovery'):
+    if popup_group not in ('none', 'map-visit', 'map-search', 'map-renderer', 'map-geo', 'map-places', 'onet', 'web5-diff', 'web5-errors', 'provider-migration', 'web5-depth', 'nft', 'data', 'data-crud', 'data-edit', 'files-write', 'map-route', 'messaging', 'messaging-read', 'chat', 'chat-directory', 'directory-message', 'clan', 'portal-breadth', 'chat-hyperdrive', 'data-messaging', 'nft-messaging-data', 'social-activity', 'account-recovery'):
         raise ValueError('Unknown owned popup group.')
     popup_breadth=os.environ.get('OASIS_STARTUP_POPUP_BREADTH') == 'true'
     if popup_breadth and popup_group != 'none':
@@ -164,6 +164,12 @@ def main():
                     diff_id='-'.join((digest[:8],digest[8:12],digest[12:16],digest[16:20],digest[20:]))
                     admission['routes'] += [{'method':'POST','path':path,'policy':dict(write_policy)}
                         for path in ('/api/holons','/api/holons/'+diff_id+'/publish')]
+                if popup_group == 'map-visit':
+                    catalogue=admission['routes'][0]['policy']['pricingCatalogueVersion']
+                    admission['storageTariffs']=[{'provider':'MongoDBOASIS','operation':operation,'costUsd':0,'catalogueVersion':catalogue}
+                        for operation in ('LoadAvatar','LoadHolon','LoadAllHolons','LoadHolonsForParent','LoadHolonsForParentByProviderKey','SaveHolon','SaveHolons','LoadHolonByProviderKey','DeleteHolon','ReadConditionalHolonWriteOutcome','ReadHolonWritePreparation')]
+                    write_policy=dict(admission['routes'][0]['policy'],meterCategory='api.request',maximumProviderAttempts=512)
+                    admission['routes'] += [{'method':'POST','path':path,'policy':dict(write_policy)} for path in ('/api/data/save-holon','/api/map/visit/6bf56398-6aa1-4f22-b01b-42cf941b8d38')]
                 fixture_env['PREPARED_STORAGE_ADMISSION_JSON']=json.dumps(admission,separators=(',', ':'))
             if web5_app:
                 fixture_env['SUBSCRIPTION_SERVICE_KEY_WEB5']=secrets.token_hex(32)
