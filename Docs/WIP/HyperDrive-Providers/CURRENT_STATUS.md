@@ -31,25 +31,45 @@ Both runs used isolated real backends in CI; no shared Atlas test operations or 
 - Next 3: Ceramic signed commits (DID), BlockStack Gaia auth tokens, Aztec/Miden real storage designs.
 - Blockers: ACTIONS-FOR-DAVID I1 and the hosted-account providers.
 
-## Progress (cloud-hyperdrive-A, updated 2026-11-25 02:55 UTC)
+## Progress (cloud-hyperdrive-A, updated 2026-11-26 02:30 UTC)
 
-Done in CI (native core-storage suite 26/26, sync + async):
-- TelosOASIS and SEEDSOASIS: storage now goes through the EOSIO (Antelope) implementation; `antelope-family-native-storage.yml`, run 45518765561.
-- DaprOASIS: gRPC health probe, emptied key indexes removed; `popular-providers-native-storage.yml`, run 45519314086.
-- GUNOASIS: real GUN wire protocol, chunked node replies merged; run 45520161955.
+Done in CI (native core-storage suite 26/26, sync + async, against real backends):
+- TelosOASIS and SEEDSOASIS: storage through the EOSIO (Antelope) implementation; `antelope-family-native-storage.yml`, run 45518765561.
+- DaprOASIS (run 45519314086) and GUNOASIS (run 45520161955).
+- MatrixOASIS (Synapse room state), OrbitDBOASIS (@orbitdb/core 4 service), ArweaveOASIS (arlocal; owner-pinned, revisioned,
+  encrypted), ScuttlebuttOASIS (ssb-db2 feed service), AppwriteOASIS (self-hosted 1.7.4), PineconeOASIS (Pinecone Local),
+  TablelandOASIS (local validator + Hardhat), CelestiaOASIS (local devnet), CeramicOASIS (ceramic-one 0.58.0) and BlueSkyOASIS
+  (self-hosted PDS + local PLC): all in `popular-providers-native-storage.yml` run 45535697095 (`work/cloud-hd-scuttlebutt`).
+  OrbitDB and Scuttlebutt also pass a service-restart durability check in CI.
+- FilecoinOASIS: FEVM records through the shared Web3Core EVM base on a local Lotus devnet (chain 31415926); Web3Core gained
+  an opt-in `EstimateContractGas` (FEVM gas units). popular-providers run 45700279460; EVM regression suite run 45700279496.
+- UrbitOASIS: purpose-built %oasis-kv Gall agent on an offline fake ship, poke-ack acknowledged writes, ship-restart
+  durability check; popular-providers run 45704685480.
+- RadixOASIS: OasisKeyValueStore Scrypto blueprint on a single-validator Babylon localnet, writes acknowledged on
+  CommittedSuccess, node-restart check; popular-providers run 45709199011.
+- OnionOASIS: Tor SOCKS5 transport over the repository storage-service contract, tested on a loopback-only private
+  Tor network; popular-providers run 45711682481.
+- SignProtocolOASIS: records as attestations on the real Sign Protocol SP contract (local Hardhat), revocation as delete,
+  other attesters ignored; popular-providers run 45713760017.
+- HoloOASIS.Desktop: shared suite on the same Holochain 0.7.1 conductor as canonical HoloOASIS; holo-desktop-provider-build.yml
+  storage run 45723092086 (workflow baseline and hApp provenance pins fixed).
 
-Passing 26/26 in both modes locally against real backends, waiting for CI (`work/cloud-hd-scuttlebutt` carries these in one `popular-providers-native-storage.yml` run):
-- MatrixOASIS (Synapse): records as encrypted room state events. Tests passed in run 45521345637; the job failed only removing Synapse-owned fixture files (fixed on the branch).
-- OrbitDBOASIS (@orbitdb/core 4 service): stable identity and address across restarts.
-- ArweaveOASIS (arlocal): owner-pinned, revisioned, encrypted records.
-- ScuttlebuttOASIS (ssb-db2 service): records in a signed feed.
-- AppwriteOASIS (self-hosted 1.7.4), PineconeOASIS (Pinecone Local), TablelandOASIS (local validator + Hardhat), CelestiaOASIS (local devnet), CeramicOASIS (ceramic-one 0.58.0).
+EclipseOASIS: done by the hyperdrive-triad session (f2717b1b); the duplicate `work/cloud-hd-eclipse` branch is not merged.
 
-Also passing locally: BlueSkyOASIS (self-hosted PDS) and EclipseOASIS (delegates to SolanaOASIS; eclipse-native-storage.yml). In progress: FilecoinOASIS.
+Classified non-storage: LoomOASIS (PLAN_LOOM_CLASSIFICATION_2026-11-25.md) and FarcasterOASIS (no keyed, durable app-data message type; see FARCASTER_STORAGE_CLASSIFICATION_2026-11-25.md).
 
-Blocked on hosted accounts or a retire decision: see "Hosted-only providers" in `Docs/WIP/Release and Status/ACTIONS-FOR-DAVID.md`.
+Delegated storage identity: Telos and SEEDS now preserve their outer provider keys through EOSIO; saves and provider-key reads use the same canonical app-record repositories. Both modes pass in CI (Telos46101946563; SEEDS46101275004), including key round trips and independent native table cleanup. Eclipse/Solana adaptation remains on `work/gpt-delegated-storage-keys` pending Eclipse CI46101901966.
 
-CI capacity is the bottleneck: provider runs queue for over an hour behind Development pipelines.
+Summary (cloud-hyperdrive-A, 2026-11-26): every self-hostable storage provider this session took on now passes the
+native core-storage suite in CI (20 above). Nothing self-hostable is left unclaimed; the remaining providers need David:
+
+- Accounts needed (ACTIONS-FOR-DAVID): Nile, Cloudflare D1, Netlify Blobs, MotherDuck, Cloudinary, Deno Deploy, Fly.io,
+  Neo4j Aura, LanceDB Cloud, Telegram, Discord, Pinata, Oracle Object Storage (plus the earlier hosted entries: Zilliz,
+  Xata, Tigris, BigQuery, Snowflake, Redshift, Databricks, Algolia, Fastly).
+- Decisions needed: retire Fauna, Vercel KV and Polybase (services discontinued); what PLAN is, or retire PLANOASIS;
+  approve the pinned community ceramic-one CI image.
+- Classified non-storage: FarcasterOASIS, LoomOASIS.
+- Remaining delegated-provider gate: Eclipse/Solana, pending the scoped native CI run. Telos/SEEDS canonical identities are verified separately above.
 
 ## Branches
 
@@ -167,10 +187,11 @@ Partly done, with open items:
 - HoloOASIS.Edge: cross-agent replication on a live conductor is still open. The shared core-storage suite does not apply
   (2026-11-25): HoloOASIS.Edge and EdgeSQLiteOASIS are Edge Runtime replication/sync components, not storage providers;
   their unit tests run in `edge-runtime-validation.yml`.
+- HoloOASIS.Desktop: done 2026-11-25. The Desktop adapter is a thin subclass of canonical HoloOASIS (same storage code and zome calls), and now runs the shared suite itself: 26/26 in both modes on a Holochain 0.7.1 conductor (`HoloOASISDesktopNativeStorageConformanceTests`, run by the `storage` mode of `.github/workflows/holo-desktop-provider-build.yml` next to canonical HoloOASIS). No provider change was needed. The two suites share one conductor and one agent, so they now run serially: a concurrent hApp install by both failed on the conductor with "head moved".
 - HoloOASIS.Unity: the Android conductor device lifecycle is still open.
-- Algorand: chain reads and payments pass; durable storage is still open.
-
 - Aztec: done 2026-11-26. Passes the shared suite 26/26 in both modes on a disposable Aztec 5.3.0 local network (`.github/workflows/aztec-native-storage.yml`). Records are Kubo raw blocks committed by the OasisKv Noir contract (public state, owner-only writes) through a pinned aztec.js worker. The fake REST storage was removed.
+
+- Algorand: done 2026-11-25. Passes the shared suite 26/26 in both modes against its native record-box application on a disposable LocalNet (`.github/workflows/algorand-native-storage.yml`). Fixes: detail lookups by username/email read the stored detail record; holon graphs are saved (children were refused); batch saves acknowledge counts; Import and owner export work on enrolled records; metadata queries select from the decrypted records instead of public Indexer fields; an unversioned save publishes the next revision instead of failing the predecessor check. The suite needs the application funded for its box storage (fixture `OASIS_ALGORAND_RECORD_APP_FUNDING`).
 
 Next, breadth first, in order of popularity (shared suite not yet run):
 1. Pinecone, LanceDB (Cloud), Zilliz: hosted vector stores, need accounts
