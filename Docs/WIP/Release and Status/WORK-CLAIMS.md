@@ -198,4 +198,6 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 
 | Weaviate current-source native recheck after query-client binding and existing Core deserializer fix (original25Nov scope stale; branch unchanged since26Nov04:09UTC) | HyperDrive providers | local: gpt-hyperdrive | work/gpt-search-native-recheck | 2026-11-28T06:44:58.830Z | DONE 8e15c7bb; current52/52 CI46118279343 |
 
-| Reconcile existing OPORTAL component acceptance reports with current source inventory before any new test; repair stale central status | OPORTAL evidence | local: gpt-hyperdrive | work/gpt-oportal-isolated-breadth | 2026-11-28T06:52:45.913Z | IN PROGRESS;43loader surfaces + lazy developer + dashboard =45; preserve prior native/Startup proofs |
+| Reconcile existing OPORTAL component acceptance reports with current source inventory before any new test; repair stale central status | OPORTAL evidence | local: gpt-hyperdrive | work/gpt-oportal-isolated-breadth | 2026-11-28T06:52:45.913Z | DONE OPORTAL4c4d90af/main4ecb86db; exact45/45source inventory, prior proofs retained |
+
+| OPORTAL standalone account recovery: correct portal-home redirects and verify one real forgot/reset/password-login journey on existing email-disabled isolated Startup | OPORTAL | local: gpt-hyperdrive | work/gpt-oportal-account-recovery | 2026-11-28T07:01:08.904Z | IN PROGRESS; no shared Atlas, external mail, key copies or replay of accepted popup flows |
