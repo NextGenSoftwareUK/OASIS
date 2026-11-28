@@ -206,10 +206,12 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 
 | GarnetOASIS native core-storage52 acceptance using existing Redis-family shipping SDK and isolated official server; skip accepted KeyDB/Dragonfly cases | HyperDrive providers | local: gpt-hyperdrive | work/gpt-garnet-native-storage | 2026-11-28T07:24:37.365Z | DONE 3cb6bbe7ed6a; native CI46122538895passed52/52; cleanup verified; hosted durability separate |
 
-| OPORTAL populated OAPP/Launcher real child creation failure45184249838: reconcile request contract and fix only unaccepted flow | OPORTAL/WEB5 | local: gpt-hyperdrive | work/gpt-oportal-oapp-breadth | 2026-11-28T07:55:15.519Z | IN PROGRESS; inspect retained failure first, no accepted empty-flow replay |
+| OPORTAL populated OAPP/Launcher real child creation failure45184249838: reconcile request contract and fix only unaccepted flow | OPORTAL/WEB5 | local: gpt-hyperdrive | work/gpt-oportal-oapp-breadth | 2026-11-28T07:55:15.519Z | DONE Development25336bd9/portal3986b1b8; native46126474607passed2/2; typed membership fixed fixture, resolver unchanged |
 
 | OPORTAL ONODE controls: prevent API state leaking into registered-node command availability and disable unknown/loading controls | OPORTAL UI | local: gpt-hyperdrive | work/gpt-oportal-onode-controls | 2026-11-28T08:08:17.375Z | DONE Portalbe5da21c; focused UI-state unit passed; native published-service lifecycle separate |
 
 | OPORTAL SDK adoption: latest WEB4/WEB5/WEB6 source fixes; preserve atomic Profile client absent from new WEB4 main, qualify delivery before dev | OPORTAL/npm SDKs | local: gpt-hyperdrive | work/gpt-oportal-sdk-current | 2026-11-28T08:12:21.721Z | DONE Portalbe5da21c; SDK delivery46125573999passed3/3; existing npm A1/A2 owner block retained |
 
 | OPORTAL provider migration breadth: real owned Wizard source preview/copy/readback using accepted Mongo+SQLite, preserving required destination and no automatic replication | OPORTAL/admin UI | local: gpt-hyperdrive | work/gpt-oportal-migration | 2026-11-28T08:36:53.643Z | IN PROGRESS; reuse isolated shipping image/native fixture; no shared Atlas or new environment |
+
+| OAPP catalogue/detail real-error contract: remove fabricated test-data success and boot direct detail reads; one fresh missing-ID native check, preserve accepted populated proof | STAR WEB5/OPORTAL | local: gpt-hyperdrive | work/gpt-oportal-catalogue-errors | 2026-11-28T09:09:50.667Z | IN PROGRESS; existing declared400/200 response schema; no new route/DNA default |
