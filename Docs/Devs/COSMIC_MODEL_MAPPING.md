@@ -1,6 +1,6 @@
 ## WEB4 late entity-set selected stages — native qualified, deployment pending
 
-The existing /api/data/query-cql/set request accepts SelectedStages only with OutputColumns. EntityStages remain before selection; SelectedStages run afterwards and use the common selected comparison, ordering, window, Distinct, Reverse and visible-column reselection compiler. Source operand Columns/Stages cannot be mixed with this identity-set mode. Requests capture nested cells, ordering and binding arrays before dispatch. Response columns follow final visible aliases.
+The existing /api/data/query-cql/set request accepts SelectedStages with late OutputColumns; the recursive selected-set feature branch also accepts them after selected-value membership (qualification pending). EntityStages remain before selection; SelectedStages run afterwards and use the common selected comparison, ordering, window, Distinct, Reverse and visible-column reselection compiler. Source operand Columns/Stages cannot be mixed with this identity-set mode. Requests capture nested cells, ordering and binding arrays before dispatch. Response columns follow final visible aliases.
 
 Actual provider capabilities are revalidated, and the existing manager attempt and settlement owner executes the native selected set packet once. The combined SDK3/real-JWT HTTP3 plus occurrence1/compiler3 controls and actual WEB4 build passed45197249669. Source-browser45198153247 passed on client7cbc. These proofs do not establish hosted populated data or real WEB6 inference. SQL/Ask lowering is source-qualified on website7cbc6d98 with38 parser and75 review/UI controls; hosted data and real model acceptance remain open.
 
@@ -444,3 +444,30 @@ Callbacks are trusted deterministic application code. Equal detached snapshots m
 One detached original/current comparison determines both session state and changed property paths. Compared values are atomic property roots. The existing selected-write owner preserves equivalent unselected values in the data store and on the caller; explicit property modification flags still force writes. Every initially selected root remains in authority authorization and model validation before callback-created no-ops can be omitted. Omitted roots keep their leases and identity checks and do not receive a write revision or false acknowledgement. The retained native write conditions have exactly the retained identity scope.
 
 [Representative native3 and WEB4 evidence](../WIP/COSMIC%20ORM/VALUE_COMPARER_NATIVE_ACCEPTANCE_2026-11-23.json) covers those behaviors, including a forbidden no-op rejecting the whole mixed batch. This is root-only session persistence over canonical stored snapshots. Recursive graph comparison writes, arbitrary serialization policies, broader key/cache integration and full framework certification remain separate work.
+
+## Converted native extrema
+
+An explicitly ordering-preserving converter now participates in direct native
+Min and Max selectors. For example, an integer Units stored as a scaled
+long can use query.ToCosmicMinAsync(row => row.Units) and return an integer
+model value, rather than the scaled storage representation. An ordered custom
+value object stored as a string is decoded by the same result owner.
+
+The native provider reduces the stored values after the source filter, order
+and page. Core validates the exact native cell and payload bound before calling
+the model converter. The result remains subject to caller visibility and the
+existing empty-sequence contract. No row collection is downloaded to calculate
+an extremum. Equality-only conversions are refused; ordering preservation does
+not imply that a converter preserves sums or averages.
+
+The same contract supports selected scalar queries, anonymous/DTO selected
+members with intervening filters and windows, and selections over entity sets.
+For example, query.Select(row => new { row.Units, row.Code })
+.OrderBy(row => row.Units).Skip(1).ToCosmicMaxAsync(row => row.Code)
+reduces the selected native sequence without constructing the enclosing DTO.
+
+This direct, selected, record and synchronous/async entity-set family passed
+representative native checks on MongoDB, SQLite and Neo4j in run45254618972,
+including the actual WEB4 build and exact owned-fixture/container cleanup.
+Image/package and hosted acceptance remain separate. This does not claim
+converted arithmetic or general NHibernate custom-type parity.

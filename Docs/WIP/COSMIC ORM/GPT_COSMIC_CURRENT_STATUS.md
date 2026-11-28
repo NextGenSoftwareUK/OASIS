@@ -23,3 +23,13 @@ Full provider parity, native import, virtual/hybrid holons, per-avatar/app polic
 ## Cleanup and isolation
 
 No local .NET builds, runtime installs, environments, databases, containers or retained artifact downloads. Existing Node runs parser controls without output files. Artifact zips inspected in RAM and released; compact evidence retained, CI artifacts expire2days. No shared Atlas/PIPER calls or data changes. Last measured free32.85GiB; no reclamation claim. Unrelated working-tree changes preserved; temporary scoped Git indexes removed.
+
+
+## 2026-11-28 backend selected-set SQL aggregates
+
+Qualified a6407f06/Coreed51f44d in CI46132720360: 16 compiler/capture cases, 15 native cases across MongoDB/SQLite/Neo4j, actual WEB4 build and exact fixture cleanup. All 18 artifact entries inspected; SHA256 1f41718057bc17533c2b6ceb69433a9d2dcda56a6087d939fa1805f804d8d5fd. SQL SUM/AVG over selected set results lower on the backend, preserving actor, visible alias and native one-attempt constraints. Independent exact-ref review found no blockers. Browser engines untouched. Main144/168, extension4/13 unchanged; full Q50/Q51/Q53/Q54 and M04 remain open. XML version source551ac0d8 is excluded pending its separate gate. Development live acceptance still requires deployed revision verification. No shared Atlas/PIPER calls.
+
+
+Canonical XML version mapping additionally qualified in46134517647 (native3/admission1/WEB4/exact cleanup), and CQL regression46134517653 passed on the combined Core551ac0d8. All5 XML artifact entries inspected, native stale-write/caller controls verified; independent exact-ref review found no blockers. This supersedes the pending/excluded note above: both qualified increments are included in this one scoped batch. Full M04 and set-parent rows remain open; main144/168 extension4/13 unchanged.
+
+Development49f8f1c7/Core551ac0d8 pushed2026-11-28T10:30:43.703Z. This master update is documentation/evidence only; no runtime or private dependency promotion.
