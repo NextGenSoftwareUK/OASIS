@@ -124,12 +124,12 @@ jobs:
             --label "oasis.native.owner=$owner" --publish "127.0.0.1:$port:6379" "$image" "${server[@]}")"
           for attempt in $(seq 1 45); do
             [[ "$(docker inspect --format '{{.State.Running}}' "$container")" == true ]]
-            if (exec 3<>"/dev/tcp/127.0.0.1/$port" && printf 'PING\r\n' >&3 &&
+            if (exec 3<>"/dev/tcp/127.0.0.1/$port" && printf '*1\r\n$4\r\nPING\r\n' >&3 &&
                 timeout 2 head -n 1 <&3 | grep -q PONG); then break; fi
             [[ "$attempt" != 45 ]]
             sleep 1
           done
-          size="$(exec 3<>"/dev/tcp/127.0.0.1/$port"; printf 'DBSIZE\r\n' >&3; timeout 2 head -n 1 <&3 | tr -d '\r\n:')"
+          size="$(exec 3<>"/dev/tcp/127.0.0.1/$port"; printf '*1\r\n$6\r\nDBSIZE\r\n' >&3; timeout 2 head -n 1 <&3 | tr -d '\r\n:')"
           [[ "$size" == 0 ]] || { echo "Owned $PROVIDER native store is not empty."; exit 1; }
           task_upper="$(printf '%s' "$slug" | tr '[:lower:]' '[:upper:]')"
           export "OASIS_${task_upper}_CI_FIXTURE=$fixture"
@@ -150,6 +150,6 @@ jobs:
           for mode in async sync; do
             jq -e '.Succeeded and .FixtureCleanupComplete and (.Passed | length == 26)' "$fixture/$mode.json" >/dev/null
           done
-          size="$(exec 3<>"/dev/tcp/127.0.0.1/$port"; printf 'DBSIZE\r\n' >&3; timeout 2 head -n 1 <&3 | tr -d '\r\n:')"
+          size="$(exec 3<>"/dev/tcp/127.0.0.1/$port"; printf '*1\r\n$6\r\nDBSIZE\r\n' >&3; timeout 2 head -n 1 <&3 | tr -d '\r\n:')"
           [[ "$size" == 0 ]] || { echo "Owned $PROVIDER retained native keys after cleanup."; exit 1; }
           echo "Native proof: provider=$PROVIDER sync=26 async=26 skipped=0 DBSIZE=0."
