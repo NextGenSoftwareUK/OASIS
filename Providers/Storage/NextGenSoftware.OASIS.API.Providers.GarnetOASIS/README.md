@@ -61,3 +61,9 @@ Configure `OASIS_GARNET_STORAGE_ENCRYPTION_KEY` as canonical Base64 for a separa
 Enable Lua scripting and Lua transaction mode on the Garnet instance used by this provider. The shared Redis transport uses conditional Lua mutations for record updates and deletes. On Garnet 2.2.5 the verified launch flags are `--lua --lua-transaction-mode`. Set the bind address and port separately for your deployment.
 
 The focused native child cleanup test passed in both calling modes with that configuration. It confirmed removal of the encrypted relationship key, absence of the deleted child, and continued access to the parent. The same test stopped at the default deletion call when Lua was disabled.
+
+## Native storage prerequisites
+
+The shipping StackExchange.Redis client uses conditional Lua comparisons for persisted OASIS records. Configure a Garnet server with `--lua --lua-transaction-mode`; do not replace failed comparisons with unconditional writes. See [Microsoft configuration](https://microsoft.github.io/garnet/docs/getting-started/configuration) and [official v2.2.5](https://github.com/microsoft/garnet/releases/tag/v2.2.5).
+
+The isolated native CI gate uses the pinned official linux/amd64 image,256MiB main log/16MiB index and a1GiB container limit, loopback port19682, both26-check modes, native DBSIZE0before/after and owned volume/report cleanup. CI46122538895passed52/52 with zero skips and owned cleanup; hosted durability/restart and full-interface acceptance are separate.

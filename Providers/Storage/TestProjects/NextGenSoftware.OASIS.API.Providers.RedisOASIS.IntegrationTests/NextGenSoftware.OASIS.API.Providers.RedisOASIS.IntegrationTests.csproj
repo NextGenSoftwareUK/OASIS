@@ -16,12 +16,15 @@
     <Compile Remove="ValKeyCoreStorageConformanceTests.cs" />
     <Compile Remove="KeyDBCoreStorageConformanceTests.cs" />
     <Compile Remove="DragonflyCoreStorageConformanceTests.cs" />
+    <Compile Remove="GarnetCoreStorageConformanceTests.cs" />
     <Compile Include="ValKeyCoreStorageConformanceTests.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
     <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.ValKeyOASIS/NextGenSoftware.OASIS.API.Providers.ValKeyOASIS.csproj" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
     <Compile Include="KeyDBCoreStorageConformanceTests.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
     <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.KeyDBOASIS/NextGenSoftware.OASIS.API.Providers.KeyDBOASIS.csproj" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
     <Compile Include="DragonflyCoreStorageConformanceTests.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
     <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.DragonflyOASIS/NextGenSoftware.OASIS.API.Providers.DragonflyOASIS.csproj" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
+    <Compile Include="GarnetCoreStorageConformanceTests.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
+    <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.GarnetOASIS/NextGenSoftware.OASIS.API.Providers.GarnetOASIS.csproj" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
     <Compile Include="RedisCoreStorageConformanceTests.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
     <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
   </ItemGroup>

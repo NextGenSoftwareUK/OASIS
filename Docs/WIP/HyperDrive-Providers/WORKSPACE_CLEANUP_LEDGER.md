@@ -3100,3 +3100,7 @@ Final WEB4 startup verification Node fs read only, selected source/3bool flags e
 ## 2026-11-28 — focused remote native/provider and popup continuation
 
 Meilisearch46117709175andSolr46117714885verified owned nodes/volumes/fixture absence in both modes. New OPORTAL diagnostics use existing immutable API images and disposable CI resources;46116846089cleanup receipts asserted all5owned startup resource conditions and package container absence,46117837269terminal runtime/cache/TLS absence verified. No laptop runtime, package install, build/test output, database or download created. All owned temporary Git indexes/locks removed in finally (observed0). C:free34.23GiB observed, not claimed as reclaimed. Foreign dirty checkouts/source/credentials/data untouched.
+
+## 2026-11-28 — Garnet native acceptance
+
+CI46122538895 passed26sync+26async with zero skips on official Garnet2.2.5, native DBSIZE0 and owned container/volume/fixture cleanup. Hosted durability/restart and all-interface acceptance remain separate. Source d7a6ed18ab05. Matrix native baselines123/163; provider project inventory238/238 unchanged. First probe-only failure retained; only failed Garnet path retried. No laptop download/env/build/output/database, shared Atlas call or new David action. Owned remote resources removed; compact source receipt retained.

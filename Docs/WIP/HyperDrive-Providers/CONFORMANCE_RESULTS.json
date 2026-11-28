@@ -68,16 +68,6 @@
       "blockers": []
     },
     {
-      "provider": "GarnetOASIS",
-      "suite": "core-storage-v2",
-      "mode": "controlled",
-      "passed": 52,
-      "total": 52,
-      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-garnetoasis-current.json",
-      "sha256": "d7120f6681f094953f0eee15f7c2800db62a5808f54838d82ebb0120ad271f04",
-      "blockers": []
-    },
-    {
       "provider": "SOLANAOASIS",
       "suite": "core-storage-v2",
       "mode": "native",
@@ -663,6 +653,18 @@
         "Hosted/full-interface/global routing acceptance remains separate",
         "Original12Nov evidence retained historically; not counted twice"
       ]
+    },
+    {
+      "provider": "GarnetOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/garnetoasis-ci-2026-11-28.json",
+      "sha256": "1ea24c992e22745e4be0c1388c60f2b804ce9e30551656009d9d1f11356ad192",
+      "blockers": [
+        "CI46122538895 passed26sync+26async with zero skips on official Garnet2.2.5, native DBSIZE0 and owned container/volume/fixture cleanup. Hosted durability/restart and all-interface acceptance remain separate."
+      ]
     }
   ],
   "providerBlockers": {
@@ -843,6 +845,9 @@
     ],
     "TypesenseOASIS": [
       "CI46114331452 passed26sync+26async, zero skips and independent native empty collections; owned containers/data volumes/reports removed. Hosted/full-interface acceptance remains separate."
+    ],
+    "GarnetOASIS": [
+      "CI46122538895 passed26sync+26async with zero skips on official Garnet2.2.5, native DBSIZE0 and owned container/volume/fixture cleanup. Hosted durability/restart and all-interface acceptance remain separate."
     ]
   },
   "suites": [
