@@ -87,7 +87,7 @@ def main():
     processes=ExitStack();web5_process=None;catalogue_proxy=None
     web5_app=os.environ.get('OASIS_STARTUP_WEB5_APP', '')
     popup_group=os.environ.get('OASIS_STARTUP_POPUP_GROUP', '') or 'none'
-    if popup_group not in ('none', 'map-places', 'onet', 'web5-diff', 'web5-errors', 'provider-migration', 'web5-depth', 'nft', 'data', 'data-crud', 'data-edit', 'files-write', 'map-route', 'messaging', 'messaging-read', 'chat', 'chat-directory', 'directory-message', 'clan', 'portal-breadth', 'chat-hyperdrive', 'data-messaging', 'nft-messaging-data', 'social-activity', 'account-recovery'):
+    if popup_group not in ('none', 'map-geo', 'map-places', 'onet', 'web5-diff', 'web5-errors', 'provider-migration', 'web5-depth', 'nft', 'data', 'data-crud', 'data-edit', 'files-write', 'map-route', 'messaging', 'messaging-read', 'chat', 'chat-directory', 'directory-message', 'clan', 'portal-breadth', 'chat-hyperdrive', 'data-messaging', 'nft-messaging-data', 'social-activity', 'account-recovery'):
         raise ValueError('Unknown owned popup group.')
     popup_breadth=os.environ.get('OASIS_STARTUP_POPUP_BREADTH') == 'true'
     if popup_breadth and popup_group != 'none':
@@ -140,17 +140,17 @@ def main():
                 # This explicit new-image scenario needs collection authority under passive boot.
                 admission=json.loads(fixture_env['PREPARED_STORAGE_ADMISSION_JSON'])
                 admission['authoritativeProvider']='MongoDBOASIS'
-                if popup_group in ('data-crud', 'data-edit', 'files-write', 'map-route', 'web5-depth', 'web5-diff', 'map-places'):
+                if popup_group in ('data-crud', 'data-edit', 'files-write', 'map-route', 'web5-depth', 'web5-diff', 'map-geo', 'map-places'):
                     # Same free ordinary-operation tariff kinds as the admitted dev write profile.
                     catalogue=admission['routes'][0]['policy']['pricingCatalogueVersion']
                     admission['storageTariffs']=[{'provider':'MongoDBOASIS','operation':operation,'costUsd':0,'catalogueVersion':catalogue}
                         for operation in ('LoadHolon','SaveHolon','SaveHolons','LoadHolonByProviderKey','DeleteHolon','ReadConditionalHolonWriteOutcome','ReadHolonWritePreparation')]
                     write_policy=dict(admission['routes'][0]['policy'],meterCategory='api.request',maximumProviderAttempts=512)
                     admission['routes'] += [{'method':method,'path':path,'policy':dict(write_policy)}
-                        for method,path in ((('POST','/api/places/observe'),) if popup_group == 'map-places' else
+                        for method,path in ((('POST','/api/geoHotSpots'),('POST','/api/quests')) if popup_group == 'map-geo' else ((('POST','/api/places/observe'),) if popup_group == 'map-places' else
                             ((('POST','/api/map/routes'),) if popup_group == 'map-route' else
                             ((('POST','/api/files/upload-file'),) if popup_group == 'files-write' else
-                             (('POST','/api/data/save-holon'),('DELETE','/api/data/delete-holon')))))]
+                             (('POST','/api/data/save-holon'),('DELETE','/api/data/delete-holon'))))))]
                 if popup_group == 'web5-depth':
                     admission['routes'].append({'method':'POST','path':'/api/oapps','policy':dict(write_policy)})
                 if popup_group == 'web5-diff':
@@ -254,11 +254,11 @@ console.log(JSON.stringify(b));
                     SUBSCRIPTION_OUTBOX_DATABASE=marker+'_web5_outbox')
                 web5_admission=json.loads(web5_environment['PREPARED_STORAGE_ADMISSION_JSON'])
                 web5_admission['authoritativeProvider']='MongoDBOASIS'
-                if popup_group == 'web5-diff':
+                if popup_group in ('web5-diff','map-geo'):
                     catalogue=web5_admission['routes'][0]['policy']['pricingCatalogueVersion']
                     web5_admission['storageTariffs'] += [{'provider':'MongoDBOASIS','operation':operation,'costUsd':0,'catalogueVersion':catalogue}
                         for operation in ('LoadHolonsByMetaData','LoadHolonsByMetaDataPairs')]
-                if popup_group in ('web5-depth', 'web5-diff'):
+                if popup_group in ('web5-depth', 'web5-diff', 'map-geo'):
                     web5_admission['storageTariffs'].append({'provider':'MongoDBOASIS','operation':'LoadAvatar','costUsd':0,'catalogueVersion':web5_admission['routes'][0]['policy']['pricingCatalogueVersion']})
                 web5_environment['PREPARED_STORAGE_ADMISSION_JSON']=json.dumps(web5_admission,separators=(',', ':'))
                 if popup_group == 'web5-errors':
@@ -273,7 +273,7 @@ console.log(JSON.stringify(b));
                 assert isinstance(outcomes,list) and 1 <= len(outcomes) <= 3
                 for item in outcomes:
                     assert set(item) <= {'name','passed','stage','closePassed'}
-                    assert item['name'] in ('MapPlaces','ONET','HolonDiff','CatalogueErrors','Migration','OappMap','Launcher','NFT','Data','DataWrite','FilesWrite','MapRoute','Messaging','MessagingRead','Chat','DirectoryMessage','Clan','HyperDrive','SocialGraph','ActivityFeed','AccountRecovery') and isinstance(item['passed'],bool)
+                    assert item['name'] in ('MapGeo','MapPlaces','ONET','HolonDiff','CatalogueErrors','Migration','OappMap','Launcher','NFT','Data','DataWrite','FilesWrite','MapRoute','Messaging','MessagingRead','Chat','DirectoryMessage','Clan','HyperDrive','SocialGraph','ActivityFeed','AccountRecovery') and isinstance(item['passed'],bool)
                     assert isinstance(item['closePassed'],bool)
                     assert re.fullmatch(r'[A-Za-z0-9 /-]{1,80}',item['stage'])
                 portal_source=subprocess.check_output(['git','-C',portal_root,'rev-parse','HEAD'],text=True).strip()

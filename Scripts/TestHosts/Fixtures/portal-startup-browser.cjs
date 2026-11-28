@@ -9,10 +9,11 @@ async function main(){
  const api=new URL(process.env.OASIS_STARTUP_API_URL);assert.equal(api.hostname,'127.0.0.1');assert.equal(api.protocol,'http:');
  const api5=process.env.OASIS_STARTUP_WEB5_URL?new URL(process.env.OASIS_STARTUP_WEB5_URL):null;
  const popupGroup=process.env.OASIS_STARTUP_POPUP_GROUP||'none';
- assert.ok(['none','map-places','onet','web5-diff','web5-errors','provider-migration','web5-depth','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data','social-activity','account-recovery'].includes(popupGroup));
- const selectedPopups=popupGroup==='map-places'?['MapPlaces']:popupGroup==='onet'?['ONET']:popupGroup==='web5-diff'?['HolonDiff']:popupGroup==='web5-errors'?['CatalogueErrors']:popupGroup==='provider-migration'?['Migration']:popupGroup==='web5-depth'?['OappMap','Launcher']:popupGroup==='account-recovery'?['AccountRecovery']:popupGroup==='social-activity'?['SocialGraph','ActivityFeed']:popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
+ assert.ok(['none','map-geo','map-places','onet','web5-diff','web5-errors','provider-migration','web5-depth','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data','social-activity','account-recovery'].includes(popupGroup));
+ const selectedPopups=popupGroup==='map-geo'?['MapGeo']:popupGroup==='map-places'?['MapPlaces']:popupGroup==='onet'?['ONET']:popupGroup==='web5-diff'?['HolonDiff']:popupGroup==='web5-errors'?['CatalogueErrors']:popupGroup==='provider-migration'?['Migration']:popupGroup==='web5-depth'?['OappMap','Launcher']:popupGroup==='account-recovery'?['AccountRecovery']:popupGroup==='social-activity'?['SocialGraph','ActivityFeed']:popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
   popupGroup==='data-messaging'?['Data','Messaging']:
   popupGroup==='none'?[]:[{nft:'NFT',data:'Data','data-crud':'DataWrite','data-edit':'DataWrite','files-write':'FilesWrite','map-route':'MapRoute',messaging:'Messaging','messaging-read':'MessagingRead',chat:'Chat','directory-message':'DirectoryMessage',clan:'Clan'}[popupGroup]];
+ let mapGeoVisibleId,mapGeoHiddenId,mapGeoQuestId;
  let expectedPlaceObservation=null,placeObservationCount=0,mapPlaceId=null,mapKarmaBefore=null;const mapVisitIds=[];
  const onetWrites={};
  let diffIdentity;const diffStoredIds=[],diffSealReads=[];
@@ -386,6 +387,29 @@ async function main(){
    }
    assert.equal(new Set(diffStoredIds).size,2,'Two independently stored published versions');
   }
+  if(popupGroup==='map-geo'){
+   async function createGeo(path,body){
+    const operationId=require('node:crypto').randomUUID();
+    const response=await context.request.post(proxy5Origin+path,{headers:{Authorization:'Bearer '+ownedToken,'X-COSMIC-Operation-Id':operationId,'Idempotency-Key':operationId},data:body});
+    const result=await response.json();
+    httpFacts.push({path,status:response.status(),isError:result.isError===true,...(typeof result.errorCode==='string'&&/^[A-Z0-9_]{1,80}$/.test(result.errorCode)?{errorCode:result.errorCode}:{})});
+    assert.equal(response.status(),200);assert.equal(result.isError,false);assert.ok(result.result?.id);return result.result;
+   }
+   stage='Create actual visible hotspot';
+   const visible=await createGeo('/api/geoHotSpots',{id:require('node:crypto').randomUUID(),name:'Owned visible map hotspot',description:'Native catalogue and quest location',lat:46.98,long:8.25,isActive:true,isVisibleOnMap:true});
+   mapGeoVisibleId=visible.id;assert.equal(visible.isVisibleOnMap,true);assert.equal(visible.lat,46.98);assert.equal(visible.long,8.25);
+   stage='Create actual hidden hotspot';
+   const hidden=await createGeo('/api/geoHotSpots',{id:require('node:crypto').randomUUID(),name:'Owned hidden map hotspot',description:'Hidden catalogue record',lat:46.981,long:8.251,isActive:true,isVisibleOnMap:false});
+   mapGeoHiddenId=hidden.id;assert.equal(hidden.isVisibleOnMap,false);
+   stage='Create actual linked quest';
+   const quest=await createGeo('/api/quests',{id:require('node:crypto').randomUUID(),name:'Owned hotspot-linked quest',description:'Actual root quest location',isActive:true,linkedGeoHotSpotId:visible.id});
+   mapGeoQuestId=quest.id;assert.equal(quest.linkedGeoHotSpotId,visible.id);
+   stage='Independent geo catalogue reads';
+   const near=await context.request.get(proxy5Origin+'/api/geoHotSpots/nearby?latitude=46.98&longitude=8.25&radiusKm=5',{headers:{Authorization:'Bearer '+ownedToken}});
+   const nearBody=await near.json();assert.equal(near.status(),200);assert.equal(nearBody.isError,false);assert.deepEqual(nearBody.result.map(x=>x.id),[visible.id]);
+   const questRead=await context.request.get(proxy5Origin+'/api/quests/all-for-avatar',{headers:{Authorization:'Bearer '+ownedToken}});
+   const quests=await questRead.json();assert.equal(questRead.status(),200);assert.equal(quests.isError,false);assert.equal(quests.result.length,1);assert.equal(quests.result[0].id,quest.id);assert.equal(quests.result[0].linkedGeoHotSpotId,visible.id);
+  }
   if(popupGroup==='map-places'){
    function safeVisitMessage(value){let text=String(value||'').replace(/(?:mongodb(?:\+srv)?|https?):\/\/[^\s]+/gi,'[URI]').replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g,'[JWT]');return /password|secret|credential|connectionstring|refresh.?token/i.test(text)?'Sensitive detail withheld':text.slice(0,320);}
    stage='Real place catalogue';const [catalogueReply,catalogue]=await Promise.all([page.waitForResponse(r=>new URL(r.url()).pathname==='/api/places/nearby'),page.evaluate(()=>window.oasisClient.places.nearby({category:'Mountain',latitude:46.98,longitude:8.25}))]);
@@ -454,6 +478,16 @@ async function main(){
     }catch(error){console.error('PORTAL_STARTUP_POPUP_CLOSE_FAILURE:'+JSON.stringify({name,errorType:error.name,path:new URL(page.url()).pathname}));closePassed=false;passed=false;if(observedStage===name)observedStage=name+' close';}
     outcomes.push({name,passed,stage:observedStage,closePassed});
    }
+   await checkPopup('MapGeo','#map-close-btn',async()=>{
+    stage='Map actual hotspot and quest layers';
+    await page.locator('#dashboard button.dash-panel-link').filter({hasText:'View Map'}).click();
+    await page.locator('#map-latitude').fill('46.98');await page.locator('#map-longitude').fill('8.25');await page.locator('#map-radius').fill('5');
+    await page.locator('#map-modal-block [data-tab="geo"]').click();await page.locator('#map-load-geo').click();
+    await page.waitForFunction(()=>document.getElementById('map-geo-status')?.textContent==='0 GeoNFTs, 1 hotspots, 1 quest/objective locations loaded.');
+    for(const endpoint of ['/api/geoHotSpots/nearby','/api/quests/all-for-avatar'])
+     assert.ok(reads.some(read=>read.path===endpoint&&read.status===200),'Actual map layer API '+endpoint);
+    assert.ok(mapGeoVisibleId&&mapGeoHiddenId&&mapGeoQuestId);
+   });
    await checkPopup('MapPlaces','#map-close-btn',async()=>{
     stage='Map actual cross app place visits';await page.locator('#dashboard button.dash-panel-link').filter({hasText:'View Map'}).click();
     await page.locator('#map-modal-block [data-tab="places"]').click();

@@ -68,7 +68,7 @@ on:
         description: New popup journey only; reuses the exact shipping image without rebuilding
         required: false
         type: choice
-        options: [none, map-places, onet, web5-diff, web5-errors, provider-migration, web5-depth, nft, data, data-crud, data-edit, files-write, map-route, messaging, messaging-read, chat, chat-directory, directory-message, clan, portal-breadth, chat-hyperdrive, data-messaging, nft-messaging-data, social-activity, account-recovery]
+        options: [none, map-geo, map-places, onet, web5-diff, web5-errors, provider-migration, web5-depth, nft, data, data-crud, data-edit, files-write, map-route, messaging, messaging-read, chat, chat-directory, directory-message, clan, portal-breadth, chat-hyperdrive, data-messaging, nft-messaging-data, social-activity, account-recovery]
         default: none
       retained_waku:
         description: Verify the packaged native Waku runtime with the aged original archive
@@ -93,7 +93,7 @@ jobs:
       - name: Verify startup probe error contract without native images
         run: python3 -B Scripts/TestHosts/test_web4_combined_startup.py
   package:
-    if: github.event_name == 'workflow_dispatch' && inputs.startup_popup_group != 'web5-depth' && inputs.startup_popup_group != 'web5-errors' && inputs.startup_popup_group != 'web5-diff'
+    if: github.event_name == 'workflow_dispatch' && inputs.startup_popup_group != 'map-geo' && inputs.startup_popup_group != 'web5-depth' && inputs.startup_popup_group != 'web5-errors' && inputs.startup_popup_group != 'web5-diff'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -272,7 +272,7 @@ jobs:
           retention-days: 30
 
   web5-depth:
-    if: github.event_name == 'workflow_dispatch' && (inputs.startup_popup_group == 'web5-depth' || inputs.startup_popup_group == 'web5-errors' || inputs.startup_popup_group == 'web5-diff')
+    if: github.event_name == 'workflow_dispatch' && (inputs.startup_popup_group == 'map-geo' || inputs.startup_popup_group == 'web5-depth' || inputs.startup_popup_group == 'web5-errors' || inputs.startup_popup_group == 'web5-diff')
     uses: ./.github/workflows/oportal-web5-startup-qualification.yml
     with:
       portal: ${{ inputs.startup_portal }}

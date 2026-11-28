@@ -36,6 +36,7 @@ jobs:
             /Docs/WIP/HyperDrive-Providers/OPORTAL_WEB5_DEPTH_2026-11-28.json
             /Docs/WIP/HyperDrive-Providers/OPORTAL_WEB5_ERRORS_2026-11-28.json
             /Docs/WIP/HyperDrive-Providers/OPORTAL_WEB5_DIFF_2026-11-28.json
+            /Docs/WIP/HyperDrive-Providers/OPORTAL_WEB5_GEO_2026-11-28.json
       - name: Read accepted source and image receipts
         id: source
         env:
@@ -45,7 +46,7 @@ jobs:
           python3 -B - <<'PY'
           import json, os, re
           from pathlib import Path
-          names={'web5-diff':'OPORTAL_WEB5_DIFF_2026-11-28.json','web5-depth':'OPORTAL_WEB5_DEPTH_2026-11-28.json','web5-errors':'OPORTAL_WEB5_ERRORS_2026-11-28.json'}
+          names={'map-geo':'OPORTAL_WEB5_GEO_2026-11-28.json','web5-diff':'OPORTAL_WEB5_DIFF_2026-11-28.json','web5-depth':'OPORTAL_WEB5_DEPTH_2026-11-28.json','web5-errors':'OPORTAL_WEB5_ERRORS_2026-11-28.json'}
           assert os.environ['POPUP_GROUP'] in names
           p=json.loads((Path('control/Docs/WIP/HyperDrive-Providers')/names[os.environ['POPUP_GROUP']]).read_text())
           assert re.fullmatch('[0-9a-f]{40}', os.environ['PORTAL'])
