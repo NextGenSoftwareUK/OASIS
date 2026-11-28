@@ -25,6 +25,16 @@ async function main(){
  let savedHolonId,holonSaves=0,holonDeletes=0,pointReads=0;
  const dataName='Owned portal record '+process.env.GITHUB_RUN_ID+'-'+process.env.GITHUB_RUN_ATTEMPT;
  if(api5){assert.equal(api5.hostname,'127.0.0.1');assert.equal(api5.protocol,'http:');}
+ function readOwnedVerificationToken(username,avatarId){
+  const owner='oasis_startup_'+process.env.GITHUB_RUN_ID+'_'+process.env.GITHUB_RUN_ATTEMPT;
+  assert.match(owner,/^oasis_startup_[0-9]+_[0-9]+$/);
+  const mongo=owner+'_mongo',database=owner+'_avatars';
+  assert.equal(execFileSync('docker',['inspect','--format','{{ index .Config.Labels "oasis.startup.owner" }}',mongo],{encoding:'utf8',timeout:15000}).trim(),owner,'Owned verification database');
+  const query='const row=db.getSiblingDB('+JSON.stringify(database)+').getCollection("Avatar").findOne({Username:'+JSON.stringify(username)+'},{Id:1,VerificationToken:1,_id:0});if(!row)throw new Error("Owned avatar absent");print(JSON.stringify({token:row.VerificationToken??null}));';
+  // Token output is captured in memory only; the query never contains a token or password.
+  const native=JSON.parse(execFileSync('docker',['exec',mongo,'mongosh','--quiet','--eval',query],{encoding:'utf8',timeout:15000}));
+  assert.equal(typeof native.token,'string');assert.ok(native.token.length>=32);return native.token;
+ }
  const root=await fs.realpath(process.env.OASIS_STARTUP_PORTAL_ROOT),owned=await fs.realpath(process.env.OASIS_PROFILE_BROWSER_RUNTIME);
  const {chromium}=require(path.join(owned,'node_modules/playwright-core'));
  const cert=path.join(owned,'owned-localhost.crt'),key=path.join(owned,'owned-localhost.key');
@@ -53,7 +63,7 @@ async function main(){
   if(proxy5)await new Promise(resolve=>proxy5.listen(0,'127.0.0.1',resolve));
   const origin='http://127.0.0.1:'+server.address().port,proxyOrigin='https://127.0.0.1:'+proxy.address().port;
   const proxy5Origin=proxy5?'https://127.0.0.1:'+proxy5.address().port:null;
-  stage='owned registration';const account=await createOwnedAvatar(api.href);
+  stage='owned registration';const account=await createOwnedAvatar(api.href,readOwnedVerificationToken);
   async function admitFree(owned){
    const signed=await owned.call('free account sign-in','POST','/api/avatar/authenticate',{username:owned.username,password:owned.password},undefined,true);
    await owned.call('free subscription','POST','/api/subscription/checkout/session',{planId:'free',successUrl:origin+'/subscription?tab=mysubs',cancelUrl:origin+'/'},signed.jwtToken);
@@ -65,7 +75,7 @@ async function main(){
   if(selectedPopups.length&&popupGroup!=='account-recovery'){
    assert.equal(api5,null,'WEB4-only popup journey');ownedToken=await admitFree(account);
    if(selectedPopups.includes('Messaging')||selectedPopups.includes('MessagingRead')||selectedPopups.includes('Chat')||selectedPopups.includes('DirectoryMessage')||selectedPopups.includes('Clan')||selectedPopups.includes('SocialGraph')){
-    recipient=await createOwnedAvatar(api.href);recipientToken=await admitFree(recipient);
+    recipient=await createOwnedAvatar(api.href,readOwnedVerificationToken);recipientToken=await admitFree(recipient);
    }
   }
   if(popupGroup==='social-activity'){

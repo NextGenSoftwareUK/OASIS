@@ -2,7 +2,7 @@
 // Runs inside the owned, network-isolated shipping API image. Never outputs credentials or responses.
 const assert=require('node:assert/strict'),crypto=require('node:crypto');
 let stage='preparation';
-async function createOwnedAvatar(base){
+async function createOwnedAvatar(base,readOwnedVerificationToken){
  const url=new URL(base);assert.equal(url.hostname,'127.0.0.1');assert.equal(url.protocol,'http:');
  assert.equal(url.pathname,'/');base=url.origin;
  const password='Owned!'+crypto.randomBytes(24).toString('hex');
@@ -38,13 +38,12 @@ async function createOwnedAvatar(base){
  const avatar=await call('registration','POST','/api/avatar/register',{
   title:'',firstName:'Owned',lastName:'Startup',avatarType:'Human',email:username+'@startup.invalid',
   username,password,confirmPassword:password,acceptTerms:true,suppressVerificationEmail:true},undefined,true);
- if(typeof avatar?.verificationToken!=='string'||!avatar.verificationToken){
-  console.error('PORTAL_STARTUP_HTTP_FACTS:'+JSON.stringify([{path:'/api/avatar/register',status:200,isError:false,errorCode:'OWNED_VERIFICATION_TOKEN_MISSING',resultShape:typeof avatar}]));
- }
  assert.match(avatar?.id||'',/^[0-9a-f-]{36}$/i,'Persisted registration identity');
- assert.equal(typeof avatar.verificationToken,'string','Isolated email-disabled verification token');
- assert.ok(avatar.verificationToken.length>0,'Verification token present');
- const verified=await call('verification','POST','/api/avatar/verify-email',{token:avatar.verificationToken},undefined,true);
+ // Browser fixtures read the token from their labelled disposable database. Shipping JSON intentionally redacts it.
+ const verificationToken=readOwnedVerificationToken?readOwnedVerificationToken(username,avatar.id):avatar.verificationToken;
+ assert.equal(typeof verificationToken,'string','Owned verification token');
+ assert.ok(verificationToken.length>0,'Verification token present');
+ const verified=await call('verification','POST','/api/avatar/verify-email',{token:verificationToken},undefined,true);
  assert.equal(verified,true,'Verification acknowledged');
  return {username,password,avatar,call};
 }
