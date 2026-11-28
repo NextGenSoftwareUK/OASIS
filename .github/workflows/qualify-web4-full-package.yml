@@ -347,7 +347,7 @@ jobs:
           [[ "$EXPECTED_SOURCE" =~ ^[0-9a-f]{40}$ ]]
           test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE"
           python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
-          python3 -B Scripts/sync_railway_dependency_manifest.py --check-ref HEAD
+          python3 -B Scripts/sync_railway_dependency_manifest.py --check-ref "$EXPECTED_SOURCE"
           grep -E '^(LIBRARIES_COMMIT|HOLOCHAIN_COMMIT)=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
