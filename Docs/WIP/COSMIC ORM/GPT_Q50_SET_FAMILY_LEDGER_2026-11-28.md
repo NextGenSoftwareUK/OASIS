@@ -23,3 +23,7 @@ Cleanup: recovery source drafts LocalState/COSMIC/GPT_Q50_MONGO_SET_DRAFT.cs, GP
 ### POCO component acceptance retained; native count gate active
 
 POCO/constructor component run46113931675 passed exactde3259e281ea/Core0fd03dede3f2. Strict RAM artifact15250183724,5630bytes,SHA256c96432289802bb25b9b90e6f880e961ff16bc3412b1c78f01fc9d884d110c09f: native6 (Holon3 + POCO3), zero failures/skips,8groups each, owned1/2IDs and2/3writes,10timings/store, actual WEB4 and exact cleanup. No full M04/M17 credit. Core unchanged in current set-count source762f4f2556e9, native3-case CI46115004145 active. Runner syntax parsed with Python -B without running any build locally.
+
+### Three-store regression found a separate Neo4j acknowledgement bound defect
+
+CI46115004145 completed2native passes (Mongo/SQLite) and1Neo failure before WEB4 build. Neo rejected Concat count14 because its scalar decoder checked the per-input limit7, while its caller already supplied the correct combined maximumEntityInputRows14 to the same read owner/proof. The decoder now applies that explicit combined bound when present and retains the ordinary composition bound otherwise. Integer type, uniqueness, nonnegative count, source/actor checks and exact acknowledgements are unchanged; no general limit is relaxed. The same small three-store regression is rerun on the corrected exact source. Full set parents remain OPEN. Core recursive planning work is local/WIP and excluded from the pinned0fd03ded batch. No local builds/envs/shared data or owner action.
