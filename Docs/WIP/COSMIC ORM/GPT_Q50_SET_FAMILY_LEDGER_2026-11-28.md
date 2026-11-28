@@ -87,3 +87,10 @@ Core39488eac gives each set provider a registered constant root and binds every 
 ### Recursive late selection qualification
 
 Neo4j late-selection source now uses the common tree Anchor and total admitted leaf proof bound. The same native tree journey additionally selects Name after the nested identity operations, preserving duplicate occurrences and order, with14groups/16timings per store. Tree membership remains entity identity; this does not claim recursive selected-tuple set equality. Native gates and full parents still pending. No local build/download/environment/database/shared data activity.
+
+
+### One Neo4j set compiler and Development metadata
+
+Flat and nested Neo4j sets now share the recursive native compiler; the duplicate binary compiler was removed. Existing count/window controls must qualify this shared owner alongside nested trees, LINQ and late selection. This is a source change requiring a new exact cohort, not a retry caused by observation timeout. Native acceptance remains pending; main144/168 + extension4/13.
+
+Railway selected deployment metadata:3118e6df-2541-4b85-97d3-6223d2b93be6 SUCCESS at Development67663f81, which contains qualified8ed94e27/Core0fd03ded. No new application-data/browser/shared Atlas/PIPER check. Current recursive candidate remains feature-only. Local free space34.19GiB measured; no local build/database/runtime/env/download/artifact, no reclamation claimed.
