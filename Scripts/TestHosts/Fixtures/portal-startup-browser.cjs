@@ -9,10 +9,11 @@ async function main(){
  const api=new URL(process.env.OASIS_STARTUP_API_URL);assert.equal(api.hostname,'127.0.0.1');assert.equal(api.protocol,'http:');
  const api5=process.env.OASIS_STARTUP_WEB5_URL?new URL(process.env.OASIS_STARTUP_WEB5_URL):null;
  const popupGroup=process.env.OASIS_STARTUP_POPUP_GROUP||'none';
- assert.ok(['none','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data','social-activity'].includes(popupGroup));
- const selectedPopups=popupGroup==='social-activity'?['SocialGraph','ActivityFeed']:popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
+ assert.ok(['none','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data','social-activity','account-recovery'].includes(popupGroup));
+ const selectedPopups=popupGroup==='account-recovery'?['AccountRecovery']:popupGroup==='social-activity'?['SocialGraph','ActivityFeed']:popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
   popupGroup==='data-messaging'?['Data','Messaging']:
   popupGroup==='none'?[]:[{nft:'NFT',data:'Data','data-crud':'DataWrite','data-edit':'DataWrite','files-write':'FilesWrite','map-route':'MapRoute',messaging:'Messaging','messaging-read':'MessagingRead',chat:'Chat','directory-message':'DirectoryMessage',clan:'Clan'}[popupGroup]];
+ let recoveryToken,recoveryPassword;const recoveryRequests={forgot:0,reset:0,login:0};
  const messageText='Owned portal message '+process.env.GITHUB_RUN_ID+'-'+process.env.GITHUB_RUN_ATTEMPT;
  let clanId,clanCreates=0,clanUpdates=0,clanMembers=0,clanDeletes=0;
  const clanName='Owned portal clan '+process.env.GITHUB_RUN_ID;
@@ -33,7 +34,7 @@ async function main(){
  const server=http.createServer(async(req,res)=>{
   try{
    const url=new URL(req.url,'http://127.0.0.1');
-   const name=['/','/beamin','/subscription'].includes(url.pathname)?'portal.html':decodeURIComponent(url.pathname).replace(/^\//,'');
+   const name=['/','/beamin','/subscription','/forgot'].includes(url.pathname)?'portal.html':decodeURIComponent(url.pathname).replace(/^\//,'');
    const file=await fs.realpath(path.resolve(root,name));if(!file.startsWith(root+path.sep)){res.writeHead(403);res.end();return;}
    const body=await fs.readFile(file);res.writeHead(200,{'Content-Type':types[path.extname(file)]||'application/octet-stream'});res.end(body);
   }catch{res.writeHead(404);res.end();}
@@ -61,7 +62,7 @@ async function main(){
    return signed.jwtToken;
   }
   if(api5)await admitFree(account);
-  if(selectedPopups.length){
+  if(selectedPopups.length&&popupGroup!=='account-recovery'){
    assert.equal(api5,null,'WEB4-only popup journey');ownedToken=await admitFree(account);
    if(selectedPopups.includes('Messaging')||selectedPopups.includes('MessagingRead')||selectedPopups.includes('Chat')||selectedPopups.includes('DirectoryMessage')||selectedPopups.includes('Clan')||selectedPopups.includes('SocialGraph')){
     recipient=await createOwnedAvatar(api.href);recipientToken=await admitFree(recipient);
@@ -159,6 +160,17 @@ async function main(){
       assert.match(body.expectedRevisions[savedHolonId],/^[0-9a-f-]{36}$/i);ownedOperation=true;
      }
     }
+    if(popupGroup==='account-recovery'&&request.method()==='POST'){
+     if(url.pathname==='/api/avatar/forgot-password'){
+      assert.equal(++recoveryRequests.forgot,1);assert.deepEqual(request.postDataJSON(),{email:account.username+'@startup.invalid'});ownedOperation=true;
+     }else if(url.pathname==='/api/avatar/reset-password'){
+      assert.equal(++recoveryRequests.reset,1);
+      assert.deepEqual(request.postDataJSON(),{token:recoveryToken,newPassword:recoveryPassword,confirmNewPassword:recoveryPassword});ownedOperation=true;
+     }else if(url.pathname==='/api/avatar/authenticate'){
+      assert.equal(++recoveryRequests.login,1);assert.equal(request.postDataJSON().username,account.username);
+      assert.equal(request.postDataJSON().password,recoveryPassword);ownedOperation=true;
+     }
+    }
     if(selectedPopups.length&&request.method()==='POST'){
      if(selectedPopups.includes('Data')&&url.pathname==='/api/data/load-holons-for-parent'){
       assert.equal(++dataReads,1,'One actual Data browse');
@@ -213,6 +225,49 @@ async function main(){
     }
    }catch{fact.json=false;}
   });
+  if(popupGroup==='account-recovery'){
+   assert.equal(api5,null);
+   const owner='oasis_startup_'+process.env.GITHUB_RUN_ID+'_'+process.env.GITHUB_RUN_ATTEMPT;
+   assert.match(owner,/^oasis_startup_[0-9]+_[0-9]+$/);
+   const mongo=owner+'_mongo',database=owner+'_avatars';
+   const nativeOwner=execFileSync('docker',['inspect','--format','{{ index .Config.Labels "oasis.startup.owner" }}',mongo],{encoding:'utf8'}).trim();
+   assert.equal(nativeOwner,owner,'Read tokens only from this run owned native fixture');
+   function ownedResetState(){
+    const query='const row=db.getSiblingDB('+JSON.stringify(database)+').getCollection("Avatar").findOne({Username:'+JSON.stringify(account.username)+'},{ResetToken:1,ResetTokenExpires:1,_id:0});if(!row)throw new Error("Owned avatar absent");print(JSON.stringify({token:row.ResetToken??null,expires:row.ResetTokenExpires??null}));';
+    // Native reset secrets stay in memory; never put a token on a command line, in logs or an artifact.
+    return JSON.parse(execFileSync('docker',['exec',mongo,'mongosh','--quiet','--eval',query],{encoding:'utf8',timeout:15000}));
+   }
+   stage='Forgot password form';await page.goto(origin+'/forgot',{waitUntil:'domcontentloaded'});
+   await page.locator('#forgot-email').fill(account.username+'@startup.invalid');
+   stage='Forgot password acknowledgement';await page.locator('#forgot-submit').click();
+   await page.locator('#forgot-msg.forgot-status--success').waitFor({state:'visible'});
+   const reset=ownedResetState();assert.equal(typeof reset.token,'string');assert.ok(reset.token.length>=32);
+   assert.ok(Date.parse(reset.expires)>Date.now());recoveryToken=reset.token;
+   recoveryPassword='OwnedNew!'+require('node:crypto').randomBytes(24).toString('hex');
+   stage='Standalone reset form';await page.goto(origin+'/reset-password.html?token='+encodeURIComponent(recoveryToken),{waitUntil:'domcontentloaded'});
+   assert.equal(await page.locator('a.logo').getAttribute('href'),'/portal.html');
+   await page.locator('#pw1').fill(recoveryPassword);await page.locator('#pw2').fill(recoveryPassword);
+   stage='Persisted password reset';await page.locator('#submit-btn').click();
+   await page.locator('#status-box.status--success').waitFor({state:'visible'});
+   await page.waitForURL(url=>url.pathname==='/portal.html');
+   assert.equal(ownedResetState().token,null,'Reset token consumed in native storage');
+   stage='New password login';
+   await page.locator('.js-modal-trigger[data-signin="login"]:visible').first().click();
+   await page.locator('#login-email').fill(account.username);await page.locator('#login-password').fill(recoveryPassword);
+   await page.locator('#login-submit').click();
+   await page.waitForFunction(()=>localStorage.getItem('loggedIn')==='true');
+   await page.locator('#dashboard').waitFor({state:'visible'});
+   assert.equal(await page.locator('#dash-name').textContent(),account.username);
+   stage='Old password refusal';
+   const refused=await fetch(api.origin+'/api/avatar/authenticate',{method:'POST',signal:AbortSignal.timeout(20000),
+    headers:{'Content-Type':'application/json'},body:JSON.stringify({username:account.username,password:account.password})});
+   const rejected=await refused.json();assert.equal(rejected.result.isError,true,'Prior password must no longer authenticate');
+   assert.equal(recoveryRequests.forgot,1);assert.equal(recoveryRequests.reset,1);assert.equal(recoveryRequests.login,1);
+   assert.deepEqual(errors,[]);
+   console.log('PORTAL_STARTUP_POPUP_OUTCOMES:'+JSON.stringify([{name:'AccountRecovery',passed:true,stage:'New password login and old password refusal',closePassed:true}]));
+   console.log('PORTAL_STARTUP_BROWSER_PROOF: actual forgot form, standalone reset and native password/token mutation, portal-home redirect and new-password login passed. Explicit email-disabled isolated Startup; no email delivery, founder activation or hosted acceptance.');
+   return;
+  }
   stage='page and Beam In';await page.goto(origin+'/portal.html',{waitUntil:'domcontentloaded'});
   await page.locator('.js-modal-trigger[data-signin="login"]:visible').first().click();
   await page.locator('#login-email').fill(account.username);await page.locator('#login-password').fill(account.password);
