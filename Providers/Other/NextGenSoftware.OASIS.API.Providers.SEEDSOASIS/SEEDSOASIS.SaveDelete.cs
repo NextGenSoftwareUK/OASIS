@@ -97,7 +97,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
         {
-            return DeleteAvatarAsync(Guid.Parse(providerKey), softDelete);
+            return TelosOASIS.DeleteAvatarAsync(providerKey, softDelete);
         }
 
         // Additional IOASISStorageProvider interface members
@@ -106,19 +106,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             return LoadAvatarByProviderKeyAsync(providerKey, version).Result;
         }
 
-        public async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
-        {
-            // Try to parse providerKey as Guid first
-            if (Guid.TryParse(providerKey, out var guid))
-            {
-                return await LoadAvatarAsync(guid, version);
-            }
-            
-            // If not a Guid, return error or try to load by provider key
-            var result = new OASISResult<IAvatar>();
-            OASISErrorHandling.HandleError(ref result, "Provider key must be a valid Guid for SEEDS provider");
-            return result;
-        }
+        public Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
+            => TelosOASIS.LoadAvatarByProviderKeyAsync(providerKey, version);
 
         public OASISResult<KarmaAkashicRecord> AddKarmaToAvatar(IAvatarDetail avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karmaSourceTitle, string karmaSourceDescription, string webLink)
         {
@@ -200,7 +189,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
         {
-            return LoadHolonAsync(Guid.Parse(providerKey), loadChildren, recursive, maxChildDepth, continueOnError, sendKarma, version);
+            return TelosOASIS.LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, false, version);
         }
 
         public OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int maxChildCount = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
@@ -292,7 +281,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
         {
-            return DeleteHolonAsync(Guid.Parse(providerKey));
+            return TelosOASIS.DeleteHolonAsync(providerKey);
         }
 
         public OASISResult<bool> Import(IEnumerable<IHolon> holons)

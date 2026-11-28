@@ -44,6 +44,9 @@ using Nethereum.Hex.HexConvertors.Extensions;
 using System.IO;
 using System.Text.Json;
 
+// GenerateAssemblyInfo is off for this project, so the attribute is declared here rather than in the csproj.
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("NextGenSoftware.OASIS.API.Providers.TelosOASIS")]
+
 namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 {
     public partial class EOSIOOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar, IDisposable
@@ -66,10 +69,26 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         public string EOSChainId { get; set; }
         public string EOSAccountPk { get; set; }
 
+        /// <summary>
+        /// The provider type this instance stamps into <c>ProviderUniqueStorageKey</c> / <c>ProviderMetaData</c>
+        /// on the records it maps. It is <see cref="Core.Enums.ProviderType.EOSIOOASIS"/> unless another Antelope
+        /// provider (e.g. TelosOASIS) composes this implementation as its storage engine, in which case records
+        /// belong to the composing provider.
+        /// </summary>
+        internal ProviderType StorageProviderType => _storageProviderType;
+        private readonly ProviderType _storageProviderType;
+
         public EOSIOOASIS(string hostUri, string eosAccountName, string eosChainId, string eosAccountPk)
+            : this(hostUri, eosAccountName, eosChainId, eosAccountPk, Core.Enums.ProviderType.EOSIOOASIS) { }
+
+        /// <summary>Composes the EOSIO storage implementation on behalf of another Antelope provider.</summary>
+        internal EOSIOOASIS(string hostUri, string eosAccountName, string eosChainId, string eosAccountPk, ProviderType storageProviderType)
         {
             if (string.IsNullOrEmpty(hostUri))
                 throw new ArgumentNullException(nameof(hostUri));
+            if (storageProviderType is Core.Enums.ProviderType.None or Core.Enums.ProviderType.All or Core.Enums.ProviderType.Default)
+                throw new ArgumentOutOfRangeException(nameof(storageProviderType), "A concrete storage provider type is required.");
+            _storageProviderType = storageProviderType;
 
             ProviderName = "EOSIOOASIS";
             ProviderDescription = "EOSIO Provider";

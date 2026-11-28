@@ -88,7 +88,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             this.ProviderDescription = "SEEDS Provider";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.SEEDSOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Application);
-            TelosOASIS = telosOASIS;
+            ArgumentNullException.ThrowIfNull(telosOASIS);
+            TelosOASIS = telosOASIS.CreateStorageDelegate(Core.Enums.ProviderType.SEEDSOASIS);
             _httpClient = new HttpClient();
             _httpClient.BaseAddress = new Uri(ENDPOINT_TEST);
 

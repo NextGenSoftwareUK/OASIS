@@ -312,11 +312,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 // Add EOSIO-specific metadata
                 if (eosioData != null)
                 {
-                    avatar.ProviderMetaData[Core.Enums.ProviderType.EOSIOOASIS].Add("eosio_account_name", username);
-                    avatar.ProviderMetaData[Core.Enums.ProviderType.EOSIOOASIS].Add("eosio_net_weight", eosioData.NetWeight?.ToString() ?? "0");
-                    avatar.ProviderMetaData[Core.Enums.ProviderType.EOSIOOASIS].Add("eosio_cpu_weight", eosioData.CpuWeight?.ToString() ?? "0");
-                    avatar.ProviderMetaData[Core.Enums.ProviderType.EOSIOOASIS].Add("eosio_ram_quota", eosioData.RamQuota?.ToString() ?? "0");
-                    avatar.ProviderMetaData[Core.Enums.ProviderType.EOSIOOASIS].Add("eosio_ram_usage", eosioData.RamUsage?.ToString() ?? "0");
+                    avatar.ProviderMetaData[_storageProviderType].Add("eosio_account_name", username);
+                    avatar.ProviderMetaData[_storageProviderType].Add("eosio_net_weight", eosioData.NetWeight?.ToString() ?? "0");
+                    avatar.ProviderMetaData[_storageProviderType].Add("eosio_cpu_weight", eosioData.CpuWeight?.ToString() ?? "0");
+                    avatar.ProviderMetaData[_storageProviderType].Add("eosio_ram_quota", eosioData.RamQuota?.ToString() ?? "0");
+                    avatar.ProviderMetaData[_storageProviderType].Add("eosio_ram_usage", eosioData.RamUsage?.ToString() ?? "0");
                 }
 
                 return avatar;
@@ -359,7 +359,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         /// <summary>
         /// Parse EOSIO blockchain data to OASIS Holon
         /// </summary>
-        private static IHolon ParseEOSIOToHolon(object holonData)
+        private IHolon ParseEOSIOToHolon(object holonData)
         {
             try
             {
@@ -376,7 +376,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                     Description = dataDict.GetValueOrDefault("description")?.ToString() ?? "Holon from EOSIO blockchain",
                     ProviderUniqueStorageKey = new Dictionary<ProviderType, string>
                     {
-                        [Core.Enums.ProviderType.EOSIOOASIS] = dataDict.GetValueOrDefault("eosioId")?.ToString() ?? CreateDeterministicGuid($"{Core.Enums.ProviderType.EOSIOOASIS}:holon:{JsonConvert.SerializeObject(dataDict)}").ToString()
+                        [_storageProviderType] = dataDict.GetValueOrDefault("eosioId")?.ToString() ?? CreateDeterministicGuid($"{Core.Enums.ProviderType.EOSIOOASIS}:holon:{JsonConvert.SerializeObject(dataDict)}").ToString()
                     },
                     IsActive = dataDict.GetValueOrDefault("isActive")?.ToString()?.ToLower() == "true",
                     CreatedDate = dataDict.ContainsKey("createdDate") ? DateTime.Parse(dataDict["createdDate"].ToString()) : DateTime.UtcNow,

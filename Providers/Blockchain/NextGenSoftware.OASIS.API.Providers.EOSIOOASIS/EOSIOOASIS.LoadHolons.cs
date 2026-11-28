@@ -217,7 +217,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             try
             {
                 var holonDto = await _holonRepository.Read(id).ConfigureAwait(false);
-                var holonEntity = holonDto?.GetBaseHolon();
+                var holonEntity = holonDto == null || holonDto.IsDeleted ? null : WithStorageIdentity(holonDto.GetBaseHolon());
                 if (holonEntity == null)
                 {
                     result.IsLoaded = false;
@@ -252,42 +252,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                // Query EOSIO smart contract for holon by provider key
-                var holonData = await _eosClient.GetHolonByProviderKeyAsync(providerKey);
-                if (holonData != null)
-                {
-                    var holon = ParseEOSIOToHolon(holonData);
-                    if (holon != null)
-                    {
-                        result.Result = holon;
-                        result.IsError = false;
-                        result.Message = "Holon loaded successfully by provider key from EOSIO";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref result, "Failed to parse holon data from EOSIO");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Holon not found by provider key in EOSIO");
-                }
+                return await LoadHolonAsync(ParseStorageKey(providerKey), loadChildren, recursive, maxChildDepth,
+                    continueOnError, loadChildrenFromProvider, version).ConfigureAwait(false);
             }
-            catch (Exception ex)
+            catch (Exception error)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holon by provider key from EOSIO: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, "EOSIO holon storage-key lookup failed.", error);
+                return result;
             }
-            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All,
@@ -376,7 +348,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                     throw new NotSupportedException("The Antelope holon table exposes only current records.");
 
                 var rows = (await _holonRepository.ReadAll().ConfigureAwait(false))
-                    .Where(row => !row.IsDeleted).Select(row => row.GetBaseHolon()).ToArray();
+                    .Where(row => !row.IsDeleted).Select(row => WithStorageIdentity(row.GetBaseHolon())).ToArray();
                 var project = HolonGraphProjection.Create(rows, loadChildren, recursive, maxChildDepth,
                     currentChildDepth, childrenFromProvider,
                     row => (IHolon)OasisJson.Deserialize(OasisJson.Serialize<object>(row), typeof(Holon)),
