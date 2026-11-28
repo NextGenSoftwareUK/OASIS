@@ -426,7 +426,7 @@ async function main(){
   if(popupGroup==='map-purpose'){
    stage='Actual delivered SDK JSON string purpose';
    const [response,reply]=await Promise.all([page.waitForResponse(r=>new URL(r.url()).pathname==='/api/map/visit/'+mapRendererRecordId&&r.request().method()==='POST'),page.evaluate(id=>window.oasisClient.map.visitLocation({locationId:id,purpose:'Walking'}),mapRendererRecordId)]);
-   httpFacts.push({path:'/api/map/visit/{id}',status:response.status(),isError:reply.isError===true});assert.equal(response.status(),200);assert.equal(reply.isError,false);assert.equal(reply.isSaved,true);assert.equal(reply.result,true);assert.equal(visitWrites,1);
+   httpFacts.push({path:'/api/map/visit/{id}',status:response.status(),isError:reply.isError===true});assert.equal(response.status(),200);assert.equal(reply.isError,false);assert.equal(reply.raw?.isSaved,true);assert.equal(reply.result,true);assert.equal(visitWrites,1);
    stage='Purpose independent persisted history';const headers={Authorization:'Bearer '+ownedToken};
    const historyResponse=await context.request.get(proxyOrigin+'/api/map/visit-history?limit=50&offset=0',{headers});const history=await historyResponse.json();assert.equal(historyResponse.status(),200);assert.equal(history.isError,false);assert.equal(history.result.length,1);assert.equal(history.result[0].locationId,mapRendererRecordId);assert.equal(history.result[0].avatarId,account.avatar.id);assert.equal(history.result[0].purpose,'Walking');assert.ok(history.result[0].visitedAt);
    assert.deepEqual(errors,[]);console.log('PORTAL_STARTUP_MAP_PURPOSE_CONTRACT:'+JSON.stringify({actualSdk:true,jsonStringBody:true,savedAcknowledgement:true,persistedPurpose:true,identityMatched:true,visitWrites:1}));
