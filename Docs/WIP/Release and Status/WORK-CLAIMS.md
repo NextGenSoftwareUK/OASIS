@@ -189,3 +189,5 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | COSMIC Q50/Q51/Q53/Q54 nested set composition and scalar terminals | COSMIC ORM | local: gpt-cosmic | work/gpt-q50 | 2026-11-28T06:23:35.620Z | IN PROGRESS — count regression46115004145 had2pass/1Neo fail; Neo combined-bound fixc76ee53d in CI46116059517, parent pin0fd03ded. Recursive capture/planning Core4e3e3e85 saved but unenrolled/not pinned; native compiler integration follows. All4 parents OPEN; main144/168 + extension4/13. |
 
 | OPORTAL existing signed-in breadth suite: inspect isolated real-API harness and fill demonstrated screen gaps | OPORTAL | local: gpt-hyperdrive | work/gpt-oportal-isolated-breadth | 2026-11-28T06:20:52.225Z | IN PROGRESS |
+
+| Reconcile HoloOASIS.Desktop matrix with owner obsolete decision (documentation only; preserve canonical HoloOASIS) | HyperDrive inventory | local: gpt-hyperdrive | work/gpt-provider-obsolete-status | 2026-11-28T06:24:46.581Z | IN PROGRESS |
