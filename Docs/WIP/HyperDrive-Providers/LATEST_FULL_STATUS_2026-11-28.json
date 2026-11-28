@@ -2,10 +2,10 @@
   "date": "2026-11-28",
   "status": "in-progress-not-whole-portal-or-hyperdrive-certified",
   "source": {
-    "oasisDevelopment": "13a6e23326aa2a774e3280abf493d7d3cf3fd7cb",
-    "portalDev": "012fdbba3034f208ad248bd0756f5e14cfa0cdff",
-    "portalDocsMain": "a9e2352ba305b5ecf785589bf3deb9d26956ef79",
-    "corePinned": "0a4074ecf6e82196d757e7f657e51780b7525eb7",
+    "oasisDevelopment": "52110089779019065be2ef9dbd720e8962538368",
+    "portalDev": "830a97e6ab1382c198b6476ce1d5b7044ae5c82f",
+    "portalDocsMain": "400c5975ec142ef735357e29cd5268d3831df179",
+    "corePinned": "fa4ea2e254b59e55ab4c5f4fa031199b887ecabb",
     "runningCurrentDeploymentsVerified": false,
     "portalStaticAssetsVerified": {
       "url": "https://dev.oportal.oasisomniverse.one/portal.html",
@@ -46,14 +46,16 @@
     },
     "fullyAccepted": false,
     "latestSelectedNativeBrowser": {
-      "done": 6,
-      "total": 6,
+      "done": 8,
+      "total": 8,
       "runs": {
         "recovery": 46123580498,
         "populatedMapLauncher": 46126474607,
         "providerMigration": 46130012906,
         "onet": 46133501110,
-        "holonDiff": 46136436169
+        "holonDiff": 46136436169,
+        "populatedGeoLayers": 46142470160,
+        "mapRenderer": 46146049497
       }
     },
     "sdkDelivery": {
@@ -71,7 +73,7 @@
       "newSelectedNodeUiStateUnit": true,
       "publishedServiceLifecycleAndPeers": "open"
     },
-    "remaining": "Per-surface CURRENT_ACCEPTANCE remaining column applies: AI native flow; Holon Diff status-specific cryptographic history; map cross-app visits/populated geo layers/renderer/Unity; ONET peers/broadcast/HoloNET; published service actions; real mail/paid billing and hosted signed-in gates.",
+    "remaining": "Per-surface CURRENT_ACCEPTANCE remaining column applies: admitted AI/provider sessions, real signup/activation email, paid billing, published ONODE peers/lifecycle, Holon Diff status-specific cryptographic history, public-catalogue app-labelled place visits, populated/minted GeoNFT and real tiles/Unity/device/remote map runtime, plus remaining enabled actions and hosted gates.",
     "latestSelectedApiContract": {
       "done": 1,
       "total": 1,
@@ -90,6 +92,20 @@
       "run": 46136436169,
       "scope": "Cold history, real two metadata publications, populated comparison, distinct stored-ID seal dispatch and close",
       "specificSealStatusOrCryptographicVerificationAccepted": false
+    },
+    "mapGeo": {
+      "done": 1,
+      "total": 1,
+      "run": 46142470160,
+      "scope": "Real visible/hidden hotspot and linked root quest creation/readback plus OPORTAL layer status and close",
+      "populatedGeoNftOrRendererOrUnityAccepted": false
+    },
+    "mapRenderer": {
+      "done": 1,
+      "total": 1,
+      "run": 46146049497,
+      "actions": 9,
+      "scope": "Actual MapLibre/WebGL2 camera/selection/rendered highlight and disposal using one API/native Mongo location; no public tiles/remote runtime/Unity/hosted acceptance"
     }
   },
   "hyperdrive": {
@@ -103,23 +119,22 @@
   },
   "activeWork": [
     {
-      "item": "Generic sourceApp places and Our World/OPORTAL map integration",
+      "item": "App-labelled natural-place visits",
       "branch": "work/gpt-oportal-map-integration",
       "source": "b0c2f5a6a5cda64b607594096189d4f02833a18b",
       "core": "18dad5ae096288129097a29352de4e010e335c4e",
       "unity": "7e9e3490ce9658e9543dfab6f103120683c76025",
-      "imageBuild": 46138363710,
-      "failedCatalogueRuns": [
-        46140605906,
-        46141372411
-      ],
-      "status": "Image built; real public catalogue timeout/upstream connection failure before visits. No native visit acceptance, no shared Development source promotion. Completed failed fixtures cleaned."
+      "status": "Source-only: real public catalogue46140605906timeout/46141372411upstream failure; no visit/karma credit or source promotion."
     },
     {
-      "item": "Populated visible/hidden hotspot and linked quest OPORTAL layers",
-      "failedControlRun": 46141859638,
-      "run": 46142470160,
-      "status": "Corrected fixture backend selection; native journey running. No geo writes were reached in first run; all5cleanup flags true. No new screen acceptance yet."
+      "item": "Map search JSON body and validated gRPC/GraphQL actor",
+      "branch": "work/gpt-map-search-binding",
+      "source": "46ce43e98c7436e1dcb7e0e0101be86d3523e9d7",
+      "control": "ce39496d5198413bb29f2b6191028c92792af3bc",
+      "imageBuild": 46146213659,
+      "image": "sha256:bbac4ec2dadb9afe8e7a7beaa4715185db45174f7efb9b2ff62924484b9016ed",
+      "run": 46148591025,
+      "status": "Image build passed; real SDK REST/gRPC/GraphQL native gate running. Wizard admission unchanged; MCP exposure backlog retained."
     }
   ],
   "ownerActions": {
@@ -138,7 +153,7 @@
     "freeSpaceReclamationClaimed": false,
     "cloudOwnedContainersDatabasesVolumesBrowserCachesAndBootstrapOutputsRemoved": true,
     "compactEvidenceInspectedInMemory": true,
-    "scope": "Completed native runs only, all acknowledged cleaned; running46142470160owns resources until its final cleanup."
+    "scope": "Completed runs through46146049497cleaned; new transport46148591025has its own required cleanup. No local runtime/env/build/database/results, owned temp indexes0 and no inspected gh cache/temp directories."
   },
   "documents": {
     "status": "Docs/WIP/HyperDrive-Providers/CURRENT_STATUS.md",
@@ -157,5 +172,5 @@
     }
   },
   "completedPendingIntegration": [],
-  "asOfUtc": "2026-11-28T12:00:21.062Z"
+  "asOfUtc": "2026-11-28T13:12:38.648Z"
 }

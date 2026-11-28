@@ -3157,3 +3157,6 @@ Root fix restores earlier0bc4d64f shared Holon boot filter/demo-substitution rem
 
 
 2026-11-28: Completed map46140605906/46141372411and geo-control46141859638all5owned cleanup flags true; proxies stopped/0tunnels, WEB5 publish/browser/cache/TLS outputs absent. Artifacts15260818844(3674B),15261733812(3644B),15262151851(2310B) inspected in memory, not saved locally. C31.90GiBfree, owned indexes0; no downloads/env/runtime/build/database/results. Running46142470160resources await its cleanup. No reclamation claimed.
+
+
+2026-11-28: Renderer46146049497artifact15264255260(4312B,f53c5e5cd8e62f424cbb1f9dbd41ce618d90844d169b53573a94d275e92bc0cf) inspected in memory;5/5owned cleanup and runtime/cache/TLS absence. Failed renderer fixtures retained with cleanup. Pinned official renderer assets fetched into RAM only, never saved locally. Owned indexes0; inspected gh temp/cache directories absent. No local runtime/env/build/database/results or space-reclamation claim. Map transport46148591025cleans its owned SDK/probe/cache/container paths at completion.
