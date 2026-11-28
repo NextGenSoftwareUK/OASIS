@@ -211,3 +211,5 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | OPORTAL ONODE controls: prevent API state leaking into registered-node command availability and disable unknown/loading controls | OPORTAL UI | local: gpt-hyperdrive | work/gpt-oportal-onode-controls | 2026-11-28T08:08:17.375Z | DONE Portalbe5da21c; focused UI-state unit passed; native published-service lifecycle separate |
 
 | OPORTAL SDK adoption: latest WEB4/WEB5/WEB6 source fixes; preserve atomic Profile client absent from new WEB4 main, qualify delivery before dev | OPORTAL/npm SDKs | local: gpt-hyperdrive | work/gpt-oportal-sdk-current | 2026-11-28T08:12:21.721Z | DONE Portalbe5da21c; SDK delivery46125573999passed3/3; existing npm A1/A2 owner block retained |
+
+| OPORTAL provider migration breadth: real owned Wizard source preview/copy/readback using accepted Mongo+SQLite, preserving required destination and no automatic replication | OPORTAL/admin UI | local: gpt-hyperdrive | work/gpt-oportal-migration | 2026-11-28T08:36:53.643Z | IN PROGRESS; reuse isolated shipping image/native fixture; no shared Atlas or new environment |
