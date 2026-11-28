@@ -15252,7 +15252,7 @@
             "url": "{{web4BaseUrl}}/api/places/observe",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"id\": \"{{$guid}}\",\n  \"placeId\": \"{{placeId}}\",\n  \"latitude\": 0,\n  \"longitude\": 0,\n  \"observedUtc\": \"{{$isoTimestamp}}\",\n  \"sourceApp\": \"Our World\"\n}",
               "options": {
                 "raw": {
                   "language": "json"

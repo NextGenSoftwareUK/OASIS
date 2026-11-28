@@ -35,6 +35,8 @@ public sealed class PlacesController : OASISControllerBase
     public sealed class Observation
     {
         public Guid Id {get;set;}
+        /// <summary>Caller-reported app label, not authenticated app identity. Omission preserves legacy Our World clients.</summary>
+        public string SourceApp {get;set;} = "Our World";
         public string PlaceId {get;set;}
         public double Latitude {get;set;}
         public double Longitude {get;set;}
@@ -57,7 +59,7 @@ public sealed class PlacesController : OASISControllerBase
             double distance=WorldscapePlaceCatalogue.DistanceToPlace(place,observation.Latitude,observation.Longitude);
             if(distance>50&&distance<100)return new(){Message="Between arrival and departure boundaries."};
             return await KarmaManager.Instance.ObservePlaceVisitAsync(AvatarId,new PlaceVisitRecord {PlaceId=place.Id,Name=place.Name,Category=place.Category,
-                Latitude=place.Latitude,Longitude=place.Longitude},distance<=50,observation.Id);
+                Latitude=place.Latitude,Longitude=place.Longitude,OApp=observation.SourceApp},distance<=50,observation.Id);
         }
         catch(Exception ex){return new(){IsError=true,Message="Visit could not be recorded: "+ex.Message};}
     }

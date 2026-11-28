@@ -137,6 +137,7 @@ def pm_url(path: str):
 
 # Example bodies for routes whose request is not obvious; every other body is left as {}.
 EXAMPLE_BODIES = {
+    "/api/places/observe": {"id":"{{$guid}}","placeId":"{{placeId}}","latitude":0,"longitude":0,"observedUtc":"{{$isoTimestamp}}","sourceApp":"Our World"},
     "/api/data/query-cql/sql": {"query": "SELECT * FROM MongoDBOASIS WHERE Version >= @minimum LIMIT 5",
                                 "parameters": {"minimum": 1}},
     "/api/data/query-cql/ask": {"question": "Show five records from MongoDB", "execute": False},

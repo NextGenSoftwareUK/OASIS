@@ -141,3 +141,8 @@ Claimed unaccepted ONET popup scope before implementation; CI46132765901runs one
 ## 2026-11-28 — ONET native browser acceptance
 
 CI46133501110passed1/1new ONET journey on real immutable fbea WEB4/native Mongo and portalfe794415: password-issued Wizard, initial status/statistics, empty peer list, active ONODE/topology reads, one actual local start and stop with independent status reads, normal close. Artifact15259220405(4838bytes) inspected in RAM: all5Startup cleanup conditions true, package container absent. Workflow runtime/cache/TLS absence check passed; bootstrap private outputs removed immediately and copied entry DLL removed with owned API. No shared Atlas, public peer, source/deployed DNA change, local runtime/download/build/database/result or new owner action. Peer connect/disconnect/broadcast, HoloNET mode and hosted deployment remain separate. Native storage baseline123/163unchanged; whole OPORTAL and automatic HyperDrive gates open.
+
+
+## 2026-11-28 — generic map visit attribution source
+
+Core5668324b/Unity9d4d53c1source fixes reported app labels while preserving shared physical-place rewards, legacy requests and existing route proof. REST/body/Postman/generator/reference synchronized in owned source branch; native/browser and website guide synchronization remain pending. No shared Atlas, local runtime/download/env/build/database/results or new owner action.123/163native baseline unchanged.
