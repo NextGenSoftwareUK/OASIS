@@ -114,7 +114,7 @@ jobs:
             elif [[ "$PROVIDER" == Typesense ]]; then
               export TYPESENSE_API_KEY="$(openssl rand -hex 32)"
               echo "::add-mask::$TYPESENSE_API_KEY"
-              container="$(docker run --detach -p 127.0.0.1:18108:8108 typesense/typesense@sha256:610f2d34b1f93d00762869da2c67736775e5798d19a2c8b91b014b8a0cc1e110 --data-dir=/data --api-key="$TYPESENSE_API_KEY")"
+              container="$(docker run --detach --mount type=volume,destination=/data -p 127.0.0.1:18108:8108 typesense/typesense@sha256:610f2d34b1f93d00762869da2c67736775e5798d19a2c8b91b014b8a0cc1e110 --data-dir=/data --api-key="$TYPESENSE_API_KEY")"
               endpoint=http://127.0.0.1:18108
               readiness_path=/health
               readiness_headers=(-H "X-TYPESENSE-API-KEY: $TYPESENSE_API_KEY")
