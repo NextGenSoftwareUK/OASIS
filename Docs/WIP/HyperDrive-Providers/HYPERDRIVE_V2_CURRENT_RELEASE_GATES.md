@@ -1,6 +1,6 @@
 # Current HyperDrive/provider release gates
 
-Updated 2026-11-27 (Firebase/Turso current-source acceptance; other rows retain their scoped dates). Start with [current provider status](CURRENT_STATUS.md), the [provider matrix](PROVIDER_MATRIX.md) and [Actions for David](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).
+Updated 2026-11-28 (retained native receipt reconciliation; no accepted suite reruns). Start with [current provider status](CURRENT_STATUS.md), the [provider matrix](PROVIDER_MATRIX.md) and [Actions for David](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).
 
 ## Current phase
 
@@ -27,17 +27,20 @@ Provider implementation and native capability verification precede global routin
 | Base | Both public mainnet wallet modes and wrong-chain rejection passed through the shipping provider. The legacy decoder regression also passed. Signed Sepolia storage and legacy endpoint compatibility remain open. [CI evidence](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43100139322) |
 | Optimism | Both shipping wallet modes passed on the official mainnet RPC and rejected a wrong chain ID without activating storage. The signed OP Sepolia lifecycle and legacy endpoint verification remain open. [Wallet CI result](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43106297359) |
 | SQLite remaining interfaces | SQLite passed 52/52 and focused import, graph and encrypted-wallet checks. See the provider matrix for the exact test scope. |
-| Redis-compatible storage | Valkey9.0.4 native52/52 accepted. Existing KeyDB/Dragonfly CI45753785312 passed52/52 each and independently empty keyspaces; provider trees match current source. Garnet full native baseline remains separate. |
+| Redis-compatible storage | Valkey9.0.4 native52/52 accepted. Existing KeyDB/Dragonfly CI45753785312 passed52/52 each and independently empty keyspaces; provider trees match current source. Garnet2.2.5 native52/52 is accepted in CI46122538895 with zero skips, independent DBSIZE0 and exact owned cleanup. Hosted durability/restart/all-interface acceptance remains open. |
 | Firebase Realtime Database | Current Development `d91bf074fa16` passed official RTDB 4.11.2: 26 sync + 26 async checks, native graph/deletion and acknowledgement checks, with exact cleanup. Hosted rules and retained-data compatibility remain separate. [Current native run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/46099124837) |
 | Turso | Same Development source passed 26 sync + 26 async checks on an isolated pinned libSQL server, plus avatar rollback and wallet selectors; no skips, owned container/database/output removed. Hosted credentials and lifecycle remain separate. [Current native run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/46099193518) |
 | PocketBase current-source acceptance | Development6426cde360bd passed26sync+26async, native tombstone checks and owned cleanup. [Current run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/46103379382). Hosted rules remain separate. |
 | Composing-provider storage keys | Eclipse46101901966, Telos46101946563 and SEEDS46101275004 pass both native modes and key/update round trips. Original6c95573c reused and canonical EOSIO paths fixed; public-network/hosted acceptance remains separate. |
 | Miden delivery | CI46106768815 passed52/52 plus native SDK lifecycle on published shipping assets. Deterministic stores retain signing journals; owned worker/CI outputs cleaned. Hosted custody remains MIDEN-HOSTED1. |
 | Public ProviderSwitcher | Canonical registry/selection and activation-before-publication fixed in Core907cd4b. Shipping WEB4 build46109274477 and real SQLite/LocalFile switch regression46109531969 passed2/2, zero skips. Hosted/cross-capability/global gates remain separate. |
+| Search/vector baseline reconciliation | Elasticsearch/Qdrant46111639871and Typesense46114331452passed52/52 each on real pinned backends with independent empty stores. Meilisearch46117709175/Solr46117714885/Weaviate46118279343passed current-source52/52, zero skips and owned cleanup. OpenSearch45721795632is a source-matched retained52/52 receipt, not a rerun or current shared-graph certification. Hosted/full-interface gates remain open; see matrix/hash-bound receipts. |
 | Raw evidence | Writers redirected by `d70625e86`; unpublished ActivityPub proofs moved to TestResults. Linked legacy evidence remains; existing working-tree line-ending hashes are not Git-blob hashes |
 | Integration | ActivityPub published separately as `00235929a`; batch verified scoped changes into Development, preserving user/Core/submodule work |
 
 ## Remaining verification
+
+Storage/specialized project baseline123/163within238tracked provider projects (75non-storage). These are historical scoped native receipts, not123current hosted/all-interface certifications. Requalification/reconciliation does not add provider credit. Current source/deployment acceptance is recorded separately.
 
 - All relevant provider interfaces, hosted credentials/IAM/durability and federation/authenticated social actions need their own evidence.
 - Global V2 failover, load balancing and replication follow acceptance of the eligible providers.

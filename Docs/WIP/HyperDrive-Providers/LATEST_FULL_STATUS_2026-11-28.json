@@ -21,7 +21,8 @@
       "status": "success",
       "lastUpdated": "2026-11-28T11:14:43Z",
       "scope": "GitHub status metadata only; no hosted sign-in/functionality or current running revision certification"
-    }
+    },
+    "observationScope": "Shared branch observed before this documentation-only batch; exact native qualifications remain separately source-bound."
   },
   "providers": {
     "trackedProjects": {
@@ -116,8 +117,9 @@
     },
     {
       "item": "Populated visible/hidden hotspot and linked quest OPORTAL layers",
-      "run": 46141859638,
-      "status": "queued native journey; real shipping WEB5/Mongo, no public catalogue request; GeoNFT minting/device/renderer excluded"
+      "failedControlRun": 46141859638,
+      "run": 46142470160,
+      "status": "Corrected fixture backend selection; native journey running. No geo writes were reached in first run; all5cleanup flags true. No new screen acceptance yet."
     }
   ],
   "ownerActions": {
@@ -132,11 +134,11 @@
   "cleanup": {
     "localRuntimeDownloadEnvironmentBuildDatabaseOutputsCreated": false,
     "ownedTemporaryIndexesObserved": 0,
-    "lastObservedFreeGiB": 32.81,
+    "lastObservedFreeGiB": 31.9,
     "freeSpaceReclamationClaimed": false,
     "cloudOwnedContainersDatabasesVolumesBrowserCachesAndBootstrapOutputsRemoved": true,
     "compactEvidenceInspectedInMemory": true,
-    "scope": "Completed native runs only; queued/running46141859638 retains owned resources until its cleanup step."
+    "scope": "Completed native runs only, all acknowledged cleaned; running46142470160owns resources until its final cleanup."
   },
   "documents": {
     "status": "Docs/WIP/HyperDrive-Providers/CURRENT_STATUS.md",
@@ -154,5 +156,6 @@
       }
     }
   },
-  "completedPendingIntegration": []
+  "completedPendingIntegration": [],
+  "asOfUtc": "2026-11-28T12:00:21.062Z"
 }
