@@ -107,7 +107,7 @@ async function main(){
   }
   if(api5)ownedToken=await admitFree(account);
   if(selectedPopups.length&&popupGroup!=='account-recovery'){
-   assert.equal(!!api5,['web5-depth','web5-errors','web5-diff'].includes(popupGroup),'Explicit matching backend selection');if(!api5)ownedToken=await admitFree(account);
+   stage='explicit backend selection';assert.equal(!!api5,['web5-depth','web5-errors','web5-diff','map-geo'].includes(popupGroup),'Explicit matching backend selection');if(!api5)ownedToken=await admitFree(account);
    if(selectedPopups.includes('Messaging')||selectedPopups.includes('MessagingRead')||selectedPopups.includes('Chat')||selectedPopups.includes('DirectoryMessage')||selectedPopups.includes('Clan')||selectedPopups.includes('SocialGraph')){
     recipient=await createOwnedAvatar(api.href,readOwnedVerificationToken);recipientToken=await admitFree(recipient);
    }
