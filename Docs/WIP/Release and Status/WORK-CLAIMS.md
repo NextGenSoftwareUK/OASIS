@@ -173,3 +173,5 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | Canonical ProviderRegistry/ProviderSwitcher activation and acknowledged storage-selection implementation | HyperDrive v2 controls | local: gpt-hyperdrive | work/gpt-hyperdrive-release-gates | 2026-11-28 04:25 UTC | IN PROGRESS |
 
 | Restore reviewed CQL sidecar/sql/ask route inventory blocking HyperDrive shipping build | HyperDrive build gate | local: gpt-hyperdrive | work/gpt-hyperdrive-release-gates | 2026-11-28 04:52 UTC | IN PROGRESS |
+
+| Reconcile existing cloud-hyperdrive-A accepted CI evidence into matrix/registry (no reruns) | HyperDrive evidence | local: gpt-hyperdrive | work/gpt-provider-evidence-reconciliation | 2026-11-28 04:56 UTC | IN PROGRESS |
