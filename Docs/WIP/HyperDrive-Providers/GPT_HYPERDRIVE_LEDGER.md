@@ -166,3 +166,10 @@ Root fix restores earlier0bc4d64f shared Holon boot filter/demo-substitution rem
 
 
 2026-11-28: Claimed Map search JSON/validated identity repair; REST SDK body ignored before fix, gRPC/GraphQL actorGuid.Empty prevented search. SourceOnly; existing Wizard gates unchanged, Postman/generator paired, no new endpoint/tool delivery claim. Native SDK/REST+gRPC+GraphQL real-backend gate planned; no shared Atlas or local runtime/build/env/database.
+
+
+### 2026-11-28 13:38 UTC — corrected image and bounded transport verification
+
+First native check46148591025 failed before transport acceptance because the Core supported-operation registry omitted collection reads. Core602b80f6 explicitly admits the three canonical collection-read names; isolated fixture prices remain explicit. Corrected source3b2c711c image build46149539396 passed; immutable digest `sha256:75a3c4a0c97abf64b3cd6b09cb9e8624178da0a6b555ad5b1574fb43139d3420`. New check46150601176 verifies JavaScript SDK REST, actual gRPC SDK/proto and GraphQL on owned isolated backends; acceptance is pending, not3/3. No shipping DNA, deployed prices or shared Atlas operations changed.
+
+Cleanup receipts for failed checks46148591025 (artifact15263934478) and renderer diagnostic46145478623 (artifact15264225074) were read in memory: full-package container absent/dataWrites0 and all five combined-startup cleanup flags true. No local download, extraction, runtime or database was created. These receipts do not independently certify runner probe/cache directory removal.
