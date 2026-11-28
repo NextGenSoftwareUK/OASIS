@@ -125,4 +125,13 @@
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlSetReductionV1Compiler.cs" Link="Web4/CqlSetReductionV1Compiler.cs" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlSetReductionV1Endpoint.cs" Link="Web4/CqlSetReductionV1Endpoint.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlSetTreeV1Compiler.cs" Link="Web4/CqlSetTreeV1Compiler.cs" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlProjectedSetReductionV1Compiler.cs" Link="Web4/CqlProjectedSetReductionV1Compiler.cs" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlProjectedSetReductionV1Endpoint.cs" Link="Web4/CqlProjectedSetReductionV1Endpoint.cs" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlTextCompiler.cs" Link="Web4/CqlTextCompiler.cs" />
+    <PackageReference Include="Jint" Version="4.4.1" />
+    <EmbeddedResource Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/Text/cql-text.js" LogicalName="OASIS.Cql.Text.cql-text.js" />
+    <EmbeddedResource Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/Text/cql-ask.js" LogicalName="OASIS.Cql.Text.cql-ask.js" />
+  </ItemGroup>
 </Project>
