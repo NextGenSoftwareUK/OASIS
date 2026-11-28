@@ -246,3 +246,39 @@ Representative selected journey now26groups/37timings: direct ordinary entity-se
 
 
 2026-11-28 independent review caught missing SQLite right-operand EntitySource forwarding in ad4bb95b. Fixed the owning compiler call symmetrically; existing native fixture deliberately filters the right source from ax/bz to bz and expects ay,bz,ax,bz, so the omission would produce an extra ax and fail. No extra symmetric/mirrored test matrix or new fixture writes. Core3d8d54db unchanged; native qualification remains required before deployment.
+
+
+2026-11-28 source check found the new native fixture needs public runtime-column capture after entity stages; added SelectColumns and exact-source/physical-column WithSelectedPipeline through existing projection capture in Core. This supports the native dynamic-record boundary and the next backend transport work, without a new execution path. Previous candidate23d1 superseded for the missing capture API. No full parity credit before native CI; main144/168 extension4/13 unchanged.
+
+
+## 2026-11-28 backend JSON entity-stage selected operands (qualification pending)
+
+Existing set source DTO now optionally captures EntityStages after the original source window and before Columns/selected Stages. The nullable field is omitted from flat fingerprints. Nested envelopes cannot smuggle leaf stages; entity stages without explicit Columns are rejected. One shared backend validator/order binder handles both entity-set output and entity source stages. The same native FromEntityProjection and exact-source selected pipeline captures are used, not a second execution engine.
+
+Added one compiler/capture control and a real JWT owner/foreign/anonymous set HTTP journey using right-leaf entity stages; expected compiler18/native15/actual WEB4/cleanup. Existing HTTP journey now10groups/28timings/18settled operations, with no new fixture writes. Updated native-data Postman example and contract. Existing generic SDK/MCP JSON forwarding uses the same route; dedicated typed gRPC/GraphQL set operations remain a known gap. SQL text lowering for this input family and identity-set late-projection operands remain OPEN. Main144/168 extension4/13 unchanged; browser engines/shared Atlas/PIPER untouched.
+
+
+## 2026-11-28 native entity-input acceptance and backend SQL capture
+
+Native SDK source25886971/Corecf34fb1a accepted46140944273: compiler17/native15/actual WEB4/exact cleanup, all18artifact entries inspected, SHA256 b7773078a1a7a846149b3331a61a51c9d1b5323ff4cea00721e6dfee6d44e15d. Each selected journey26groups/37timings. Compact cold CI timings retained per provider, not a production benchmark: nested entity-selected set Mongo90ms, SQLite41ms, Neo2114ms. No rerun of accepted cohorts for timing.
+
+New backend SQL lowering preserves bounded plain entity sources and post-page entity filters before projection as explicit internal compiler frames, consumed only by selected-value set operands. Public compile rejects an unconsumed staged frame, never exposes an incomplete API request. Derived and chained WITH inputs retain aliases, selected stages and original source windows; no synthetic union/empty-source workaround or browser engine change. Server parser41/41 passed locally. Existing real HTTP entity-input owner/foreign/anonymous journey now uses actual server SQL, no new requests/writes; gate compiler18/native15/WEB4 required. JSON transport source5d20 in46141533128 remains separately pending. Identity-set late operands and standalone entity-stage projection transport remain OPEN; main144/168 extension4/13.
+
+
+### 2026-11-28 — entity-input HTTP transport qualified
+- Exact Root `5d20cf3eca3f2968ea9f339de255848a3c7a14da`, Core `cf34fb1ae9a6777e58320d11b8fb24e5dff98481`; native CI [46141533128](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/46141533128) passed 18 compiler controls and 15 native journeys across MongoDB, SQLite and Neo4j, plus actual WEB4 compilation and exact cleanup.
+- HTTP journey: 10 check groups / 28 timings per provider, including owner, foreign caller and anonymous entity-input transport. Full parent rows remain open; progress 144/168, extension 4/13.
+- SQL lowering remains backend-owned, candidate `5e07576b9ce2a499e83daf573f3b7d313359b070`, CI 46142342992 pending. No browser engine changes.
+- Artifact 15262821293 (17,835 bytes) inspected entirely in RAM: 18 entries, SHA256 `ee9cd4a22815bad81c0dec087c3b6894f5d95356ad20faa7b8e23c1c67d267f2`; archive released, compact receipt retained. Shared Atlas calls: 0; local builds/downloads/environments: 0.
+
+
+### 2026-11-28 — shipping SQL HTTP path qualification queued
+- The recursive native HTTP host can now opt into the shipping CqlTextMiddleware before usage admission. Existing typed-route checks remain; one owner/foreign/anonymous SQL-text trio posts directly to `/api/data/query-cql/sql`, with no client compilation for those requests.
+- Expected evidence: 12 HTTP check groups / 31 timing observations per provider, 20 independently settled native attempts (anonymous calls have no reservation). Response parsing/route headers are checked; same one owned fixture write and exact cleanup. No WEB6 external drafting call or browser engine change.
+- Main 144/168, extension 4/13 unchanged; identity-set late-selection operands remain open. Native acceptance pending exact CI; no deployment claim.
+
+
+### 2026-11-28 — backend SQL entity-input lowering accepted
+- Exact Root5e07576b9ce2a499e83daf573f3b7d313359b070 / Corecf34fb1ae9a6777e58320d11b8fb24e5dff98481; CI46142342992 SUCCESS:18 compiler controls,15 native journeys across MongoDB/SQLite/Neo4j, actual WEB4 build and exact owned cleanup. Server parser has41 local controls.
+- Native HTTP coverage11 groups/28 timings per provider uses shipping compiler+typed set action. The additional real `/sql` middleware/action check is separately pending46143154521 on5a8241a; review passed, expected12groups/31timings/20settlements. Do not confuse these scopes.
+- Artifact15262986896,17,861bytes/18entries independently verified in RAM, SHA256 d0f98aca28476ad93b978481125a63c6785f83199f5eb2b8d849629b30b7fa6b; no ZIP retained. Shared DB operations0. Main144/168, extension4/13 unchanged; identity-set late projection and standalone staged entity SQL remain open.

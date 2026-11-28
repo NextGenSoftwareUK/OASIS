@@ -1,0 +1,64 @@
+{
+  "run": 46142342992,
+  "artifact": 15262986896,
+  "sha256": "d0f98aca28476ad93b978481125a63c6785f83199f5eb2b8d849629b30b7fa6b",
+  "artifactEntries": 18,
+  "source": "5e07576b9ce2a499e83daf573f3b7d313359b070",
+  "core": "cf34fb1ae9a6777e58320d11b8fb24e5dff98481",
+  "compilerPassed": 18,
+  "serverSqlEntityInputsVerified": true,
+  "nativeEntityInputHttpVerified": true,
+  "nativeEntityStageSelectedOperandsVerified": true,
+  "serverSqlSelectedValueCountsVerified": true,
+  "serverSqlSelectedSetExtremaVerified": true,
+  "typedViewsFeedFurtherNativeSetsVerified": true,
+  "typedViewScalarAndElementTerminalsVerified": true,
+  "nativePassed": 15,
+  "serverSqlSelectedSetSumAverageVerified": true,
+  "nativeRecursiveSetHttpVerified": true,
+  "nativeSetPublicationCountsVerified": true,
+  "nativeRecursiveEntitySetProviders": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS",
+    "Neo4jOASIS"
+  ],
+  "nativeRecursiveSelectedSetProviders": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS",
+    "Neo4jOASIS"
+  ],
+  "typedFinalSetSelectionVerified": true,
+  "nativeSelectedSetSumAverageVerified": true,
+  "nativeNumericRepresentativeDomains": [
+    "Int32Sum",
+    "Int32DoubleAverage"
+  ],
+  "nativeSelectedSetCountVerified": true,
+  "nativeSelectedSetScalarExtremaVerified": true,
+  "nestedVisibleOutputBindingsVerified": true,
+  "fullSetParentsComplete": false,
+  "actualWeb4Compiled": true,
+  "ownedFixturesAbsent": true,
+  "sharedDatabaseCalls": 0,
+  "deployed": false,
+  "entityTimingsMilliseconds": {
+    "MongoDBOASIS": {
+      "ordinary-entity-selected-control": 37,
+      "entity-selections-feed-native-sets": 88,
+      "entity-selected-foreign": 30,
+      "entity-source-bound-before-empty-set": 7
+    },
+    "Neo4jOASIS": {
+      "ordinary-entity-selected-control": 556,
+      "entity-selections-feed-native-sets": 2081,
+      "entity-selected-foreign": 1454,
+      "entity-source-bound-before-empty-set": 1288
+    },
+    "SQLLiteDBOASIS": {
+      "ordinary-entity-selected-control": 20,
+      "entity-selections-feed-native-sets": 40,
+      "entity-selected-foreign": 9,
+      "entity-source-bound-before-empty-set": 8
+    }
+  }
+}

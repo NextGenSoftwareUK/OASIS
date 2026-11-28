@@ -1,0 +1,63 @@
+{
+  "run": 46141533128,
+  "artifact": 15262821293,
+  "sha256": "ee9cd4a22815bad81c0dec087c3b6894f5d95356ad20faa7b8e23c1c67d267f2",
+  "artifactEntries": 18,
+  "source": "5d20cf3eca3f2968ea9f339de255848a3c7a14da",
+  "core": "cf34fb1ae9a6777e58320d11b8fb24e5dff98481",
+  "compilerPassed": 18,
+  "nativeEntityInputHttpVerified": true,
+  "nativeEntityStageSelectedOperandsVerified": true,
+  "serverSqlSelectedValueCountsVerified": true,
+  "serverSqlSelectedSetExtremaVerified": true,
+  "typedViewsFeedFurtherNativeSetsVerified": true,
+  "typedViewScalarAndElementTerminalsVerified": true,
+  "nativePassed": 15,
+  "serverSqlSelectedSetSumAverageVerified": true,
+  "nativeRecursiveSetHttpVerified": true,
+  "nativeSetPublicationCountsVerified": true,
+  "nativeRecursiveEntitySetProviders": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS",
+    "Neo4jOASIS"
+  ],
+  "nativeRecursiveSelectedSetProviders": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS",
+    "Neo4jOASIS"
+  ],
+  "typedFinalSetSelectionVerified": true,
+  "nativeSelectedSetSumAverageVerified": true,
+  "nativeNumericRepresentativeDomains": [
+    "Int32Sum",
+    "Int32DoubleAverage"
+  ],
+  "nativeSelectedSetCountVerified": true,
+  "nativeSelectedSetScalarExtremaVerified": true,
+  "nestedVisibleOutputBindingsVerified": true,
+  "fullSetParentsComplete": false,
+  "actualWeb4Compiled": true,
+  "ownedFixturesAbsent": true,
+  "sharedDatabaseCalls": 0,
+  "deployed": false,
+  "entityTimingsMilliseconds": {
+    "MongoDBOASIS": {
+      "ordinary-entity-selected-control": 38,
+      "entity-selections-feed-native-sets": 91,
+      "entity-selected-foreign": 33,
+      "entity-source-bound-before-empty-set": 8
+    },
+    "Neo4jOASIS": {
+      "ordinary-entity-selected-control": 551,
+      "entity-selections-feed-native-sets": 2119,
+      "entity-selected-foreign": 1358,
+      "entity-source-bound-before-empty-set": 1272
+    },
+    "SQLLiteDBOASIS": {
+      "ordinary-entity-selected-control": 23,
+      "entity-selections-feed-native-sets": 43,
+      "entity-selected-foreign": 9,
+      "entity-source-bound-before-empty-set": 9
+    }
+  }
+}
