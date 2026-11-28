@@ -49,9 +49,26 @@ public static class DelegatedStorageIdentityConformance
         }
         finally
         {
-            var deletedHolon = sync ? provider.DeleteHolon(holon.Id) : await provider.DeleteHolonAsync(holon.Id);
-            var deletedAvatar = sync ? provider.DeleteAvatar(avatar.Id, softDelete: false) : await provider.DeleteAvatarAsync(avatar.Id, softDelete: false);
-            Require(!deletedHolon.IsError && !deletedAvatar.IsError, "Delegated-key fixture cleanup failed: " + deletedHolon.Message + "; " + deletedAvatar.Message);
+            // A prior assertion may fail before the next record is created. Inspect
+            // each exact owned ID so cleanup does not mask that original failure.
+            var remainingHolon = sync ? provider.LoadHolon(holon.Id, loadChildren: false) : await provider.LoadHolonAsync(holon.Id, loadChildren: false);
+            if (!remainingHolon.IsError && remainingHolon.Result != null)
+            {
+                var deleted = sync ? provider.DeleteHolon(holon.Id) : await provider.DeleteHolonAsync(holon.Id);
+                Require(!deleted.IsError, "Delegated holon cleanup failed: " + deleted.Message);
+            }
+            else
+                Require(remainingHolon.ErrorCode == NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,
+                    "Could not establish owned holon absence: " + remainingHolon.Message);
+            var remainingAvatar = sync ? provider.LoadAvatar(avatar.Id) : await provider.LoadAvatarAsync(avatar.Id);
+            if (!remainingAvatar.IsError && remainingAvatar.Result != null)
+            {
+                var deleted = sync ? provider.DeleteAvatar(avatar.Id, softDelete: false) : await provider.DeleteAvatarAsync(avatar.Id, softDelete: false);
+                Require(!deleted.IsError, "Delegated avatar cleanup failed: " + deleted.Message);
+            }
+            else
+                Require(remainingAvatar.ErrorCode == NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,
+                    "Could not establish owned avatar absence: " + remainingAvatar.Message);
         }
     }
 }
