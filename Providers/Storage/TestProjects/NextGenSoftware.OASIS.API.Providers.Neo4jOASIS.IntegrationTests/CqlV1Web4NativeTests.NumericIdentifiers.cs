@@ -40,7 +40,9 @@ public sealed partial class CqlV1Web4NativeTests
             </class></hibernate-mapping>
             """;
         xml=xml.Replace("$NAME",sequence);
-        var builder=new CosmicPocoModelBuilder<XmlNumericStock>(contract);var imported=builder.ImportNHibernateXml(xml,"NumericStock");
+        var builder=new CosmicPocoModelBuilder<XmlNumericStock>(contract);
+        Assert.IsTrue(builder.ImportNHibernateXml(xml.Replace(sequence,"<unexpected/>"),"NumericStock").IsError);
+        var imported=builder.ImportNHibernateXml(xml,"NumericStock");
         Assert.IsFalse(imported.IsError,imported.Message+imported.Exception);var model=builder.Build();Assert.IsFalse(model.IsError,model.Message+model.Exception);
         Assert.AreEqual(sequence,model.Result.IdentifierGeneration.SequenceName);Assert.AreEqual(1,model.Result.IdentifierGeneration.BlockSize);
         using var first=CosmicPocoContext<XmlNumericStock>.Create(manager,adapter,access,model.Result).Result;
