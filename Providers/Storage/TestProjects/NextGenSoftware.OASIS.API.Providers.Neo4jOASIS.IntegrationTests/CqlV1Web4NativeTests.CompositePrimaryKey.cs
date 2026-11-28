@@ -68,9 +68,9 @@ public sealed partial class CqlV1Web4NativeTests
         var absent=await Timed("verify-atomic-absence",()=>verifier.FindByPrimaryKeyAsync(new object[]{"fresh","new",1m}));
         Assert.IsFalse(absent.IsError,absent.Message+absent.Exception);Assert.IsNull(absent.Result);
         using var physical=CosmicSession.Create(manager,adapter,access).Result;
-        var failedIds=owned.Skip(3).Take(2).ToArray();
+        var failedFreshId=owned[3];
         var physicalAbsence=await Timed("verify-atomic-row-absence",()=>physical.Linq<NextGenSoftware.OASIS.API.Core.Holons.Holon>().Result
-            .Where(row=>row.Id==failedIds[0]).ToCosmicListAsync());
+            .Where(row=>row.Id==failedFreshId).ToCosmicListAsync());
         Assert.IsFalse(physicalAbsence.IsError,physicalAbsence.Message+physicalAbsence.Exception);Assert.AreEqual(0,physicalAbsence.Result.Count);
         found.Result.Title="updated";found.Result.Stock=8;
         var changed=await Timed("update-same-primary",()=>reader.SaveChangesAsync(new CosmicWriteOptions(Guid.NewGuid())));
