@@ -148,6 +148,8 @@ def main():
                 if popup_group == 'web5-depth':
                     admission['routes'].append({'method':'POST','path':'/api/oapps','policy':dict(write_policy)})
                 if popup_group == 'web5-diff':
+                    admission['storageTariffs'] += [{'provider':'MongoDBOASIS','operation':operation,'costUsd':0,'catalogueVersion':catalogue}
+                        for operation in ('LoadHolonsByMetaData','LoadHolonsByMetaDataPairs')]
                     import hashlib
                     digest=hashlib.sha256((marker+'_diff').encode()).hexdigest()[:32]
                     diff_id='-'.join((digest[:8],digest[8:12],digest[12:16],digest[16:20],digest[20:]))
