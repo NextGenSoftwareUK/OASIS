@@ -1,0 +1,18 @@
+{
+  "provider": "BlueSkyOASIS",
+  "suite": "core-storage-v2",
+  "mode": "native",
+  "run": 45535697095,
+  "url": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/45535697095",
+  "job": "storage (BlueSky)",
+  "source": "a4bbb0cfc30f22321b99eca99a94404e30cb3265",
+  "providerTree": "511323c12a9bb5445d81f52db2d3d32d0484ad99",
+  "currentParent": "bfaf7957092735dfe31d83f5284b46ad738f5b5d",
+  "currentProviderTree": "511323c12a9bb5445d81f52db2d3d32d0484ad99",
+  "sync": 26,
+  "async": 26,
+  "conclusion": "success",
+  "evidence": "GitHub run/job success and source workflow enforces Succeeded, FixtureCleanupComplete and26checks in both modes; compact receipt, not raw case report.",
+  "cleanup": "Existing CI trap stops owned processes/containers and removes its fixture. This reconciliation creates no runtime, backend or downloaded report.",
+  "scope": "Provider directory unchanged from accepted source. Shared dependencies have evolved; historical accepted native baseline, not a new current-graph or hosted/full-interface certification."
+}

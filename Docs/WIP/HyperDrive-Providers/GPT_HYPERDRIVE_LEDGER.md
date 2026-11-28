@@ -41,3 +41,7 @@ Core907cd4b preserves COSMIC5e8f22d and replaces duplicate registry/selection st
 ## 2026-11-28 — canonical switch accepted, scoped batch ready
 
 Shipping build46109274477 passed3manifest gates and WEB4 compilation. Native46109531969 on5366da3 passed2/2, zero skips, with real SQLite/LocalFile and asserted owned cleanup. Core907cd4b preserves COSMIC5e8f22d; parent manifest/gitlink paired. No local runtime/build/test artifacts or Atlas operations. Docs-only master synchronization excludes executable CSV inventories until source release. Global/hosted v2 acceptance remains open.
+
+## 2026-11-28 — accepted CI evidence reconciliation
+
+Reconciled17/17existing native receipts; provider-directory trees match Developmentbfaf7957. Corrected14stale matrix rows and bound17compact receipts in registry. No reruns/downloads/environments/database/processes; Git objects and compact reports only. Matrix inventory tally113/178native52-check rows; approximate115/234programme carry-forward is not increased by17. Hosted/full-interface/shared-dependency graph gates remain distinct.

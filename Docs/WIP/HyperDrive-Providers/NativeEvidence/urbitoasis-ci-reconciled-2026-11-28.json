@@ -1,0 +1,18 @@
+{
+  "provider": "UrbitOASIS",
+  "suite": "core-storage-v2",
+  "mode": "native",
+  "run": 45704685480,
+  "url": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/45704685480",
+  "job": "storage (Urbit)",
+  "source": "df060e83fa0dba491d702a9e53ff71b5fcd843e8",
+  "providerTree": "55c2480272c82f49742ce96270e40a845e150053",
+  "currentParent": "bfaf7957092735dfe31d83f5284b46ad738f5b5d",
+  "currentProviderTree": "55c2480272c82f49742ce96270e40a845e150053",
+  "sync": 26,
+  "async": 26,
+  "conclusion": "success",
+  "evidence": "GitHub run/job success and source workflow enforces Succeeded, FixtureCleanupComplete and26checks in both modes; compact receipt, not raw case report.",
+  "cleanup": "Existing CI trap stops owned processes/containers and removes its fixture. This reconciliation creates no runtime, backend or downloaded report.",
+  "scope": "Provider directory unchanged from accepted source. Shared dependencies have evolved; historical accepted native baseline, not a new current-graph or hosted/full-interface certification."
+}

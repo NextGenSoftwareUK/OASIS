@@ -1,0 +1,18 @@
+{
+  "provider": "GUNOASIS",
+  "suite": "core-storage-v2",
+  "mode": "native",
+  "run": 45520161955,
+  "url": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/45520161955",
+  "job": "storage (GUN)",
+  "source": "0a43477d177595dd54b4de96f77f5ffdf062e070",
+  "providerTree": "6352d3486fa35694e2c5e2ed4a441fadea085c10",
+  "currentParent": "bfaf7957092735dfe31d83f5284b46ad738f5b5d",
+  "currentProviderTree": "6352d3486fa35694e2c5e2ed4a441fadea085c10",
+  "sync": 26,
+  "async": 26,
+  "conclusion": "success",
+  "evidence": "GitHub run/job success and source workflow enforces Succeeded, FixtureCleanupComplete and26checks in both modes; compact receipt, not raw case report.",
+  "cleanup": "Existing CI trap stops owned processes/containers and removes its fixture. This reconciliation creates no runtime, backend or downloaded report.",
+  "scope": "Provider directory unchanged from accepted source. Shared dependencies have evolved; historical accepted native baseline, not a new current-graph or hosted/full-interface certification."
+}

@@ -23,6 +23,8 @@ OPORTAL: dev/checkout CI46102330540 passed203/203executed browser checks per tar
 
 Canonical provider controls: shipping WEB4 build46109274477 and native SQLite/LocalFile control regression46109531969 passed2/2, zero skips. Facades use the canonical registry/selection engine; activation precedes publication and healthy borrowed providers remain active. This closes the scoped public storage-switch defect, not all global v2 gates.
 
+Existing cloud-native evidence reconciled17/17 without reruns: all17provider trees match Developmentbfaf7957;14matrix rows were stale,3already recorded. Matrix now records113/178native52-check baseline rows (inventory tally; whole-programme CI consolidation remains open). Product inventory234, non-storage56. See ACCEPTED_CI_RECONCILIATION_2026-11-28.md.
+
 ## Progress (local HyperDrive programme, updated 2026-11-25 03:00 UTC)
 
 - Done: 91 storage providers pass the native core-storage-v2 suite on their real backend (today: Cardano, Starknet,
