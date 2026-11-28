@@ -42,6 +42,7 @@ Core907cd4b preserves COSMIC5e8f22d and replaces duplicate registry/selection st
 
 Shipping build46109274477 passed3manifest gates and WEB4 compilation. Native46109531969 on5366da3 passed2/2, zero skips, with real SQLite/LocalFile and asserted owned cleanup. Core907cd4b preserves COSMIC5e8f22d; parent manifest/gitlink paired. No local runtime/build/test artifacts or Atlas operations. Docs-only master synchronization excludes executable CSV inventories until source release. Global/hosted v2 acceptance remains open.
 
+<<<<<<< 89ab044cf256bd102dbd69681dc68e98bb3290a0
 ## 2026-11-28 — accepted CI evidence reconciliation
 
 Reconciled17/17existing native receipts; provider-directory trees match Developmentbfaf7957. Corrected14stale matrix rows and bound17compact receipts in registry. No reruns/downloads/environments/database/processes; Git objects and compact reports only. Matrix inventory tally113/163native52-check rows; approximate115/234programme carry-forward is not increased by17. Hosted/full-interface/shared-dependency graph gates remain distinct.
@@ -51,3 +52,10 @@ Reconciled17/17existing native receipts; provider-directory trees match Developm
 - Recovered already-green KeyDB/Dragonfly CI45753785312,52/52 each and independent DBSIZE0. Credited original owner claim DONE6b5464451fe; no backend rerun. Reconciliation19/19; matrix115/163native-baseline rows.
 
 - Updated current root guides/README and2oasisweb4.com text nodes to238tracked provider projects; Provider-Summary now163storage/75non-storage with explicit legacy/acceptance limits. Historical dated checkpoints retained. React review: text-only changes; no hooks, fetches, event handlers, imports, bundle, layout or accessibility behavior changed. No build/install required. Separate live-site repositories are being inspected before any scoped count correction.
+=======
+## 2026-11-28 — popular search native CI gap
+
+Existing Elasticsearch/Qdrant26-check native adapters require explicit disposable GitHub fixtures, but no workflow sets their admission markers/ports/modes. Reused those tests and pinned official backend9.5.5/1.16.3manifest digests obtained from registries without local downloads. New selective workflow builds once under the lease and runs both modes with fresh isolated containers,26-check/zero-skip/native-empty guards and EXIT cleanup. Current source acceptance pending; no Atlas/backend secrets or local environment/output.
+
+- GitHub does not register a newly added workflow for manual dispatch until it is on the default branch. The existing registered popular-provider workflow now calls the new isolated workflow only when search_provider is explicitly selected; its accepted matrix is skipped for this selection. No product code promoted to master and no old suites repeated.
+>>>>>>> 5f03746c7ac9c6208f33678b387703aa6b62a2cb
