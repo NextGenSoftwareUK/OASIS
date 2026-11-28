@@ -9,3 +9,5 @@ This extends representative functional breadth, not all80 authenticated navigati
 CI46116653223 stopped at the Python scenario declaration before any native Startup fixture; no popup ran. Added the same selection to that boundary. Retry remains scoped to the two new journeys.
 
 Retry46116846089 reached the real browser, then the result consumer rejected the two new outcome names. Cleanup receipts confirm isolated resources removed. Added their names to that strict evidence schema; no shipping API or popup code changed. The run remains failed, not counted as popup acceptance.
+
+CI46117258323 reached both real popup reads: Social Graph rendered the owned contact; Activity Feed showed the empty native history. Handoff return and refresh/close journey failed; no pass claimed. The current router closes X to home, so the new contact round trip now uses browser Back. Added sanitized assertion locations/response-shape diagnostics to resolve the remaining failure without changing shipping behavior.

@@ -226,7 +226,7 @@ async function main(){
     if(!selectedPopups.includes(name))return;
     let passed=false,closePassed=true,observedStage=name;
     try{await work();passed=true;observedStage=stage;}
-    catch(error){observedStage=stage;if(name==='Clan'){
+    catch(error){observedStage=stage;const location=String(error.stack||'').match(/portal-startup-browser\.cjs:(\d+):/);console.error('PORTAL_STARTUP_POPUP_FAILURE:'+JSON.stringify({name,stage,errorType:['AssertionError','TimeoutError','TypeError','Error'].includes(error.name)?error.name:'Error',sourceLine:location?Number(location[1]):0}));if(name==='Clan'){
      const state=await page.evaluate(()=>({status:document.getElementById('clan-status')?.textContent||'',nameLength:document.getElementById('clan-create-name')?.value.length||0,buttonDisabled:document.getElementById('clan-create-btn')?.disabled===true,activeTab:document.querySelector('#clan-modal-block .map-tab.is-active')?.dataset.tab||'unknown',
       formOwner:document.getElementById('clan-create-btn')?.form?.id||'none',
       formValid:document.getElementById('clan-create-form')?.matches(':valid')===true,
@@ -241,7 +241,7 @@ async function main(){
      if(await page.locator(closeSelector).isVisible()){
       await page.locator(closeSelector).click();await page.waitForURL(url=>url.pathname==='/');
      }
-    }catch{closePassed=false;passed=false;if(observedStage===name)observedStage=name+' close';}
+    }catch(error){console.error('PORTAL_STARTUP_POPUP_CLOSE_FAILURE:'+JSON.stringify({name,errorType:error.name,path:new URL(page.url()).pathname}));closePassed=false;passed=false;if(observedStage===name)observedStage=name+' close';}
     outcomes.push({name,passed,stage:observedStage,closePassed});
    }
    await checkPopup('SocialGraph','#social-graph-modal-close-btn',async()=>{
@@ -256,7 +256,7 @@ async function main(){
     await page.locator('#messaging-tab-send').waitFor({state:'visible'});
     assert.equal(await page.locator('#msg-to-avatar').inputValue(),recipient.avatar.id.toLowerCase());
     assert.equal(sentMessage,0,'Contact navigation must never send a message');
-    await page.locator('#messaging-modal-close-btn').click();
+    await page.goBack();
     await page.locator('#social-graph-modal-block.is-selected').waitFor({state:'visible'});
    });
    await checkPopup('ActivityFeed','#activity-feed-modal-close-btn',async()=>{
@@ -269,6 +269,7 @@ async function main(){
     const refreshed=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/karma/activity');
     await page.locator('#activity-feed-refresh-btn').click();
     const raw=await(await refreshed).json(),result=typeof raw.isError==='boolean'?raw:raw.result;
+    console.log('PORTAL_STARTUP_ACTIVITY_SHAPE:'+JSON.stringify({topKeys:Object.keys(raw),isErrorType:typeof raw.isError,resultArray:Array.isArray(raw.result),innerKeys:raw.result&&!Array.isArray(raw.result)&&typeof raw.result==='object'?Object.keys(raw.result):[],innerErrorType:typeof raw.result?.isError}));
     assert.equal(result.isError,false);assert.deepEqual(result.result,[]);
     await page.waitForFunction(()=>document.getElementById('activity-feed-status').textContent==='No activity yet.');
    });
