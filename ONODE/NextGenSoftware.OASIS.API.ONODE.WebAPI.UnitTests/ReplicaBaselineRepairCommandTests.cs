@@ -20,6 +20,7 @@ public sealed partial class ReplicaBaselineRepairCommandTests
         public NativeFact(){if(Environment.GetEnvironmentVariable("COSMIC_REPLICA_REPAIR_NATIVE")!="owned-local-27029")Skip="Explicit reusable native repair profile required.";}
     }
 
+    [Trait("Category", "LiveService")]
     [NativeFact]
     public async Task ReviewedCommandRepairsActualMongoToSqliteAndPreservesNormalNextDelivery()
     {

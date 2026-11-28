@@ -19,25 +19,35 @@ using IoFile=System.IO.File;
 
 public sealed partial class ReplicaBaselineRepairCommandTests
 {
+    [Trait("Category", "LiveService")]
     [NativeFact]
     public Task ManagerContinuationMongoToSqlite()=>RemainingManagerContinuation(ProviderType.MongoDBOASIS,ProviderType.SQLLiteDBOASIS);
+    [Trait("Category", "LiveService")]
     [NativeFact]
     public Task ManagerContinuationSqliteToMongo()=>RemainingManagerContinuation(ProviderType.SQLLiteDBOASIS,ProviderType.MongoDBOASIS);
+    [Trait("Category", "LiveService")]
     [NativeFact]
     public Task ManagerContinuationNeoToSqlite()=>RemainingManagerContinuation(ProviderType.Neo4jOASIS,ProviderType.SQLLiteDBOASIS);
+    [Trait("Category", "LiveService")]
     [NativeFact]
     public Task ManagerContinuationNeoToMongo()=>RemainingManagerContinuation(ProviderType.Neo4jOASIS,ProviderType.MongoDBOASIS);
 
+    [Trait("Category", "LiveService")]
     [NativeFact]
     public Task ManagerInFlightMongoToSqlite()=>RemainingManagerContinuation(ProviderType.MongoDBOASIS,ProviderType.SQLLiteDBOASIS,true);
+    [Trait("Category", "LiveService")]
     [NativeFact]
     public Task ManagerInFlightSqliteToMongo()=>RemainingManagerContinuation(ProviderType.SQLLiteDBOASIS,ProviderType.MongoDBOASIS,true);
+    [Trait("Category", "LiveService")]
     [NativeFact]
     public Task ManagerInFlightNeoToSqlite()=>RemainingManagerContinuation(ProviderType.Neo4jOASIS,ProviderType.SQLLiteDBOASIS,true);
+    [Trait("Category", "LiveService")]
     [NativeFact]
     public Task ManagerInFlightNeoToMongo()=>RemainingManagerContinuation(ProviderType.Neo4jOASIS,ProviderType.MongoDBOASIS,true);
+    [Trait("Category", "LiveService")]
     [NativeFact]
     public Task ManagerInFlightMongoToNeo()=>RemainingManagerContinuation(ProviderType.MongoDBOASIS,ProviderType.Neo4jOASIS,true);
+    [Trait("Category", "LiveService")]
     [NativeFact]
     public Task ManagerInFlightSqliteToNeo()=>RemainingManagerContinuation(ProviderType.SQLLiteDBOASIS,ProviderType.Neo4jOASIS,true);
 

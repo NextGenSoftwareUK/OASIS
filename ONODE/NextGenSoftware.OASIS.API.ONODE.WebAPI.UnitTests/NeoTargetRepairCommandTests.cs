@@ -18,15 +18,19 @@ using IoFile=System.IO.File;
 
 public sealed partial class ReplicaBaselineRepairCommandTests
 {
+    [Trait("Category", "LiveService")]
     [NativeFact]
     public Task ReviewedCommandRepairsActualSqliteToNeoAndPreservesNormalNextDelivery()=>RunReviewedNeoTarget(false);
 
+    [Trait("Category", "LiveService")]
     [NativeFact]
     public Task ReviewedCommandRepairsActualMongoToNeoAndPreservesNormalNextDelivery()=>RunReviewedNeoTarget(true);
 
+    [Trait("Category", "LiveService")]
     [NativeFact]
     public Task ManagerSaveMaintainsRecoveredMongoToNeoRoute()=>RunReviewedNeoTarget(true,true);
 
+    [Trait("Category", "LiveService")]
     [NativeFact]
     public Task ManagerSaveMaintainsRecoveredSqliteToNeoRoute()=>RunReviewedNeoTarget(false,true);
 

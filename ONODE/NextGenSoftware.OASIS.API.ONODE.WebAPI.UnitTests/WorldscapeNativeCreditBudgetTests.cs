@@ -4,6 +4,7 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Places;
 
 public sealed class WorldscapeNativeCreditBudgetTests
 {
+    [Trait("Category", "LiveService")]
     [PlacesNativeMongoFact]
     public async Task ConcurrentNativeReservationsNeverExceedTheFreeAppLimit()
     {

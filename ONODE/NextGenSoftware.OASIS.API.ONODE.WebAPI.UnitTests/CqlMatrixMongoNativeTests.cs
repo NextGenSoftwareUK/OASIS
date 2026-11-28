@@ -60,6 +60,7 @@ public sealed class CqlMatrixMongoNativeTests
         public HolonManager CreateManager(IOASISProvider provider) => new(null, dna, registry);
     }
 
+    [Trait("Category", "LiveService")]
     [MatrixMongoNativeFact]
     public async Task NativeMatrixMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
     {

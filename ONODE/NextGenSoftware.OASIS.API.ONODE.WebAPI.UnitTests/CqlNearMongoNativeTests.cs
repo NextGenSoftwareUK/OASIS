@@ -60,9 +60,11 @@ public sealed class CqlNearMongoNativeTests
         public HolonManager CreateManager(IOASISProvider provider) => new(null, dna, registry);
     }
 
+    [Trait("Category", "LiveService")]
     [NearMongoNativeFact]
     public Task NativeNearMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp() => RunFixtureAsync(false);
 
+    [Trait("Category", "LiveService")]
     [NearMongoNativeFact]
     public Task ContinueOriginalAcknowledgedNearSnapshotsWithoutResavingOverHttp() => RunFixtureAsync(true);
 

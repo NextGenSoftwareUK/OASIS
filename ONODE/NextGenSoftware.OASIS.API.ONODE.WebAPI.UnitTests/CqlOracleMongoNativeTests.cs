@@ -61,6 +61,7 @@ public sealed class CqlOracleMongoNativeTests
         public HolonManager CreateManager(IOASISProvider provider) => new((IOASISStorageProvider)provider, dna, registry);
     }
 
+    [Trait("Category", "LiveService")]
     [OracleMongoNativeFact]
     public async Task NativeOracleCatalogueAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
     {

@@ -87,6 +87,7 @@ public sealed class UsageVisibilityMongoTests : IDisposable
         AppId = appId, AppPlanId = AppAccountRules.DefaultPerUserPlanId, PooledAppId = appId, PooledAppPlanId = "silver", AuthorizedAtUtc = DateTime.UtcNow, ExpiresAtUtc = DateTime.UtcNow.AddMinutes(5)
     };
 
+    [Trait("Category", "LiveService")]
     [MongoFact]
     public async Task DailySeriesReadsUserBucketsAndSumsPoolShards()
     {
@@ -111,6 +112,7 @@ public sealed class UsageVisibilityMongoTests : IDisposable
         finally { await Drop(client, scope); }
     }
 
+    [Trait("Category", "LiveService")]
     [MongoFact]
     public async Task OwnersAreStoredCheckedAndAudited()
     {
@@ -130,6 +132,7 @@ public sealed class UsageVisibilityMongoTests : IDisposable
         finally { await Drop(client, scope); }
     }
 
+    [Trait("Category", "LiveService")]
     [MongoFact]
     public async Task NotificationSettingsAreSavedAuditedAndTheNotifiedMarkerFiresOnce()
     {
@@ -151,6 +154,7 @@ public sealed class UsageVisibilityMongoTests : IDisposable
         finally { await Drop(client, scope); }
     }
 
+    [Trait("Category", "LiveService")]
     [MongoFact]
     public async Task AppOverridesArePersisted()
     {
@@ -167,6 +171,7 @@ public sealed class UsageVisibilityMongoTests : IDisposable
 
     private static AppUsageSettingsPatch Patch(string json) => new(JsonDocument.Parse(json).RootElement);
 
+    [Trait("Category", "LiveService")]
     [MongoFact]
     public async Task OnlyOwnersOrAdministratorsMayReadOrChangeAnApp()
     {
@@ -208,6 +213,7 @@ public sealed class UsageVisibilityMongoTests : IDisposable
                 CostSource = "isolated-test-measurement", PricingCatalogueVersion = "fixture-v1" } } }, default);
     }
 
+    [Trait("Category", "LiveService")]
     [MongoFact]
     public async Task AppOverageIsRefusedWithoutConsentAndAdmittedUpToTheCapWithIt()
     {
@@ -229,6 +235,7 @@ public sealed class UsageVisibilityMongoTests : IDisposable
         finally { await Drop(client, scope); }
     }
 
+    [Trait("Category", "LiveService")]
     [MongoFact]
     public async Task AFailedOwnerPaymentStopsAdmittingOverage()
     {
@@ -249,6 +256,7 @@ public sealed class UsageVisibilityMongoTests : IDisposable
 
     private static string ThisMonth() => DateTime.UtcNow.ToString("yyyy-MM");
 
+    [Trait("Category", "LiveService")]
     [MongoFact]
     public async Task OwnerPreparedStatementBillsTheSettledOverageOnce()
     {
@@ -271,6 +279,7 @@ public sealed class UsageVisibilityMongoTests : IDisposable
         finally { await Drop(client, scope); }
     }
 
+    [Trait("Category", "LiveService")]
     [MongoFact]
     public async Task NoStatementWithinTheAllowanceOrWithoutConsent()
     {
@@ -286,6 +295,7 @@ public sealed class UsageVisibilityMongoTests : IDisposable
         finally { await Drop(client, scope); }
     }
 
+    [Trait("Category", "LiveService")]
     [StripeMongoFact]
     public async Task AppStatementIsCollectedAsOnePaidStripeTestInvoice()
     {

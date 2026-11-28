@@ -60,6 +60,7 @@ public sealed class CqlScrollMongoNativeTests
         public HolonManager CreateManager(IOASISProvider provider) => new(null, dna, registry);
     }
 
+    [Trait("Category", "LiveService")]
     [ScrollMongoNativeFact]
     public async Task NativeScrollMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
     {

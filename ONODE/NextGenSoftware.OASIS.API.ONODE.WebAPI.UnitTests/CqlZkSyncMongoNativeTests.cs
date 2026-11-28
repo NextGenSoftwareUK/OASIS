@@ -60,6 +60,7 @@ public sealed class CqlZkSyncMongoNativeTests
         public HolonManager CreateManager(IOASISProvider provider) => new(null, dna, registry);
     }
 
+    [Trait("Category", "LiveService")]
     [ZkSyncMongoNativeFact]
     public async Task NativeZkSyncMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
     {

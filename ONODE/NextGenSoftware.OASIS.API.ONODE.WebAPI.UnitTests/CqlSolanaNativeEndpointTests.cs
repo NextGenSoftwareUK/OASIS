@@ -36,6 +36,7 @@ public class CqlSolanaNativeEndpointTests
         public HolonManager CreateManager(IOASISProvider provider) => CqlV1Providers.CreateQueryManager(dna, registry);
     }
 
+    [Trait("Category", "LiveService")]
     [SolanaPublicEndpointFact]
     public async Task ShippingEndpointDispatchesThreeTwoPublicAccountsThroughTheSolanaProvider()
     {

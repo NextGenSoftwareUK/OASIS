@@ -60,6 +60,7 @@ public sealed class CqlBerachainMongoNativeTests
         public HolonManager CreateManager(IOASISProvider provider) => new(null, dna, registry);
     }
 
+    [Trait("Category", "LiveService")]
     [BerachainMongoNativeFact]
     public async Task NativeBerachainMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
     {

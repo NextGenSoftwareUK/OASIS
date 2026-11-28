@@ -60,6 +60,7 @@ public sealed class CqlRadixMongoNativeTests
         public HolonManager CreateManager(IOASISProvider provider) => new(null, dna, registry);
     }
 
+    [Trait("Category", "LiveService")]
     [RadixMongoNativeFact]
     public async Task NativeRadixMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
     {

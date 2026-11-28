@@ -60,6 +60,7 @@ public sealed class CqlBitcoinMongoNativeTests
         public HolonManager CreateManager(IOASISProvider provider) => new(null, dna, registry);
     }
 
+    [Trait("Category", "LiveService")]
     [BitcoinMongoNativeFact]
     public async Task NativeBitcoinMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
     {

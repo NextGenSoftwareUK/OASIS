@@ -60,6 +60,7 @@ public sealed class CqlAzureBlobMongoNativeTests
         public HolonManager CreateManager(IOASISProvider provider) => new(null, dna, registry);
     }
 
+    [Trait("Category", "LiveService")]
     [AzureBlobMongoNativeFact]
     public async Task NativeAzureBlobMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
     {

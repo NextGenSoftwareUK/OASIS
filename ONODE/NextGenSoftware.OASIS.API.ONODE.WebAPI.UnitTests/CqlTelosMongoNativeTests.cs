@@ -60,6 +60,7 @@ public sealed class CqlTelosMongoNativeTests
         public HolonManager CreateManager(IOASISProvider provider) => new(null, dna, registry);
     }
 
+    [Trait("Category", "LiveService")]
     [TelosMongoNativeFact]
     public async Task NativeTelosMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
     {

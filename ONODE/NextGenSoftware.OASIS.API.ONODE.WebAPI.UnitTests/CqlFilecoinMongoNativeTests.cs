@@ -60,6 +60,7 @@ public sealed class CqlFilecoinMongoNativeTests
         public HolonManager CreateManager(IOASISProvider provider) => new(null, dna, registry);
     }
 
+    [Trait("Category", "LiveService")]
     [FilecoinMongoNativeFact]
     public async Task NativeFilecoinMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
     {

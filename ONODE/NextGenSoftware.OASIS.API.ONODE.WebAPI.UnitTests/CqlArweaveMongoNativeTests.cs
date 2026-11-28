@@ -60,6 +60,7 @@ public sealed class CqlArweaveMongoNativeTests
         public HolonManager CreateManager(IOASISProvider provider) => new(null, dna, registry);
     }
 
+    [Trait("Category", "LiveService")]
     [ArweaveMongoNativeFact]
     public async Task NativeArweaveMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
     {

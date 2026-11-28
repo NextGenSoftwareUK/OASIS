@@ -60,6 +60,7 @@ public sealed class CqlHederaMongoNativeTests
         public HolonManager CreateManager(IOASISProvider provider) => new(null, dna, registry);
     }
 
+    [Trait("Category", "LiveService")]
     [HederaMongoNativeFact]
     public async Task NativeHederaMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
     {

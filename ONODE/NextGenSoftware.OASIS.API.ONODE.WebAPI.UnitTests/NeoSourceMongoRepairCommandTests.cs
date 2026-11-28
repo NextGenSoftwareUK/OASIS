@@ -15,6 +15,7 @@ using IoFile=System.IO.File;
 
 public sealed partial class ReplicaBaselineRepairCommandTests
 {
+    [Trait("Category", "LiveService")]
     [NativeFact]
     public async Task ReviewedCommandRepairsActualNeoToMongoAndPreservesNormalNextDelivery()
     {

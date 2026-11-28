@@ -23,6 +23,7 @@ public sealed class CqlPlanetScaleNativeTests
 {
     private sealed record Source(Guid Actor, Guid[] LiveIds, Guid DeletedId, Guid MissingId, string ConnectionSha256);
 
+    [Trait("Category", "LiveService")]
     [PlanetScaleNativeFact]
     public async Task ReviewedSourceReadsExactPublicRowsThroughWeb4Registration()
     {
@@ -46,6 +47,7 @@ public sealed class CqlPlanetScaleNativeTests
         }
     }
 
+    [Trait("Category", "LiveService")]
     [ReviewedPublicMongoNativeFact("COSMIC_PLANETSCALE_HOSTED_CQL_SOURCE")]
     public Task ReviewedSourceAndPrivateMongoCopiesOverHttp() =>
         ReviewedPublicMongoHttpFixture.VerifyHttpAsync(ProviderType.PlanetScaleOASIS, _ =>

@@ -51,6 +51,7 @@ public class SandboxSubscriptionNativeTests : IAsyncLifetime
         await client.DropDatabaseAsync(Database); // Exact owned disposable fixture only; accounting source is never used.
     }
 
+    [Trait("Category", "LiveService")]
     [SandboxSubscriptionNativeFact]
     public async Task IssuanceIsIdempotentAndCannotExtendOrReplaceAnExistingAccount()
     {
@@ -67,6 +68,7 @@ public class SandboxSubscriptionNativeTests : IAsyncLifetime
         Assert.Equal(expires, (await ledger.GetSubscriptionAsync(user)).SandboxExpiresAtUtc);
     }
 
+    [Trait("Category", "LiveService")]
     [SandboxSubscriptionNativeFact]
     public async Task ExpiredUnencumberedFreeRecordIsRetiredButItsAuditAndOtherAccountsRemain()
     {
@@ -89,10 +91,12 @@ public class SandboxSubscriptionNativeTests : IAsyncLifetime
         Assert.Equal(new SandboxSubscriptionSweep(0, 0), await ledger.RetireSandboxSubscriptionsAsync(50, default));
     }
 
+    [Trait("Category", "LiveService")]
     [SandboxSubscriptionNativeFact]
     public async Task UnstartedReservationDefersRetirementUntilTheExistingExpiryProtocolResolvesIt()
         => await PendingReservation(false);
 
+    [Trait("Category", "LiveService")]
     [SandboxSubscriptionNativeFact]
     public async Task ExecutingAndRecoveryRequiredReservationsKeepTheSubscriptionForReconciliation()
         => await PendingReservation(true);
@@ -117,6 +121,7 @@ public class SandboxSubscriptionNativeTests : IAsyncLifetime
         Assert.Equal(executing ? "recovery-required" : "expired", persisted["Status"].AsString);
     }
 
+    [Trait("Category", "LiveService")]
     [SandboxSubscriptionNativeFact]
     public async Task ChangedPaidStateIsNeverDeletedByTheDemoMarker()
     {
@@ -130,6 +135,7 @@ public class SandboxSubscriptionNativeTests : IAsyncLifetime
         Assert.Equal("sub_test", (await ledger.GetSubscriptionAsync(user)).StripeSubscriptionId);
     }
 
+    [Trait("Category", "LiveService")]
     [SandboxSubscriptionNativeFact]
     public async Task APageOfOlderUnresolvedRecordsCannotStarveLaterRetirement()
     {
@@ -145,6 +151,7 @@ public class SandboxSubscriptionNativeTests : IAsyncLifetime
         Assert.NotNull(await ledger.GetSubscriptionAsync(pending)); Assert.Null(await ledger.GetSubscriptionAsync(eligible));
     }
 
+    [Trait("Category", "LiveService")]
     [SandboxSubscriptionNativeFact]
     public async Task IndependentPreparedOperationsSettleWithDistinctPhysicalReceipts()
     {
@@ -195,6 +202,7 @@ public class SandboxSubscriptionNativeTests : IAsyncLifetime
         Assert.Equal(2L, await database.GetCollection<BsonDocument>("subscription_usage_receipts").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
     }
 
+    [Trait("Category", "LiveService")]
     [SandboxSubscriptionNativeFact]
     public async Task UnreviewedOpeningStateCannotBeBypassedByDemoIssuance()
     {

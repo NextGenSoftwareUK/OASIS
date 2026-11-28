@@ -60,6 +60,7 @@ public sealed class CqlChainflipMongoNativeTests
         public HolonManager CreateManager(IOASISProvider provider) => new(null, dna, registry);
     }
 
+    [Trait("Category", "LiveService")]
     [ChainflipMongoNativeFact]
     public async Task NativeChainflipMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
     {

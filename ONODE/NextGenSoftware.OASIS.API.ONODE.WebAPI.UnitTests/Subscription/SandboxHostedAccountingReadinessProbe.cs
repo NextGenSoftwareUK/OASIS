@@ -16,6 +16,7 @@ public sealed class SandboxHostedAccountingProbeFactAttribute : FactAttribute
 
 public class SandboxHostedAccountingReadinessProbe
 {
+    [Trait("Category", "LiveService")]
     [SandboxHostedAccountingProbeFact]
     public async Task ObserveOpeningStateWithoutInitializingOrChangingTheLedger()
     {

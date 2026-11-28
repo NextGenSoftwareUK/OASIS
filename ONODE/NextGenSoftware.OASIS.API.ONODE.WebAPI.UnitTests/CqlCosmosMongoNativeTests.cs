@@ -60,6 +60,7 @@ public sealed class CqlCosmosMongoNativeTests
         public HolonManager CreateManager(IOASISProvider provider) => new(null, dna, registry);
     }
 
+    [Trait("Category", "LiveService")]
     [CosmosMongoNativeFact]
     public async Task NativeCosmosMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
     {

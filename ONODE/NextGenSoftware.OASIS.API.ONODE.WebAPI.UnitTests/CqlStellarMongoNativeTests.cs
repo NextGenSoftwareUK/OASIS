@@ -60,6 +60,7 @@ public sealed class CqlStellarMongoNativeTests
         public HolonManager CreateManager(IOASISProvider provider) => new(null, dna, registry);
     }
 
+    [Trait("Category", "LiveService")]
     [StellarMongoNativeFact]
     public async Task NativeStellarMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
     {

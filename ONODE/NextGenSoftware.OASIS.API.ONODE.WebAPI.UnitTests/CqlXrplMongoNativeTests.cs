@@ -60,6 +60,7 @@ public sealed class CqlXrplMongoNativeTests
         public HolonManager CreateManager(IOASISProvider provider) => new(null, dna, registry);
     }
 
+    [Trait("Category", "LiveService")]
     [XrplMongoNativeFact]
     public async Task NativeXrplMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
     {

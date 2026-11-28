@@ -29,6 +29,7 @@ public sealed class PaidOverageStripeSandboxTests
         public SubscriptionUsagePolicy GetPolicy(string plan,int karma)=>new(){MonthlyRequestLimit=0,MonthlyBudgetUsd=.1m};
     }
     private sealed class Clock(DateTime time) : TimeProvider {public override DateTimeOffset GetUtcNow()=>new(time);}
+    [Trait("Category", "LiveService")]
     [StripeOverageSandboxFact]
     public async Task ControlledUsageFixtureCollectsOneRealUsdSandboxInvoiceAndCredit()
     {

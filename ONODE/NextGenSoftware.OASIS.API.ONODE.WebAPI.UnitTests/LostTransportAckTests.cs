@@ -14,9 +14,9 @@ using NextGenSoftware.OASIS.API.Core.Serialization;
 
 public sealed partial class ReplicaBaselineRepairCommandTests
 {
-    [NativeFact] public Task LostTransportAckMongoAuthority() => LostCommittedAck(ProviderType.MongoDBOASIS, transport: true);
-    [NativeFact] public Task LostTransportAckSqliteAuthority() => LostCommittedAck(ProviderType.SQLLiteDBOASIS, transport: true);
-    [NativeFact] public Task LostTransportAckNeoAuthority() => LostCommittedAck(ProviderType.Neo4jOASIS, transport: true);
+    [Trait("Category", "LiveService")][NativeFact] public Task LostTransportAckMongoAuthority() => LostCommittedAck(ProviderType.MongoDBOASIS, transport: true);
+    [Trait("Category", "LiveService")][NativeFact] public Task LostTransportAckSqliteAuthority() => LostCommittedAck(ProviderType.SQLLiteDBOASIS, transport: true);
+    [Trait("Category", "LiveService")][NativeFact] public Task LostTransportAckNeoAuthority() => LostCommittedAck(ProviderType.Neo4jOASIS, transport: true);
 
     // This controlled loopback transport proves an actual post-commit disconnect.
     // It is not the production WEB4 auth/billing/controller or a native DB link fault.
