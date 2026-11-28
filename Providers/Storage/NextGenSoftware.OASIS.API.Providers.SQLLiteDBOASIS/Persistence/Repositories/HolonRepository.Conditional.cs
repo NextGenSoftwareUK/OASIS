@@ -37,6 +37,13 @@ public partial class HolonRepository
         return Task.FromResult(ExecuteAtomicHolonWrite(request?.WriteRequest,null,cancellationToken,propertyWrite:request));
     }
 
+    public Task<OASISResult<IEnumerable<IHolon>>> ExecuteBoundConditionalHolonWriteAsync(
+        ConditionalHolonWriteRequest request,CosmicStorageIdentity expectedSource,CancellationToken token)
+    {
+        token.ThrowIfCancellationRequested();
+        return Task.FromResult(ExecuteAtomicHolonWrite(request,null,token,expectedStorage:expectedSource));
+    }
+
     public OASISResult<IEnumerable<IHolon>> ExecuteConditionalHolonWrite(ConditionalHolonWriteRequest request)
         =>ExecuteAtomicHolonWrite(request,null,CancellationToken.None);
 
@@ -52,7 +59,8 @@ public partial class HolonRepository
             return ConditionalError("COSMIC_REPLICATION_ENROLLMENT_MISMATCH","The explicit and embedded replication enrollments differ.");
         enrollment??=embedded;
         var sourceBinding=enrollment?.SourceStorageIdentity;
-        var bindingCodePrefix=sourceBinding==null ? "COSMIC_REPLICA_STORAGE_BINDING":"COSMIC_SOURCE_STORAGE_BINDING";
+        var bindingCodePrefix=replicaRequest==null && (sourceBinding!=null || expectedStorage!=null)
+            ? "COSMIC_SOURCE_STORAGE_BINDING":"COSMIC_REPLICA_STORAGE_BINDING";
         expectedStorage??=sourceBinding;
         PreparedGraph graph=null;SqliteTransaction native=null;
         Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction enlisted=null;
@@ -92,6 +100,13 @@ public partial class HolonRepository
                     uncertain ? replicaRequest!=null ? new SqliteReplicaReconciliationException(replicaRequest.OperationId,replicaRequest.SourceId,failure)
                         :new SqliteMutationReconciliationException(graph?.Models.Select(model=>Guid.Parse(model.Id)) ?? Array.Empty<Guid>(),failure):failure);
             }
+        }
+        if(owned && !commitEntered && !rollbackFailed && !knownAcknowledgement && replicaRequest==null
+            && request!=null && expectedStorage!=null && failure is SqliteException aborted
+            && aborted.SqliteErrorCode is 5 or 6)
+        {
+            result=ConditionalError("COSMIC_CONCURRENT_WRITE","The SQLite writer reservation was not committed.",
+                new CosmicTransactionAbortedException(operationId,request.Write.ActorId,expectedStorage,failure));
         }
         if(result!=null && operationId!=Guid.Empty){result.MetaData??=new Dictionary<string,string>();result.MetaData["COSMIC.OperationId"]=operationId.ToString("D");}
         return result;

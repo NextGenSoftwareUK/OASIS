@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "provider": "PocketBaseOASIS",
+  "suite": "core-storage-v2",
+  "mode": "native",
+  "sourceCommit": "6426cde360bd1ae9f936ad06d82f2e1d469c45a1",
+  "runUrl": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/46103379382",
+  "conclusion": "success",
+  "backend": "Official PocketBase v0.40.6 loopback server",
+  "checks": {
+    "sync": 26,
+    "async": 26
+  },
+  "verificationBasis": "Both native shared-suite test rows passed with zero skips; each asserts26 checks and FixtureCleanupComplete. Native REST checks verify owned soft-delete tombstone identity/removal.",
+  "cleanup": "Owned runtime/data/test-output directory removed after server exit.",
+  "scopeLimit": "Hosted IAM/rules/retained data and optional interfaces remain separate."
+}

@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "provider": "EclipseOASIS",
+  "suite": "core-storage-v2",
+  "mode": "native",
+  "sourceCommit": "4d1f74b65996a94ab8ad8422d711a0909699df26",
+  "runUrl": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/46101901966",
+  "conclusion": "success",
+  "backend": "Official Agave4.3.0 local SVM validator, isolated Eclipse signer",
+  "checks": {
+    "sync": 26,
+    "async": 26
+  },
+  "additional": "Fresh avatar/holon outer-provider keys and avatar update/read-by-key round trips in both modes.",
+  "verificationBasis": "Native test rows pass; workflow independently requires both26-check reports and FixtureCleanupComplete.",
+  "cleanup": "Eclipse fixture removed after tests; owned validator stopped and Agave runtime/ledger removed. Failure trap now includes Eclipse-owned fixture.",
+  "scopeLimit": "Public Eclipse network, hosted signing and global v2 routing remain separate."
+}
