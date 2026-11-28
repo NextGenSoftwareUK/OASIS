@@ -1,17 +1,17 @@
 {
-  "date": "2026-11-28T07:06:07.336Z",
-  "run": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/46119098683",
-  "root": "0b8c249921a4ad5af089ea9a07159b3f191585f4",
-  "core": "0534cb49f750a4adfb18d1e29646ee556c5fd2a6",
+  "date": "2026-11-28T07:14:11.848Z",
+  "run": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/46119647384",
+  "root": "c0fa836448e218e8925955219a5820d4632ed0c2",
+  "core": "39488eaccec2a8940f4c2b3902dcd7ceb35f1f0d",
   "artifact": {
-    "id": 15252889091,
-    "bytes": 6135,
-    "sha256": "f90a8465ed5e4d726f83b557c70afbf31bc5dfc35b414d90a2cdea33b935cb07",
+    "id": 15253088361,
+    "bytes": 6369,
+    "sha256": "1e50e9b8d0541034158feca37c9f36876b8205eb8a74db2c57f6bedabccbdd9e",
     "inspectedInMemory": true
   },
   "source": {
-    "source": "0b8c249921a4ad5af089ea9a07159b3f191585f4",
-    "core": "0534cb49f750a4adfb18d1e29646ee556c5fd2a6",
+    "source": "c0fa836448e218e8925955219a5820d4632ed0c2",
+    "core": "39488eaccec2a8940f4c2b3902dcd7ceb35f1f0d",
     "nativePassed": 6,
     "nativeSetPublicationCountsVerified": true,
     "nativeRecursiveEntitySetProviders": [
@@ -35,8 +35,8 @@
     {
       "provider": "MongoDBOASIS",
       "kind": "recursive-entity-set-native.json",
-      "groups": 10,
-      "timings": 12
+      "groups": 14,
+      "timings": 16
     },
     {
       "provider": "SQLLiteDBOASIS",
@@ -47,8 +47,8 @@
     {
       "provider": "SQLLiteDBOASIS",
       "kind": "recursive-entity-set-native.json",
-      "groups": 10,
-      "timings": 12
+      "groups": 14,
+      "timings": 16
     },
     {
       "provider": "Neo4jOASIS",
@@ -59,22 +59,27 @@
     {
       "provider": "Neo4jOASIS",
       "kind": "recursive-entity-set-native.json",
-      "groups": 10,
-      "timings": 12
+      "groups": 14,
+      "timings": 16
     }
   ],
   "trxPassed": 6,
+  "priorAccepted": {
+    "run": 46119098683,
+    "root": "0b8c249921a4ad5af089ea9a07159b3f191585f4",
+    "core": "0534cb49f750a4adfb18d1e29646ee556c5fd2a6",
+    "artifact": 15252889091,
+    "sha256": "f90a8465ed5e4d726f83b557c70afbf31bc5dfc35b414d90a2cdea33b935cb07"
+  },
   "mainDone": 144,
   "mainTotal": 168,
   "extensionDone": 4,
   "extensionTotal": 13,
   "fullSetParentsComplete": false,
   "remaining": [
-    "nested LINQ qualification",
-    "unified flat/nested Neo4j compiler qualification",
-    "late selection over recursive sets",
     "selected-tuple recursive sets",
-    "backend SQL/wire recursive integration"
+    "backend SQL/wire recursive integration",
+    "remaining scalar terminal families"
   ],
   "sharedDatabaseCalls": 0,
   "localBuilds": 0,

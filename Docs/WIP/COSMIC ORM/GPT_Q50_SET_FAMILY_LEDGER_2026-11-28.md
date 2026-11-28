@@ -99,3 +99,8 @@ Railway selected deployment metadata:3118e6df-2541-4b85-97d3-6223d2b93be6 SUCCES
 ### Recursive entity trees accepted on all three native stores
 
 Exact0b8c2499/Core0534cb49 passed6/6 in46119098683, actual WEB4 build and exact cleanup. Artifact15252889091 (6135B, SHA256 f90a8465ed5e4d726f83b557c70afbf31bc5dfc35b414d90a2cdea33b935cb07) inspected strictly in RAM:3tree journeys each10groups/4ownedIDs/1writebatch/12timings, and3count controls each8groups/7IDs/1write/12timings; source/TRX exact. No full parent credit: main144/168 + extension4/13. Newer Core39488eac LINQ, unified Neo compiler and late-selection candidatec0fa8364 runs46119647384 and remains unqualified. No local build/env/download/database/shared Atlas/PIPER operation.
+
+
+### Unified compiler, nested LINQ and late selection accepted
+
+Exactc0fa8364/Core39488eac passed6/6 in46119647384, actual WEB4 and exact cleanup. Artifact15253088361 (6369B, SHA256 1e50e9b8d0541034158feca37c9f36876b8205eb8a74db2c57f6bedabccbdd9e) inspected strictly in RAM:3tree journeys each14groups/4ownedIDs/1writebatch/16timings and3unchanged count controls (8groups/7IDs/1write/12timings). This covers all4identity operations, child/parent windows, left/right nested LINQ, count without publication cap, late Name selection and protected failure before Take(0). One Neo compiler serves flat+nested. Selected-tuple recursion is now local Core work only, excluded from this qualified revision and deployment. Main144/168 + extension4/13; all4parents OPEN. No local build/runtime/database/env/download/archive or shared Atlas/PIPER call.
