@@ -101,3 +101,7 @@ Found older community45172482199after current-router recheck46118199642; the exi
 ## 2026-11-28 — Garnet native gate prepared
 
 Claimed unowned provider after shared COSMIC/claims review. Shipping adapter unchanged; strict existing-suite bridge and selected-provider runner now target official Garnet2.2.5 with Lua transactions and bounded memory. Accepted KeyDB/Dragonfly not selected. RESP readiness/read-count correction reused from6b546445; one build lease, zero-skip and owned path/label/volume/report cleanup guards included. No local runtime/build/download/database/output or Atlas operation. CI pending.
+
+## 2026-11-28 — Garnet native acceptance
+
+CI46122538895 passed26sync+26async with zero skips on official Garnet2.2.5, native DBSIZE0 and owned container/volume/fixture cleanup. Hosted durability/restart and all-interface acceptance remain separate. Source d7a6ed18ab05. Matrix native baselines123/163; provider project inventory238/238 unchanged. First probe-only failure retained; only failed Garnet path retried. No laptop download/env/build/output/database, shared Atlas call or new David action. Owned remote resources removed; compact source receipt retained.
