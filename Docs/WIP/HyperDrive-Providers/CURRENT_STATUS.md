@@ -2,17 +2,15 @@
 
 Updated2026-11-28UTC. Shared Atlas is not a test backend; protected deliveries535/543 remain untouched. Work uses owned branch refs and isolated CI, preserving concurrent physical checkouts.
 
-## Latest portal continuation — 28 November
+## Latest OPORTAL continuation — 28 November
 
-Selected new native/browser continuation7/7(recovery1, populated Map/Launcher2, migration1, ONET1, Holon Diff1, populated geo layers1), separate OAPP error contract1/1 and SDK delivery3/3. Holon46136436169accepts actual publication/comparison and correct stored-ID seal dispatch, not a particular verification status or cryptographic sealing. Qualified source is integrated Development308ed7cf/Corec0e8f2b8/STARbda2d2a8, preserving CQL49f8f1c7. Hosted rollout acceptance is separate.
+Selected new native/browser flows8/8(recovery1,populated Map/Launcher2,migration1,ONET1,Holon Diff1,geo layers1,actual map renderer1); separate OAPP API/SDK missing-detail1/1and current SDK delivery3/3. No accepted suite replay or new provider credit. Holon source308ed7cfis preserved by peer CQL; specific seal/cryptographic/hosted gates stay separate.
 
-Generic app-labelled place visits are implemented on the isolated source branchb0c2f5a6/Core18dad5ae/Unity7e9e3490; image46138363710built successfully. Native46140605906timed out at real catalogue; reduced-query46141372411failed upstream CONNECT before visits. Both completed fixtures have5/5cleanup flags and stopped proxies. No place/karma credit or shared source promotion. Populated hotspot/quest46141859638failed its fixture backend allowlist before geo writes, with acknowledged cleanup; corrected native46142470160passed1/1actual visible/hidden hotspot and linked quest persistence/readback, popup layer status and close, with5/5owned cleanup true; GeoNFT/device/canvas/hosted gates remain open. Docs/Learn guides updated and observed2/2HTTP200; SDK guide3e8d07c3preserves qualified Profile source. No shared Atlas test or new owner action. Whole OPORTAL/global HyperDrive remain open;123/163baseline within238projects unchanged. [Current structured report](LATEST_FULL_STATUS_2026-11-28.json).
+Geo46142470160passed actual visible/hidden hotspot and linked quest create/readback plus popup layer status/close. MapRenderer46146049497passed actual MapLibre6.19/WebGL2 and9camera/selection/highlight actions on a real API/native Mongo location, rendered identity and close/disposal. All owned cleanup acknowledged; no raster tile, Unity, GeoNFT mint or remote runtime claim. Qualified UI is integrated OPORTALdev830a97e6;45/45remains a source inventory, not all screens complete.
 
-Development308ed7cfhas7/7SUCCESS GitHub service statuses through11:14:43UTC; metadata does not certify current running revisions or hosted behavior.
+Generic sourceApp natural-place contractb0c2f5a6/Core18dad5ae/Unity7e9e3490stays unaccepted/unpromoted after real public catalogue46140605906timeout/46141372411upstream failure. Map search source46ce43e9corrects ignored SDK JSON filters and Guid.EmptygRPC/GraphQL search identity; image46146213659built, native46148591025running, existing Wizard gates unchanged. Current source and deployed acceptance remain distinct.
 
-## Earlier accepted integration checkpoint
-
-OASIS Development `5b28612aa73d` and OPORTAL dev `fe7944157ed9` contain the verified portal continuation. Selected new real native/browser journeys: **4/4** (recovery1, populated Map/Launcher2, provider migration1). Current WEB4/WEB5/WEB6 SDK deliveries: **3/3**. Storage native baseline: **123/163** project rows; **238/238** tracked provider projects inventoried. These counts do not certify all45portal surfaces or global HyperDrive v2 reliability. See `LATEST_FULL_STATUS_2026-11-28.json` and the portal CURRENT_ACCEPTANCE index for remaining scope. Running deployment and hosted acceptance are separate from these saved commits.
+Docs/Learn maps guides observed2/2live staticHTTP200; WEB4 SDK guide3e8d07c3on its qualified source branch. Development308ed7cfhas7/7SUCCESS service statuses through11:14:43UTC(metadata only). No new owner action/shared Atlas test; protected deliveries535/543and worker/routing holds untouched. Provider baseline123/163within238tracked projects unchanged. [Structured current report](LATEST_FULL_STATUS_2026-11-28.json).
 
 ## Railway shipping gate verified
 
@@ -36,7 +34,7 @@ WEB6/WEB7/WEB9 deployments for8c7a3148 failed at the unconditional Miden SDK ins
 
 See [provider matrix](PROVIDER_MATRIX.md), [reconciliation](ACCEPTED_CI_RECONCILIATION_2026-11-28.md), hash-bound NativeEvidence receipts, and [release gates](HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md). The original about115/234programme estimate is historical; do not increase it by requalification/reconciliation counts.
 
-## Earlier qualified provider batch (retained evidence)
+## Latest verified Development batch
 
 Qualified batch preserves Development8ed94e278c2263a5aea4c35fd432514671df6ed8 and Core0fd03dede3f2caaa02ec6e2c5ff75319f9528e55 with paired Railway manifest. Typesense native52/52 is added; OpenSearch existing25Nov native52/52 is source-matched without rerun. Meilisearch/Solr25Nov failures now have current native passes using the already-shipped Corec19b8e1 fix.
 
@@ -104,4 +102,9 @@ GitHub deployment statuses for Development5b28612aa73are7/7SUCCESS (last WEB4 up
 
 CI46133501110passed1/1new ONET journey on real immutable fbea WEB4/native Mongo and portalfe794415: password-issued Wizard, initial status/statistics, empty peer list, active ONODE/topology reads, one actual local start and stop with independent status reads, normal close. Artifact15259220405(4838bytes) inspected in RAM: all5Startup cleanup conditions true, package container absent. Workflow runtime/cache/TLS absence check passed; bootstrap private outputs removed immediately and copied entry DLL removed with owned API. No shared Atlas, public peer, source/deployed DNA change, local runtime/download/build/database/result or new owner action. Peer connect/disconnect/broadcast, HoloNET mode and hosted deployment remain separate. Native storage baseline123/163unchanged; whole OPORTAL and automatic HyperDrive gates open.
 
-Space check2026-11-28:32.81GiBfree, owned temporary Git-index directories0; no reclaimed-space claim.
+
+## 2026-11-28 — populated Holon Diff acceptance
+
+Native/browser46136436169passed1/1new two-version flow on sourcef6d4d602/Corec0e8f2b8/STARbda2d2a8 and portal61f68f16. Cold real history, typed create, two acknowledged metadata publications1.0.0/2.0.0with distinct stored IDs, actual version comparison, two stored-ID seal requests and normal close pass. The test verifies seal dispatch uses the two returned stored identities; it does not assert which of the six returned seal statuses applies or certify cryptographic sealed-history verification. Existing empty Browser/OAPP/GPX proofs retained, no all-portal claim.
+
+Root fix restores earlier0bc4d64f shared Holon boot filter/demo-substitution removal while preserving later public visibility/PublishById behavior. Core tariff registry now recognizes the two actual metadata reads used inside metered publication; explicit WEB5 zero-price fixtures retain real provider/price/duplicate guards and old immutable WEB4 keeps its compatible tariffs. All CQL route policies unchanged. Artifact15260206717(3348bytes) inspected in RAM:5owned cleanup flags true; publish/browser/cache/TLS outputs absent. No shared Atlas, source/deployed DNA setting, local runtime/download/env/build/database/results or new owner action. Native baseline123/163unchanged. Native scope qualifies next Development batch; saved/running deployment acceptance remains separate.

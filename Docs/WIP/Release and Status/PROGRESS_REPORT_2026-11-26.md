@@ -113,18 +113,6 @@ These came out of a review of the OASIS design. David reports that 4, 5 and 6 ar
 - TronGrid key for TRON, and accounts for the hosted-account providers.
 - Cloud workers: give them the git identity line and the claims and CI rules.
 
-## 2026-11-28 continuation (gpt-hyperdrive)
-
-Native storage baseline123/163storage/specialized project rows,238tracked provider projects including75non-storage/legacy variants. Latest Garnet native46122538895passed26sync+26async/zero skips and owned cleanup. Whole-provider hosted/all-interface and HyperDrive v2 global reliability gates remain open. OPORTAL real recovery46123580498passed and backend Developmentf6be65d0 published; Portal devbe5da21c includes accepted recovery, selected-node ONODE UI-state fix and current SDK3/3delivery46125573999. Existing45/45surface inventory is planning coverage, not45fully accepted screens. Populated OAPP depth comparison remains under investigation; signed-in hosted acceptance, real mail, paid billing and other listed native gaps remain. Existing owner actions updated; no new owner action. Shared Atlas untouched, no laptop build/runtime/download/env/database/output, remote owned cleanup verified.
-
-### 28Nov populated OAPP follow-up
-
-46126474607passed2/2new populated Map/Launcher journeys on portalbe5da21c/current SDKs and actual shipping WEB4+WEB5/native Mongo. Parent-child membership is created through the typed graph write; shallow excludes children and explicit deep includes them. Category/detail/browse/filter/close accepted, all owned cleanup verified. Backend resolver stayed intact: prior fixture parent-pointer-only write was not authoritative membership. Development25336bd9integrates accepted SDK/OAPP evidence only, preserving current CQL and excluding pending migration work. Portal docs dev3986b1b8/main27c27242nowrecord the new scope. Provider migration real preview/copy/readback is active next. Baseline remains123/163; whole portal and global v2 acceptance remain open.
-
-### 28Nov provider migration acceptance and current status
-
-CI46130012906passed1/1selected real Wizard migration flow: shallow source/destination previews, one Mongo→SQLite copy, full root/child readback from both stores/source retained, native SQLite persistence and close. All owned cleanup verified. OPORTAL devfe794415 and OASIS Development5b28612a contain the verified batch. Selected new native/browser continuation totals4/4; SDK delivery3/3; provider baseline stays123/163, tracked projects238. Current complete machine-readable scope is HyperDrive-Providers/LATEST_FULL_STATUS_2026-11-28.json;22Nov snapshot is historical. No new owner action, shared Atlas operation, local environment/download/build/database/output or whole-portal/global reliability claim. OAPP truthful-error qualification continues separately.
-
 
 ## Verified continuation — 28 November 2026
 
@@ -133,3 +121,6 @@ Current provider baseline is123/163storage/specialized project rows (26sync+26as
 OPORTAL current source inventory45/45is reconciled, not45completed screens. Selected new native/browser continuation5/5: recovery46123580498(1), populated Map/Launcher46126474607(2), migration46130012906(1), ONET real reads/local start-stop46133501110(1). Separate real SDK/API OAPP missing-detail contract46132041520passed1/1. Current SDK delivery46125573999is3/3; read-only28Novrefresh confirms source heads and registry versions unchanged, so no accepted bundle/native reruns. Existing npm access actions A1/A2 remain open.
 
 Holon Diff cold history/typed creation pass on current source, but first real metadata publication fails;46134706515is diagnosing the result. No comparison/seal acceptance, whole-portal100%or all-provider reliability claim. Paid billing/email/hosted/device gates remain scoped in the existing owner list; no new owner action. Shared Atlas test operations0; held535/543untouched. CI-owned resource cleanup receipts retained; laptop32.81GiBfree, owned temporary Git indexes0, no local downloads/env/build/database/results. Accepted OAPP/ONET source is staged for the shared Development batch after09:58CQL integration, not yet recorded as deployed.
+
+
+2026-11-28 OPORTAL follow-through: selected new native/browser8/8(not45whole screens). Geo46142470160and actual MapLibre/WebGL2controls46146049497accepted, all owned cleanup; OPORTALdev830a97e6. App-labelled natural-place visits remain unpromoted/public-catalogue blocked. SDK JSON/gRPC/GraphQL map search repair46ce43e9image built46146213659, native46148591025pending. Storage baseline123/163within238projects unchanged; hosted/payment/device/remote-runtime and global HyperDrive gates open. No accepted suite replay, shared Atlas operation or new owner action.

@@ -98,9 +98,13 @@ CI46117709175and46117714885passed26sync+26async each, zero skips, both exact Dev
 
 Found older community45172482199after current-router recheck46118199642; the existing Social/Activity flow should have been recognized before dispatch. Classified today’s result as compatibility, not new breadth, and retained the earlier pass. Inspected43OPORTAL WIP reports plus grouped native receipts; inventoried exact45current surfaces (42loader modals, notification panel, lazy developer, dashboard). Published CURRENT_ACCEPTANCE and historical-ledger pointer on OPORTAL dev4c4d90af/main4ecb86db. Gifts/Inventory and other accepted flows are not being rerun. No new tests, local outputs, shared Atlas or owner action for reconciliation.
 
-## 2026-11-28 — Garnet native gate accepted
+## 2026-11-28 — Garnet native gate prepared
 
-CI46122538895 passed26sync+26async with zero skips on official Garnet2.2.5, native DBSIZE0 and owned container/volume/fixture cleanup. Hosted durability/restart and all-interface acceptance remain separate. Source d7a6ed18ab05 and acceptance3cb6bbe7ed6a; Development89d03b27997a preserves concurrent COSMIC native-query changes. Matrix123/163; no local runtime/output/download or Atlas call.
+Claimed unowned provider after shared COSMIC/claims review. Shipping adapter unchanged; strict existing-suite bridge and selected-provider runner now target official Garnet2.2.5 with Lua transactions and bounded memory. Accepted KeyDB/Dragonfly not selected. RESP readiness/read-count correction reused from6b546445; one build lease, zero-skip and owned path/label/volume/report cleanup guards included. No local runtime/build/download/database/output or Atlas operation. CI pending.
+
+## 2026-11-28 — Garnet native acceptance
+
+CI46122538895 passed26sync+26async with zero skips on official Garnet2.2.5, native DBSIZE0 and owned container/volume/fixture cleanup. Hosted durability/restart and all-interface acceptance remain separate. Source d7a6ed18ab05. Matrix native baselines123/163; provider project inventory238/238 unchanged. First probe-only failure retained; only failed Garnet path retried. No laptop download/env/build/output/database, shared Atlas call or new David action. Owned remote resources removed; compact source receipt retained.
 
 ## 2026-11-28 — real account recovery accepted
 
@@ -129,11 +133,26 @@ CI46132041520passed1/1new API contract probe through the actual current WEB5 SDK
 GitHub deployment statuses for Development5b28612aa73are7/7SUCCESS (last WEB4 update09:44:37UTC), checked through GitHub metadata only. Portaldevfe794415Vercel status SUCCESS and one static portal.html request returned200 with migration controls/current3SDK cache keys. No hosted sign-in/browser/API/database verification is implied. Core1b24c629AvatarManager tree matches recovery-qualified6247348c (read-only diff empty). No shared Atlas operations.
 
 
+## 2026-11-28 — ONET breadth in progress
+
+Claimed unaccepted ONET popup scope before implementation; CI46132765901runs one real local read/start/stop journey on immutable fbea API and portalfe794415. Existing ONODE native/config tests not repeated. Local browser JavaScript and Python syntax checks passed. No local runtime/download/build/database/results; only source Git objects/private index, index removed immediately. Existing disposable native Mongo/Wizard provider bootstrap and finally cleanup reused. Public discovery/bootstrap/HyperDrive workers disabled in isolated fixture; no shared Atlas or source/deployed DNA changes. No acceptance until native result/cleanup. Native123/163unchanged; OPORTAL/global HyperDrive open.
+
+
 ## 2026-11-28 — ONET native browser acceptance
 
 CI46133501110passed1/1new ONET journey on real immutable fbea WEB4/native Mongo and portalfe794415: password-issued Wizard, initial status/statistics, empty peer list, active ONODE/topology reads, one actual local start and stop with independent status reads, normal close. Artifact15259220405(4838bytes) inspected in RAM: all5Startup cleanup conditions true, package container absent. Workflow runtime/cache/TLS absence check passed; bootstrap private outputs removed immediately and copied entry DLL removed with owned API. No shared Atlas, public peer, source/deployed DNA change, local runtime/download/build/database/result or new owner action. Peer connect/disconnect/broadcast, HoloNET mode and hosted deployment remain separate. Native storage baseline123/163unchanged; whole OPORTAL and automatic HyperDrive gates open.
 
-Space check2026-11-28:32.81GiBfree, owned temporary Git-index directories0; no reclaimed-space claim.
+
+## 2026-11-28 — Holon Diff breadth source recovery
+
+Recovered lost STAR0bc4d64f shared startup/demo-substitution fix while preserving newer public visibility/PublishById behavior. Paired STARbda2d2a8 in source233dad7b, dependency validator7Dockerfiles passed. Added one unaccepted native browser journey only: cold history, two real metadata publications, version comparison and stored-ID seals. JavaScript/Python syntax passed; runtime/acceptance pending. No local downloads/runtime/env/database/build/results; Git private index removed in finally. Remote disposable data/output uses existing owned cleanup. Native123/163unchanged, no global/whole-site claim or owner action.
+
+
+## 2026-11-28 — Holon publication diagnostic
+
+46134066175compiled current Core72245df5/STARbda2d2a8 and passed cold native history/typed create, but first real metadata publication returned IsError. No published comparison acceptance inferred. Add one bounded sanitized message to the existing HTTP facts;46134706515diagnoses that same failed path, not an accepted-flow replay. Artifact15259007014all5cleanup flags true; workflow publish/browser/cache/TLS absence verified in successful cleanup step. No local downloads/runtime/build/database/results or owner action. Automatic/whole-portal gates remain open,123/163native baseline unchanged.
+
+2026-11-28:Corec0e8f2b8 recognizes the two real metadata read tariff names used by publication. New WEB5 fixture config only; unchanged WEB4 image gets no unsupported tariff. Last46135304200failed at that old-image tariff validation before browser; cleanup15259089049all5true. No mocks, billing guard bypass, source/deployed DNA setting change, shared Atlas or local runtime outputs. Current CQL49f8f1c7/Core551ac0d8 preserved.
 
 
 ## 2026-11-28 — populated Holon Diff acceptance
@@ -142,10 +161,8 @@ Native/browser46136436169passed1/1new two-version flow on sourcef6d4d602/Corec0e
 
 Root fix restores earlier0bc4d64f shared Holon boot filter/demo-substitution removal while preserving later public visibility/PublishById behavior. Core tariff registry now recognizes the two actual metadata reads used inside metered publication; explicit WEB5 zero-price fixtures retain real provider/price/duplicate guards and old immutable WEB4 keeps its compatible tariffs. All CQL route policies unchanged. Artifact15260206717(3348bytes) inspected in RAM:5owned cleanup flags true; publish/browser/cache/TLS outputs absent. No shared Atlas, source/deployed DNA setting, local runtime/download/env/build/database/results or new owner action. Native baseline123/163unchanged. Native scope qualifies next Development batch; saved/running deployment acceptance remains separate.
 
-Integrated Development308ed7cf at11:00:50UTC after the shared30-minute window; Core/STAR gitlinks and deployment manifest paired, existing CQL preserved.
+
+2026-11-28: Existing accepted baseline123/163within238projects unchanged. Reconciled stale Garnet/search gate rows from retained52check receipts without reruns. Holon qualified308ed7cf preserved by peerCQL13a6e233;7/7service statuses through11:14:43UTC, not live functional certification. Map source/image b0c2f5a6/46138363710 remains unaccepted after real catalogue46140605906/46141372411failures; both cleaned. Geo fixture46141859638missed matching-backend allowlist; corrected46142470160running, no acceptance yet. Guides Docs/Learn live2/2(SDKsource3e8d07c3); AI35/35model/source identity trace only68338f00. No new owner action/shared Atlas/local builds.
 
 
-2026-11-28: Map image46138363710built b0c2f5a6; native catalogue46140605906timeout/46141372411upstream CONNECT failure before visits. Both cleaned, no acceptance. Native hotspot/quest46141859638in progress. DocsWebsitea6773f5e/Learn3efe5dcb live static2/2; SDK guidance3e8d07c3own qualified source. AI source audit retains35chat-capable OpenServ entries/authenticated identity. Counts123/163and238unchanged. No new owner action/shared Atlas/local builds.
-
-
-2026-11-28: Accepted new MapGeo46142470160(1/1) with exact source/cleanup receipt; aggregate selected native/browser7/7not45complete screens. Portal repairc41c5fe1moves camera/loaded-item actions to its actual MapLibre view, no remote-command fallback, native46144542600pending. Canonical Map-API route inventory replaces hypothetical paths, optional sourceApp explicitly unpromoted. Baseline123/163unchanged; no shared Atlas/new owner action.
+2026-11-28: Actual MapLibre controls46146049497accepted1/1(9actions), portal830a97e6integrated with exact qualified map assets; earlier geo46142470160retained. Aggregate selected8/8not45screens. API search46ce43e9fixes SDK JSON/validated non-REST actor, image46146213659built, native46148591025running. No sourceApp/legacy remote runtime/full portal/HyperDrive certification;123/163baseline unchanged.

@@ -3127,11 +3127,26 @@ Native/browser46130012906passed1/1provider migration journey: actual password-is
 CI46132041520passed1/1new API contract probe through the actual current WEB5 SDK and shipping WEB5 source2e8ae614, ONODE.Coref2c6b219/STARfdc8e3a3. A cold missing-ID read returns declared400, IsError=true, OASIS_RECORD_NOT_FOUND and No Holon Found even with the isolated legacy test-data setting enabled. Original populated Map/Launcher46126474607was not rerun. Artifact15257639687(3232bytes) inspected in RAM: all5Startup cleanup conditions true; publish/browser/cache/TLS outputs absent. No shared Atlas, source DNA/Railway settings change, local runtime/download/build/database/results or new owner action. Native storage baseline123/163unchanged. Whole OPORTAL and global HyperDrive gates remain open.
 
 
+## 2026-11-28 — ONET breadth in progress
+
+Claimed unaccepted ONET popup scope before implementation; CI46132765901runs one real local read/start/stop journey on immutable fbea API and portalfe794415. Existing ONODE native/config tests not repeated. Local browser JavaScript and Python syntax checks passed. No local runtime/download/build/database/results; only source Git objects/private index, index removed immediately. Existing disposable native Mongo/Wizard provider bootstrap and finally cleanup reused. Public discovery/bootstrap/HyperDrive workers disabled in isolated fixture; no shared Atlas or source/deployed DNA changes. No acceptance until native result/cleanup. Native123/163unchanged; OPORTAL/global HyperDrive open.
+
+
 ## 2026-11-28 — ONET native browser acceptance
 
 CI46133501110passed1/1new ONET journey on real immutable fbea WEB4/native Mongo and portalfe794415: password-issued Wizard, initial status/statistics, empty peer list, active ONODE/topology reads, one actual local start and stop with independent status reads, normal close. Artifact15259220405(4838bytes) inspected in RAM: all5Startup cleanup conditions true, package container absent. Workflow runtime/cache/TLS absence check passed; bootstrap private outputs removed immediately and copied entry DLL removed with owned API. No shared Atlas, public peer, source/deployed DNA change, local runtime/download/build/database/result or new owner action. Peer connect/disconnect/broadcast, HoloNET mode and hosted deployment remain separate. Native storage baseline123/163unchanged; whole OPORTAL and automatic HyperDrive gates open.
 
-Space check2026-11-28:32.81GiBfree, owned temporary Git-index directories0; no reclaimed-space claim.
+
+## 2026-11-28 — Holon Diff breadth source recovery
+
+Recovered lost STAR0bc4d64f shared startup/demo-substitution fix while preserving newer public visibility/PublishById behavior. Paired STARbda2d2a8 in source233dad7b, dependency validator7Dockerfiles passed. Added one unaccepted native browser journey only: cold history, two real metadata publications, version comparison and stored-ID seals. JavaScript/Python syntax passed; runtime/acceptance pending. No local downloads/runtime/env/database/build/results; Git private index removed in finally. Remote disposable data/output uses existing owned cleanup. Native123/163unchanged, no global/whole-site claim or owner action.
+
+
+## 2026-11-28 — Holon publication diagnostic
+
+46134066175compiled current Core72245df5/STARbda2d2a8 and passed cold native history/typed create, but first real metadata publication returned IsError. No published comparison acceptance inferred. Add one bounded sanitized message to the existing HTTP facts;46134706515diagnoses that same failed path, not an accepted-flow replay. Artifact15259007014all5cleanup flags true; workflow publish/browser/cache/TLS absence verified in successful cleanup step. No local downloads/runtime/build/database/results or owner action. Automatic/whole-portal gates remain open,123/163native baseline unchanged.
+
+2026-11-28:Corec0e8f2b8 recognizes the two real metadata read tariff names used by publication. New WEB5 fixture config only; unchanged WEB4 image gets no unsupported tariff. Last46135304200failed at that old-image tariff validation before browser; cleanup15259089049all5true. No mocks, billing guard bypass, source/deployed DNA setting change, shared Atlas or local runtime outputs. Current CQL49f8f1c7/Core551ac0d8 preserved.
 
 
 ## 2026-11-28 — populated Holon Diff acceptance
@@ -3140,10 +3155,8 @@ Native/browser46136436169passed1/1new two-version flow on sourcef6d4d602/Corec0e
 
 Root fix restores earlier0bc4d64f shared Holon boot filter/demo-substitution removal while preserving later public visibility/PublishById behavior. Core tariff registry now recognizes the two actual metadata reads used inside metered publication; explicit WEB5 zero-price fixtures retain real provider/price/duplicate guards and old immutable WEB4 keeps its compatible tariffs. All CQL route policies unchanged. Artifact15260206717(3348bytes) inspected in RAM:5owned cleanup flags true; publish/browser/cache/TLS outputs absent. No shared Atlas, source/deployed DNA setting, local runtime/download/env/build/database/results or new owner action. Native baseline123/163unchanged. Native scope qualifies next Development batch; saved/running deployment acceptance remains separate.
 
-Integrated Development308ed7cf at11:00:50UTC after the shared30-minute window; Core/STAR gitlinks and deployment manifest paired, existing CQL preserved.
+
+2026-11-28: Completed map46140605906/46141372411and geo-control46141859638all5owned cleanup flags true; proxies stopped/0tunnels, WEB5 publish/browser/cache/TLS outputs absent. Artifacts15260818844(3674B),15261733812(3644B),15262151851(2310B) inspected in memory, not saved locally. C31.90GiBfree, owned indexes0; no downloads/env/runtime/build/database/results. Running46142470160resources await its cleanup. No reclamation claimed.
 
 
-2026-11-28: Completed map native46140605906/46141372411own containers/network/DB volumes/WEB5/DNA cleanup5/5true; proxies stopped/0tunnels. Compact artifacts15260818844(3674B)/15261733812(3644B) inspected in memory. No local result/download/env/runtime/build/database; private indexes observed0; C free31.9GiB. Running46141859638cleans its resources at completion, not prematurely. No reclamation claimed.
-
-
-2026-11-28: Accepted geo46142470160artifact15262437693(3350B, d5d0fd1d166304128e0d0830837ff54dc36064bd011f8e2ebfc57161ea29b87f) verified in memory; all5cleanup flags, graceful API/WEB5exit0 and publish/browser/cache/TLS absence acknowledged. Real pinned MapLibre module/CSS fetched into RAM only before new renderer gate; no file/runtime/env/cache/build/database/results installed locally. No reclamation claimed. Renderer46144542600queued; no repeated accepted suites.
+2026-11-28: Renderer46146049497artifact15264255260(4312B,f53c5e5cd8e62f424cbb1f9dbd41ce618d90844d169b53573a94d275e92bc0cf) inspected in memory;5/5owned cleanup and runtime/cache/TLS absence. Failed renderer fixtures retained with cleanup. Pinned official renderer assets fetched into RAM only, never saved locally. Owned indexes0; inspected gh temp/cache directories absent. No local runtime/env/build/database/results or space-reclamation claim. Map transport46148591025cleans its owned SDK/probe/cache/container paths at completion.

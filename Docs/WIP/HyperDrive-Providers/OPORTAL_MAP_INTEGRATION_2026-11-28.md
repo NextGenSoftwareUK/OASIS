@@ -40,3 +40,12 @@ Passed1/1MapGeo browser journey: actual visible and hidden hotspot POSTs, linked
 Artifact15262437693(3350B), SHA256d5d0fd1d166304128e0d0830837ff54dc36064bd011f8e2ebfc57161ea29b87f, inspected in memory. Actual API/browser and WEB5 graceful exits acknowledged, all5owned cleanup flags true; publish/browser/cache/TLS outputs absent. Docker image health/nativeMetadata flags arefalse for this explicitly selected cql-api package scope; no full-native-image health claim. Aggregate selected new native/browser continuation is7/7, not45/45screens.
 
 New source finding for next implementation: OPORTAL provider controls pass an ID route argument to complex model-bound MapController actions, and a fresh MapManager has no CurrentMapProvider assigned. The legacy Guid Select methods also forward to Zoom methods. No successful provider-control acceptance is inferred. Need the actual runtime/provider acquisition and payload contract, rather than substituting browser camera controls or synthesizing success.
+
+
+## 2026-11-28 — actual renderer accepted
+
+Native46146049497passed1/1MapRenderer journey on portalc41c5fe1with actual MapLibre6.19.0/WebGL2. One authorized canonical MapLocation saved/read via actual API and owned Mongo; current popup loaded it. All9actions (zoom2,pan4,select/zoom/highlight3) acted on that real map; rendered selected feature matched the persisted identity, normal close disposed canvas/targets and disabled controls. No legacy server camera HTTPcall. Fixture used a valid empty basemap and real API-backed feature sources: live raster tiles, remote renderer/provider SPI, Unity/device and GeoNFT mint remain outside scope. Original GPX/geo-layer proofs not repeated.
+
+Artifact15264255260(4312B), SHA256f53c5e5cd8e62f424cbb1f9dbd41ce618d90844d169b53573a94d275e92bc0cf, exact source/outcome/cleanup inspected in memory. Actual API/browser acknowledged, process exit0 and all5owned cleanup receipts true. CQL-package Docker native-metadata/health checks were intentionally excluded, not certified. Earlier renderer46144542600/46145478623failures retained; exact official6.19ESM worker admission fixed the test boundary, no runtime stub or broad network allowance.
+
+The map fragment, map script and component-loader cache keys are advanced together. One live static HEAD200had no CSP/COEP block; that is not signed-in hosted acceptance. Overall new selected browser/native continuation8/8is not whole-portal45/45completion.

@@ -1,0 +1,53 @@
+{
+  "date": "2026-11-28",
+  "suite": "oportal-real-maplibre-controls",
+  "run": 46146049497,
+  "control": "f02eabc6895e68700f0d7f3d642e23d5a28ad4c0",
+  "portalQualified": "c41c5fe181e547f69ade06e709199cbdb00b3aa9",
+  "portalIntegrated": "830a97e6ab1382c198b6476ce1d5b7044ae5c82f",
+  "apiSource": "fbea95eb33b67bfa1dc11d6a2b6c15bc9a7d7717",
+  "image": "sha256:f5cca6cd4781834468545a5ec2e24e50e1d7a34e3f2511a5e7d8b1a8eda8cabb",
+  "profile": "cql-api",
+  "done": 1,
+  "total": 1,
+  "actualRenderer": "MapLibre GL JS6.19.0/WebGL2",
+  "actions": {
+    "zoom": 2,
+    "pan": 4,
+    "selectZoomHighlight": 3,
+    "total": 9
+  },
+  "checks": [
+    "One authorized canonical MapLocation saved and read through actual API/native Mongo",
+    "Loaded item selected on actual renderer",
+    "Actual camera zoom/pan changed",
+    "Rendered highlighted feature matched persisted ID",
+    "No legacy server camera requests",
+    "Close disposed real canvas/targets and disabled controls"
+  ],
+  "excluded": [
+    "Public raster tiles",
+    "Natural-place observations or karma",
+    "Remote renderer/provider-runtime SPI",
+    "Unity/device",
+    "GeoNFT mint",
+    "Hosted signed-in acceptance",
+    "Full-native Docker metadata health"
+  ],
+  "artifact": {
+    "id": 15264255260,
+    "bytes": 4312,
+    "sha256": "f53c5e5cd8e62f424cbb1f9dbd41ce618d90844d169b53573a94d275e92bc0cf"
+  },
+  "cleanup": {
+    "ownedContainersAbsent": true,
+    "ownedNetworkAbsent": true,
+    "ephemeralDatabaseVolumesRemoved": true,
+    "web5ProcessStopped": true,
+    "web5DnaAbsent": true,
+    "browserRuntimeCacheTlsAbsent": true,
+    "localFilesWritten": false
+  },
+  "sharedAtlasOperations": 0,
+  "newOwnerActions": []
+}
