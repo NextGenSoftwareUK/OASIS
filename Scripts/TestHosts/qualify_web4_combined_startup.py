@@ -322,6 +322,17 @@ console.log(JSON.stringify(b));
                     assert isinstance(failure['path'],str) and len(failure['path'])<=200 and failure['path'].startswith('/api/') and '?' not in failure['path']
                     assert failure['errorType'] in ('AssertionError','TypeError','Error') and isinstance(failure['sourceLine'],int)
                     print('PORTAL_STARTUP_ADMISSION_FAILURE:'+json.dumps(failure,separators=(',',':')),flush=True)
+                renderer_failure=re.search(r'PORTAL_STARTUP_RENDERER_FAILURE:(\{[^\n]*\})',browser.stderr)
+                if renderer_failure:
+                    failure=json.loads(renderer_failure.group(1))
+                    assert set(failure)=={'stage','errorType','sourceLine','message','rendererStatus','mapPresent','glContext','blockedAssetCount'}
+                    assert re.fullmatch(r'[A-Za-z0-9 /-]{1,80}',failure['stage'])
+                    assert failure['errorType'] in ('AssertionError','TimeoutError','TypeError','Error')
+                    assert isinstance(failure['sourceLine'],int) and isinstance(failure['blockedAssetCount'],int)
+                    assert isinstance(failure['mapPresent'],bool) and isinstance(failure['glContext'],bool)
+                    for key in ('message','rendererStatus'):
+                        assert isinstance(failure[key],str) and len(failure[key])<=320 and '\n' not in failure[key]
+                    print('PORTAL_STARTUP_RENDERER_FAILURE:'+json.dumps(failure,separators=(',',':')),flush=True)
                 clan_failure=re.search(r'PORTAL_STARTUP_CLAN_FAILURE:(\{[^\n]*\})',browser.stderr)
                 if clan_failure:
                     failure=json.loads(clan_failure.group(1))
