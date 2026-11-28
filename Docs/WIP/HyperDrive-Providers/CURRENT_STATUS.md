@@ -2,6 +2,10 @@
 
 Updated2026-11-28UTC. Shared Atlas is not a test backend; protected deliveries535/543 remain untouched. Work uses owned branch refs and isolated CI, preserving concurrent physical checkouts.
 
+## Latest accepted integrations
+
+OASIS Development `5b28612aa73d` and OPORTAL dev `fe7944157ed9` contain the verified portal continuation. Selected new real native/browser journeys: **4/4** (recovery1, populated Map/Launcher2, provider migration1). Current WEB4/WEB5/WEB6 SDK deliveries: **3/3**. Storage native baseline: **123/163** project rows; **238/238** tracked provider projects inventoried. These counts do not certify all45portal surfaces or global HyperDrive v2 reliability. See `LATEST_FULL_STATUS_2026-11-28.json` and the portal CURRENT_ACCEPTANCE index for remaining scope. Running deployment and hosted acceptance are separate from these saved commits.
+
 ## Railway shipping gate verified
 
 WEB6/WEB7/WEB9 deployments for8c7a3148 failed at the unconditional Miden SDK install. Qualified root fix moves Miden into the existing publish-graph packager: a shipped Miden assembly requires its complete SDK, while API graphs without that provider do not install it. CI46113637170passed both real Miden-consumer and WEB6publish-graph checks plus cleanup. Corrected-source03bf0ef24bcf rollout reports7/7 Railway dev deployment statuses SUCCESS (2026-11-28T06:20Z); accepted native storage cases were not repeated. No running-environment setting or secret changed.
@@ -24,7 +28,7 @@ WEB6/WEB7/WEB9 deployments for8c7a3148 failed at the unconditional Miden SDK ins
 
 See [provider matrix](PROVIDER_MATRIX.md), [reconciliation](ACCEPTED_CI_RECONCILIATION_2026-11-28.md), hash-bound NativeEvidence receipts, and [release gates](HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md). The original about115/234programme estimate is historical; do not increase it by requalification/reconciliation counts.
 
-## Latest verified Development batch
+## Earlier qualified provider batch (retained evidence)
 
 Qualified batch preserves Development8ed94e278c2263a5aea4c35fd432514671df6ed8 and Core0fd03dede3f2caaa02ec6e2c5ff75319f9528e55 with paired Railway manifest. Typesense native52/52 is added; OpenSearch existing25Nov native52/52 is source-matched without rerun. Meilisearch/Solr25Nov failures now have current native passes using the already-shipped Corec19b8e1 fix.
 
@@ -72,3 +76,7 @@ OPORTAL SDK delivery46125573999passed3/3current WEB4/WEB5/WEB6locked bundle/modu
 ## 2026-11-28 — populated OAPP acceptance
 
 Native/browser46126474607passed2/2new populated OAPP Map/Launcher journeys on current portalbe5da21c and real shipping WEB4/WEB5/native Mongo. Typed create publishes the root+child membership atomically; shallow response excludes children and explicit deep returns the actual child. Map filters/reset, Launcher category/search/detail/browse return and normal closes pass. Artifact15256241206(3361bytes) inspected in RAM proves all5Startup cleanup conditions; publish/browser/cache/TLS absent. Earlier apparent backend graph gap was an invalid fixture: a bare parent pointer does not add membership to a stored parent manifest. Resolver/admission/visibility remain unchanged; no fallback added. Baseline123/163unchanged, no global HyperDrive or whole-portal100%claim. No laptop environment/runtime/download/build/database/output, shared Atlas or new owner action.
+
+## 2026-11-28 — provider migration accepted
+
+Native/browser46130012906passed1/1provider migration journey: actual password-issued Wizard, source preview, one Mongo→SQLite copy, destination preview, complete parent/child readback from both stores/source retained, native SQLite file and close. Portalbdbec73c, immutable fbea API image. Artifact15257412281(4462bytes) inspected in RAM;5Startup cleanup flags/package absence/browser-runtime-cache-TLS absence verified. Private bootstrap refs/project/output deleted immediately; copied entry DLL/SQLite file removed with owned API container. Source role seeded through actual shipping provider; no direct DB role patch, synthetic JWT, shared Atlas, real funds or local outputs. Native123/163baseline unchanged; automatic HyperDrive and whole portal remain open. No new owner action.

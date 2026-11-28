@@ -656,5 +656,7 @@
     "evidence": "OPORTAL_POPUP_NAVIGATION_2026-11-23.json",
     "run": 45165837353,
     "artifact": 14814813455
-  }
+  },
+  "supersededBy": "LATEST_FULL_STATUS_2026-11-28.json",
+  "historicalEvidencePreserved": true
 }
