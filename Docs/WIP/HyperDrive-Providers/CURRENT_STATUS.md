@@ -12,10 +12,14 @@ OPORTAL, the ONODE popup and billing UI are now owned by a different session. CQ
 
 | Scope | Done/total | Evidence |
 |---|---|---|
-| Requested Firebase/Turso/PocketBase rechecks | 2/3 | Firebase CI 46099124837; Turso CI 46099193518, both Development `d91bf074fa16`, 26 sync + 26 async with cleanup. PocketBase remains claimed by the existing HyperDrive session. |
+| Requested Firebase/Turso/PocketBase rechecks | 3/3 | Firebase46099124837 and Turso46099193518 on Development `d91bf074fa16`; PocketBase46103379382 on Development `6426cde360bd`. Each26sync+26async, with owned cleanup. PocketBase’s stale claim was reconciled before takeover. |
 | Programme estimate carried from 26 November | about 115/234 | Rechecks refresh acceptance; they are not counted as new providers. Exact consolidated recount remains pending. |
 
-Both runs used isolated real backends in CI; no shared Atlas test operations or local runtime/download/build output. Compact receipts are in `NativeEvidence/*-development-2026-11-27.json`. Hosted acceptance and global v2 gates remain open. OPORTAL continuation is limited to gaps beyond the other session’s accepted work; verified MCP source-link correction is tracked in OPORTAL-JS.
+All three rechecks used isolated real backends in CI; no shared Atlas test operations or local runtime/download/build output. Compact receipts are in `NativeEvidence/*-development-2026-11-27.json`. Hosted acceptance and global v2 gates remain open. OPORTAL continuation is limited to gaps beyond the other session’s accepted work; verified MCP source-link correction is tracked in OPORTAL-JS.
+
+Miden: existing Claude source0289f57c passed52/52 in CI45753725053 but was not merged. `work/gpt-miden-native-integration` reuses it, completes SDK shipping/configuration and verifies the current Core6613656a graph in CI46104748678 (pending). No new Miden acceptance/deployment count is claimed yet.
+
+OPORTAL: dev/checkout CI46102330540 passed203/203executed browser checks per target,80signed-in checks skipped. Only report-upload quota failed. Credential custody is recorded once as OPORTAL-CI1; no broad shared-Atlas test authorized.35redundant CI artifacts/9649851300bytes removed, release/latest-good artifacts retained.
 
 ## Progress (local HyperDrive programme, updated 2026-11-25 03:00 UTC)
 
@@ -58,7 +62,7 @@ EclipseOASIS: done by the hyperdrive-triad session (f2717b1b); the duplicate `wo
 
 Classified non-storage: LoomOASIS (PLAN_LOOM_CLASSIFICATION_2026-11-25.md) and FarcasterOASIS (no keyed, durable app-data message type; see FARCASTER_STORAGE_CLASSIFICATION_2026-11-25.md).
 
-Delegated storage identity: Telos and SEEDS now preserve their outer provider keys through EOSIO; saves and provider-key reads use the same canonical app-record repositories. Both modes pass in CI (Telos46101946563; SEEDS46101275004), including key round trips and independent native table cleanup. Eclipse/Solana adaptation remains on `work/gpt-delegated-storage-keys` pending Eclipse CI46101901966.
+Delegated storage identity: Telos and SEEDS now preserve their outer provider keys through EOSIO; saves and provider-key reads use the same canonical app-record repositories. Both modes pass in CI (Telos46101946563; SEEDS46101275004), including key round trips and independent native table cleanup. Eclipse/Solana adaptation also passed native CI46101901966:52/52 plus composing-key/update round trips. Shipping source matches that accepted revision.
 
 Summary (cloud-hyperdrive-A, 2026-11-26): every self-hostable storage provider this session took on now passes the
 native core-storage suite in CI (20 above). Nothing self-hostable is left unclaimed; the remaining providers need David:
@@ -69,7 +73,7 @@ native core-storage suite in CI (20 above). Nothing self-hostable is left unclai
 - Decisions needed: retire Fauna, Vercel KV and Polybase (services discontinued); what PLAN is, or retire PLANOASIS;
   approve the pinned community ceramic-one CI image.
 - Classified non-storage: FarcasterOASIS, LoomOASIS.
-- Remaining delegated-provider gate: Eclipse/Solana, pending the scoped native CI run. Telos/SEEDS canonical identities are verified separately above.
+- Delegated identity gate: Eclipse, Telos and SEEDS fixes pass their native suites and key round trips; hosted/full-interface and global gates remain separate.
 
 ## Branches
 

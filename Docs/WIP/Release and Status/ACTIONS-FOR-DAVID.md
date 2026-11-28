@@ -1825,3 +1825,10 @@ Open, verified2026-11-27 by gpt-hyperdrive. OPORTAL-JS repository Actions secret
 Owner/custodian action: arrange for the previously approved dedicated account credentials to be placed in those two repository Actions secrets (Settings → Secrets and variables → Actions). Use the existing approved custody route; do not paste credentials into this document or chat, and do not create a competing account solely for this entry. Source handoff: OPORTAL-JS `Docs/WIP/OPORTAL-E2E.md`.
 
 Engineering will first review the authenticated request scope and shared-Atlas isolation rules before dispatching signed-in acceptance; adding secrets alone does not authorize a broad shared-cluster test. The current signed-out run reported202passes/80skips per target and cannot establish that every authenticated popup is100% complete. Other portal fixes and provider work continue independently.
+
+
+## MIDEN-HOSTED1 — persistent hosted storage fixture
+
+Open2026-11-27, gpt-hyperdrive. This concerns future hosted storage acceptance, not the isolated native CI. Reuse the approved custody route to provision a persistent Miden RPC endpoint, public account carrying the `oasis::kv` component and its signing seed, a Kubo API endpoint, and a32-byte base64 record-encryption key. Account initialization/real-fee funding must be owner-controlled; the agent will not transfer real crypto. Keep dev/staging/production identities and secrets separate as intended.
+
+The shipping constructor reads `OASIS_MIDEN_RPC_URL`, `OASIS_MIDEN_STORAGE_ACCOUNT`, `OASIS_MIDEN_STORAGE_KEY_SEED`, `OASIS_MIDEN_KUBO`, `OASIS_MIDEN_STORAGE_KEY` from the service environment. Configure credentials only in the environment secret store, never source DNA or this document. No values are requested in chat. Current integration source: `work/gpt-miden-native-integration`; original native52/52 CI45753725053 is preserved, and current graph/published SDK CI46104748678 is pending. Engineering will verify the deployed revision and selected sanitized configuration before any hosted write.

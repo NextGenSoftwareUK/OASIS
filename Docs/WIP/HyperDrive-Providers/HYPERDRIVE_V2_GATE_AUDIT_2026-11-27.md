@@ -21,3 +21,5 @@ These are source findings, not claims that a hosted request failed. The main Hyp
 - Use isolated CI backends. Shared Atlas is not a test fixture, and protected deliveries535/543 must not be replayed/cleared/reauthorized.
 
 Cleanup: no local build, environment, download, database or generated test output; source and CI metadata inspected only. Private indexes removed in finally. No owner action added for engineering work.
+
+Checkpoint: Eclipse CI46101901966 and PocketBase CI46103379382 are now accepted; Miden current-graph/shipping-SDK integration remains in progress. Core6613656a preserves the audited switcher/registry files; no global backend test is being inferred from this source audit.

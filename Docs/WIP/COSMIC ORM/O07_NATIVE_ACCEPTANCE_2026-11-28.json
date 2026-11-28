@@ -1,0 +1,63 @@
+{
+  "run": 46103037019,
+  "job": 140849566886,
+  "artifact": 15246538702,
+  "source": {
+    "source": "cdefa9eebabe935a3a854aa63974b1f96904131f",
+    "core": "6613656a264d6d06cdf15af2eb3ff151da31b568",
+    "nativePassed": 3,
+    "executionStrategyVerified": true,
+    "actualWeb4Compiled": true,
+    "ownedFixturesAbsent": true,
+    "sharedDatabaseCalls": 0,
+    "deployed": false,
+    "faultBoundary": "Client transport only; actual storage and receipts use shipping native providers."
+  },
+  "trx": {
+    "total": "3",
+    "executed": "3",
+    "passed": "3",
+    "failed": "0",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  },
+  "reports": [
+    {
+      "provider": "MongoDBOASIS",
+      "groups": 10,
+      "writes": 3,
+      "cleanup": true
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "groups": 10,
+      "writes": 3,
+      "cleanup": true
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "groups": 10,
+      "writes": 3,
+      "cleanup": true
+    }
+  ],
+  "artifactSha256": "1418943911eb9b9b31ccaa2b644fec8c8e7a2b93c5a2b6a1c2fcd2981e96a63a",
+  "artifactBytes": 3702,
+  "entries": [
+    "MongoDBOASIS-execution-strategy-native.json",
+    "Neo4jOASIS-execution-strategy-native.json",
+    "SQLLiteDBOASIS-execution-strategy-native.json",
+    "execution-strategy-native.trx",
+    "source.json"
+  ]
+}

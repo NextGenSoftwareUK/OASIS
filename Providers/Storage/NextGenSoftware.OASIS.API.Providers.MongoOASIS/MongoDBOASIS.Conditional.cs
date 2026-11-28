@@ -34,7 +34,7 @@ public partial class MongoDBOASIS : IConditionalHolonPropertyStorageProvider,IBo
         =>ExecuteConditionalCoreAsync(request,request?.Write.ReplicationEnrollment,cancellationToken);
 
     private async Task<OASISResult<IEnumerable<IHolon>>> ExecuteConditionalCoreAsync(ConditionalHolonWriteRequest request,
-        HolonReplicationEnrollment enrollment,CancellationToken cancellationToken,ConditionalHolonPropertyWriteRequest propertyWrite=null)
+        HolonReplicationEnrollment enrollment,CancellationToken cancellationToken,ConditionalHolonPropertyWriteRequest propertyWrite=null, CosmicStorageIdentity expectedSource=null)
     {
         try
         {
@@ -43,7 +43,7 @@ public partial class MongoDBOASIS : IConditionalHolonPropertyStorageProvider,IBo
                 :enrollment==null ? ConditionalHolonPlan.Create(request, Core.Enums.ProviderType.MongoDBOASIS)
                 :ConditionalHolonPlan.CreateReplicating(request,Core.Enums.ProviderType.MongoDBOASIS,enrollment);
             return await SaveGraphsAtomicAsync(request.Roots, request.SaveChildren, request.Recursive,
-                request.MaxChildDepth, 0, plan, request.Write.ActorId, cancellationToken, expectedStorage: enrollment?.SourceStorageIdentity).ConfigureAwait(false);
+                request.MaxChildDepth, 0, plan, request.Write.ActorId, cancellationToken, expectedStorage: expectedSource ?? enrollment?.SourceStorageIdentity).ConfigureAwait(false);
         }
         catch (Exception cause)
         {

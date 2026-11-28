@@ -20,6 +20,7 @@
     <Compile Remove="**/*.cs" />
     <Compile Include="EclipseNativeStorageConformanceTests.cs" />
     <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" />
+    <Compile Include="../../../Shared/TestSupport/DelegatedStorageIdentityConformance.cs" Link="TestSupport/DelegatedStorageIdentityConformance.cs" />
     <PackageReference Include="Solnet.Wallet" Version="6.1.0" />
   </ItemGroup>
   <ItemGroup Condition="'$(NativeStorageConformance)' != 'true'">

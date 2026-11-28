@@ -13,8 +13,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EclipseOASIS
     /// OASIS provider for Eclipse, a Solana VM (SVM) L2 settled on Ethereum with Celestia data availability.
     /// Eclipse runs unmodified Solana programs and serves the Solana JSON-RPC, so storage is the shipping
     /// <see cref="SolanaOASIS"/> implementation (signed transactions, encrypted records) against the Eclipse RPC; every
-    /// storage member forwards to it (EclipseOASIS.Storage.cs). Records it writes carry Solana storage keys, as the same
-    /// programs serve both chains. The previous implementation rejected every write and only read raw transactions.
+    /// storage member forwards to it (EclipseOASIS.Storage.cs). Records it writes carry Eclipse storage keys so routing retains the composing
+    /// provider identity. The previous implementation rejected every write and only read raw transactions.
     /// </summary>
     public partial class EclipseOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider
     {
@@ -26,7 +26,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EclipseOASIS
         /// <param name="publicKey">Base58 public key of that account.</param>
         public EclipseOASIS(string rpcUrl = MainnetRpc, string privateKey = "", string publicKey = "")
         {
-            _solana = new SolanaOASIS(rpcUrl, privateKey, publicKey);
+            _solana = new SolanaOASIS(rpcUrl, privateKey, publicKey, Core.Enums.ProviderType.EclipseOASIS);
             ProviderName = "EclipseOASIS";
             ProviderDescription = "Eclipse SVM L2 Provider — Solana VM on Ethereum settlement with Celestia DA";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.EclipseOASIS);

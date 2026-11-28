@@ -248,7 +248,19 @@ public partial class HolonRepository
                         : cause is OperationCanceledException ? replica==null ? "COSMIC_CONDITIONAL_WRITE_CANCELLED" : "COSMIC_REPLICA_WRITE_CANCELLED"
                         : replica==null ? "COSMIC_CONDITIONAL_WRITE_FAILED" : "COSMIC_REPLICA_WRITE_FAILED";
                 try {if(owned && !commitAttempted && session.IsInTransaction) await session.AbortTransactionAsync(CancellationToken.None).ConfigureAwait(false);}
-                catch(Exception abort) {result.Exception=new AggregateException(result.Exception,abort);}
+                catch(Exception abort)
+                {
+                    result.Exception=conditional==null ? new AggregateException(result.Exception,abort)
+                        :new CosmicTransactionReconciliationRequiredException(conditional.Plan.OperationId,
+                            new AggregateException(result.Exception,abort));
+                    if(conditional!=null)result.ErrorCode="COSMIC_WRITE_RECONCILIATION_REQUIRED";
+                }
+                if(owned && !commitAttempted && result.ErrorCode=="COSMIC_CONCURRENT_WRITE"
+                    && conditional?.ExpectedStorage!=null && conditional.Plan is ConditionalHolonPlan primary
+                    && result.Exception is not AggregateException
+                    && !NativeMutationReconciliation.IsRequired(result.Exception))
+                    result.Exception=new CosmicTransactionAbortedException(primary.OperationId,primary.ActorId,
+                        conditional.ExpectedStorage,result.Exception);
             }
         }
         catch(Exception cause)

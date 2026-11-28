@@ -28,7 +28,7 @@ public partial class SolanaOASIS
         source.CreatedOASISType=stored.CreatedOASISType.HasValue ? new EnumValue<Core.Enums.OASISType>(stored.CreatedOASISType.Value):null;
     }
 
-    private static (List<IHolon> Roots,List<PlannedSolanaHolon> Nodes) PlanSolanaGraph(IEnumerable<IHolon> input,
+    private (List<IHolon> Roots,List<PlannedSolanaHolon> Nodes) PlanSolanaGraph(IEnumerable<IHolon> input,
         bool saveChildren,bool recursive,int maxDepth,int initialDepth)
     {
         ArgumentNullException.ThrowIfNull(input);
@@ -41,7 +41,7 @@ public partial class SolanaOASIS
         {
             if(source == null || !references.Add(source)) throw new ArgumentException("Selected Solana graph has a null/repeated node or cycle.");
             string prior=null;
-            if(source.ProviderUniqueStorageKey?.TryGetValue(Core.Enums.ProviderType.SolanaOASIS,out prior)==true && string.IsNullOrWhiteSpace(prior))
+            if(source.ProviderUniqueStorageKey?.TryGetValue(_storageProviderType,out prior)==true && string.IsNullOrWhiteSpace(prior))
                 throw new ArgumentException("Existing Solana storage signature must be nonblank.");
             if(source.Id==Guid.Empty && prior != null) throw new ArgumentException("An existing Solana storage reference requires its actual identity.");
             var id=source.Id==Guid.Empty ? Guid.NewGuid():source.Id;
@@ -100,7 +100,7 @@ public partial class SolanaOASIS
                     if(string.IsNullOrWhiteSpace(signature)) throw new InvalidOperationException("Solana storage returned no committed signature.");
                     committed.Add(signature);
                     node.Source.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
-                    node.Source.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS]=signature;
+                    node.Source.ProviderUniqueStorageKey[_storageProviderType]=signature;
                     node.Source.Version=node.Record.Version; node.Source.PreviousVersionId=node.Record.PreviousVersionId;
                     PublishSolanaCreationOrigin(node.Source,node.Record);
                 }
