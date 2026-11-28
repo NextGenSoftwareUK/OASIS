@@ -87,7 +87,7 @@ def main():
     processes=ExitStack();web5_process=None
     web5_app=os.environ.get('OASIS_STARTUP_WEB5_APP', '')
     popup_group=os.environ.get('OASIS_STARTUP_POPUP_GROUP', '') or 'none'
-    if popup_group not in ('none', 'web5-depth', 'nft', 'data', 'data-crud', 'data-edit', 'files-write', 'map-route', 'messaging', 'messaging-read', 'chat', 'chat-directory', 'directory-message', 'clan', 'portal-breadth', 'chat-hyperdrive', 'data-messaging', 'nft-messaging-data', 'social-activity', 'account-recovery'):
+    if popup_group not in ('none', 'provider-migration', 'web5-depth', 'nft', 'data', 'data-crud', 'data-edit', 'files-write', 'map-route', 'messaging', 'messaging-read', 'chat', 'chat-directory', 'directory-message', 'clan', 'portal-breadth', 'chat-hyperdrive', 'data-messaging', 'nft-messaging-data', 'social-activity', 'account-recovery'):
         raise ValueError('Unknown owned popup group.')
     popup_breadth=os.environ.get('OASIS_STARTUP_POPUP_BREADTH') == 'true'
     if popup_breadth and popup_group != 'none':
@@ -150,6 +150,28 @@ def main():
                 fixture_env['PREPARED_STORAGE_ADMISSION_JSON']=json.dumps(admission,separators=(',', ':'))
             if web5_app:
                 fixture_env['SUBSCRIPTION_SERVICE_KEY_WEB5']=secrets.token_hex(32)
+            if popup_group == 'provider-migration':
+                # Only this disposable fixture admits the two already-qualified real stores.
+                migration_dna=json.loads(fixture_env['OASIS_DNA_JSON'])
+                migration_storage=migration_dna['OASIS']['StorageProviders']
+                for key in list(migration_storage):
+                    if key.startswith('Auto') and isinstance(migration_storage[key],str):
+                        migration_storage[key]='MongoDBOASIS,SQLLiteDBOASIS'
+                migration_storage['SQLLiteDBOASIS']={'ConnectionString':'Data Source=/tmp/'+marker+'_migration.sqlite'}
+                migration_hd=migration_dna['OASIS']['OASISHyperDriveConfig']
+                for key in ['EnabledProviders','AutoFailoverProviders','AutoReplicationProviders','LoadBalancingProviders']:
+                    migration_hd[key]=['MongoDBOASIS','SQLLiteDBOASIS']
+                fixture_env['OASIS_DNA_JSON']=json.dumps(migration_dna,separators=(',',':'))
+                migration_admission=json.loads(fixture_env['PREPARED_STORAGE_ADMISSION_JSON'])
+                migration_admission['ordinaryProviders']=['MongoDBOASIS','SQLLiteDBOASIS']
+                catalogue=migration_admission['routes'][0]['policy']['pricingCatalogueVersion']
+                migration_admission['storageTariffs']=[{'provider':provider,'operation':operation,'costUsd':0,'catalogueVersion':catalogue}
+                    for provider in ('MongoDBOASIS','SQLLiteDBOASIS')
+                    for operation in ('LoadHolon','SaveHolon','SaveHolons','LoadHolonByProviderKey','DeleteHolon','ReadConditionalHolonWriteOutcome','ReadHolonWritePreparation')]
+                policy=dict(migration_admission['routes'][0]['policy'],meterCategory='api.request',maximumProviderAttempts=512)
+                migration_admission['routes'] += [{'method':'POST','path':path,'policy':dict(policy)}
+                    for path in ('/api/data/save-holon','/api/data/load-holon','/api/data/copy-holon')]
+                fixture_env['PREPARED_STORAGE_ADMISSION_JSON']=json.dumps(migration_admission,separators=(',',':'))
             envfile=Path(tmp)/'environment';envfile.write_text(''.join(k+'='+v+'\n' for k,v in fixture_env.items()));envfile.chmod(0o600)
             portal_root = os.environ.get('OASIS_STARTUP_PORTAL_ROOT', '')
             docker('create','--name',api,'--label','oasis.startup.owner='+marker,'--network',network,
@@ -218,7 +240,7 @@ console.log(JSON.stringify(b));
                 assert isinstance(outcomes,list) and 1 <= len(outcomes) <= 3
                 for item in outcomes:
                     assert set(item) <= {'name','passed','stage','closePassed'}
-                    assert item['name'] in ('OappMap','Launcher','NFT','Data','DataWrite','FilesWrite','MapRoute','Messaging','MessagingRead','Chat','DirectoryMessage','Clan','HyperDrive','SocialGraph','ActivityFeed','AccountRecovery') and isinstance(item['passed'],bool)
+                    assert item['name'] in ('Migration','OappMap','Launcher','NFT','Data','DataWrite','FilesWrite','MapRoute','Messaging','MessagingRead','Chat','DirectoryMessage','Clan','HyperDrive','SocialGraph','ActivityFeed','AccountRecovery') and isinstance(item['passed'],bool)
                     assert isinstance(item['closePassed'],bool)
                     assert re.fullmatch(r'[A-Za-z0-9 /-]{1,80}',item['stage'])
                 portal_source=subprocess.check_output(['git','-C',portal_root,'rev-parse','HEAD'],text=True).strip()
