@@ -70,7 +70,7 @@ public partial class Neo4jOASIS : IConditionalHolonPropertyStorageProvider,IBoun
             : ExecuteConditionalCoreAsync(request,enrollment,cancellationToken);
 
     private async Task<OASISResult<IEnumerable<IHolon>>> ExecuteConditionalCoreAsync(ConditionalHolonWriteRequest request,
-        HolonReplicationEnrollment enrollment,CancellationToken cancellationToken,ConditionalHolonPropertyWriteRequest propertyWrite=null)
+        HolonReplicationEnrollment enrollment,CancellationToken cancellationToken,ConditionalHolonPropertyWriteRequest propertyWrite=null, CosmicStorageIdentity expectedSource=null)
     {
         try
         {
@@ -78,7 +78,7 @@ public partial class Neo4jOASIS : IConditionalHolonPropertyStorageProvider,IBoun
             var plan=propertyWrite!=null ? ConditionalHolonPlan.CreatePropertyWrite(propertyWrite,Core.Enums.ProviderType.Neo4jOASIS)
                 :enrollment==null ? ConditionalHolonPlan.Create(request,Core.Enums.ProviderType.Neo4jOASIS)
                 :ConditionalHolonPlan.CreateReplicating(request,Core.Enums.ProviderType.Neo4jOASIS,enrollment);
-            var expected=enrollment?.SourceStorageIdentity;
+            var expected=expectedSource ?? enrollment?.SourceStorageIdentity;
             if(expected!=null)await _lifecycleGate.WaitAsync(cancellationToken).ConfigureAwait(false);
             try
             {
@@ -229,6 +229,9 @@ public partial class Neo4jOASIS : IConditionalHolonPropertyStorageProvider,IBoun
         result.Exception=uncertain ? write.Plan is CommittedHolonReplicaPlan replica
             ? new Neo4jReplicaReconciliationException(write.Plan.OperationId,replica.SourceId,cause)
             : new Neo4jConditionalReconciliationException(write.Plan.OperationId,cause):cause;
+        if(!uncertain && write.ExpectedStorage!=null && write.Plan is ConditionalHolonPlan primary
+            && cause is TransientException aborted && aborted.Code=="Neo.TransientError.Transaction.DeadlockDetected")
+            result.Exception=new CosmicTransactionAbortedException(primary.OperationId,primary.ActorId,write.ExpectedStorage,cause);
         result.ErrorCode=uncertain ? "COSMIC_WRITE_RECONCILIATION_REQUIRED":cause is CosmicConcurrencyException ? CosmicConcurrencyException.Code
             :cause is HolonDestinationRebindRequiredException ? HolonDestinationRebindRequiredException.Code
             :cause is StorageLifecycleConflictException ? StorageLifecycleConflictException.ErrorCode

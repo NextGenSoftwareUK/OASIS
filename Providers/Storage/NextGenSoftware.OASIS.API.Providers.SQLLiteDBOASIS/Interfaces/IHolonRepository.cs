@@ -9,6 +9,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Interfaces
 {
     public interface IHolonRepository : IConditionalHolonReceiptEvidenceStorageProvider, IHolonReplicaHeadAuditStorageProvider, ICommittedHolonReplicaReceiptStorageProvider, IHolonMigrationMutationStorageProvider, NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.IHolonMigrationReplicaAdoptionStorageProvider, IConditionalHolonPropertyStorageProvider
     {
+        Task<OASISResult<IEnumerable<IHolon>>> ExecuteBoundConditionalHolonWriteAsync(
+            ConditionalHolonWriteRequest request, CosmicStorageIdentity expectedSource, System.Threading.CancellationToken token);
         Task<OASISResult<IEnumerable<IHolon>>> ExportAllVersionsAsync();
         Task<OASISResult<IEnumerable<IHolon>>> LoadMatchingHolonsAsync(
             Dictionary<string, string> filter, MetaKeyValuePairMatchMode mode, HolonType type,
