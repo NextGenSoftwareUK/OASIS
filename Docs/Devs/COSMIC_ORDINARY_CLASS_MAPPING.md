@@ -42,7 +42,7 @@ var rows = await source.Result.Where(p => p.Quantity >= 10)
 
 Supply the existing HolonManager and an ICosmicQueryStorageProvider implemented by the shipping provider. Context creation and query construction perform no reads. Linq(maximumResults) bounds execution. Every sequence stage passes through native query admission; predicates are never compiled or evaluated through local Enumerable execution. Native filters, ordering, projections and asynchronous scalar/element terminals retain their existing provider capability checks.
 
-Choose a stable contract string per application mapping. Every root read adds that discriminator alongside the caller policy, excluding other mapped contracts. Build captures an immutable model; later builder changes do not change stored field paths or constructor binding. Changing paths or types needs an explicit migration decision.
+Choose a stable contract string per application mapping. Every context read adds the active-envelope and contract predicate alongside the caller policy, excluding soft-deleted records and other mapped contracts. Build captures an immutable model; later builder changes do not change stored field paths or constructor binding. Changing paths or types needs an explicit migration decision.
 
 ## Constructor-only classes and shadow identity
 
