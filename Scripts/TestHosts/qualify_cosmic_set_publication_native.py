@@ -39,9 +39,9 @@ for store in ['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS']:
  assert flat['concatMultiplicityVerified'] and flat['nullTupleCellVerified'] and flat['foreignRowsHiddenVerified']
 for store in ['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS']:
  selected=json.loads((RESULTS/(store+'-recursive-selected-set-native.json')).read_text(encoding='utf-8-sig'))
- assert selected['provider']==store and selected['checks']==9 and selected['ownedCleanupIds']==4 and selected['successfulHolonWrites']==1
- assert selected['nativeProviderVerified'] and selected['exactCleanupVerified'] and len(selected['queryElapsedMilliseconds'])==10
- assert set(selected['evidence'])=={'explicitTreeAdmission','concatOccurrences','visibleTupleUnion','visibleTupleIntersectExcept','nodeWindows','rightNested','foreignIsolation','childBoundBeforeEmpty','cancellation'} and all(selected['evidence'].values())
+ assert selected['provider']==store and selected['checks']==11 and selected['ownedCleanupIds']==4 and selected['successfulHolonWrites']==1
+ assert selected['nativeProviderVerified'] and selected['exactCleanupVerified'] and len(selected['queryElapsedMilliseconds'])==12
+ assert set(selected['evidence'])=={'registeredLinqLeftTree','registeredLinqRightTree','explicitTreeAdmission','concatOccurrences','visibleTupleUnion','visibleTupleIntersectExcept','nodeWindows','rightNested','foreignIsolation','childBoundBeforeEmpty','cancellation'} and all(selected['evidence'].values())
 subprocess.run(['dotnet','build','ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI',*BOUNDS],cwd=ROOT,check=True)
 def git(*args):
  return subprocess.check_output(['git',*args],cwd=ROOT,text=True).strip()

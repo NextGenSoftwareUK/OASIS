@@ -33,12 +33,14 @@ public sealed partial class CqlV1Web4NativeTests
         var ids=records.Select(row=>row.Id).ToArray();var scope=CosmicQueryScope.Named(adapter.QueryProviderType).Result;
         var columns=new[]{CosmicProjectionSelection<Holon>.Create("Name",row=>row.Name).Result,
             CosmicProjectionSelection<Holon>.Create("Category",row=>row.Description).Result};
-        CosmicProjectionQuery<Holon,CosmicProjectionRecord> Source(CosmicQueryReadAccess policy,int start)
+        CosmicQuery<Holon> EntitySource(CosmicQueryReadAccess policy,int start)
         {
             var selected=ids.Skip(start).Take(2).ToArray();
             return CosmicQuery<Holon>.Create(scope).WithReadAccess(policy).Result.Where(row=>selected.Contains(row.Id)).Result
-                .OrderBy(row=>row.Description).Result.ThenBy(row=>row.Id).Result.Take(2).Result.SelectColumns(columns).Result;
+                .OrderBy(row=>row.Description).Result.ThenBy(row=>row.Id).Result.Take(2).Result;
         }
+        CosmicProjectionQuery<Holon,CosmicProjectionRecord> Source(CosmicQueryReadAccess policy,int start)
+            =>EntitySource(policy,start).SelectColumns(columns).Result;
         var a=Source(access,0);var b=Source(access,1);var c=Source(access,2);
         // b sorts x before y. Child occurrences: ax,ay,ax; c: ax,bz.
         CosmicProjectedSetInput<Holon,CosmicProjectionRecord> Leaf(CosmicProjectionQuery<Holon,CosmicProjectionRecord> query)
@@ -75,10 +77,20 @@ public sealed partial class CqlV1Web4NativeTests
         var hidden=CosmicProjectedSetQuery<Holon,CosmicProjectionRecord>.CreateTree(Node(full),Leaf(c),CosmicSetQueryKind.Concat).Result.Take(0).Result;
         var excess=await Timed("selected-child-bound-before-empty",()=>manager.ExecuteProjectedSetQueryAsync(Plan(hidden,new CosmicProjectedSetOptions(new CosmicSetQueryOptions(2,2,1048576,10))),new[]{adapter},10));
         Assert.IsTrue(excess.IsError);Assert.AreEqual("CQL_QUERY_LIMIT",excess.ErrorCode);
+        var la=CosmicLinq.Create(manager,adapter,EntitySource(access,0),maximumResults:8).Result.Select(row=>new{Name=row.Name,Category=row.Description});
+        var lb=CosmicLinq.Create(manager,adapter,EntitySource(access,1),maximumResults:8).Result.Select(row=>new{Name=row.Name,Category=row.Description});
+        var lc=CosmicLinq.Create(manager,adapter,EntitySource(access,2),maximumResults:8).Result.Select(row=>new{Name=row.Name,Category=row.Description});
+        var lchild=la.Concat(lb).Take(3);
+        var lunion=await Timed("linq-selected-left-tree",()=>lchild.Union(lc).ToCosmicListAsync());
+        Assert.IsFalse(lunion.IsError,lunion.Message+lunion.Exception);
+        CollectionAssert.AreEqual(new[]{"a|x","a|y","b|z"},lunion.Result.Select(row=>row.Name+"|"+row.Category).ToArray());
+        var lright=await Timed("linq-selected-right-tree",()=>la.Concat(lchild).ToCosmicListAsync());
+        Assert.IsFalse(lright.IsError,lright.Message+lright.Exception);
+        CollectionAssert.AreEqual(new[]{"a|x","a|y","a|x","a|y","a|x"},lright.Result.Select(row=>row.Name+"|"+row.Category).ToArray());
         using var cancel=new CancellationTokenSource();cancel.Cancel();
         var stopped=await Timed("selected-cancel",()=>manager.ExecuteProjectedSetQueryAsync(Plan(query),new[]{adapter},10,cancellationToken:cancel.Token));
         Assert.IsTrue(stopped.IsError);Assert.AreEqual("CQL_QUERY_CANCELLED",stopped.ErrorCode);
-        return new NativeFixtureJourneyProof(9,1,new Dictionary<string,bool>{["explicitTreeAdmission"]=true,["concatOccurrences"]=true,
+        return new NativeFixtureJourneyProof(11,1,new Dictionary<string,bool>{["registeredLinqLeftTree"]=true,["registeredLinqRightTree"]=true,["explicitTreeAdmission"]=true,["concatOccurrences"]=true,
             ["visibleTupleUnion"]=true,["visibleTupleIntersectExcept"]=true,["nodeWindows"]=true,["rightNested"]=true,
             ["foreignIsolation"]=true,["childBoundBeforeEmpty"]=true,["cancellation"]=true});
     }
