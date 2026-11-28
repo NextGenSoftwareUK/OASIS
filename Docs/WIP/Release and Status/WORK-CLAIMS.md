@@ -186,7 +186,7 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 
 | Diagnose WEB6/WEB7/WEB9 failed8c7a3148deployments; preserve running configurations | Railway shipping gate | local: gpt-hyperdrive | work/gpt-railway-build-repair | 2026-11-28 05:32 UTC | DONE 03bf0ef24bcf; CI46113637170 packaging2/2 and Railway dev7/7 SUCCESS |
 
-| COSMIC Q50/Q51/Q53/Q54 nested set composition and scalar terminals | COSMIC ORM | local: gpt-cosmic | work/gpt-q50 | 2026-11-28T11:46:53.057Z | IN PROGRESS — backend aggregate batch32c83/Core60 deployed SUCCESS; XML-only13a6/Core0a published11:46:53UTC (next own>=12:16:53). Entity-stage selected operands25886971/Corecf34 await46140944273; JSON transport5d20cf3e awaits46141533128 compiler18/native15/WEB4. Reviewed; source boundaries/guard budgets retained. Identity-set late projection and SQL entity-input lowering OPEN; main144/168 extension4/13. |
+| COSMIC Q50/Q51/Q53/Q54 nested set composition and scalar terminals | COSMIC ORM | local: gpt-cosmic | work/gpt-q50 | 2026-11-28 12:03 UTC | IN PROGRESS — SDK entity-stage operands25886971/Corecf34 qualified46140944273; JSON transport5d20cf3e qualified46141533128 compiler18/native15/WEB4/cleanup; compact receipt0add18b4. Backend-only SQL lowering5e07576b awaits46142342992; browser untouched. Identity-set late projection OPEN; main144/168 extension4/13. Last own Dev13a6 at11:46:53UTC; next>=12:16:53. |
 
 | OPORTAL existing signed-in breadth suite: inspect isolated real-API harness and fill demonstrated screen gaps | OPORTAL | local: gpt-hyperdrive | work/gpt-oportal-isolated-breadth | 2026-11-28T06:20:52.225Z | DONE f6bd091d; router compatibility recheck2/2 CI46118199642; prior45172482199found later, no new-screen credit |
 
