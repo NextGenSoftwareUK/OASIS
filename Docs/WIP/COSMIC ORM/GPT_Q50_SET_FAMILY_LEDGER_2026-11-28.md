@@ -55,3 +55,42 @@ Cleanup: retained source drafts GPT_Q50_NATIVE_TREE_FIXTURE_DRAFT.cs and3Mongo t
 ### Current native gate and rollout metadata
 
 CI46117421264 queued for exact6402cd13/Core4e3e3e85, requiring nativeMongo tree1 + count3 and actual WEB4 build. No accepted native tree cohort yet. Last metadata: WEB4 batch8ed94e27 deployment2de13ccd BUILDING, peer67663f81 INITIALIZING and03bf0ef2SUCCESS. Deployment metadata does not replace application-data acceptance. No new source-data/API/shared Atlas/PIPER work. Owned source-only draft GPT_Q50_NATIVE_TREE_FIXTURE_DRAFT.cs and3Mongo tree drafts are retained/recorded; no local environments/builds/downloads or owner action.
+
+### Native SQLite recursive execution — implemented, native0/2 pending combined cohort
+
+SQLite compiles each child through the existing set/entity-stage compiler using one shared parameter owner. Child rows rejoin the same-snapshot canonical Holon table by native identity to drop child-only stage columns while preserving ordered duplicate occurrences. Each input descriptor carries its own leaf traversal guard or nested source/stage proof; the existing serializable read owner validates these recursively before publication, including empty outer output. Flat row/projection set reads now use that single source-proof owner rather than separate left/right traversal checks. Ordinary query validation remains unchanged. Row/count routing uses the structural Anchor. Real SQLite enrollment is explicit; Neo stays unenrolled.
+
+One shared journey now selects Mongo+SQLite trees (10groups/4IDs/1writebatch/12timings each) plus3existing count controls, requiring5passed cases, actual WEB4 and exact cleanup. The Mongo-only source6402cd13 continues its active46117421264 run; no observation timeout is treated as a failure. This changed combined graph gets its own exact qualification. Full parent rows still OPEN; main144/168 + extension4/13.
+
+Cleanup: retained source-only LocalState/COSMIC/GPT_Q50_SQLITE_TREE_DRAFTS.json. No local build/database/runtime/env/container/image/install/download/archive/shared Atlas/PIPER call or new David action. Source/name parameters are bound; no managed set evaluation or provider fallback.
+
+### Current exact-source gates
+
+Combined Mongo+SQLite tree source7e834b164575 runs46118224678; Mongo-only6402cd13 still runs46117421264. Both handles confirmed live. Next code is Neo recursive selection integrated with existing AppendCqlEntityStages/Publication; failure state must survive windows and every source remain authorized/complete. No native acceptance or full parent credit yet. No local build/env/download/test output; SQLite source-only recovery JSON retained.
+
+
+### Recursive admission root cause — qualification pending
+
+Mongo-only CI46117421264 failed: count3 passed, recursive1 failed before provider execution because CosmicQueryAttemptOwner dereferenced the nullable flat Left operand. Core0534cb49 now walks every immutable set input and captures every leaf read policy under the same inherited execution admission; indexed sources still reject before I/O. This fixes the shared owner rather than bypassing it with an Anchor-only policy. Combined predecessor46118224678 uses the old Core and is superseded by the corrected exact-source candidate. All parent rows remain OPEN; main144/168 + extension4/13. No local builds, downloads, databases or shared Atlas/PIPER operations.
+
+
+### Neo4j recursive compiler — native0/3 pending CI
+
+Neo4j now recursively compiles set nodes as native Cypher subqueries. Each returns ordered occurrences plus all leaf proofs and inherited schema/traversal/input/work failures. Node windows run through the existing entity-stage compiler with unique parameter prefixes. Native identity membership and Concat duplicates remain in Cypher; publication happens once. Decoder proof/count bounds use the admitted total leaf window rather than only the outer two inputs. Existing flat compilation is retained for flat queries. Expanded cohort requires tree3 + count3, actual WEB4 and exact fixture/container cleanup. Core admission fix0534cb49 is included. No full parent credit; main144/168 + extension4/13. No local build/runtime/database/download or shared Atlas/PIPER access.
+
+
+### Registered nested LINQ capture — qualification pending
+
+Core39488eac gives each set provider a registered constant root and binds every source/subtree through its owning provider. Source+tree, tree+source and tree+tree share one manager/native adapter and immutable CreateTree admission. No expression compilation or managed set evaluation. Deferred binding captures current parameters through registered state. Three native journey assertions add left nested windows, right nested operands and LongCount; tree cohort now13 groups/15timings per store, plus unchanged count3 controls. Full set rows remain OPEN; main144/168 + extension4/13. No local runtime/build/download/database or shared Atlas/PIPER access.
+
+
+### Recursive late selection qualification
+
+Neo4j late-selection source now uses the common tree Anchor and total admitted leaf proof bound. The same native tree journey additionally selects Name after the nested identity operations, preserving duplicate occurrences and order, with14groups/16timings per store. Tree membership remains entity identity; this does not claim recursive selected-tuple set equality. Native gates and full parents still pending. No local build/download/environment/database/shared data activity.
+
+
+### One Neo4j set compiler and Development metadata
+
+Flat and nested Neo4j sets now share the recursive native compiler; the duplicate binary compiler was removed. Existing count/window controls must qualify this shared owner alongside nested trees, LINQ and late selection. This is a source change requiring a new exact cohort, not a retry caused by observation timeout. Native acceptance remains pending; main144/168 + extension4/13.
+
+Railway selected deployment metadata:3118e6df-2541-4b85-97d3-6223d2b93be6 SUCCESS at Development67663f81, which contains qualified8ed94e27/Core0fd03ded. No new application-data/browser/shared Atlas/PIPER check. Current recursive candidate remains feature-only. Local free space34.19GiB measured; no local build/database/runtime/env/download/artifact, no reclamation claimed.
