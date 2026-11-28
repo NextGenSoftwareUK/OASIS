@@ -95,6 +95,9 @@ public class SEEDSOASISIntegrationTests
             $"{report.CurrentCase}: {report.FailureType} {report.FailureContract}; {report.Passed.Count} checks passed.");
         Assert.True(report.FixtureCleanupComplete);
         Assert.Equal(CoreStorageConformance.ChecksPerMode, report.Passed.Count);
+        await DelegatedStorageIdentityConformance.RunAsync(provider,
+            NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SEEDSOASIS,
+            NextGenSoftware.OASIS.API.Core.Enums.ProviderType.EOSIOOASIS, mode == "sync");
     }
 
     private static string Require(string name) =>

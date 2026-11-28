@@ -36,6 +36,8 @@ using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
 using System.Threading;
 
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("NextGenSoftware.OASIS.API.Providers.SEEDSOASIS")]
+
 namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
 {
     public partial class TelosOASIS : OASISStorageProviderBase, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISNETProvider
@@ -51,6 +53,9 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
         public EOSIOOASIS.EOSIOOASIS EOSIOOASIS => _eosioOASIS;
 
         public TelosOASIS(string host, string eosAccountName, string eosChainId, string eosAccountPk)
+            : this(host, eosAccountName, eosChainId, eosAccountPk, Core.Enums.ProviderType.TelosOASIS) { }
+
+        private TelosOASIS(string host, string eosAccountName, string eosChainId, string eosAccountPk, ProviderType storageProviderType)
         {
             this.ProviderName = "TelosOASIS";
             this.ProviderDescription = "Telos Provider";
@@ -65,6 +70,10 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             _httpClient = new HttpClient();
             _httpClient.BaseAddress = new Uri(host);
         }
+
+        internal TelosOASIS CreateStorageDelegate(ProviderType storageProviderType)
+            => new TelosOASIS(_eosioOASIS.HostURI, _eosioOASIS.EOSAccountName,
+                _eosioOASIS.EOSChainId, _eosioOASIS.EOSAccountPk, storageProviderType);
 
         private AvatarManager AvatarManager
         {

@@ -14,3 +14,5 @@
 - EOSIO invariant: contract record IDs are canonical storage keys. Save/read/delete by provider key must use the same repository and composing-provider type. Avatar/detail snapshots persist keys before commit; caller identity is acknowledged after a successful repository write.
 - Added focused native key round trips for Eclipse and Telos to their existing real Agave/Antelope suites, sync + async. CI pending; no acceptance or Development deployment claimed. SEEDS outer identity requires separate follow-up; existing SEEDS native suite remains part of Antelope regression.
 - No local builds/downloads/envs or shared Atlas calls; private indexes cleaned in finally.
+
+- Follow-up in the same batch: SEEDS also delegates to Telos; claimed separately. Give it an immutable delegate configured for SEEDSOASIS without mutating the injected Telos instance. Route provider-key entry points through that same canonical implementation and add real native key round trips. Telos/EOSIO corrected candidate passed Antelope CI46100505028 (both modes, including SEEDS existing26-check regressions); SEEDS identity changes now require their own acceptance.
