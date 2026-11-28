@@ -3112,3 +3112,7 @@ CI46123580498passed actual forgot/reset/new-password sign-in and previous-passwo
 ## 2026-11-28 — SDK delivery cleanup
 
 Remote SDK job46125573999always-cleanup passed, owned node_modules/npm cache absent. Two earlier fixture failures stopped before installs. All local verification ran in bounded Node/Python RAM input processes; no runtime/package installs, temp source files, downloads, builds, database or result files. Git source objects and compact receipts only. Private indexes are removed in finally, foreign working trees unchanged. No shared Atlas or535/543operation.
+
+## 2026-11-28 — populated OAPP acceptance
+
+Native/browser46126474607passed2/2new populated OAPP Map/Launcher journeys on current portalbe5da21c and real shipping WEB4/WEB5/native Mongo. Typed create publishes the root+child membership atomically; shallow response excludes children and explicit deep returns the actual child. Map filters/reset, Launcher category/search/detail/browse return and normal closes pass. Artifact15256241206(3361bytes) inspected in RAM proves all5Startup cleanup conditions; publish/browser/cache/TLS absent. Earlier apparent backend graph gap was an invalid fixture: a bare parent pointer does not add membership to a stored parent manifest. Resolver/admission/visibility remain unchanged; no fallback added. Baseline123/163unchanged, no global HyperDrive or whole-portal100%claim. No laptop environment/runtime/download/build/database/output, shared Atlas or new owner action.

@@ -1,0 +1,34 @@
+{
+  "run": 46126474607,
+  "url": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/46126474607",
+  "conclusion": "success",
+  "control": "2825061887879a096c66783cad15c7d3a9202ebb",
+  "web4Source": "fbea95eb33b67bfa1dc11d6a2b6c15bc9a7d7717",
+  "image": "sha256:f5cca6cd4781834468545a5ec2e24e50e1d7a34e3f2511a5e7d8b1a8eda8cabb",
+  "web5Source": "89d03b27997a598d0adb36e9d161dd2753ee3b0b",
+  "core": "c14e31908b3678b8a7e383af2e90d9cf960f3556",
+  "star": "5db9aa200b1eb8ad45011c1de061423520f33aee",
+  "portal": "be5da21cb2207cc6905965993b612ee44a566787",
+  "done": 2,
+  "total": 2,
+  "accepted": [
+    "Typed OAPP root+child create publishes real parent membership",
+    "Shallow catalogue roots exclude children; explicit deep returns child",
+    "Populated OAPP Map, filter/reset and normal close",
+    "Launcher category/search, actual detail identity, browse return/filter and normal close"
+  ],
+  "cleanup": {
+    "ownedContainersAbsent": true,
+    "ownedNetworkAbsent": true,
+    "ephemeralDatabaseVolumesRemoved": true,
+    "web5ProcessStopped": true,
+    "web5DnaAbsent": true,
+    "publishBrowserCacheTlsAbsent": true
+  },
+  "artifact": {
+    "id": 15256241206,
+    "bytes": 3361,
+    "inspection": "RAM only"
+  },
+  "limits": "Representative new populated flow on actual shipping WEB4+WEB5/native Mongo; no shared Atlas, hosted/published OAPP execution, paid operations or whole-portal100% claim. Existing empty catalogue cases not replayed."
+}
