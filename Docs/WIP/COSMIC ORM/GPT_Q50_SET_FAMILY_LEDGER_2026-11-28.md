@@ -55,3 +55,11 @@ Cleanup: retained source drafts GPT_Q50_NATIVE_TREE_FIXTURE_DRAFT.cs and3Mongo t
 ### Current native gate and rollout metadata
 
 CI46117421264 queued for exact6402cd13/Core4e3e3e85, requiring nativeMongo tree1 + count3 and actual WEB4 build. No accepted native tree cohort yet. Last metadata: WEB4 batch8ed94e27 deployment2de13ccd BUILDING, peer67663f81 INITIALIZING and03bf0ef2SUCCESS. Deployment metadata does not replace application-data acceptance. No new source-data/API/shared Atlas/PIPER work. Owned source-only draft GPT_Q50_NATIVE_TREE_FIXTURE_DRAFT.cs and3Mongo tree drafts are retained/recorded; no local environments/builds/downloads or owner action.
+
+### Native SQLite recursive execution — implemented, native0/2 pending combined cohort
+
+SQLite compiles each child through the existing set/entity-stage compiler using one shared parameter owner. Child rows rejoin the same-snapshot canonical Holon table by native identity to drop child-only stage columns while preserving ordered duplicate occurrences. Each input descriptor carries its own leaf traversal guard or nested source/stage proof; the existing serializable read owner validates these recursively before publication, including empty outer output. Flat row/projection set reads now use that single source-proof owner rather than separate left/right traversal checks. Ordinary query validation remains unchanged. Row/count routing uses the structural Anchor. Real SQLite enrollment is explicit; Neo stays unenrolled.
+
+One shared journey now selects Mongo+SQLite trees (10groups/4IDs/1writebatch/12timings each) plus3existing count controls, requiring5passed cases, actual WEB4 and exact cleanup. The Mongo-only source6402cd13 continues its active46117421264 run; no observation timeout is treated as a failure. This changed combined graph gets its own exact qualification. Full parent rows still OPEN; main144/168 + extension4/13.
+
+Cleanup: retained source-only LocalState/COSMIC/GPT_Q50_SQLITE_TREE_DRAFTS.json. No local build/database/runtime/env/container/image/install/download/archive/shared Atlas/PIPER call or new David action. Source/name parameters are bound; no managed set evaluation or provider fallback.

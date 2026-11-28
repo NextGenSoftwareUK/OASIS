@@ -43,7 +43,7 @@ public partial class HolonRepository
 
     public Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicSetQueryAsync<T>(CosmicSetQueryPlan<T> plan,
         int maximumResults,CancellationToken cancellationToken) where T:IHolon
-        =>ProjectCqlRowsAsync(ExecuteCqlReadAsync(plan?.Left,maximumResults,cancellationToken,set:plan));
+        =>ProjectCqlRowsAsync(ExecuteCqlReadAsync(plan?.Anchor,maximumResults,cancellationToken,set:plan));
 
     private sealed class CqlReadOutcome
     {
@@ -183,10 +183,8 @@ public partial class HolonRepository
                 try
                 {
                     budget.Check();
-                    await ValidateCqlRelationshipScopeAsync(translator, predicate, budget, traversal, cancellationToken).ConfigureAwait(false);
-                    if(setSql!=null)
-                        await ValidateCqlRelationshipScopeAsync(setSql.RightTranslator,setSql.RightPredicate,
-                            budget,traversal,cancellationToken).ConfigureAwait(false);
+                    if(setSql==null)
+                        await ValidateCqlRelationshipScopeAsync(translator,predicate,budget,traversal,cancellationToken).ConfigureAwait(false);
                     if (entitySql != null)
                     {
                         var options=composition?.Options??new CosmicEntityCompositionOptions(

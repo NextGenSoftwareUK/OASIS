@@ -8,8 +8,8 @@ using NextGenSoftware.OASIS.API.DNA;
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 public sealed partial class CqlV1Web4NativeTests
 {
-    [DataTestMethod] [DataRow("MongoDBOASIS")]
-    public Task NativeMongoRecursiveSetsPreserveNodeWindowsAndInputProofs(string providerName)
+    [DataTestMethod] [DataRow("MongoDBOASIS")] [DataRow("SQLLiteDBOASIS")]
+    public Task NativeRecursiveSetsPreserveNodeWindowsAndInputProofs(string providerName)
         =>RunGroupedDistinctNativeFixture(providerName,false,nativeJourney:VerifyNativeSetTree,
             nativeJourneySuffix:"-recursive-entity-set-native.json");
     private static async Task<NativeFixtureJourneyProof> VerifyNativeSetTree(IOASISStorageProvider provider,List<Guid> owned,Dictionary<string,long> timings)
@@ -51,7 +51,7 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED",CosmicSetQueryPlanner.Plan(intent,adapter.QueryProviderType,target,oldProfile).ErrorCode);
         Assert.IsNotNull(typeof(CosmicSetQueryOptions).GetConstructor(new[]{typeof(int),typeof(int),typeof(int),typeof(int)}));
         Assert.AreEqual("CQL_SET_ACCESS_MISMATCH",CosmicSetQuery<Holon>.CreateTree(Node(child),Leaf(Source(CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result)),CosmicSetQueryKind.Concat).ErrorCode);
-        var other=root.WithScope(CosmicQueryScope.Named(ProviderType.SQLLiteDBOASIS).Result);
+        var other=root.WithScope(CosmicQueryScope.Named(adapter.QueryProviderType==ProviderType.SQLLiteDBOASIS?ProviderType.MongoDBOASIS:ProviderType.SQLLiteDBOASIS).Result);
         Assert.AreEqual("CQL_SET_SCOPE_MISMATCH",CosmicSetQuery<Holon>.CreateTree(Node(child),Leaf(other),CosmicSetQueryKind.Union).ErrorCode);
         var modelBuilder=new CosmicModelBuilder();modelBuilder.Entity<Holon>();var model=modelBuilder.Build();Assert.IsFalse(model.IsError,model.Message);
         var mapped=CosmicQuery<Holon>.Create(scope).WithReadAccess(access).Result.WithModel(model.Result).Result;
