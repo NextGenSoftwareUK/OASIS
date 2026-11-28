@@ -10,6 +10,12 @@ on:
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.EclipseOASIS/**'
       - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.EclipseOASIS.IntegrationTests/**'
   workflow_dispatch:
+    inputs:
+      provider:
+        description: Native provider to verify (reuse accepted sibling evidence)
+        type: choice
+        options: [all, SolanaOASIS, EclipseOASIS]
+        default: all
 
 permissions:
   contents: read
@@ -55,6 +61,7 @@ jobs:
           umask 077
           fixture="$(mktemp -d "$RUNNER_TEMP/oasis-agave.XXXXXXXX")"
           validator_pid=""
+          eclipse=""
           cleanup() {
             if [[ -n "$validator_pid" ]]; then
               kill -TERM "$validator_pid" 2>/dev/null || true
@@ -64,6 +71,11 @@ jobs:
               done
               if kill -0 "$validator_pid" 2>/dev/null; then kill -KILL "$validator_pid"; fi
               wait "$validator_pid" || true
+            fi
+            if [[ -n "$eclipse" && "$eclipse" == "$RUNNER_TEMP"/oasis-native.* && -d "$eclipse" ]]; then
+              rm -rf -- "$eclipse"
+              test ! -e "$eclipse"
+              echo "Removed the owned Eclipse fixture directory."
             fi
             if [[ "$fixture" == "$RUNNER_TEMP"/oasis-agave.* && -d "$fixture" ]]; then
               rm -rf -- "$fixture"
@@ -104,6 +116,7 @@ jobs:
           export OASIS_SOLANA_FRESH_CONFORMANCE=1
           export OASIS_SOLANA_STORAGE_ENCRYPTION_KEY="$(openssl rand -base64 32)"
           echo "::add-mask::$OASIS_SOLANA_STORAGE_ENCRYPTION_KEY"
+          if [[ "${{ inputs.provider }}" != EclipseOASIS ]]; then
           pwsh -NoProfile -Command '
             ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-SolanaStorage -Operation {
               dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests.csproj" --filter "TestCategory=SolanaCoreStorageConformance" /p:SolanaDirectProviderOnly=true /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
@@ -114,6 +127,8 @@ jobs:
             jq -e '.Succeeded and .FixtureCleanupComplete and (.Passed | length == 26)' "$report" >/dev/null
             echo "$mode: 26 native checks and logical fixture cleanup passed."
           done
+          fi
+          if [[ "${{ inputs.provider }}" != SolanaOASIS ]]; then
           # Eclipse (SVM) on the same local ledger, with its own airdrop-funded signer.
           eclipse="$(mktemp -d "$RUNNER_TEMP/oasis-native.XXXXXXXX")"
           "$bin/solana-keygen" new --silent --no-bip39-passphrase --outfile "$eclipse/keypair.json"
@@ -127,3 +142,4 @@ jobs:
           done
           rm -rf -- "$eclipse"
           echo "Eclipse passed both storage modes against the local SVM ledger."
+          fi

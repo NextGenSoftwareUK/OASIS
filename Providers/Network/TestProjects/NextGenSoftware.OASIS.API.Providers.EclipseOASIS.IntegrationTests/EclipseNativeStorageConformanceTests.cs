@@ -54,5 +54,8 @@ public sealed class EclipseNativeStorageConformanceTests
         Assert.IsTrue(report.Succeeded, $"{report.CurrentCase}: {report.FailureType} {report.FailureContract}; {report.Passed.Count} checks passed.");
         Assert.IsTrue(report.FixtureCleanupComplete);
         Assert.AreEqual(CoreStorageConformance.ChecksPerMode, report.Passed.Count);
+        await DelegatedStorageIdentityConformance.RunAsync(provider,
+            NextGenSoftware.OASIS.API.Core.Enums.ProviderType.EclipseOASIS,
+            NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SolanaOASIS, synchronous);
     }
 }

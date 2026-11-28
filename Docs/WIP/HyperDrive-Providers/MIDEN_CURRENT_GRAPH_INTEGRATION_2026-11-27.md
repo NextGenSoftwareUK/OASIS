@@ -13,3 +13,7 @@ Current Core6613656a/published SDK/shipping-constructor baseline passed52/52 in 
 Official SDK0.18.1 source confirms named Node stores persist at `~/.miden/stores/<name>`; the previous random name created a fresh persistent store every worker start. The fix reuses a deterministic node/account namespace and preserves runtime signing/journal data. CI supplies an absolute `.db` path inside its owned fixture. Managed provider disposal owns both crypto wrapper and physical SDK backend, so worker processes exit before fixture deletion. Session initialization is invalidated after a lost worker; a future operation reinitializes without replaying the failed operation.
 
 One native lifecycle case verifies explicit error after an injected worker loss, subsequent read/reopen of an acknowledged record at the same version, actual worker exit on disposal, and no SDK home-directory stores in CI. Both26-check modes remain required on the changed initializer. Lifecycle acceptance pending; no global or live-provider100% claim. Official pinned source: https://github.com/0xMiden/web-sdk/blob/v0.18.1/crates/web-client/js/node/client-factory.js
+
+## Accepted lifecycle revision
+
+CI46106768815 on6fd58ec3 passed both26-check modes plus the native SDK lifecycle case, zero skips. Published output and fixture stores were removed. The subsequent merge preserves COSMIC-only Core5e8f22d; its shipping build is checked separately. Hosted admission is not implied.

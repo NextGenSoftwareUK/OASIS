@@ -1,0 +1,14 @@
+{
+  "provider": "MidenOASIS",
+  "source": "6fd58ec3daa4bd30279730fba90b6ebf44bdc9b6",
+  "run": 46106768815,
+  "url": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/46106768815",
+  "conclusion": "success",
+  "sync": 26,
+  "async": 26,
+  "lifecycle": 1,
+  "skipped": 0,
+  "backend": "miden-node0.18.3 with official @miden-sdk/miden-sdk0.18.1 and Kubo; disposable CI network",
+  "cleanup": "Owned containers/volumes, SDK stores and published test output removed; no local artifacts",
+  "scope": "Native core storage and SDK lifecycle; hosted acceptance separate"
+}
