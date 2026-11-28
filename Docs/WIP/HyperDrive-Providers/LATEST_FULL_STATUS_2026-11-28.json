@@ -4,8 +4,8 @@
   "source": {
     "oasisDevelopment": "7c8bb492b613ae653c4dee372588de3efb246ce0",
     "portalDev": "61f68f16cb3defc2729b34e4427be2ff4a364c81",
-    "portalDocsMain": "e114e9bf0d800ba9199286b306b39f691ddae787",
-    "corePinned": "1b24c6291c6500888d735e9eb9d81b30b802d1e8",
+    "portalDocsMain": "5bdd1778186dcce679f426fc3170d22bc65f37b0",
+    "corePinned": "72245df55b097f9ea2ccdbbcb77000d0a08994e7",
     "runningCurrentDeploymentsVerified": false,
     "portalStaticAssetsVerified": {
       "url": "https://dev.oportal.oasisomniverse.one/portal.html",
@@ -15,12 +15,12 @@
       "scope": "One static HTML request; no browser execution/sign-in/backend request"
     },
     "deploymentMetadata": {
-      "oasisRevision": "5b28612aa73dbd1836630b661b8d72131ffb33c6",
+      "oasisRevision": "7c8bb492b613ae653c4dee372588de3efb246ce0",
       "done": 7,
       "total": 7,
       "status": "success",
-      "lastUpdated": "2026-11-28T09:44:37Z",
-      "scope": "GitHub deployment metadata only, not hosted functional acceptance"
+      "lastUpdated": "2026-11-28T10:16:07Z",
+      "scope": "GitHub deployment metadata only; no hosted sign-in or functional certification"
     }
   },
   "providers": {
@@ -94,12 +94,12 @@
   },
   "activeWork": [
     {
-      "item": "Holon Diff recovered shared startup and real published-version browser flow",
+      "item": "Holon Diff two real published versions, comparison and stored-ID seals",
       "branch": "work/gpt-oportal-holon-diff",
       "source": "233dad7b2e7e5f01060ef5f855674a8b90187354",
-      "control": "b0334d9781d906c8beba89c1e4a02ec7b3613fce",
-      "run": 46134066175,
-      "status": "running; not accepted or deployed"
+      "control": "64079118f939fc60e08db29cf7c63d6c005ff31c",
+      "run": 46135304200,
+      "status": "running after explicit isolated metadata-tariff repair; no functional acceptance or deployment"
     }
   ],
   "ownerActions": {
@@ -127,12 +127,12 @@
   },
   "completedPendingIntegration": [
     {
-      "item": "Truthful OAPP detail errors",
-      "candidate": "5e225f8d7ba9d59670a764a22874576afca5387e",
+      "item": "OAPP truthful detail error, native SDK/API1/1",
+      "candidate": "52babe72fd0c1de0961d9d49d614418c49880fe8",
       "run": 46132041520
     },
     {
-      "item": "ONET reads/local lifecycle qualification",
+      "item": "ONET real native browser reads/local lifecycle1/1",
       "source": "4de930514ea6e58f980ba8fa275023b9253cb08c",
       "run": 46133501110
     }

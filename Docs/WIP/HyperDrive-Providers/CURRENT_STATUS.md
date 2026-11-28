@@ -2,6 +2,12 @@
 
 Updated2026-11-28UTC. Shared Atlas is not a test backend; protected deliveries535/543 remain untouched. Work uses owned branch refs and isolated CI, preserving concurrent physical checkouts.
 
+## Latest OPORTAL continuation — 28 November
+
+Selected new native/browser flows5/5(recovery1, populated Map/Launcher2, migration1, ONET1); separate real OAPP SDK/API missing-detail result1/1 and current SDK delivery3/3. Preserved earlier accepted proofs without replay. The accepted OAPP/ONET batch preserves current CQL7c8bb492/Core72245df5 and new STAR CLIb8e4f784, awaiting shared cadence integration. Holon Diff is still unaccepted: cold history/create pass; publish fixture metadata tariffs corrected, new46135304200running. Whole OPORTAL, paid/hosted gates and global HyperDrive v2 remain open. [Structured current report](LATEST_FULL_STATUS_2026-11-28.json).
+
+Development7c8bb492has7/7SUCCESS GitHub deployment receipts as of10:16:07UTC; metadata is not hosted end-to-end acceptance. Laptop32.81GiBfree/owned temporary indexes0; no local downloads/env/build/database/results or shared Atlas tests. No new David action.
+
 ## Railway shipping gate verified
 
 WEB6/WEB7/WEB9 deployments for8c7a3148 failed at the unconditional Miden SDK install. Qualified root fix moves Miden into the existing publish-graph packager: a shipped Miden assembly requires its complete SDK, while API graphs without that provider do not install it. CI46113637170passed both real Miden-consumer and WEB6publish-graph checks plus cleanup. Corrected-source03bf0ef24bcf rollout reports7/7 Railway dev deployment statuses SUCCESS (2026-11-28T06:20Z); accepted native storage cases were not repeated. No running-environment setting or secret changed.
