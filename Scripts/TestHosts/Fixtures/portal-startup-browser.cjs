@@ -213,7 +213,7 @@ async function main(){
     }
    }catch{fact.json=false;}
   });
-  stage='page and Beam In';await page.goto(origin+'/',{waitUntil:'domcontentloaded'});
+  stage='page and Beam In';await page.goto(origin+'/portal.html',{waitUntil:'domcontentloaded'});
   await page.locator('.js-modal-trigger[data-signin="login"]:visible').first().click();
   await page.locator('#login-email').fill(account.username);await page.locator('#login-password').fill(account.password);
   await page.locator('#login-submit').click();
@@ -239,7 +239,7 @@ async function main(){
     }}
     try{
      if(await page.locator(closeSelector).isVisible()){
-      await page.locator(closeSelector).click();await page.waitForURL(url=>url.pathname==='/');
+      await page.locator(closeSelector).click();await page.waitForURL(url=>url.pathname==='/portal.html');
      }
     }catch(error){console.error('PORTAL_STARTUP_POPUP_CLOSE_FAILURE:'+JSON.stringify({name,errorType:error.name,path:new URL(page.url()).pathname}));closePassed=false;passed=false;if(observedStage===name)observedStage=name+' close';}
     outcomes.push({name,passed,stage:observedStage,closePassed});
