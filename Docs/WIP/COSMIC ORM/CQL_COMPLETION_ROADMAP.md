@@ -21,7 +21,7 @@ Both new endpoints get the same validation, size limits, idempotency and usage m
 - Goal: every checklist feature works on all OASIS providers (238 tracked provider projects, including legacy variants), not just the three.
 - Native translation where the provider can express it; otherwise a clearly flagged fallback (OASIS reads the records through the provider and evaluates the query in memory). No silent emulation.
 - Providers that cannot store data (read-only chain adapters, "no record store" service providers) support the read-only query kinds only.
-- Tracked as a provider x feature matrix in done/total form. Priority providers first, breadth first. Depends on HyperDrive native storage (119/163 storage-role matrix rows have recorded native core-storage baselines;238tracked projects in total, not238eligible stores or hosted certifications).
+- Tracked as a provider x feature matrix in done/total form. Priority providers first, breadth first. Depends on HyperDrive native storage (121/163 storage-role matrix rows have recorded native core-storage baselines;238tracked projects in total, not238eligible stores or hosted certifications).
 
 ### Phase 2c: native data import and virtual holon mappings on every provider
 

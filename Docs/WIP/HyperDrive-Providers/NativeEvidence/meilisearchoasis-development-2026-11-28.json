@@ -1,0 +1,19 @@
+{
+  "provider": "MeilisearchOASIS",
+  "suite": "core-storage-v2",
+  "mode": "native",
+  "source": "67663f814422b58dca1a7e427d7afeea36f567cc",
+  "core": "0fd03dede3f2caaa02ec6e2c5ff75319f9528e55",
+  "inputTree": "b026c3db2d188c720437212de84cc6475ec6199f",
+  "run": 46117709175,
+  "url": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/46117709175",
+  "conclusion": "success",
+  "sync": 26,
+  "async": 26,
+  "passed": 52,
+  "total": 52,
+  "skipped": 0,
+  "fixReused": "Corec19b8e1a2061403ea544a7fb2eb70c8787b9061e; interface-valued non-collection JSON values populate their constructed instances, while concrete values and collections retain replacement semantics.",
+  "cleanup": "Both mode checkpoints FixtureCleanupComplete true, real native stores independently emptied by suite and owned node/volumes/fixture removed by EXIT trap.",
+  "scope": "Current exact Development native core-storage baseline; no new provider source fix, no mock, no shared Atlas. Hosted/full-interface and global routing acceptance remain separate."
+}

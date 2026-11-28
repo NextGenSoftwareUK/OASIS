@@ -626,6 +626,30 @@
       "blockers": [
         "Historical accepted native baseline; provider tree byte-identical. No new test or latest shared-graph/hosted/full-interface certification."
       ]
+    },
+    {
+      "provider": "MeilisearchOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/meilisearchoasis-development-2026-11-28.json",
+      "sha256": "0a9bcde42f792e89ae1dd8745557ba69971ee2b9db833fe0d36236f7c06352b1",
+      "blockers": [
+        "Current exact Development native core-storage baseline; no new provider source fix, no mock, no shared Atlas. Hosted/full-interface and global routing acceptance remain separate."
+      ]
+    },
+    {
+      "provider": "SolrOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/solroasis-development-2026-11-28.json",
+      "sha256": "0079ec7d0e47b9dfe30b6ca55bd7ba7422cf711eab133c54edefaf3d7a7dd109",
+      "blockers": [
+        "Current exact Development native core-storage baseline; no new provider source fix, no mock, no shared Atlas. Hosted/full-interface and global routing acceptance remain separate."
+      ]
     }
   ],
   "providerBlockers": {
