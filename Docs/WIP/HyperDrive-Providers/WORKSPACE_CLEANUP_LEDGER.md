@@ -3104,3 +3104,7 @@ Meilisearch46117709175andSolr46117714885verified owned nodes/volumes/fixture abs
 ## 2026-11-28 — Garnet native acceptance
 
 CI46122538895 passed26sync+26async with zero skips on official Garnet2.2.5, native DBSIZE0 and owned container/volume/fixture cleanup. Hosted durability/restart and all-interface acceptance remain separate. Source d7a6ed18ab05. Matrix native baselines123/163; provider project inventory238/238 unchanged. First probe-only failure retained; only failed Garnet path retried. No laptop download/env/build/output/database, shared Atlas call or new David action. Owned remote resources removed; compact source receipt retained.
+
+## 2026-11-28 — populated OAPP acceptance
+
+Native/browser46126474607passed2/2new populated OAPP Map/Launcher journeys on current portalbe5da21c and real shipping WEB4/WEB5/native Mongo. Typed create publishes the root+child membership atomically; shallow response excludes children and explicit deep returns the actual child. Map filters/reset, Launcher category/search/detail/browse return and normal closes pass. Artifact15256241206(3361bytes) inspected in RAM proves all5Startup cleanup conditions; publish/browser/cache/TLS absent. Earlier apparent backend graph gap was an invalid fixture: a bare parent pointer does not add membership to a stored parent manifest. Resolver/admission/visibility remain unchanged; no fallback added. Baseline123/163unchanged, no global HyperDrive or whole-portal100%claim. No laptop environment/runtime/download/build/database/output, shared Atlas or new owner action.
