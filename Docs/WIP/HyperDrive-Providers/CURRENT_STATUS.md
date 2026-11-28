@@ -2,6 +2,10 @@
 
 Updated2026-11-28UTC. Shared Atlas is not a test backend; protected deliveries535/543 remain untouched. Work uses owned branch refs and isolated CI, preserving concurrent physical checkouts.
 
+## Railway shipping gate under repair
+
+WEB6/WEB7/WEB9 deployments for8c7a3148 failed at the unconditional Miden SDK install. Proposed root fix moves Miden into the existing publish-graph packager: a shipped Miden assembly requires its complete SDK, while API graphs without that provider do not install it. Real Miden-consumer and WEB6-publish packaging checks are pending; accepted native storage cases are not repeated. No running-environment setting or secret changed.
+
 ## Progress and scope
 
 | Scope | Done/total | Evidence / limits |

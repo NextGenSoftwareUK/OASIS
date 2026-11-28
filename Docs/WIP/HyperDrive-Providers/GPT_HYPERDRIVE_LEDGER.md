@@ -55,3 +55,7 @@ Reconciled17/17existing native receipts; provider-directory trees match Developm
 ## 2026-11-28 — Elasticsearch and Qdrant native accepted
 
 Existing shipping-provider suites now run in isolated CI46111639871 on5f03746c7ac9c6208f33678b387703aa6b62a2cb. Both passed26sync+26async, zero skips, independent native empty-store checks and all fixture/container/output cleanup. Existing accepted popular matrix skipped. Native matrix baseline rows117/163; inventory238/75non-storage unchanged. Core README65a90d7 corrects nonexistent migration classes and canonical ownership; its only diff from accepted907cd4b is documentation, so no provider reruns.
+
+## 2026-11-28 — Railway SDK publish-graph repair (qualification pending)
+
+Read-only selected build logs prove WEB6/7/9failed at my unconditional Miden SDK install. Fix the shared packaging owner, remove7unconditional Docker steps and require complete SDK assets whenever the Miden provider assembly is actually shipped. New packaging-only CI uses real Miden consumer and WEB6publish graphs on Docker-pinned Node24.19.0, with owned/app/publish cleanup and no ledger/native rerun. This is agent-owned engineering work; no owner action, DNA/secret change or shared Atlas operation.
