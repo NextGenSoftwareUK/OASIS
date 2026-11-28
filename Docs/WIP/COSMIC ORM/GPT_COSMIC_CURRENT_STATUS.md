@@ -1,33 +1,57 @@
 # COSMIC current status
 
-Updated 2026-11-28T09:57:22.953Z. Session gpt-cosmic; one task branch work/gpt-q50.
+Updated 2026-11-28T10:50:17.174Z. Session gpt-cosmic; one implementation/evidence branch work/gpt-q50. Historical decisions/failures remain in the M04/Q50 ledgers.
 
 ## Progress
 
-Main checklist **144/168**, extension **4/13**. O07, M01 and M09 are the three full rows completed this session, each native-qualified on MongoDB/SQLite/Neo4j plus actual WEB4 build. M04 remains OPEN; accepted XML ordinary-class/identity/alias/numeric/inheritance/component increments remain preserved in the deployed lineage. Relationships, collections, schema/custom-type scope remain incomplete.
+Main checklist **144/168**, extension **4/13**. Full rows completed this session: **O07, M01, M09**, each native-qualified on MongoDB, SQLite and Neo4j plus actual WEB4 build and exact cleanup. M04, Q50, Q51, Q53 and Q54 remain OPEN; accepted increments do not earn full-row credit.
 
-Q50/Q51/Q53/Q54 remain OPEN. New accepted functional breadth: recursive entity and selected-value trees; per-node windows and complete source proofs; typed DTO/anonymous/scalar views feeding further selected sets; native filters/order/Distinct/pages and element windows; Count/LongCount/Any/All, Min/Max, Sum/Average through shared native owners without intermediate DTO constructors. Numeric representative scope is Int32 Sum and Int32-to-Double Average; broader numeric domain kernels are implemented but not newly exhaustively hardened. Mixed identity-set late-projection operands remain an open composition family.
+Accepted breadth: recursive entity/visible-tuple sets, node windows, selected filters/order/Distinct/pages/elements, typed DTO/anonymous/scalar views feeding further selected sets, and native cardinality/extrema/numeric terminals without intermediate DTO construction. Mixed identity-set late-projection operands remain open. Broader numeric kernels exist; representative new domains are Int32 Sum and Int32-to-Double Average, not exhaustive new hardening.
 
-## Latest exact qualification
+## Deployed Development
 
-[CI46131669929](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/46131669929) PASSED **15/15 native cases**, **15/15 compiler/capture controls**, actual WEB4 build and exact owned cleanup. Exact source f32951a24e6b98dc3b586d63abbe9cbe92830f44, Core72245df55b097f9ea2ccdbbcb77000d0a08994e7. Artifact15257792940, SHA256 b80928c80c4ca976a4753164b12dd235f81af497dd18ddfc6811e2f4ff903791, all18entries checked in RAM. Each selected journey25groups/33timings; each server-SQL compiler to real Set HTTP journey6groups/9timings, owner/foreign/anonymous and one settled attempt. This is native/compiler acceptance; a new full hosted SQL browser walkthrough is not claimed. Earlier failures and fixes remain in the ledger.
+**Development49f8f1c77ff23529496a46efb7b0d4441dc661ce / Core551ac0d8302dfe66415b3a9b78b5d16fc0b08590.** Pushed2026-11-28T10:30:43.703Z as one verified batch preserving peer874d4de3 ONET/OAPP changes and dependency pins. Railway WEB4 deployment2ef0500e-8bd0-4fc0-8029-83598d026fa9 reports **SUCCESS**. Metadata-only revision verification; no new hosted query/browser acceptance claimed. No staging/production deployment.
 
-## Development and next source gate
+| Qualified increment | Source / Core | CI evidence |
+|---|---|---|
+| Typed selected-set composition, elements/scalars, recursive backend SQL/count | f32951a2 /72245df5 | [46131669929](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/46131669929):15 compiler +15 native, WEB4/cleanup;18 artifact entries inspected |
+| Backend selected-set SQL SUM/AVG | a6407f06 /ed51f44d | [46132720360](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/46132720360):16 compiler +15 native, WEB4/cleanup;18 artifact entries inspected |
+| Canonical XML Version and native stale-write/winner/caller controls | d36a143c /551ac0d8 | [46134517647](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/46134517647):3 native +1 admission, WEB4/cleanup;5 artifact entries inspected; CQL regression46134517653 passed |
 
-Preparing one verified scoped merge onto Development5b28612a; peer portal/workflow evidence is preserved and Core1b24c629 is an ancestor of qualified72245df5. Previous own Development batchdb6963c4 at08:47:38UTC reported WEB4 SUCCESS. New rollout metadata and application-data acceptance will be recorded separately. At most one normal own Development push per30minutes; no unverified feature or empty synchronization deployment.
+Independent exact-ref reviews found no merge blockers; compact acceptance JSON contains hashes and exact revisions. Full M04 XML relationships, collections, schema/custom types and remaining generators are incomplete.
 
-Backend SQL SUM(alias)/AVG(alias) over selected sets is the separate candidatea6407f06/Coreed51f44d in CI46132720360, excluded from the accepted merge. Server parser20/20 locally; required16compiler +15native +WEB4 pending. Existing accepted backend SQL recursion, selected Count/Any and updated server AI drafting are in the qualified batch. Browser cql-text.js/cql-ask.js are untouched. Phase2a backend endpoints remain DONE; expanded syntax is tracked by actual qualification. Dedicated typed gRPC/GraphQL CQL operations remain an existing transport gap; SDK main Data.set/sql/ask generic forwarding was verified without edits.
+## Current source qualification
 
-Full provider parity, native import, virtual/hybrid holons, per-avatar/app policies and ONODE profiles remain in the roadmap. Accepted107-source baseline retained without rechecking. Hosted Neo4j stays stopped for cost; CI containers are independent. Existing TRON owner key action remains deferred; no new David action.
+Candidate **d0d03d2f429ad722e2784f7f3c4ead29c67dbf31 / Core1b061dca526d07582dc1cd88bc8bb3ad13f367a0** adds backend selected-set SQL MIN/MAX, COUNT(alias), COUNT(DISTINCT alias), and one shared native extrema planner for backend and LINQ/typed views. Local existing Node18 server parser **32/32** passed; independent review found no blockers. CI **46137078181** must pass compiler17/native15/actual WEB4 and cleanup before integration. Earlier paired26efb078/Core3c23ee04 is running46136894293. Native HTTP checks cover owner/foreign/anonymous, null column counts, distinct values, prior windows and one settled physical attempt.
+
+Earlier46136308349 failed because Core ModelValueType was internal; Core3c23ee04 exposes the canonical read-only property. Superseded46136695804 cancelled. Failures remain in the ledger; no acceptance from source/review alone. Next normal own Development push **no earlier11:00:43UTC**, one qualified batch preserving latest concurrent work.
+
+## Remaining roadmap
+
+Phase2a backend /api/data/query-cql/sql and /ask baseline is DONE. SQL parser and AI drafting engine live only in WEB4 Services/Cql/Text; **do not edit Web4Site cql-text.js or cql-ask.js**. Expanded syntax is qualified separately. SDK Data.set/sql/ask generic forwarding is present; dedicated typed gRPC/GraphQL CQL set operations remain a documented gap.
+
+Preserve full provider parity, import, full/virtual/hybrid holons and per-avatar/app policies, then ONODE profiles. Baseline:238 tracked projects, native import8/238, virtual mappings3/238 with demo-source restriction still open,107 enrolled Development CQL sources (accepted baseline retained, not rechecked). Hosted Neo4j stays stopped for cost; CI containers are independent. Existing TRON key action remains deferred; **no new ACTIONS-FOR-DAVID entry**.
 
 ## Cleanup and isolation
 
-No local .NET builds, runtime installs, environments, databases, containers or retained artifact downloads. Existing Node runs parser controls without output files. Artifact zips inspected in RAM and released; compact evidence retained, CI artifacts expire2days. No shared Atlas/PIPER calls or data changes. Last measured free32.85GiB; no reclamation claim. Unrelated working-tree changes preserved; temporary scoped Git indexes removed.
+No local .NET builds, runtime installs, environments, databases, containers, worktrees or retained artifact downloads created. CI owns isolated Mongo/Neo4j/SQLite fixtures and exact cleanup. Artifact ZIPs inspected in RAM/released; compact evidence retained, artifacts expire2days. Existing Node parser checks produce no output files. Latest measured **32.33GiB free**, no reclamation claim. Temporary scoped Git indexes removed; unrelated source/credentials/user data preserved. **No shared Atlas/PIPER tests, polling or data changes.**
 
 
-## 2026-11-28 backend selected-set SQL aggregates
+## 2026-11-28 M04 registered XML custom scalar types (qualification pending)
 
-Qualified a6407f06/Coreed51f44d in CI46132720360: 16 compiler/capture cases, 15 native cases across MongoDB/SQLite/Neo4j, actual WEB4 build and exact fixture cleanup. All 18 artifact entries inspected; SHA256 1f41718057bc17533c2b6ceb69433a9d2dcda56a6087d939fa1805f804d8d5fd. SQL SUM/AVG over selected set results lower on the backend, preserving actor, visible alias and native one-attempt constraints. Independent exact-ref review found no blockers. Browser engines untouched. Main144/168, extension4/13 unchanged; full Q50/Q51/Q53/Q54 and M04 remain open. XML version source551ac0d8 is excluded pending its separate gate. Development live acceptance still requires deployed revision verification. No shared Atlas/PIPER calls.
+Added ImportNHibernateXml overload with a bounded explicit name-to-CosmicValueConverter registry. XML never loads a type/assembly; unknown names, mismatched CLR types and canonical Holon-field conversion overrides fail atomically. The isolated import copies its frozen conversion bindings into the destination model. Scalar property mappings reuse native storage/query/projection/session conversion and declared equality/ordering semantics; components and full NHibernate IUserType/relational SQL type contracts are not claimed.
+
+Representative qualification reuses the real conversion journey on MongoDB/SQLite/Neo4j (native save/representation, filter/order/projection/membership/set, caller isolation, acknowledged mutable update and frozen model) plus an atomic registry control. Together with accepted XML Version regression the gate is native6 +admission2, actual WEB4 and exact cleanup. Source pending, main144/168 extension4/13; full M04 OPEN. No local builds/installs/DBs/artifact downloads or shared Atlas/PIPER operations.
 
 
-Canonical XML version mapping additionally qualified in46134517647 (native3/admission1/WEB4/exact cleanup), and CQL regression46134517653 passed on the combined Core551ac0d8. All5 XML artifact entries inspected, native stale-write/caller controls verified; independent exact-ref review found no blockers. This supersedes the pending/excluded note above: both qualified increments are included in this one scoped batch. Full M04 and set-parent rows remain open; main144/168 extension4/13 unchanged.
+## 2026-11-28 backend aggregate acceptance
+
+CI46137078181 accepted d0d03d2f/Core1b061dca: compiler17/17, native15/15, actual WEB4 and exact cleanup. All18artifact entries independently inspected in RAM; artifact15260118428 SHA256 b51945b844f09a3ae6dfe511535d2afeafdfda6dd9e6481b0deaa83f9f3c0ced. Server parser32 checks; each real-provider HTTP journey9groups/25timings/16settled operations, including MIN/MAX and nullable/distinct selected counts with owner/foreign/anonymous boundaries. Both LINQ extrema paths use the same native scalar owner. Independent review passed. This supersedes the earlier pending aggregate note. Main144/168 extension4/13 unchanged; mixed identity-set late-projection operands/full parent rows remain OPEN. New XML custom types45d6/Core00cdfbcd remain pending separate qualification and excluded from the next Dev aggregate batch.
+
+
+Next Development batch carries qualified d0d03d2f/Core1b061dca only; registered XML custom types00cdfbcd remain excluded pending their separate gate. Normal push not before11:00:43UTC. Native acceptance does not imply a new hosted browser/query walkthrough.
+
+
+## Combined dependency qualification
+
+Development advanced concurrently to308ed7cf with Corec0e8f2b8 real metadata-read tariff classification. The push guard preserved that work. Aggregate source d0d03d2f/Core1b061dca remains accepted46137078181, but this exact new dependency pair must qualify before deployment. Paired aggregate Core60c4e11f includes only accepted native extrema plus peer billing; XML custom types are excluded. Existing one feature branch is used for this frozen integration checkpoint; pending XML source45d6fdaa and corrected full Core0a4074ec remain preserved in commit history for the next source slice. XML dictionary-capture compile failure46137736017/46137735964 was fixed in Core9c0e297b with a bounded129-entry snapshot. Full M04 remains OPEN. No new branch/worktree/environment, no shared Atlas/PIPER operation, no unverified Dev push.

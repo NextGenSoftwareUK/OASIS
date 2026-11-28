@@ -15,6 +15,8 @@ public static partial class CqlV1Endpoint
         ICqlV1Providers providers,Guid actor,ProviderType selected,CosmicQueryReadAccess access,
         IOASISProvider storage,ICosmicQueryStorageProvider rowAdapter)
     {
+        if(request.Reduction is "Min" or "Max")
+            return await ExecuteProjectedSetExtremumReductionAsync(http,request,providers,actor,selected,access,storage,rowAdapter);
         if(request.Reduction is "Sum" or "Average")
             return await ExecuteProjectedSetNumericReductionAsync(http,request,providers,actor,selected,access,storage,rowAdapter);
         if(rowAdapter is not ICosmicQueryProjectedSetCountStorageProvider {SupportsProjectedSetCount:true} adapter)

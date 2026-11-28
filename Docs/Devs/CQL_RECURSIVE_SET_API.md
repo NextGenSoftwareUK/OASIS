@@ -26,3 +26,16 @@ Source implementation is pending isolated native HTTP and actual WEB4 CI qualifi
 
 
 Typed selected-set views retain native tuple membership while changing the final DTO/anonymous/scalar shape. Filtering, ordering, windows, value Distinct, further selected set operations, cardinality, numeric/extremum and element terminals use the same native snapshot/attempt/proof owner. Intermediate DTOs are not constructed. CLR constructors do not determine native tuple equality; explicit custom comparers remain unsupported. Mixed identity-set late-projection operands remain a separate open scope. Qualification status is maintained in GPT_COSMIC_CURRENT_STATUS.md and the set-family ledger; source presence does not imply full parity or live acceptance.
+
+
+### Selected-set extrema
+
+The server SQL compiler accepts `WITH q AS ((SELECT Name AS Label FROM MongoDBOASIS LIMIT 2) UNION ALL (SELECT Name AS Label FROM MongoDBOASIS LIMIT 2)) SELECT MIN(Label) AS First FROM q` and `MAX(Label)`. The existing set JSON request uses `reduction: "Min"` or `"Max"` with `reductionColumn` naming a currently visible output alias. Each provider must enroll that exact extrema domain. Original set membership and every earlier selected window/filter remain before null exclusion, native winner ordering and Take(1). Complete proof and actor/provider admission run through the same one-attempt owner; only the validated winning cell is returned in `cql-scalar-v1`. No enclosing DTO constructor runs. Empty reference/nullable extrema return null; empty non-nullable value extrema fail with `CQL_EMPTY_SEQUENCE`. This does not add entity-set numeric reduction or mixed identity/selected operands. Qualification pending; no full parent-row credit. Browser engines are not changed. Existing generic SDK/MCP JSON forwarding uses the same route; dedicated typed gRPC/GraphQL set operations remain a documented gap.
+
+
+### Selected-value counts
+
+`WITH q AS ((SELECT Name AS Label FROM MongoDBOASIS LIMIT 2) UNION ALL (SELECT Name AS Label FROM MongoDBOASIS LIMIT 2)) SELECT COUNT(DISTINCT Label) AS Total FROM q` excludes nulls and counts unique visible Label values. `COUNT(Label)` preserves non-null occurrences. Both lower on the server to the existing native selected stages and `LongCount` contract, after every earlier membership/window/filter. In a multi-column tuple set, distinct counting selects only the requested visible alias before its final Distinct; it does not change the earlier set equality. Original budgets and caller/provider proof still apply. Qualification pending.
+
+
+2026-11-28 qualification update: selected-set extrema and value/distinct counts passed46137078181 on d0d03d2f/Core1b061dca (compiler17/native15/actual WEB4/exact cleanup). This supersedes pending notes above. Full set parent scope and dedicated typed gRPC/GraphQL operations remain open; no new hosted acceptance claimed.

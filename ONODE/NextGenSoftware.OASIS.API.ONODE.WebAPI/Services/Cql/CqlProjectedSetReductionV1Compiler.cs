@@ -13,13 +13,16 @@ public static partial class CqlV1Compiler
         CqlSetV1Request request,Guid actor,ProviderType? provider,CosmicQueryReadAccess access=null)
     {
         var query=CompileProjectedSetSource(request,actor,provider,access,true);
-        if(request.Reduction is "Sum" or "Average")
+        if(request.Reduction is "Min" or "Max" or "Sum" or "Average")
         {
             var position=query.Output.OutputAliases.IndexOf(request.ReductionColumn);
-            if(position<0)throw new ArgumentException("Numeric reduction must name a currently visible selected alias.");
+            if(position<0)throw new ArgumentException("Scalar reduction must name a currently visible selected alias.");
+            if(request.Reduction is "Sum" or "Average")
+            {
             var operation=request.Reduction=="Sum"?CosmicScalarOperation.Sum:CosmicScalarOperation.Average;
             if(CosmicNumericScalarResults.ResultType(operation,query.Output.Columns[query.Output.OutputColumnIndices[position]].ValueType)==null)
                 throw new ArgumentException("The selected alias has no numeric result domain.");
+            }
         }
         if(request.ReductionWhere==null)return query;
         int filters=0,relationships=0;ValidateWhere(request.ReductionWhere,ref filters,ref relationships);
