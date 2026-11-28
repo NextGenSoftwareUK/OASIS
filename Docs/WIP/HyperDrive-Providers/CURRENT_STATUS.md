@@ -21,6 +21,8 @@ Miden: Claude’s native implementation is integrated with shipping SDK provisio
 
 OPORTAL: dev/checkout CI46102330540 passed203/203executed browser checks per target,80signed-in checks skipped. Only report-upload quota failed. Credential custody is recorded once as OPORTAL-CI1; no broad shared-Atlas test authorized.35redundant CI artifacts/9649851300bytes removed, release/latest-good artifacts retained.
 
+Canonical provider controls: shipping WEB4 build46109274477 and native SQLite/LocalFile control regression46109531969 passed2/2, zero skips. Facades use the canonical registry/selection engine; activation precedes publication and healthy borrowed providers remain active. This closes the scoped public storage-switch defect, not all global v2 gates.
+
 ## Progress (local HyperDrive programme, updated 2026-11-25 03:00 UTC)
 
 - Done: 91 storage providers pass the native core-storage-v2 suite on their real backend (today: Cardano, Starknet,
@@ -76,6 +78,8 @@ native core-storage suite in CI (20 above). Nothing self-hostable is left unclai
 - Delegated identity gate: Eclipse, Telos and SEEDS fixes pass their native suites and key round trips; hosted/full-interface and global gates remain separate.
 
 ## Branches
+
+Current GPT verification branch: `work/gpt-hyperdrive-release-gates`; Miden integration branch `work/gpt-miden-native-integration`. Shared physical checkouts are left untouched. The following older branch note is historical.
 
 This work is on `work/hyperdrive-triad`, which was cut from `origin/Development` (d1936908). The old GPT task branch
 `work/hyperdrive-provider-completion` (277560b0, pushed) has a stale Core gitlink, a88a9926. Its provider source no longer

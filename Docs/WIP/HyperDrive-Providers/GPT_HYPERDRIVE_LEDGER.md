@@ -37,3 +37,7 @@ Core907cd4b preserves COSMIC5e8f22d and replaces duplicate registry/selection st
 - Build46109051091 passed the public method gate and exposed3pre-existing unreviewed CQL routes. Reviewed: sidecar status delegates to supervisor HTTP; sql/ask delegate to the compiled typed CQL boundary. Added only those3inventory rows, without endpoint behavior changes.
 
 - Prepared2native sync/async control cases with actual SQLite and LocalFile backends. Workflow storage_controls selects the same integration host without starting Mongo. Tests preserve prior singleton and remove only the owned temporary directory after providers stop. Acceptance pending; no unchanged provider suites repeated.
+
+## 2026-11-28 — canonical switch accepted, scoped batch ready
+
+Shipping build46109274477 passed3manifest gates and WEB4 compilation. Native46109531969 on5366da3 passed2/2, zero skips, with real SQLite/LocalFile and asserted owned cleanup. Core907cd4b preserves COSMIC5e8f22d; parent manifest/gitlink paired. No local runtime/build/test artifacts or Atlas operations. Docs-only master synchronization excludes executable CSV inventories until source release. Global/hosted v2 acceptance remains open.
