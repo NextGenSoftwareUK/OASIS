@@ -1,10 +1,11 @@
-name: Qualify NHibernate XML model imports on three native providers
+name: Qualify canonical XML version writes on three native providers
 
 on:
   push:
-    branches: [work/cosmic-cql-ton-public]
+    branches: [work/gpt-q50]
     paths:
-      - "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.NHibernateXml.cs"
+      - "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.XmlVersions.cs"
+      - "Scripts/TestHosts/qualify_cosmic_xml_version_native.py"
       - ".github/workflows/qualify-cql-nhibernate-xml-native.yml"
   workflow_dispatch:
 
@@ -72,32 +73,14 @@ jobs:
             sleep 1
           done
           exit 1
-      - name: Verify NHibernate XML mappings on three native providers
+      - name: Verify portable build lease
         working-directory: OASIS
-        shell: pwsh
-        run: |
-          $env:OASIS_CQL_MONGO_ENTITY_PROJECTION_ROOT=(Get-Location).Path
-          New-Item -ItemType Directory TestResults/Neo4jCurrent | Out-Null
-          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-nhibernate-xml-native-ci -Operation {
-            dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~NativeNHibernateXmlModelsRoundtripThroughSharedOwners|FullyQualifiedName~XmlMappingsRejectUnsupportedDeclarationsAtomically' --results-directory TestResults/Neo4jCurrent --logger 'trx;LogFileName=mapping-native.trx'
-            if ($LASTEXITCODE) { throw 'Native fluent model qualification failed' }
-            [xml]$report=Get-Content TestResults/Neo4jCurrent/mapping-native.trx
-            if ($report.TestRun.ResultSummary.Counters.passed -ne '4' -or $report.TestRun.ResultSummary.Counters.total -ne '4') { throw 'All three native owned-value journeys must pass' }
-            foreach ($store in 'MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS') {
-              $e=Get-Content "TestResults/Neo4jCurrent/$store-nhibernate-xml-native.json" -Raw | ConvertFrom-Json
-              if ($e.provider -ne $store -or $e.checks -ne 6 -or $e.ownedCleanupIds -ne 1 -or $e.successfulHolonWrites -ne 2 -or @($e.queryElapsedMilliseconds.PSObject.Properties).Count -ne 8) { throw 'Incomplete native report' }
-              if($e.nativeProviderVerified -ne $true -or $e.exactCleanupVerified -ne $true){throw 'Native fixture/cleanup acknowledgement missing'}
-              foreach ($name in 'xmlMetadataAliasesRoundtrip','xmlNativeFilterAndProjection','xmlAssignedIdentityAndRevision','xmlRequiredRefusedBeforeWrite','xmlReadOnlyPolicyEnforced','xmlModelSnapshotIndependent') {
-                if ($e.evidence.$name -ne $true) { throw "Missing native proof $name" }
-              }
-            }
-            dotnet build ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI /m:2 /nr:false /p:UseSharedCompilation=false
-            if ($LASTEXITCODE) { throw 'Actual WEB4 fluent model composition failed' }
-          }
-          $source=(git rev-parse HEAD).Trim()
-          if($source -ne $env:GITHUB_SHA){throw 'Qualification source mismatch'}
-          $core=(git -C "OASIS Architecture/NextGenSoftware.OASIS.API.Core" rev-parse HEAD).Trim()
-          @{source=$source;core=$core;nativePassed=3;xmlAdmissionControlsPassed=1;nhibernateXmlVerified=$true;actualWeb4Compiled=$true;ownedFixturesAbsent=$true;sharedDatabaseCalls=0;deployed=$false} | ConvertTo-Json | Set-Content TestResults/Neo4jCurrent/source.json -Encoding utf8
+        shell: bash
+        run: python3 -B Scripts/TestHosts/test_provider_build_lease_python.py
+      - name: Verify canonical XML versions and build WEB4
+        working-directory: OASIS
+        shell: bash
+        run: python3 -B Scripts/TestHosts/invoke_provider_build_lease.py --owner gpt-cosmic-m04-version -- python3 -B Scripts/TestHosts/qualify_cosmic_xml_version_native.py
       - name: Stop owned Mongo
         if: always()
         run: docker rm -f -v cql-where-mongo
@@ -109,10 +92,10 @@ jobs:
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: cql-nhibernate-xml-native
+          name: cql-xml-version-native
           path: |
-            OASIS/TestResults/Neo4jCurrent/mapping-native.trx
-            OASIS/TestResults/Neo4jCurrent/*-nhibernate-xml-native.json
+            OASIS/TestResults/Neo4jCurrent/xml-version-native.trx
+            OASIS/TestResults/Neo4jCurrent/*-xml-version-native.json
             OASIS/TestResults/Neo4jCurrent/source.json
           if-no-files-found: ignore
           retention-days: 2

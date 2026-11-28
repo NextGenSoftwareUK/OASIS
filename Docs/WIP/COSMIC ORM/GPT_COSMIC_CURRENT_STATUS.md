@@ -23,3 +23,6 @@ Full provider parity, native import, virtual/hybrid holons, per-avatar/app polic
 ## Cleanup and isolation
 
 No local .NET builds, runtime installs, environments, databases, containers or retained artifact downloads. Existing Node runs parser controls without output files. Artifact zips inspected in RAM and released; compact evidence retained, CI artifacts expire2days. No shared Atlas/PIPER calls or data changes. Last measured free32.85GiB; no reclamation claim. Unrelated working-tree changes preserved; temporary scoped Git indexes removed.
+
+
+M04 canonical XML version source implemented in Core551ac0d8302dfe66415b3a9b78b5d16fc0b08590; explicit optimistic version mapping, atomic admission and native stale-write/winner/caller-policy fixture pending4-case CI+actualWEB4. Full M04 stays OPEN. Backend SQL Sum/Avg46132720360 now PASSED16compiler/native15+WEB4/cleanup, artifact inspection complete; next allowed normal Dev>=10:29:01UTC.
