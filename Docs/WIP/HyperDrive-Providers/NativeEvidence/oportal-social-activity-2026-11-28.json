@@ -1,0 +1,77 @@
+{
+  "run": 46118199642,
+  "url": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/46118199642",
+  "control": "0183241a7d7045712a0942145c2a4378c016886c",
+  "portal": "b49209a39fb505d745d396b50ff8e56639d2bc75",
+  "apiSource": "daf058b51c6f4251d99415c3a002691e36895e53",
+  "image": "sha256:8dff46bf6a87554fa3b889ccd9e0be10cc571509ee9f2530f023187df283887b",
+  "conclusion": "success",
+  "done": 2,
+  "total": 2,
+  "proof": {
+    "Web4FullPackage/cleanup.json": {
+      "ownedContainerAbsent": true,
+      "dataWrites": 0
+    },
+    "Web4CombinedStartup/acknowledged.json": {
+      "source": "daf058b51c6f4251d99415c3a002691e36895e53",
+      "image": "ghcr.io/nextgensoftwareuk/oasis-web4@sha256:8dff46bf6a87554fa3b889ccd9e0be10cc571509ee9f2530f023187df283887b",
+      "apiHealth": true,
+      "dockerHealthVerified": false,
+      "nativeMetadata": false,
+      "gracefulExit": 0,
+      "authentication": true,
+      "portalBrowser": true,
+      "portalWeb5Browser": false,
+      "portalPopupBreadth": true,
+      "portalPopupGroup": "social-activity",
+      "web5GracefulExit": null,
+      "internalNetwork": true,
+      "liveDeployment": false,
+      "cqlAcceptance": false
+    },
+    "Web4CombinedStartup/cleanup.json": {
+      "ownedContainersAbsent": true,
+      "ownedNetworkAbsent": true,
+      "ephemeralDatabaseVolumesRemoved": true,
+      "web5ProcessStopped": true,
+      "web5DnaAbsent": true
+    },
+    "Web4CombinedStartup/portal-popup-outcomes.json": {
+      "source": "daf058b51c6f4251d99415c3a002691e36895e53",
+      "image": "ghcr.io/nextgensoftwareuk/oasis-web4@sha256:8dff46bf6a87554fa3b889ccd9e0be10cc571509ee9f2530f023187df283887b",
+      "portal": "b49209a39fb505d745d396b50ff8e56639d2bc75",
+      "group": "social-activity",
+      "outcomes": [
+        {
+          "name": "SocialGraph",
+          "passed": true,
+          "stage": "Social graph composer handoff",
+          "closePassed": true
+        },
+        {
+          "name": "ActivityFeed",
+          "passed": true,
+          "stage": "Activity feed refresh",
+          "closePassed": true
+        }
+      ]
+    }
+  },
+  "artifact": {
+    "id": 15252324678,
+    "bytes": 4386,
+    "handling": "Inspected in memory; no local archive retained."
+  },
+  "scope": [
+    "Shipping page sign-in through real isolated API and Mongo",
+    "Persisted messaging contact, two graph nodes, keyboard composer prefill, no auto-send, browser Back and close to portal home",
+    "Empty native Activity Feed read, refresh and close",
+    "No unhandled page errors; no fake API responses"
+  ],
+  "limits": [
+    "No hosted/deployed signed-in acceptance",
+    "No populated activity/live-poll acceptance",
+    "No paid Stripe or whole-portal acceptance"
+  ]
+}

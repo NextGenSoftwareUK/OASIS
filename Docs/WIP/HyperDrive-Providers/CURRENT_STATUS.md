@@ -54,4 +54,4 @@ Ledger: [GPT_HYPERDRIVE_LEDGER.md](GPT_HYPERDRIVE_LEDGER.md). Private Git indexe
 
 ## Active OPORTAL breadth continuation
 
-Two new isolated real-API journeys are under qualification: Social Graph persisted contact-to-composer keyboard handoff and Activity Feed native read/refresh. Existing accepted popup cohorts are not repeated. Latest run46117837269 is pending; earlier runs exposed harness declarations and the current router X-to-home contract. No whole-portal acceptance is claimed. Shared Atlas remains untouched.
+Two new isolated real-API journeys are under qualification: Social Graph persisted contact-to-composer keyboard handoff and Activity Feed native read/refresh. Existing accepted popup cohorts are not repeated. CI46118199642passed2/2new journeys and exact cleanup; earlier runs exposed harness declarations and the current router X-to-/portal.html contract. No whole-portal acceptance is claimed. Shared Atlas remains untouched.

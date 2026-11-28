@@ -13,3 +13,7 @@ Retry46116846089 reached the real browser, then the result consumer rejected the
 CI46117258323 reached both real popup reads: Social Graph rendered the owned contact; Activity Feed showed the empty native history. Handoff return and refresh/close journey failed; no pass claimed. The current router closes X to home, so the new contact round trip now uses browser Back. Added sanitized assertion locations/response-shape diagnostics to resolve the remaining failure without changing shipping behavior.
 
 CI46117837269 kept both outcomes failed because the reusable close assertion still expected `/`, while Claude’s current router intentionally returns to `/portal.html` (commit e87c6f0). Aligned the real page entry and common close assertion to that exact shipping contract; browser Back remains the contact handoff return. No product workaround or alternate navigation path added.
+
+## Acceptance
+
+CI46118199642 passed2/2new real-backend popup journeys with both normal closes, real API authentication, graceful API exit and all owned cleanup assertions. Control0183241a, portalb49209a3, immutable API sourcedaf058b5/digest8dff46bf. JSON receipt records exact scope. No product behavior change was needed. Older accepted popup cohorts were not rerun. Hosted/billing/populated activity/whole-portal acceptance remain open.
