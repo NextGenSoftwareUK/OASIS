@@ -119,7 +119,7 @@ jobs:
           if [[ -f "$marker" ]]; then
             [[ "$(cat "$marker")" == "$GITHUB_RUN_ID-$QUALIFICATION_GRAPH" ]]
             [[ "$(realpath /app/publish)" == /app/publish ]]
-            rm -rf -- /app/publish
+            sudo rm -rf -- /app/publish
             test ! -e /app/publish
             echo 'Removed the owned publish graph and SDK output.'
           fi
