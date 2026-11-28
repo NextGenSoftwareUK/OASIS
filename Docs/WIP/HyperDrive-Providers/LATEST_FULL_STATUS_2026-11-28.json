@@ -2,10 +2,10 @@
   "date": "2026-11-28",
   "status": "in-progress-not-whole-portal-or-hyperdrive-certified",
   "source": {
-    "oasisDevelopment": "7c8bb492b613ae653c4dee372588de3efb246ce0",
-    "portalDev": "61f68f16cb3defc2729b34e4427be2ff4a364c81",
-    "portalDocsMain": "5bdd1778186dcce679f426fc3170d22bc65f37b0",
-    "corePinned": "72245df55b097f9ea2ccdbbcb77000d0a08994e7",
+    "oasisDevelopment": "49f8f1c77ff23529496a46efb7b0d4441dc661ce",
+    "portalDev": "3d2d0b0b1d0d6757877b53e77c876afb2e64d5e7",
+    "portalDocsMain": "d7a73d895b44d17101753e55bff6a8e8a49ec554",
+    "corePinned": "551ac0d8302dfe66415b3a9b78b5d16fc0b08590",
     "runningCurrentDeploymentsVerified": false,
     "portalStaticAssetsVerified": {
       "url": "https://dev.oportal.oasisomniverse.one/portal.html",
@@ -45,13 +45,14 @@
     },
     "fullyAccepted": false,
     "latestSelectedNativeBrowser": {
-      "done": 5,
-      "total": 5,
+      "done": 6,
+      "total": 6,
       "runs": {
         "recovery": 46123580498,
         "populatedMapLauncher": 46126474607,
         "providerMigration": 46130012906,
-        "onet": 46133501110
+        "onet": 46133501110,
+        "holonDiff": 46136436169
       }
     },
     "sdkDelivery": {
@@ -81,6 +82,13 @@
       "total": 1,
       "run": 46133501110,
       "scope": "Real reads and local start/stop; peer/broadcast/HoloNET/hosted remain open"
+    },
+    "holonDiff": {
+      "done": 1,
+      "total": 1,
+      "run": 46136436169,
+      "scope": "Cold history, real two metadata publications, populated comparison, distinct stored-ID seal dispatch and close",
+      "specificSealStatusOrCryptographicVerificationAccepted": false
     }
   },
   "hyperdrive": {
@@ -94,12 +102,12 @@
   },
   "activeWork": [
     {
-      "item": "Holon Diff two real published versions, comparison and stored-ID seals",
-      "branch": "work/gpt-oportal-holon-diff",
-      "source": "233dad7b2e7e5f01060ef5f855674a8b90187354",
-      "control": "64079118f939fc60e08db29cf7c63d6c005ff31c",
-      "run": 46135304200,
-      "status": "running after explicit isolated metadata-tariff repair; no functional acceptance or deployment"
+      "item": "Generic app-labelled place visit contract and Our World/OPORTAL map integration",
+      "branch": "work/gpt-oportal-map-integration",
+      "source": "ae60feda69fcfd9fbe28e77007fcea278717aa9c",
+      "core": "5668324bd169f819e743d07aaf4f921115a0b6fa",
+      "unity": "9d4d53c1137cdad67415b2668ad5cebd38f6d6c0",
+      "status": "source implemented; native API/browser and cross-surface guide verification pending"
     }
   ],
   "ownerActions": {
@@ -127,14 +135,11 @@
   },
   "completedPendingIntegration": [
     {
-      "item": "OAPP truthful detail error, native SDK/API1/1",
-      "candidate": "52babe72fd0c1de0961d9d49d614418c49880fe8",
-      "run": 46132041520
-    },
-    {
-      "item": "ONET real native browser reads/local lifecycle1/1",
-      "source": "4de930514ea6e58f980ba8fa275023b9253cb08c",
-      "run": 46133501110
+      "item": "Published Holon comparison and explicit metadata-read tariff contract",
+      "source": "14080b373a58cc29e3c55899f806b5bb5ba755a6",
+      "run": 46136436169,
+      "core": "c0e8f2b8e0ffee1a3e8993db5b068ff26ed6c1d8",
+      "star": "bda2d2a8f9a3d2177cadf202771756d9cfb9f333"
     }
   ]
 }
