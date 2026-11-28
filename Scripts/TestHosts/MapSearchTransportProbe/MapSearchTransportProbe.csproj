@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <OasisWebApiRoot Condition="'$(OasisWebApiRoot)' == ''">$(MSBuildThisFileDirectory)../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI</OasisWebApiRoot>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Grpc.Net.Client" Version="2.67.0" />
+    <PackageReference Include="Google.Protobuf" Version="3.33.1" />
+    <PackageReference Include="Grpc.Tools" Version="2.67.0" PrivateAssets="All" />
+    <Protobuf Include="$(OasisWebApiRoot)/Protos/common.proto" ProtoRoot="$(OasisWebApiRoot)" GrpcServices="None" />
+    <Protobuf Include="$(OasisWebApiRoot)/Protos/map.proto" ProtoRoot="$(OasisWebApiRoot)" GrpcServices="Client" />
+  </ItemGroup>
+</Project>

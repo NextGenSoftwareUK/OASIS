@@ -3,7 +3,7 @@
   "status": "in-progress-not-whole-portal-or-hyperdrive-certified",
   "source": {
     "oasisDevelopment": "52110089779019065be2ef9dbd720e8962538368",
-    "portalDev": "830a97e6ab1382c198b6476ce1d5b7044ae5c82f",
+    "portalDev": "0a3c854185f2b9ae669dcc07733f661a4ae38e22",
     "portalDocsMain": "400c5975ec142ef735357e29cd5268d3831df179",
     "corePinned": "fa4ea2e254b59e55ab4c5f4fa031199b887ecabb",
     "runningCurrentDeploymentsVerified": false,
@@ -22,7 +22,10 @@
       "lastUpdated": "2026-11-28T11:14:43Z",
       "scope": "GitHub status metadata only; no hosted sign-in/functionality or current running revision certification"
     },
-    "observationScope": "Shared branch observed before this documentation-only batch; exact native qualifications remain separately source-bound."
+    "observationScope": "Shared branch observed before this documentation-only batch; exact native qualifications remain separately source-bound.",
+    "qualifiedMapApi": "e60162c2aa1f94298a7cac0d1f8fcedd663df15f",
+    "qualifiedCore": "f799bc0c97ac2e7150838d615dec4882bca0f491",
+    "integratedCore": "2d076f7cb13d021f3e2ae3aeed05d880d49cd749"
   },
   "providers": {
     "trackedProjects": {
@@ -46,8 +49,8 @@
     },
     "fullyAccepted": false,
     "latestSelectedNativeBrowser": {
-      "done": 8,
-      "total": 8,
+      "done": 9,
+      "total": 9,
       "runs": {
         "recovery": 46123580498,
         "populatedMapLauncher": 46126474607,
@@ -55,7 +58,8 @@
         "onet": 46133501110,
         "holonDiff": 46136436169,
         "populatedGeoLayers": 46142470160,
-        "mapRenderer": 46146049497
+        "mapRenderer": 46146049497,
+        "mapVisit": 46152223451
       }
     },
     "sdkDelivery": {
@@ -63,9 +67,21 @@
       "total": 3,
       "run": 46125573999,
       "versions": {
-        "web4": "2.0.18 Git56449c9e",
+        "web4": "2.0.18 Git6795c431",
         "web5": "1.0.8 Git5266ed88",
         "web6": "2.1.2 Gited3843bd"
+      },
+      "web4BodyBinding": {
+        "sdk": "6795c431c3c3f0eccec6d48215bfce38fa8826b4",
+        "run": 46152132189,
+        "wireChecks": {
+          "done": 3,
+          "total": 3
+        },
+        "sourceUnitRequestShapes": 8,
+        "web5Web6AssetBlobsUnchanged": true,
+        "npmPublished": false,
+        "hostedAccepted": false
       }
     },
     "onode": {
@@ -106,6 +122,18 @@
       "run": 46146049497,
       "actions": 9,
       "scope": "Actual MapLibre/WebGL2 camera/selection/rendered highlight and disposal using one API/native Mongo location; no public tiles/remote runtime/Unity/hosted acceptance"
+    },
+    "mapSearchContracts": {
+      "done": 3,
+      "total": 3,
+      "run": 46151924276,
+      "scope": "Actual SDK JSON REST, actual source-proto Grpc.Net.Client and GraphQL, one-match/no-match/identity; existing Wizard admission; not a screen or MCP/hosted acceptance"
+    },
+    "mapVisit": {
+      "done": 1,
+      "total": 1,
+      "run": 46152223451,
+      "scope": "One actual UI visit, saved acknowledgement, independent private history/stats and normal close; not physical place karma"
     }
   },
   "hyperdrive": {
@@ -125,16 +153,6 @@
       "core": "18dad5ae096288129097a29352de4e010e335c4e",
       "unity": "7e9e3490ce9658e9543dfab6f103120683c76025",
       "status": "Source-only: real public catalogue46140605906timeout/46141372411upstream failure; no visit/karma credit or source promotion."
-    },
-    {
-      "item": "Map search JSON body and validated gRPC/GraphQL actor",
-      "branch": "work/gpt-map-search-binding",
-      "source": "46ce43e98c7436e1dcb7e0e0101be86d3523e9d7",
-      "control": "ce39496d5198413bb29f2b6191028c92792af3bc",
-      "imageBuild": 46146213659,
-      "image": "sha256:bbac4ec2dadb9afe8e7a7beaa4715185db45174f7efb9b2ff62924484b9016ed",
-      "run": 46148591025,
-      "status": "Image build passed; real SDK REST/gRPC/GraphQL native gate running. Wizard admission unchanged; MCP exposure backlog retained."
     }
   ],
   "ownerActions": {
@@ -172,5 +190,5 @@
     }
   },
   "completedPendingIntegration": [],
-  "asOfUtc": "2026-11-28T13:12:38.648Z"
+  "asOfUtc": "2026-11-28T13:58:57.234Z"
 }

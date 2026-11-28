@@ -48,7 +48,7 @@ OPORTAL uses MapLibre for the web map and lazy route geometry. Real hotspot/link
 
 ## Stored map locations
 
-`GET /api/map/nearby` requires latitude/longitude and accepts `radiusKm` (default10). `GET /api/map/search-locations` accepts query, optional type and proximity filters; `POST /api/map/search` exposes the corresponding search operation. `POST /api/map/visit/{locationId}` records a stored-map-location visit with an optional JSON string purpose. `GET /api/map/visit-history` pages that location history using limit/offset, and `GET /api/map/stats` returns that avatar's stored-map statistics. This location-history contract and the real-world place/karma ledger are distinct features.
+`GET /api/map/nearby` requires latitude/longitude and accepts `radiusKm` (default10). `GET /api/map/search-locations` accepts query, optional type and proximity filters; `POST /api/map/search` binds a JSON body with optional `query`, `type`, `latitude`, `longitude` and `radiusKm`, matching the generated SDK. SDK REST, actual gRPC SDK/source proto and GraphQL searches passed native46151924276; gRPC/GraphQL retain their existing Wizard admission and use the validated request avatar. MCP exposure and hosted/current merged-graph rollout remain separate. `POST /api/map/visit/{locationId}` records a stored-map-location visit with an optional JSON string purpose. `GET /api/map/visit-history` pages that location history using limit/offset, and `GET /api/map/stats` returns that avatar's stored-map statistics. This location-history contract and the real-world place/karma ledger are distinct features.
 
 ## Exact REST route catalogue
 

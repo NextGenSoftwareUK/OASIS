@@ -55,13 +55,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <summary>
         /// Search the map for locations, points of interest, and other map features
         /// </summary>
-        /// <param name="searchParams">Search parameters including query, location bounds, and filters</param>
+        /// <param name="request">JSON search filters, matching the generated WEB4 SDK request.</param>
         /// <returns>Search results containing matching locations and features</returns>
         [HttpPost("search")]
-        public async Task<OASISResult<List<MapLocation>>> Search(string query, LocationType? type = null, double? latitude = null, double? longitude = null, double? radiusKm = null)
+        public async Task<OASISResult<List<MapLocation>>> Search([FromBody] Models.MapSearchBody request)
         {
-            // Use MapManager for business logic
-            return await MapManager.SearchLocationsAsync(query, type, latitude, longitude, radiusKm);
+            if (request == null)
+                return new OASISResult<List<MapLocation>> { IsError = true, Message = "A JSON map search request is required." };
+            return await MapManager.SearchLocationsAsync(request.Query, request.Type, request.Latitude, request.Longitude, request.RadiusKm);
         }
 
         ///// <summary>
