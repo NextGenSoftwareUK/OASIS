@@ -14,7 +14,7 @@ on:
       provider:
         description: Run only the native storage provider awaiting acceptance
         type: choice
-        options: [Both, Elasticsearch, Qdrant]
+        options: [Both, Elasticsearch, Qdrant, Typesense]
         default: Both
 
 permissions:
@@ -27,7 +27,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        provider: [Elasticsearch, Qdrant]
+        provider: ${{ fromJSON(inputs.provider == 'Both' && '["Elasticsearch","Qdrant"]' || format('["{0}"]', inputs.provider)) }}
     defaults:
       run:
         working-directory: OASIS
@@ -62,6 +62,7 @@ jobs:
           PROVIDER: ${{ matrix.provider }}
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner search-core-native-ci -Operation {
+            if ($env:PROVIDER -notin @('Elasticsearch', 'Qdrant', 'Typesense')) { throw 'Unsupported native provider selection.' }
             $project = "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.$($env:PROVIDER)OASIS.IntegrationTests"
             dotnet build $project --configuration Release -m:2 -nr:false -p:UseSharedCompilation=false
             if ($LASTEXITCODE) { throw 'Native search test consumer build failed.' }
@@ -94,6 +95,8 @@ jobs:
           trap cleanup EXIT
           project="Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.$PROVIDER"OASIS.IntegrationTests
           for mode in sync async; do
+            readiness_path=/
+            readiness_headers=()
             if [[ "$PROVIDER" == Elasticsearch ]]; then
               sudo sysctl -w vm.max_map_count=1048576
               container="$(docker run --detach -p 127.0.0.1:19211:9200 \
@@ -102,16 +105,28 @@ jobs:
               endpoint=http://127.0.0.1:19211
               export OASIS_ELASTICSEARCH_DOCUMENT_FIXTURE=owned-ci-19211
               export OASIS_ELASTICSEARCH_REPORT_DIRECTORY="$fixture" OASIS_ELASTICSEARCH_MODE="$mode"
-            else
+            elif [[ "$PROVIDER" == Qdrant ]]; then
               container="$(docker run --detach -p 127.0.0.1:16333:6333 \
                 qdrant/qdrant@sha256:0425e3e03e7fd9b3dc95c4214546afe19de2eb2e28ca621441a56663ac6e1f46)"
               endpoint=http://127.0.0.1:16333
               export OASIS_QDRANT_SHARED_FIXTURE=owned-ci-16333
               export OASIS_QDRANT_REPORT_DIRECTORY="$fixture" OASIS_QDRANT_MODE="$mode"
+            elif [[ "$PROVIDER" == Typesense ]]; then
+              export TYPESENSE_API_KEY="$(openssl rand -hex 32)"
+              echo "::add-mask::$TYPESENSE_API_KEY"
+              container="$(docker run --detach --mount type=volume,destination=/data -p 127.0.0.1:18108:8108 typesense/typesense@sha256:610f2d34b1f93d00762869da2c67736775e5798d19a2c8b91b014b8a0cc1e110 --data-dir=/data --api-key="$TYPESENSE_API_KEY")"
+              endpoint=http://127.0.0.1:18108
+              readiness_path=/health
+              readiness_headers=(-H "X-TYPESENSE-API-KEY: $TYPESENSE_API_KEY")
+              export OASIS_TYPESENSE_SHARED_FIXTURE=owned-ci-18108
+              export OASIS_TYPESENSE_REPORT_DIRECTORY="$fixture" OASIS_TYPESENSE_MODE="$mode"
+            else
+              echo "Unsupported native provider selection." >&2
+              exit 1
             fi
             ready=false
             for attempt in $(seq 1 90); do
-              if curl --fail --silent --max-time 2 "$endpoint/" >/dev/null; then ready=true; break; fi
+              if curl --fail --silent --max-time 2 "${readiness_headers[@]}" "$endpoint$readiness_path" >/dev/null; then ready=true; break; fi
               [[ "$(docker inspect --format '{{.State.Running}}' "$container")" == true ]]
               sleep 2
             done

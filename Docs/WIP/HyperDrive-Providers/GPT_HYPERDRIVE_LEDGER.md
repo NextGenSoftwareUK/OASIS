@@ -56,12 +56,34 @@ Reconciled17/17existing native receipts; provider-directory trees match Developm
 
 Existing shipping-provider suites now run in isolated CI46111639871 on5f03746c7ac9c6208f33678b387703aa6b62a2cb. Both passed26sync+26async, zero skips, independent native empty-store checks and all fixture/container/output cleanup. Existing accepted popular matrix skipped. Native matrix baseline rows117/163; inventory238/75non-storage unchanged. Core README65a90d7 corrects nonexistent migration classes and canonical ownership; its only diff from accepted907cd4b is documentation, so no provider reruns.
 
+## 2026-11-28 — Typesense native CI gate (pending)
+
+Claimed unowned Typesense after reading shared COSMIC status and claims. Existing strict26-check adapter was not wired to CI. Reused it with official30.2image digestsha256:610f2d34b1f93d00762869da2c67736775e5798d19a2c8b91b014b8a0cc1e110 and a fresh loopback container/key per mode. Dynamic matrix selects only Typesense, so accepted Elasticsearch/Qdrant cases are not repeated. Native empty-store,26-check/zero-skip and EXIT cleanup guards remain. No local runtime/download/build/database, shared Atlas operation or hosted credential used.
+
+- CI46113965164stopped before any storage case: official Typesense30.2requires an existing/data directory. The disposable container now owns an anonymous Docker volume at/data, removed by docker rm --volumes. No provider implementation or accepted native behavior changed; retry only Typesense.
+
+- Typesense retry46114331452passed52/52, zero skips, native collection counts0and owned container/anonymous volume/fixture cleanup. No accepted Elasticsearch/Qdrant or Miden native cases repeated. Matrix recorded native baselines118/163. No new owner action.
+
 ## 2026-11-28 — Railway SDK publish-graph repair (qualification pending)
 
 Read-only selected build logs prove WEB6/7/9failed at my unconditional Miden SDK install. Fix the shared packaging owner, remove7unconditional Docker steps and require complete SDK assets whenever the Miden provider assembly is actually shipped. New packaging-only CI uses real Miden consumer and WEB6publish graphs on Docker-pinned Node24.19.0, with owned/app/publish cleanup and no ledger/native rerun. This is agent-owned engineering work; no owner action, DNA/secret change or shared Atlas operation.
 
 - Packaging46113155793passed both real publish/install steps; only cleanup failed because the CI runner cannot unlink/app/publishfrom its root-owned parent/app. Corrected the single validated owned-directory removal to use sudo. Both ownership-marker and exact realpath guards remain. The runner discarded the already-cleared empty directory; no local/user data was involved. Repeat only this failed packaging qualification, not native ledger checks.
 
-- SDK packaging46113637170nowpassed2/2real graphs and owned output cleanup. No native ledger rerun.11site repos updated;10public inventory pages/catalogues observed238(the WEB8change is README-only); publication receipt records exact commits and scope. No new owner action or local artifacts. Typesense remains unaccepted pending its isolated data-volume retry; do not increase117native rows yet.
+- SDK packaging46113637170nowpassed2/2real graphs and owned output cleanup. No native ledger rerun.11site repos updated;10public inventory pages/catalogues observed238(the WEB8change is README-only); publication receipt records exact commits and scope. No new owner action or local artifacts. At that packaging checkpoint Typesense acceptance was pending; its subsequent52/52 success is recorded above.
 
 - Before rollout fetched7934f8bd9c8, the other session native-qualified XML batch; preserved it and Core7d00ed1with paired manifest. Core delta contains query/model implementation files only, no project/SDK publish-graph changes. Accepted packaging/native cases are not replayed.
+
+- Railway dev rollout03bf0ef24bcf verified7/7 GitHub deployment statuses SUCCESS on2026-11-28T06:20Z. This verifies deployment, not hosted provider admission or all backend operations.
+
+## 2026-11-28 — obsolete Desktop inventory reconciliation
+
+Corrected the stale HoloOASIS.Desktop matrix row to obsolete, consistent with its existing README and owner decision. Retained canonical HoloOASIS priority and original historical CI45723092086; no new Desktop tests, source deletion, runtime change, build or download. Inventory238 and native-baseline118/163 remain unchanged; denominator includes retained legacy variants.
+
+- Refreshed remaining current CQL inventory references to238and added the4missing non-storage rows with explicit no-CQL/no-hosted acceptance. Exact current table238rows; old dated CQL feature metrics unchanged. Demo26Nov checkpoint retained with a28Nov scoped118/163and OPORTAL coverage note. No tests/builds/downloads needed for documentation.
+
+## 2026-11-28 — recovered search native receipts without reruns
+
+Recovered4/4green native receipts with explicit26checks per mode, zero skips, owned cleanup. Meilisearch43271453934, OpenSearch45721795632 and Solr43217963814 have byte-identical provider trees and are now recorded as historical baselines; matrix121/163. Weaviate43284284598 is preserved as historical evidence only because its query-client source changed; no current source pass inferred. Original CI-wiring ownership preserved. No new provider tests, builds, downloads, environments or Atlas operations. Logs inspected in memory; compact hash-bound receipts only.
+
+- Correction before Development integration: latest25Nov Meilisearch45721795666and Solr45721795557failed detail-id single read acknowledgement/count at6/26per mode. Removed their provisional registry acceptance and native tally immediately; older52/52 retained strictly historical. Only OpenSearch source-matched pass adds one:119/163. This failure check is mandatory before reusing older proof. Shared contract/dependency interaction remains agent-owned repair; no owner action.

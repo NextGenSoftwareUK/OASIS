@@ -63,7 +63,7 @@ on:
       search_provider:
         description: Run only the missing search core-storage gate; None preserves the existing matrix
         type: choice
-        options: [None, Both, Elasticsearch, Qdrant]
+        options: [None, Both, Elasticsearch, Qdrant, Typesense]
         default: None
 
 permissions:
