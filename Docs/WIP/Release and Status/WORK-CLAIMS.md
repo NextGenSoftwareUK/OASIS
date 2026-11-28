@@ -228,7 +228,7 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 
 | Reconcile stale release-gate Garnet/search entries against already accepted native receipts; docs only, no provider reruns | HyperDrive release docs | local: gpt-hyperdrive | work/gpt-provider-evidence-sync | 2026-11-28T11:58:20.552Z | DONE Development7c70ffcb/masterb61e0d8f; stale Garnet/search native gates corrected using retained receipts only, zero provider reruns; hosted/retained-data gaps preserved |
 
-| OPORTAL provider-map controls: resolve ID/body binding, Core vs Contracts map SPI and per-client provider/renderer lifecycle; preserve generic domains, no fake applied success | Map API/OPORTAL/ONODE.Core | local: gpt-hyperdrive | work/gpt-oportal-map-controls | 2026-11-28T12:09:10.501Z | IN PROGRESS root-cause trace; no routing-service provider implementation changes or CQL work |
+| OPORTAL provider-map controls: resolve ID/body binding, Core vs Contracts map SPI and per-client provider/renderer lifecycle; preserve generic domains, no fake applied success | Map API/OPORTAL/ONODE.Core | local: gpt-hyperdrive | work/gpt-oportal-map-controls | 2026-11-28T12:09:10.501Z | DONE portal830a97e6/native46146049497; actual MapLibre renderer9actions/WebGL/disposal/cleanup, docs master8cc69bda/maina4e58fe9; remote provider/tiles/device separate |
 
 | Map search request/identity contract: REST JSON body matches generated SDK; gRPC/GraphQL searches use validated request avatar instead of Guid.Empty, preserve existing Wizard admission | Map API transports | local: gpt-hyperdrive | work/gpt-map-search-binding | 2026-11-28T12:34:14.499Z | IN PROGRESS; no CQL/provider implementation or auth-admission relaxation |
 
