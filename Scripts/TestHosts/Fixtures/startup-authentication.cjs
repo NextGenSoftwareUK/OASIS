@@ -12,8 +12,26 @@ async function createOwnedAvatar(base){
   const response=await fetch(base+endpoint,{method,signal:AbortSignal.timeout(20000),
    headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},
    ...(body===undefined?{}:{body:JSON.stringify(body)})});
+  let json;
+  try { json=await response.json(); }
+  catch(error){
+   console.error('PORTAL_STARTUP_HTTP_FACTS:'+JSON.stringify([{path:endpoint.split('?')[0],status:response.status,json:false}]));
+   throw error;
+  }
+  const result=wrapped?json.result:json;
+  if(response.status!==200||result?.isError!==false){
+   let message=String(result?.message||json.message||json.title||'No application acknowledgement');
+   for(const value of [password,token,body?.password,body?.confirmPassword,body?.token])
+    if(typeof value==='string'&&value)message=message.split(value).join('[private]');
+   message=message.replace(/(?:https?|mongodb(?:\+srv)?):\/\/[^\s]+/gi,'[URI]')
+    .replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g,'[JWT]')
+    .replace(/[a-f0-9]{32,}/gi,'[identifier]').slice(0,320);
+   if(/password|secret|credential|connectionstring|verificationtoken|resettoken/i.test(message))message='Sensitive failure detail withheld';
+   const fact={path:endpoint.split('?')[0],status:response.status,isError:result?.isError===true,routingMessage:message};
+   if(typeof result?.errorCode==='string'&&/^[A-Z0-9_]{1,80}$/.test(result.errorCode))fact.errorCode=result.errorCode;
+   console.error('PORTAL_STARTUP_HTTP_FACTS:'+JSON.stringify([fact]));
+  }
   assert.equal(response.status,200,label+' HTTP status');
-  const json=await response.json(),result=wrapped?json.result:json;
   assert.equal(result?.isError,false,label+' application result');
   return result.result;
  }
