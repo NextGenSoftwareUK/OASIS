@@ -11,7 +11,7 @@ public static class DelegatedStorageIdentityConformance
     public static async Task RunAsync(IOASISStorageProvider provider, ProviderType outer, ProviderType inner, bool sync)
     {
         static void Require(bool ok, string message) { if (!ok) throw new InvalidOperationException(message); }
-        void Check(IHolon record)
+        void Check(IHolonBase record)
         {
             Require(record.ProviderUniqueStorageKey != null && record.ProviderUniqueStorageKey.TryGetValue(outer, out var key)
                 && !string.IsNullOrWhiteSpace(key), "Missing composing-provider storage key.");

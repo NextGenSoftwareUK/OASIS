@@ -9,7 +9,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
     {
         // The contract indexes app records by their OASIS ID. Account names and legacy
         // auxiliary tables are not keys for records saved through these repositories.
-        private T WithStorageIdentity<T>(T record) where T : IHolon
+        private T WithStorageIdentity<T>(T record) where T : IHolonBase
         {
             if (record.Id == Guid.Empty)
                 throw new InvalidOperationException("A persisted EOSIO record requires a nonempty OASIS ID.");
@@ -25,7 +25,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             return id;
         }
 
-        private void AcknowledgeStorageIdentity(IHolon source, IHolon persisted)
+        private void AcknowledgeStorageIdentity(IHolonBase source, IHolonBase persisted)
         {
             source.Id = persisted.Id;
             source.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
