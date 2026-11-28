@@ -273,33 +273,33 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
 
         // ── Clan ──────────────────────────────────────────────────────────────────
 
-        public async Task<IClan?> CreateClan(Guid ownerAvatarId, string name, string? description = null)
+        public async Task<IClan?> CreateClan(Guid ownerAvatarId, string name, [Service] Microsoft.AspNetCore.Http.IHttpContextAccessor httpContext, string? description = null)
         {
-            var result = await ClanManager.Instance.CreateClanAsync(ownerAvatarId, name, description);
+            var result = await ClanManager.Instance.CreateClanAsync(ownerAvatarId, name, description, actingAvatarId: Helpers.AuthenticatedRequestAvatar.RequireId(httpContext.HttpContext));
             return result.IsError ? null : result.Result;
         }
 
-        public async Task<bool> DeleteClan(Guid clanId)
+        public async Task<bool> DeleteClan(Guid clanId, [Service] Microsoft.AspNetCore.Http.IHttpContextAccessor httpContext)
         {
-            var result = await ClanManager.Instance.DeleteClanAsync(clanId);
+            var result = await ClanManager.Instance.DeleteClanAsync(clanId, actingAvatarId: Helpers.AuthenticatedRequestAvatar.RequireId(httpContext.HttpContext));
             return !result.IsError;
         }
 
-        public async Task<bool> AddAvatarToClan(Guid clanId, Guid avatarId)
+        public async Task<bool> AddAvatarToClan(Guid clanId, Guid avatarId, [Service] Microsoft.AspNetCore.Http.IHttpContextAccessor httpContext)
         {
-            var result = await ClanManager.Instance.AddAvatarToClanAsync(clanId, avatarId);
+            var result = await ClanManager.Instance.AddAvatarToClanAsync(clanId, avatarId, actingAvatarId: Helpers.AuthenticatedRequestAvatar.RequireId(httpContext.HttpContext));
             return !result.IsError;
         }
 
-        public async Task<bool> RemoveAvatarFromClan(Guid clanId, Guid avatarId)
+        public async Task<bool> RemoveAvatarFromClan(Guid clanId, Guid avatarId, [Service] Microsoft.AspNetCore.Http.IHttpContextAccessor httpContext)
         {
-            var result = await ClanManager.Instance.RemoveAvatarFromClanAsync(clanId, avatarId);
+            var result = await ClanManager.Instance.RemoveAvatarFromClanAsync(clanId, avatarId, actingAvatarId: Helpers.AuthenticatedRequestAvatar.RequireId(httpContext.HttpContext));
             return !result.IsError;
         }
 
-        public async Task<bool> SendItemToClan(Guid senderAvatarId, Guid clanId, string itemName, int quantity = 1)
+        public async Task<bool> SendItemToClan(Guid senderAvatarId, Guid clanId, string itemName, [Service] Microsoft.AspNetCore.Http.IHttpContextAccessor httpContext, int quantity = 1)
         {
-            var result = await ClanManager.Instance.SendItemToClanAsync(senderAvatarId, clanId, itemName, quantity);
+            var result = await ClanManager.Instance.SendItemToClanAsync(senderAvatarId, clanId, itemName, quantity, actingAvatarId: Helpers.AuthenticatedRequestAvatar.RequireId(httpContext.HttpContext));
             return !result.IsError;
         }
 

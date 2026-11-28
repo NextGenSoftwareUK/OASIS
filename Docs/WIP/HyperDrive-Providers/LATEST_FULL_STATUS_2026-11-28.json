@@ -57,7 +57,7 @@
     "fullyAccepted": false,
     "latestSelectedNativeBrowser": {
       "done": 10,
-      "total": 10,
+      "total": 11,
       "runs": {
         "recovery": 46123580498,
         "populatedMapLauncher": 46126474607,
@@ -67,7 +67,8 @@
         "populatedGeoLayers": 46142470160,
         "mapRenderer": 46146049497,
         "mapVisit": 46152223451,
-        "clanOwnerRemoval": 46153889539
+        "clanOwnerRemoval": 46153889539,
+        "clanSelfLeaveFailed": 46154472548
       }
     },
     "sdkDelivery": {
@@ -154,6 +155,12 @@
       "total": 1,
       "run": 46153889539,
       "scope": "Owner UI member removal, independent stored membership/owner and normal close; self-leave separate"
+    },
+    "clanSelfLeave": {
+      "done": 0,
+      "total": 1,
+      "run": 46154472548,
+      "status": "Native46154472548persisted membership but wrong audit writer; corrected source requires image/native acceptance"
     }
   },
   "hyperdrive": {
@@ -173,6 +180,13 @@
       "core": "18dad5ae096288129097a29352de4e010e335c4e",
       "unity": "7e9e3490ce9658e9543dfab6f103120683c76025",
       "status": "Source-only: real public catalogue46140605906timeout/46141372411upstream failure; no visit/karma credit or source promotion."
+    },
+    {
+      "item": "Clan self-leave actual actor identity",
+      "branch": "work/gpt-oportal-clan-membership",
+      "core": "43a70495e4b5722b0f5c0fc148b590e119132013",
+      "web6": "ce6d258c8fa425d84c7c49eb934ee81a540e2b3f",
+      "status": "Source-only fix; native46154472548wrong writer, corrected image/native check required"
     }
   ],
   "ownerActions": {
@@ -210,5 +224,5 @@
     }
   },
   "completedPendingIntegration": [],
-  "asOfUtc": "2026-11-28T14:23:14.997Z"
+  "asOfUtc": "2026-11-28T14:33:44.453Z"
 }
