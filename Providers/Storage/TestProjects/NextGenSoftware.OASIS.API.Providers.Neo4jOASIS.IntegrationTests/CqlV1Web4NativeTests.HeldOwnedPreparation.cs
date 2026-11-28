@@ -42,6 +42,9 @@ public sealed partial class CqlV1Web4NativeTests
             planned=owner.Request.Entries.Single().Holon.Id;owned.Add(planned);Assert.AreNotEqual(Guid.Empty,planned);Assert.AreEqual(Guid.Empty,entity.Id);
             var staged=await Timed("owned-stage-create",()=>transaction.StageAsync(owner.Request));
             Assert.IsFalse(staged.IsError,staged.Message+staged.Exception);Assert.IsFalse(staged.IsSaved);Assert.AreEqual(Guid.Empty,entity.Id);
+            var privateRows=owner.CapturePrivateAfterImages(staged.Result);
+            Assert.AreEqual(planned,privateRows.Single().Value.Id);Assert.AreEqual("owned-held",privateRows.Single().Value.Name);
+            Assert.AreEqual(Guid.Empty,entity.Id);Assert.IsFalse(HolonChangeTracking.TryGetAcceptedRevision(entity,authority,out _));
             var refused=owner.PublishCommitted(new OASISResult<IEnumerable<IHolon>>(staged.Result.ReadProvisionalRows()){IsSaved=false});
             Assert.IsTrue(refused.IsError);Assert.AreEqual(Guid.Empty,entity.Id);
             var committed=await Timed("owned-commit",()=>transaction.CommitAsync());Assert.IsFalse(committed.IsError,committed.Message+committed.Exception);Assert.IsTrue(committed.IsSaved);
