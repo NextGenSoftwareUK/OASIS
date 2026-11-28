@@ -61,3 +61,5 @@ Existing shipping-provider suites now run in isolated CI46111639871 on5f03746c7a
 Claimed unowned Typesense after reading shared COSMIC status and claims. Existing strict26-check adapter was not wired to CI. Reused it with official30.2image digestsha256:610f2d34b1f93d00762869da2c67736775e5798d19a2c8b91b014b8a0cc1e110 and a fresh loopback container/key per mode. Dynamic matrix selects only Typesense, so accepted Elasticsearch/Qdrant cases are not repeated. Native empty-store,26-check/zero-skip and EXIT cleanup guards remain. No local runtime/download/build/database, shared Atlas operation or hosted credential used.
 
 - CI46113965164stopped before any storage case: official Typesense30.2requires an existing/data directory. The disposable container now owns an anonymous Docker volume at/data, removed by docker rm --volumes. No provider implementation or accepted native behavior changed; retry only Typesense.
+
+- Typesense retry46114331452passed52/52, zero skips, native collection counts0and owned container/anonymous volume/fixture cleanup. No accepted Elasticsearch/Qdrant or Miden native cases repeated. Matrix recorded native baselines118/163. No new owner action.

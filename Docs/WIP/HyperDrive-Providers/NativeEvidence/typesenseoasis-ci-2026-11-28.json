@@ -1,0 +1,18 @@
+{
+  "provider": "TypesenseOASIS",
+  "suite": "core-storage-v2",
+  "mode": "native",
+  "source": "7a3f836143ba8609d0d38db95018b92b0f51d1bd",
+  "core": "65a90d778f020b6895111f03abce69441bd301c9",
+  "run": 46114331452,
+  "url": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/46114331452",
+  "conclusion": "success",
+  "sync": 26,
+  "async": 26,
+  "passed": 52,
+  "total": 52,
+  "skipped": 0,
+  "backend": "Official Typesense30.2, digestsha256:610f2d34b1f93d00762869da2c67736775e5798d19a2c8b91b014b8a0cc1e110",
+  "cleanup": "Fresh container and owned anonymous /data volume per mode removed by docker rm --volumes; native collection counts0; fixture/reports removed by EXIT trap",
+  "scope": "Existing real shipping-provider suite, isolated CI. Hosted/full-interface acceptance separate. No local build/download/environment/database or shared Atlas calls."
+}

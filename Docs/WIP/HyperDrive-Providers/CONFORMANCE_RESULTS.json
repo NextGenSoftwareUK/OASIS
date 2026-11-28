@@ -602,6 +602,18 @@
       "blockers": [
         "Native CI46111639871 passed26sync+26async with zero skips, independent empty-store checks and owned cleanup; hosted/full-interface acceptance remains separate."
       ]
+    },
+    {
+      "provider": "TypesenseOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/typesenseoasis-ci-2026-11-28.json",
+      "sha256": "70fbb3a08bfdec775833d0b34171b6a2ae20e51d8d6e1449953a149ad03e9544",
+      "blockers": [
+        "CI46114331452 passed26sync+26async, zero skips and independent native empty collections; owned containers/data volumes/reports removed. Hosted/full-interface acceptance remains separate."
+      ]
     }
   ],
   "providerBlockers": {
@@ -763,6 +775,9 @@
     ],
     "QdrantOASIS": [
       "Native CI46111639871 passed26sync+26async with zero skips, independent empty-store checks and owned cleanup; hosted/full-interface acceptance remains separate."
+    ],
+    "TypesenseOASIS": [
+      "CI46114331452 passed26sync+26async, zero skips and independent native empty collections; owned containers/data volumes/reports removed. Hosted/full-interface acceptance remains separate."
     ]
   },
   "suites": [
