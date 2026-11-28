@@ -87,7 +87,10 @@
   const completeSelectedBounds = new WeakSet();
 
   function compile(text, discoveredProfiles = {}, parameters = {}) {
-    return compileQuery(text,discoveredProfiles,parameters,Object.create(null),0);
+    const result=compileQuery(text,discoveredProfiles,parameters,Object.create(null),0);
+    if(result.kind==='entity-source'||result.kind==='entity-selection')
+      throw new Error('A staged entity-derived selection currently requires a selected-value set operand.');
+    return result;
   }
 
   function compileQuery(text, discoveredProfiles = {}, parameters = {}, cteScope = Object.create(null), compileDepth = 0) {
@@ -222,6 +225,18 @@
       });
     }
     function frame(compiled) {
+      if(compiled.kind==='entity-selection') {
+        const {provider,entityStages,stages=[],...source}=compiled.body;
+        return {provider,entitySelection:true,entityStages,source,stages,columns:visibleSelectedColumns(source.columns,stages)};
+      }
+      if(compiled.kind==='entity-source'||compiled.path==='data/query-cql') {
+        const {provider,includeMetadata,entityStages=[],...source}=compiled.body;
+        const allowed=new Set(['filters','anyOf','anyChildren','anyDescendants','where','orderBy','descending','skip','take']);
+        if(!['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS'].includes(provider)||Object.keys(source).some(key=>!allowed.has(key))
+            ||!Number.isInteger(source.take)||source.take<0||source.take>100)
+          throw new Error('Entity-derived sources require one bounded native database without graph, mapping or deadline overrides.');
+        return {entitySet:true,entitySource:source,entityStages,provider,includeMetadata,columns:[],stages:[]};
+      }
       if(compiled.path==='data/query-cql/set') {
         if(compiled.body.reduction)throw new Error('A scalar set reduction cannot be a sequence source.');
         if(!['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS'].includes(compiled.body.provider))
@@ -258,6 +273,8 @@
       return columns;
     }
     function bindSelectedFrame(input,stages) {
+      if(input.entitySelection)return {kind:'entity-selection',body:{provider:input.provider,...input.source,
+        entityStages:input.entityStages,...(stages.length?{stages}:{})}};
       return input.setBody
         ?{path:'data/query-cql/set',body:{...input.setBody,selectedStages:stages}}
         :{path:'data/query-cql/composition',body:{provider:input.provider,source:input.source,stages}};
@@ -358,7 +375,7 @@
             selection.path.endsWith('/projection')&&!Array.isArray(selection.body.columns)))
           throw new Error('Select native entity columns or * after the set; DISTINCT and aggregates require their own result stage.');
         const body=selection.body;
-        const stages=(compiled.body.entityStages ?? []).slice();
+        const stages=(input.entitySource?input.entityStages:(compiled.body.entityStages??[])).slice();
         function conjunction(parts) {
           return parts.length===0 ? undefined : parts.length===1 ? parts[0] : {kind:'And',terms:parts};
         }
@@ -382,11 +399,21 @@
         }
         const where=predicate(body);
         if(reduction) {
+          if(input.entitySource)throw new Error('Select and combine the bounded entity source before reducing it.');
           if(explicitPage(qualified))
             throw new Error('Apply the input LIMIT/OFFSET inside the combined-record source before counting.');
           return {path:compiled.path,body:{...compiled.body,includeMetadata:false,
             reduction:body.operation,...(where?{reductionWhere:where}:{})},
             ...(selection.scalarAlias?{scalarAlias:selection.scalarAlias}:{})};
+        }
+        function entityResult(columns,selectedStages=[]) {
+          const body={provider:input.provider,...input.entitySource,...(columns?{columns}:{}),
+            ...(stages.length?{entityStages:stages}:{}),...(selectedStages.length?{stages:selectedStages}:{})};
+          if(stages.length)return {kind:columns?'entity-selection':'entity-source',body};
+          if(!columns)return {path:'data/query-cql',body:{...body,includeMetadata:input.includeMetadata??true}};
+          return selectedStages.length?{path:'data/query-cql/composition',body:{provider:input.provider,
+            source:{provider:input.provider,...input.entitySource,columns},stages:selectedStages}}
+            :{path:'data/query-cql/projection',body};
         }
         if(where)stages.push({operation:'Where',where});
         const hasOrdering=rawTokens.slice(cursor).some((token,position,tail)=>
@@ -406,6 +433,7 @@
           if(body.skip)selected.push({operation:'Skip',count:body.skip});
           if(explicitPage(qualified))selected.push({operation:'Take',count:body.take});
           if(stages.length>16)throw new Error('Entity-set result composition exceeds16 stages.');
+          if(input.entitySource)return entityResult(body.columns,selected);
           return {path:compiled.path,body:{...compiled.body,
             ...(stages.length?{entityStages:stages}:{}),includeMetadata:false,
             outputColumns:body.columns,selectedStages:selected}};
@@ -423,6 +451,7 @@
         if(body.skip)stages.push({operation:'Skip',count:body.skip});
         if(explicitPage(qualified))stages.push({operation:'Take',count:body.take});
         if(stages.length>16)throw new Error('Entity-set result composition exceeds16 stages.');
+        if(input.entitySource)return entityResult(body.columns);
         return {path:compiled.path,body:{...compiled.body,
           ...(stages.length?{entityStages:stages}:{}),
           ...(body.columns?{includeMetadata:false,outputColumns:body.columns}:{})}};
@@ -723,6 +752,12 @@
         let compiled = compileQuery((parenthesized ? parts.slice(1,-1) : parts).join(' '),
           discoveredProfiles,parameters,cteScope,compileDepth+1);
         const inheritedBound = completeSelectedBounds.has(compiled);
+        if(compiled.kind==='entity-selection') {
+          const input=frame(compiled);
+          return {provider:input.provider,includeMetadata:false,source:{...input.source,entityStages:input.entityStages,
+            ...(input.stages.length?{stages:input.stages}:{})},columns:input.columns};
+        }
+
         if(compiled.path==='data/query-cql/set') {
           if(compiled.body.reduction||compiled.body.outputColumns)
             throw new Error('A nested set operand must remain an entity or selected-value sequence without a late entity projection.');

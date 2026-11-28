@@ -1,0 +1,62 @@
+{
+  "run": 46140944273,
+  "artifact": 15262510203,
+  "sha256": "b7773078a1a7a846149b3331a61a51c9d1b5323ff4cea00721e6dfee6d44e15d",
+  "artifactEntries": 18,
+  "source": "25886971f3d16df284f28530ef00967df0a601c9",
+  "core": "cf34fb1ae9a6777e58320d11b8fb24e5dff98481",
+  "entityTimingsMilliseconds": {
+    "MongoDBOASIS": {
+      "ordinary-entity-selected-control": 39,
+      "entity-selections-feed-native-sets": 90,
+      "entity-selected-foreign": 28,
+      "entity-source-bound-before-empty-set": 8
+    },
+    "Neo4jOASIS": {
+      "ordinary-entity-selected-control": 583,
+      "entity-selections-feed-native-sets": 2114,
+      "entity-selected-foreign": 1477,
+      "entity-source-bound-before-empty-set": 1304
+    },
+    "SQLLiteDBOASIS": {
+      "ordinary-entity-selected-control": 20,
+      "entity-selections-feed-native-sets": 41,
+      "entity-selected-foreign": 9,
+      "entity-source-bound-before-empty-set": 9
+    }
+  },
+  "compilerPassed": 17,
+  "nativeEntityStageSelectedOperandsVerified": true,
+  "serverSqlSelectedValueCountsVerified": true,
+  "serverSqlSelectedSetExtremaVerified": true,
+  "typedViewsFeedFurtherNativeSetsVerified": true,
+  "typedViewScalarAndElementTerminalsVerified": true,
+  "nativePassed": 15,
+  "serverSqlSelectedSetSumAverageVerified": true,
+  "nativeRecursiveSetHttpVerified": true,
+  "nativeSetPublicationCountsVerified": true,
+  "nativeRecursiveEntitySetProviders": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS",
+    "Neo4jOASIS"
+  ],
+  "nativeRecursiveSelectedSetProviders": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS",
+    "Neo4jOASIS"
+  ],
+  "typedFinalSetSelectionVerified": true,
+  "nativeSelectedSetSumAverageVerified": true,
+  "nativeNumericRepresentativeDomains": [
+    "Int32Sum",
+    "Int32DoubleAverage"
+  ],
+  "nativeSelectedSetCountVerified": true,
+  "nativeSelectedSetScalarExtremaVerified": true,
+  "nestedVisibleOutputBindingsVerified": true,
+  "fullSetParentsComplete": false,
+  "actualWeb4Compiled": true,
+  "ownedFixturesAbsent": true,
+  "sharedDatabaseCalls": 0,
+  "deployed": false
+}

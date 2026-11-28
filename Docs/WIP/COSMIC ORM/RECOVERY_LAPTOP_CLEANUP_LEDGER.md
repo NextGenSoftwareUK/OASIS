@@ -11509,3 +11509,10 @@ Added one compiler/capture control and a real JWT owner/foreign/anonymous set HT
 
 
 2026-11-28 qualified XML custom scalar source13a6e233/Core0a4074ec published to Development at 2026-11-28T11:46:53.057Z after native6/control2/WEB4/cleanup46138409566 and CQL17/15/WEB4/cleanup46138409613; exact-ref review passed. No new entity-source implementation/JSON changes were included. Previous32c83be0 was deployed SUCCESS; this new rollout is pending. Next normal own Dev push>=12:16:53UTC. Main144/168 extension4/13 unchanged.
+
+
+## 2026-11-28 native entity-input acceptance and backend SQL capture
+
+Native SDK source25886971/Corecf34fb1a accepted46140944273: compiler17/native15/actual WEB4/exact cleanup, all18artifact entries inspected, SHA256 b7773078a1a7a846149b3331a61a51c9d1b5323ff4cea00721e6dfee6d44e15d. Each selected journey26groups/37timings. Compact cold CI timings retained per provider, not a production benchmark: nested entity-selected set Mongo90ms, SQLite41ms, Neo2114ms. No rerun of accepted cohorts for timing.
+
+New backend SQL lowering preserves bounded plain entity sources and post-page entity filters before projection as explicit internal compiler frames, consumed only by selected-value set operands. Public compile rejects an unconsumed staged frame, never exposes an incomplete API request. Derived and chained WITH inputs retain aliases, selected stages and original source windows; no synthetic union/empty-source workaround or browser engine change. Server parser41/41 passed locally. Existing real HTTP entity-input owner/foreign/anonymous journey now uses actual server SQL, no new requests/writes; gate compiler18/native15/WEB4 required. JSON transport source5d20 in46141533128 remains separately pending. Identity-set late operands and standalone entity-stage projection transport remain OPEN; main144/168 extension4/13.

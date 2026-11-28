@@ -33,6 +33,13 @@ for(const provider of ['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS']) {
  assert.deepEqual(q.body.selectedStages.at(-1),{operation:'Where',filters:[{alias:'Description',operator:'NotEqual',value:null}]});checks++;
  q=compile('WITH q AS ('+selected+') SELECT COUNT(DISTINCT Name) AS UniqueNames FROM q');
  assert.equal(q.body.reduction,'LongCount');assert.deepEqual(q.body.selectedStages.slice(-2),[{operation:'Select',columns:[{alias:'Name',sourceAlias:'Name'}]},{operation:'Distinct'}]);checks++;
+ q=compile('(SELECT Name AS Label FROM (SELECT * FROM '+provider+' ORDER BY Id LIMIT 2) AS sample WHERE Version > 1) UNION ALL (SELECT Name AS Label FROM '+provider+' LIMIT 2)');
+ assert.equal(q.path,'data/query-cql/set');assert.equal(q.body.left.orderBy,'Id');assert.equal(q.body.left.take,2);
+ assert.equal(q.body.left.entityStages[0].operation,'Where');assert.equal(q.body.left.entityStages[0].where.filter.field,'Version');assert.equal(q.body.left.where,undefined);checks++;
+ q=compile('WITH sample AS (SELECT * FROM '+provider+' LIMIT 2), narrowed AS (SELECT * FROM sample WHERE Version > 0), labels AS (SELECT Name AS Label FROM narrowed) SELECT DISTINCT Label FROM labels UNION ALL (SELECT Name AS Label FROM '+provider+' LIMIT 2)');
+ assert.equal(q.body.left.take,2);assert.equal(q.body.left.entityStages.length,1);assert.equal(q.body.left.stages.at(-1).operation,'Distinct');assert.equal(q.body.left.columns[0].alias,'Label');checks++;
+ assert.throws(()=>compile('SELECT Name FROM (SELECT * FROM '+provider+' LIMIT 2) AS sample WHERE Version > 0'),/set operand/);checks++;
+
 
 }
 assert.throws(()=>compile('SELECT * FROM MongoDBOASIS UNION SELECT * FROM SQLLiteDBOASIS'),/same provider/);checks++;

@@ -51,6 +51,7 @@ public sealed partial class CqlV1Web4NativeTests
                 var right="(SELECT Name AS kept FROM "+type+" WHERE Id = '"+id+"' LIMIT 1)";
                 var selectedSql="("+child+") UNION ALL "+right;
                 var scalarSql="WITH counted AS ("+selectedSql+") SELECT COUNT(*) AS total FROM counted";
+                var entityInputSql="(SELECT Name AS kept FROM (SELECT * FROM "+type+" WHERE Id = '"+id+"' LIMIT 1) AS sample WHERE Name = 'native-tree-http') UNION ALL "+right;
                 var numericLeaf="(SELECT Version AS amount FROM "+type+" WHERE Id = '"+id+"' LIMIT 1)";
                 var numericSet=numericLeaf+" UNION ALL "+numericLeaf;
                 var sumSql="WITH amounts AS ("+numericSet+") SELECT SUM(amount) AS total FROM amounts";
@@ -63,7 +64,7 @@ public sealed partial class CqlV1Web4NativeTests
                 {
                     var query=compiler.Compile(sql);Assert.AreEqual("data/query-cql/set",query.Path);
                     var body=JsonNode.Parse(query.Body.GetRawText())!.AsObject();
-                    if(mode=="entity-input")body["right"]!.AsObject()["entityStages"]=JsonNode.Parse("""[{"operation":"Where","where":{"kind":"Filter","filter":{"field":"Name","operator":"Equal","value":"native-tree-http"}}}]""");if(mode is "count" or "count-value" or "count-distinct" or "sum" or "average" or "min" or "max")body["maximumResults"]=1;
+if(mode is "count" or "count-value" or "count-distinct" or "sum" or "average" or "min" or "max")body["maximumResults"]=1;
                     using var request=new HttpRequestMessage(HttpMethod.Post,"/api/"+query.Path){Content=new StringContent(body.ToJsonString(),Encoding.UTF8,"application/json")};
                     if(bearer!=null)request.Headers.Authorization=new AuthenticationHeaderValue("Bearer",bearer);
                     request.Headers.Add("Idempotency-Key",Guid.NewGuid().ToString("D"));
@@ -116,7 +117,7 @@ public sealed partial class CqlV1Web4NativeTests
                 await Send(maxSql,"max",ownerToken,1);await Send(maxSql,"max",null,0);
                 foreach(var sample in new[]{(valueCountSql,"count-value",0),(distinctCountSql,"count-distinct",1)})
                 {await Send(sample.Item1,sample.Item2,ownerToken,sample.Item3);await Send(sample.Item1,sample.Item2,foreignToken,0);await Send(sample.Item1,sample.Item2,null,0);}
-                await Send(selectedSql,"entity-input",ownerToken,2);await Send(selectedSql,"entity-input",foreignToken,0);await Send(selectedSql,"entity-input",null,0);
+                await Send(entityInputSql,"entity-input",ownerToken,2);await Send(entityInputSql,"entity-input",foreignToken,0);await Send(entityInputSql,"entity-input",null,0);
                 Assert.AreEqual(18,authority.Started.Count);Assert.AreEqual(18,authority.Settlements.Count);
             }
             finally{await app.StopAsync();}
@@ -129,7 +130,7 @@ public sealed partial class CqlV1Web4NativeTests
                 await mongo.DropDatabaseAsync(database);using var names=await mongo.ListDatabaseNamesAsync();Assert.IsFalse((await names.ToListAsync()).Contains(database));
             }
         }
-        return new NativeFixtureJourneyProof(10,1,new Dictionary<string,bool>{["nativeEntityInputHttp"]=true,["serverSqlSelectedValueCounts"]=true,["serverSqlSetExtrema"]=true,["serverSqlNumericSetAggregates"]=true,["serverSqlCompilation"]=true,["nestedEntityWindows"]=true,
+        return new NativeFixtureJourneyProof(11,1,new Dictionary<string,bool>{["serverSqlEntityInputs"]=true,["nativeEntityInputHttp"]=true,["serverSqlSelectedValueCounts"]=true,["serverSqlSetExtrema"]=true,["serverSqlNumericSetAggregates"]=true,["serverSqlCompilation"]=true,["nestedEntityWindows"]=true,
             ["selectedChildBindings"]=true,["nativeScalarCountBeyondPublication"]=true,["ownerForeignAnonymousBoundaries"]=true,["oneSettledNativeAttempt"]=true});
     }
 }
