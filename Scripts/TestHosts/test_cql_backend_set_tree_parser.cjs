@@ -28,6 +28,12 @@ for(const provider of ['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS']) {
  assert.equal(q.body.reduction,'Min');assert.equal(q.body.reductionColumn,'Name');assert.equal(q.scalarAlias,'First');checks++;
  q=compile('WITH q AS ('+selected+') SELECT MAX(Description) AS Last FROM q WHERE Name IS NOT NULL');
  assert.equal(q.body.reduction,'Max');assert.equal(q.body.reductionColumn,'Description');assert.equal(q.body.selectedStages[0].operation,'Where');checks++;
+ q=compile('WITH q AS ('+selected+') SELECT COUNT(Description) AS Present FROM q');
+ assert.equal(q.body.reduction,'LongCount');assert.equal(q.body.reductionColumn,undefined);
+ assert.deepEqual(q.body.selectedStages.at(-1),{operation:'Where',filters:[{alias:'Description',operator:'NotEqual',value:null}]});checks++;
+ q=compile('WITH q AS ('+selected+') SELECT COUNT(DISTINCT Name) AS UniqueNames FROM q');
+ assert.equal(q.body.reduction,'LongCount');assert.deepEqual(q.body.selectedStages.slice(-2),[{operation:'Select',columns:[{alias:'Name',sourceAlias:'Name'}]},{operation:'Distinct'}]);checks++;
+
 }
 assert.throws(()=>compile('SELECT * FROM MongoDBOASIS UNION SELECT * FROM SQLLiteDBOASIS'),/same provider/);checks++;
 assert.throws(()=>compile('WITH q AS ((SELECT Name FROM MongoDBOASIS) UNION (SELECT Name FROM MongoDBOASIS)) SELECT Name FROM q'),/explicit TOP|LIMIT|FETCH/);checks++;

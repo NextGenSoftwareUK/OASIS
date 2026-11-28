@@ -11470,3 +11470,8 @@ CI46134517647 qualified d36a143c/Core551ac0d8: native3/3 plus one atomic-admissi
 ## 2026-11-28 backend selected-set extrema (qualification pending)
 
 Added shared native selected-set scalar Min/Max planning/execution through the existing one-attempt owner and complete source/stage proof, without constructing enclosing DTOs. The owner re-admits the actual provider extrema domain immediately before dispatch. Backend SQL WITH/derived selected set MIN(alias)/MAX(alias) lowers to the same set route and currently visible alias. Caller/provider, windows, null/empty and canonical scalar wire semantics remain explicit. Browser engines untouched. Local Node18 parser26/26 and runner syntax passed; native compiler17/native15 and actual WEB4 build are pending CI. Full Q50/Q51/Q53/Q54 remain OPEN; main144/168 extension4/13 unchanged. No shared Atlas/PIPER operations or local builds/installations.
+
+
+## 2026-11-28 backend selected-value counts (qualification pending)
+
+Server SQL COUNT(alias) and COUNT(DISTINCT alias) over bounded selected sets now lower to native null exclusion, explicit selected alias/Distinct when requested, then the existing independently enrolled LongCount path. Original set tuple membership, filters and windows stay before scalar reduction. No new route/Core/provider fallback. Local server parser32/32 passed; native owner/foreign/anonymous cases for duplicate occurrences and distinct visible values added to the existing three-store HTTP journey. Pending representative CI/actual WEB4, no full parity credit. Main144/168 extension4/13 unchanged; browser engines and shared Atlas/PIPER untouched.

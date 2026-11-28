@@ -548,11 +548,12 @@
       const distinct = accept('DISTINCT');
       const leadingTake=readTop();
       const output=[];
-      let setReduction,scalarAlias,setReductionColumn;
+      let setReduction,scalarAlias,setReductionColumn,setCountColumn,setCountDistinct=false;
       if(input.setBody&&['COUNT','ANY','MIN','MAX','SUM','AVG'].includes(peek())&&tokens[index+1]==='(') {
         const operation=tokens[index++].toUpperCase();expect('(');
         if(['MIN','MAX','SUM','AVG'].includes(operation))setReductionColumn=column().alias;
-        else if(!accept('*')&&!accept('1'))throw new Error('Selected cardinality accepts COUNT(*)/COUNT(1) or ANY(*).');
+        else if(operation==='COUNT'&&!accept('*')&&!accept('1')) {setCountDistinct=accept('DISTINCT');setCountColumn=column();}
+        else if(operation==='ANY'&&!accept('*')&&!accept('1'))throw new Error('Selected existence accepts ANY(*) or ANY(1).');
         expect(')');setReduction=({COUNT:'LongCount',ANY:'Any',MIN:'Min',MAX:'Max',SUM:'Sum',AVG:'Average'})[operation];
         scalarAlias=readColumnAlias(({COUNT:'Count',ANY:'Any',MIN:'Min',MAX:'Max',SUM:'Sum',AVG:'Average'})[operation]);
         input.columns.forEach(item=>output.push({alias:item.alias,sourceAlias:item.alias}));
@@ -576,6 +577,13 @@
         if(distinct||leadingTake!==undefined)throw new Error('Put DISTINCT and input windows inside the selected set before reducing.');
         accept(';');
         if(index!==tokens.length)throw new Error('Apply ordering and windows inside the selected source before its reduction.');
+        if(setCountColumn) {
+          if(nullable(setCountColumn))stages.push({operation:'Where',filters:[{alias:setCountColumn.alias,operator:'NotEqual',value:null}]});
+          if(setCountDistinct) {
+            stages.push({operation:'Select',columns:[{alias:setCountColumn.alias,sourceAlias:setCountColumn.alias}]});
+            stages.push({operation:'Distinct'});
+          }
+        }
         if(stages.length>16||stages.reduce((sum,stage)=>sum+(stage.filters?.length??0)+(stage.anyOf?.length??0),0)>32)
           throw new Error('Selected reduction exceeds16 stages or32 comparisons.');
         const result=stages.length?bindSelectedFrame(input,stages):{path:'data/query-cql/set',body:input.setBody};
