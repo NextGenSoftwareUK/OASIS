@@ -67,3 +67,8 @@ Cleanup: retained source-only LocalState/COSMIC/GPT_Q50_SQLITE_TREE_DRAFTS.json.
 ### Current exact-source gates
 
 Combined Mongo+SQLite tree source7e834b164575 runs46118224678; Mongo-only6402cd13 still runs46117421264. Both handles confirmed live. Next code is Neo recursive selection integrated with existing AppendCqlEntityStages/Publication; failure state must survive windows and every source remain authorized/complete. No native acceptance or full parent credit yet. No local build/env/download/test output; SQLite source-only recovery JSON retained.
+
+
+### Recursive admission root cause — qualification pending
+
+Mongo-only CI46117421264 failed: count3 passed, recursive1 failed before provider execution because CosmicQueryAttemptOwner dereferenced the nullable flat Left operand. Core0534cb49 now walks every immutable set input and captures every leaf read policy under the same inherited execution admission; indexed sources still reject before I/O. This fixes the shared owner rather than bypassing it with an Anchor-only policy. Combined predecessor46118224678 uses the old Core and is superseded by the corrected exact-source candidate. All parent rows remain OPEN; main144/168 + extension4/13. No local builds, downloads, databases or shared Atlas/PIPER operations.
