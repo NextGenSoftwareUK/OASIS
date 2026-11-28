@@ -246,3 +246,6 @@ Representative selected journey now26groups/37timings: direct ordinary entity-se
 
 
 2026-11-28 independent review caught missing SQLite right-operand EntitySource forwarding in ad4bb95b. Fixed the owning compiler call symmetrically; existing native fixture deliberately filters the right source from ax/bz to bz and expects ay,bz,ax,bz, so the omission would produce an extra ax and fail. No extra symmetric/mirrored test matrix or new fixture writes. Core3d8d54db unchanged; native qualification remains required before deployment.
+
+
+2026-11-28 source check found the new native fixture needs public runtime-column capture after entity stages; added SelectColumns and exact-source/physical-column WithSelectedPipeline through existing projection capture in Core. This supports the native dynamic-record boundary and the next backend transport work, without a new execution path. Previous candidate23d1 superseded for the missing capture API. No full parity credit before native CI; main144/168 extension4/13 unchanged.
