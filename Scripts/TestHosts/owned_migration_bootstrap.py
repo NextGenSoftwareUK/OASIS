@@ -42,7 +42,7 @@ def prepare(root, api, owner):
         project=owned/'OwnedMigrationBootstrap.csproj'
         project.write_text('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><ImplicitUsings>disable</ImplicitUsings><Nullable>disable</Nullable></PropertyGroup><ItemGroup><Reference Include="refs/*.dll"><Private>false</Private></Reference></ItemGroup></Project>')
         # References are frozen private copies from this exact image; no Core/provider build or shared output mutation.
-        built=subprocess.run(['dotnet','build',str(project),'-c','Release','-o',str(owned/'out'),'-m:2','-nr:false','-p:UseSharedCompilation=false','-v:minimal'],capture_output=True,text=True,timeout=120)
+        built=subprocess.run(['dotnet','build',str(project),'-c','Release','-o',str(owned/'out'),'-m:2','-nr:false','-p:UseSharedCompilation=false','-p:ImportDirectoryBuildProps=false','-p:ImportDirectoryBuildTargets=false','-p:BaseIntermediateOutputPath='+str(owned/'obj')+'/', '-p:MSBuildProjectExtensionsPath='+str(owned/'obj')+'/', '-p:RestorePackagesPath='+str(owned/'packages'),'-v:minimal'],capture_output=True,text=True,timeout=120)
         if built.returncode:
             errors=[line for line in (built.stdout+'\n'+built.stderr).splitlines() if re.search(r'error [A-Z]+[0-9]+',line)]
             raise RuntimeError('Owned fixture build failed: '+'\n'.join(errors[-5:]))
