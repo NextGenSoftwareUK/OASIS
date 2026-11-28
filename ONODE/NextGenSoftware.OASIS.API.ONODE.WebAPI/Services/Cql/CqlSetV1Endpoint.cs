@@ -30,7 +30,7 @@ public static partial class CqlV1Endpoint
                 return await ExecuteSetReductionAsync(http,request,providers,actor,selected,policy?.Access,storage,rowAdapter);
             if(request.OutputColumns!=null)
                 return await ExecuteSetProjectionAsync(http,request,providers,actor,selected,policy?.Access,storage,rowAdapter);
-            if(request.Left.Columns!=null || request.Right.Columns!=null)
+            if(CqlV1Compiler.UsesSelectedSet(request))
                 return await ExecuteProjectedSetAsync(http,request,providers,actor,selected,policy?.Access,storage,rowAdapter);
             if(rowAdapter is not ICosmicSetQueryStorageProvider adapter)
                 return Failure(400,"CQL_CAPABILITY_UNSUPPORTED","The provider does not implement native sets.");
@@ -49,14 +49,14 @@ public static partial class CqlV1Endpoint
             if(result.IsError)return QueryFailure(http,result.ErrorCode);
             var output=result.Result.Providers.Single();
             if(output.Provider!=selected)return Failure(503,"CQL_PROVIDER_RESULT_INVALID","Set provenance differs from its admitted provider.");
-            if(!result.IsLoaded || intent.Left.ReadAccess==null || intent.Left.ReadAccess.ActorId!=actor ||
-                output.Rows.Any(row=>!intent.Left.ReadAccess.CanRead(row)))
+            if(!result.IsLoaded || intent.Anchor.ReadAccess==null || intent.Anchor.ReadAccess.ActorId!=actor ||
+                output.Rows.Any(row=>!intent.Anchor.ReadAccess.CanRead(row)))
                 return Failure(503,"CQL_VISIBILITY_VIOLATION","Native set results did not satisfy the mandatory read policy.");
             deadline.Token.ThrowIfCancellationRequested();
             var response=JsonResponse(new OASISResult<object>(new
             {
                 version="cql-set-v1",provider=selected.ToString(),kind=intent.Kind.ToString(),count=output.Rows.Count,
-                rows=CqlV1Projection.Create(output.Rows,intent.Left.ReadAccess,request.IncludeMetadata,null,deadline.Token,
+                rows=CqlV1Projection.Create(output.Rows,intent.Anchor.ReadAccess,request.IncludeMetadata,null,deadline.Token,
                     preserveRootOccurrences:intent.Kind==CosmicSetQueryKind.Concat)
             }){IsLoaded=true});
             deadline.Token.ThrowIfCancellationRequested();return response;

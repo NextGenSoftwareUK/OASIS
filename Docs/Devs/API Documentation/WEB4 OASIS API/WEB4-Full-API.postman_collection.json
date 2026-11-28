@@ -4265,7 +4265,7 @@
             "url": "{{web4BaseUrl}}/api/data/query-cql/set",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"provider\": \"MongoDBOASIS\",\n  \"kind\": \"Concat\",\n  \"left\": {\n    \"set\": {\n      \"kind\": \"Union\",\n      \"left\": {\n        \"take\": 2\n      },\n      \"right\": {\n        \"take\": 2\n      },\n      \"take\": 1\n    }\n  },\n  \"right\": {\n    \"take\": 2\n  },\n  \"take\": 3\n}",
               "options": {
                 "raw": {
                   "language": "json"

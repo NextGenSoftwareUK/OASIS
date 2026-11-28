@@ -11,13 +11,15 @@ RESULTS=ROOT/'TestResults'/'Neo4jCurrent'
 RESULTS.mkdir(parents=True,exist_ok=True)
 os.environ['OASIS_CQL_MONGO_ENTITY_PROJECTION_ROOT']=str(ROOT)
 PROJECT='Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests'
+subprocess.run(['node','Scripts/TestHosts/test_cql_backend_set_tree_parser.cjs'],cwd=ROOT,check=True)
 BOUNDS=['-m:2','-nr:false','-p:UseSharedCompilation=false']
+subprocess.run(['dotnet','test','OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests',*BOUNDS,'--filter','FullyQualifiedName~CqlRecursiveSetV1CompilerTests|FullyQualifiedName~CqlProjectedSetV1CompilerTests|FullyQualifiedName~CqlSetReductionV1CompilerTests','--results-directory',str(RESULTS),'--logger','trx;LogFileName=recursive-set-compiler.trx'],cwd=ROOT,check=True)
 subprocess.run(['dotnet','test',PROJECT,*BOUNDS,'--filter',
- 'FullyQualifiedName~NativeSetCountsIgnorePublicationCapsAndKeepSemanticWindows|FullyQualifiedName~NativeRecursiveSetsPreserveNodeWindowsAndInputProofs|FullyQualifiedName~NativeProjectedTupleSetsCompareEveryVisibleColumn|FullyQualifiedName~NativeRecursiveSelectedSetsUseVisibleTupleEquality',
+ 'FullyQualifiedName~NativeSetCountsIgnorePublicationCapsAndKeepSemanticWindows|FullyQualifiedName~NativeRecursiveSetsPreserveNodeWindowsAndInputProofs|FullyQualifiedName~NativeProjectedTupleSetsCompareEveryVisibleColumn|FullyQualifiedName~NativeRecursiveSelectedSetsUseVisibleTupleEquality|FullyQualifiedName~NativeRecursiveSetHttpUsesServerSqlPermissionsAndOneAttempt',
  '--results-directory',str(RESULTS),'--logger','trx;LogFileName=recursive-selected-set-native.trx'],cwd=ROOT,check=True)
 ns={'t':'http://microsoft.com/schemas/VisualStudio/TeamTest/2010'}
 c=ET.parse(RESULTS/'recursive-selected-set-native.trx').find('.//t:Counters',ns)
-assert c is not None and c.attrib['total']=='12' and c.attrib['passed']=='12' and c.attrib['failed']=='0'
+assert c is not None and c.attrib['total']=='15' and c.attrib['passed']=='15' and c.attrib['failed']=='0'
 groups={'allFourSetKinds','duplicateCountIndependentOfPublicationCap','semanticWindowsRetained',
  'postWindowPredicatesRetained','noEntityMaterialization','foreignCallerIsolated','inputCompletenessBeforeEmptyOutput','cancellationPreserved'}
 for store in ['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS']:
@@ -42,12 +44,17 @@ for store in ['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS']:
  assert selected['provider']==store and selected['checks']==16 and selected['ownedCleanupIds']==4 and selected['successfulHolonWrites']==1
  assert selected['nativeProviderVerified'] and selected['exactCleanupVerified'] and len(selected['queryElapsedMilliseconds'])==20
  assert set(selected['evidence'])=={'nestedVisibleOutputBindings','nativeScalarExtremaAfterWindows','nativeCountIndependentOfPublication','nativeCardinalityWithoutConstructors','foreignNativeCount','registeredLinqLeftTree','registeredLinqRightTree','explicitTreeAdmission','concatOccurrences','visibleTupleUnion','visibleTupleIntersectExcept','nodeWindows','rightNested','foreignIsolation','childBoundBeforeEmpty','cancellation'} and all(selected['evidence'].values())
+for store in ['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS']:
+ r=json.loads((RESULTS/(store+'-recursive-set-http-native.json')).read_text(encoding='utf-8-sig'))
+ assert r['provider']==store and r['checks']==6 and r['ownedCleanupIds']==1 and r['successfulHolonWrites']==1
+ assert r['nativeProviderVerified'] and r['exactCleanupVerified'] and len(r['queryElapsedMilliseconds'])==9
+ assert set(r['evidence'])=={'serverSqlCompilation','nestedEntityWindows','selectedChildBindings','nativeScalarCountBeyondPublication','ownerForeignAnonymousBoundaries','oneSettledNativeAttempt'} and all(r['evidence'].values())
 subprocess.run(['dotnet','build','ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI',*BOUNDS],cwd=ROOT,check=True)
 def git(*args):
  return subprocess.check_output(['git',*args],cwd=ROOT,text=True).strip()
 source=git('rev-parse','HEAD')
 assert source==os.environ['GITHUB_SHA']
 proof={'source':source,'core':git('-C','OASIS Architecture/NextGenSoftware.OASIS.API.Core','rev-parse','HEAD'),
- 'nativePassed':12,'nativeSetPublicationCountsVerified':True,'nativeRecursiveEntitySetProviders':['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS'],'nativeRecursiveSelectedSetProviders':['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS'],'nativeSelectedSetCountVerified':True,'nativeSelectedSetScalarExtremaVerified':True,'nestedVisibleOutputBindingsVerified':True,'fullSetParentsComplete':False,'actualWeb4Compiled':True,'ownedFixturesAbsent':True,
+ 'nativePassed':15,'nativeRecursiveSetHttpVerified':True,'nativeSetPublicationCountsVerified':True,'nativeRecursiveEntitySetProviders':['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS'],'nativeRecursiveSelectedSetProviders':['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS'],'nativeSelectedSetCountVerified':True,'nativeSelectedSetScalarExtremaVerified':True,'nestedVisibleOutputBindingsVerified':True,'fullSetParentsComplete':False,'actualWeb4Compiled':True,'ownedFixturesAbsent':True,
  'sharedDatabaseCalls':0,'deployed':False}
 (RESULTS/'source.json').write_text(json.dumps(proof,indent=2)+'\n',encoding='utf-8')

@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
 using System.Text.Json;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Queries;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
@@ -12,8 +14,11 @@ internal static class CqlRequestCapture
     internal static CqlSetV1Request Capture(CqlSetV1Request value)
     {
         if(value==null)throw new ArgumentException("A set request is required.");
-        CqlSetV1Source Source(CqlSetV1Source source)
+        var leaves=0;
+        CqlSetV1Source Source(CqlSetV1Source source,int depth)
         {
+            if(depth>CosmicSetQuery<Holon>.MaximumTreeDepth)throw new ArgumentException("Set capture exceeds its depth bound.");
+            if(source?.Set==null&&++leaves>CosmicSetQuery<Holon>.MaximumTreeLeaves)throw new ArgumentException("Set capture exceeds its leaf bound.");
             if(source==null || source.Graph!=null)throw new ArgumentException("A set source without graph expansion is required.");
             var copy=Capture(new CqlV1Request {
                 Where=source.Where,Filters=source.Filters,AnyOf=source.AnyOf,AnyChildren=source.AnyChildren,
@@ -21,6 +26,7 @@ internal static class CqlRequestCapture
                 Skip=source.Skip,Take=source.Take??0
             });
             return new CqlSetV1Source {
+                Set=source.Set==null?null:Node(source.Set,depth+1),
                 Where=copy.Where,Filters=copy.Filters,AnyOf=copy.AnyOf,AnyChildren=copy.AnyChildren,
                 AnyDescendants=copy.AnyDescendants,OrderBy=copy.OrderBy,Descending=copy.Descending,
                 Skip=copy.Skip,Take=source.Take.HasValue?copy.Take:null,
@@ -28,29 +34,36 @@ internal static class CqlRequestCapture
                 Stages=source.Stages==null?null:CaptureSelectedStages(source.Stages)
             };
         }
+        CqlSetV1Node Node(CqlSetV1Node node,int depth)
+        {
+            if(node==null||depth>CosmicSetQuery<Holon>.MaximumTreeDepth)throw new ArgumentException("Set capture exceeds its depth bound.");
+            return new CqlSetV1Node {Kind=node.Kind,Left=Source(node.Left,depth),Right=Source(node.Right,depth),
+                Skip=node.Skip,Take=node.Take,Reverse=node.Reverse,
+                Ordering=CaptureSetOrdering(node.Ordering),EntityStages=CaptureSetEntityStages(node.EntityStages),
+                SelectedStages=node.SelectedStages==null?null:CaptureSelectedStages(node.SelectedStages)};
+        }
         return new CqlSetV1Request {
-            Provider=value.Provider,Kind=value.Kind,Left=Source(value.Left),Right=Source(value.Right),
+            Provider=value.Provider,Kind=value.Kind,Left=Source(value.Left,1),Right=Source(value.Right,1),
             Reduction=value.Reduction,
             ReductionWhere=value.ReductionWhere==null?null:Capture(new CqlV1Request{Where=value.ReductionWhere}).Where,
             MaximumLeftRows=value.MaximumLeftRows,MaximumRightRows=value.MaximumRightRows,
             MaximumResults=value.MaximumResults,Skip=value.Skip,Take=value.Take,
-            Ordering=value.Ordering==null?null:Array(value.Ordering,4,term=>term==null
-                ?throw new ArgumentException("Missing set ordering.")
-                :new CqlV1Ordering {Field=term.Field,Descending=term.Descending}),
+            Ordering=CaptureSetOrdering(value.Ordering),
             Reverse=value.Reverse,IncludeMetadata=value.IncludeMetadata,
-            EntityStages=value.EntityStages==null?null:Array(value.EntityStages,16,stage=>stage==null
-                ?throw new ArgumentException("Missing entity set stage.")
-                :new CqlSetV1EntityStage {
-                    Operation=stage.Operation,Count=stage.Count,
-                    Where=stage.Where==null?null:Capture(new CqlV1Request{Where=stage.Where}).Where,
-                    Ordering=stage.Ordering==null?null:Array(stage.Ordering,4,term=>term==null
-                        ?throw new ArgumentException("Missing entity stage ordering.")
-                        :new CqlV1Ordering{Field=term.Field,Descending=term.Descending})
-                }),
+            EntityStages=CaptureSetEntityStages(value.EntityStages),
             OutputColumns=value.OutputColumns==null?null:CaptureColumns(value.OutputColumns),
             SelectedStages=value.SelectedStages==null?null:CaptureSelectedStages(value.SelectedStages)
         };
     }
+
+    private static CqlV1Ordering[] CaptureSetOrdering(CqlV1Ordering[] ordering)
+        =>ordering==null?null:Array(ordering,4,term=>term==null?throw new ArgumentException("Missing set ordering.")
+            :new CqlV1Ordering{Field=term.Field,Descending=term.Descending});
+    private static CqlSetV1EntityStage[] CaptureSetEntityStages(CqlSetV1EntityStage[] stages)
+        =>stages==null?null:Array(stages,16,stage=>stage==null?throw new ArgumentException("Missing entity set stage.")
+            :new CqlSetV1EntityStage{Operation=stage.Operation,Count=stage.Count,
+                Where=stage.Where==null?null:Capture(new CqlV1Request{Where=stage.Where}).Where,
+                Ordering=CaptureSetOrdering(stage.Ordering)});
 
     private static CqlCompositionV1Stage[] CaptureSelectedStages(CqlCompositionV1Stage[] stages)
     {
