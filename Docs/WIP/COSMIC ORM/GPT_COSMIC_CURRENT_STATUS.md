@@ -1,6 +1,6 @@
 # COSMIC current status
 
-Updated 2026-11-28T06:30:28.040Z. Session gpt-cosmic.
+Updated 2026-11-28T06:39:32.380Z. Session gpt-cosmic.
 
 Maintained checklist:144/168 rows green across MongoDB/SQLite/Neo4j. The historical130/164 baseline used an older denominator; all existing features remain in scope. This session completed3 full rows, each native3/3 plus actual WEB4 build and exact cleanup:
 
@@ -27,3 +27,7 @@ Active breadth work: work/gpt-q50, claimed Q50/Q51/Q53/Q54 set family in claims2
 Recursive plan foundation is Core4e3e3e85 on work/gpt-q50, not pinned/deployed. Native recursive enrollment remains false until real compiler/CI acceptance; Mongo recursive compiler/source-proof reuse is being connected, SQLite/Neo and SQL/wire remain open. All4 set parents remain OPEN.
 
 Latest accepted slice: Holon components6/6 (46113010583), POCO/constructor components6/6 (46113931675), count invariants3/3 (46116059517), actual WEB4 build and exact cleanup. Preparing one qualified Development batch with Core0fd03ded and peer publish-graph repair03bf0ef2. Recursive tree4e3e3e85 remains unpinned and not deployed; all parent rows remain open. Main144/168 + extension4/13.
+
+Verified batch8ed94e278c22/Core0fd03ded was pushed to Development06:31:10 UTC: accepted components/constructors and count invariants, preserving peer SDK packaging. Latest observed WEB4 rollout2de13ccd is BUILDING; later peer67663f81 is INITIALIZING, last SUCCESS03bf0ef2. No new live data/API acceptance.
+
+Feature-only recursive Mongo candidate6402cd133530/Core4e3e3e85 is in CI46117421264 (queued at latest observation): Mongo tree1 plus existing count3, actual WEB4 and cleanup required. Feature manifest now pins treeCore; Development batch explicitly does not. SQLite/Neo recursive execution, selected trees, LINQ/backend SQL/wire remain open. No parent credit:144/168 + extension4/13.

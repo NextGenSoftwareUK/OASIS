@@ -51,3 +51,7 @@ The new real-Mongo journey requires10groups/4ownedIDs/1writebatch/12timings: all
 The verified batch8ed94e27/Core0fd03ded was pushed to Development at06:31:10 UTC and EXCLUDES this recursive candidate; next normal Development push no earlier than07:01:10 and only after relevant verification. All4parent rows remain OPEN; main144/168 + extension4/13.
 
 Cleanup: retained source drafts GPT_Q50_NATIVE_TREE_FIXTURE_DRAFT.cs and3Mongo tree compiler/adapter drafts in LocalState/COSMIC. No local build/runtime/env/database/container/image/install/archive or shared Atlas/PIPER calls; CI has owned loopback stores/2-day artifacts and temporary index cleanup. No new David action.
+
+### Current native gate and rollout metadata
+
+CI46117421264 queued for exact6402cd13/Core4e3e3e85, requiring nativeMongo tree1 + count3 and actual WEB4 build. No accepted native tree cohort yet. Last metadata: WEB4 batch8ed94e27 deployment2de13ccd BUILDING, peer67663f81 INITIALIZING and03bf0ef2SUCCESS. Deployment metadata does not replace application-data acceptance. No new source-data/API/shared Atlas/PIPER work. Owned source-only draft GPT_Q50_NATIVE_TREE_FIXTURE_DRAFT.cs and3Mongo tree drafts are retained/recorded; no local environments/builds/downloads or owner action.
