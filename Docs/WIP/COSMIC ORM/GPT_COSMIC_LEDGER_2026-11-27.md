@@ -21,3 +21,9 @@ SQL and AI query engines remain backend-owned (`POST /api/data/query-cql/sql` an
 ### Native test host dependency correction
 
 O07 run46102113566 reached native test-project compilation and exposed an existing linked-source omission: CqlHostedSources now calls the shipping CqlSandboxSidecar, but the linked HTTP test host did not compile that dependency. Link the actual shipping class alongside its caller; no stub or duplicate implementation. The same host fix is applied to both pending row candidates. Native acceptance remains 0/3 pending corrected CI; no runtime or deployment change.
+
+### 2026-11-28 UTC — O07 native acceptance, 3/3
+
+Run46103037019/job140849566886 passed exact sourcecdefa9eebabe935a3a854aa63974b1f96904131f/Core6613656a264d6d06cdf15af2eb3ff151da31b568. RAM-only artifact15246538702, 3702bytes, SHA2561418943911eb9b9b31ccaa2b644fec8c8e7a2b93c5a2b6a1c2fcd2981e96a63a, contains exactly native3 TRX, three10-group reports and source.json. Three cases passed, zero failed/skipped, actual WEB4 built;5 owned IDs/3 writes/10 timings per store and exact fixture cleanup verified. Mongo removal and service cleanup succeeded. Receipt recovery never replays an uncertain write, even an absent receipt. Fault injection is a client transport boundary; actual writes/receipts use shipping native stores.
+
+O07 promoted; new fully verified rows this session1/1 claimed completed. M01 remains0/3 pending, M09 in progress. Table status cells now142/168; preserve all rows despite historical130/164 owner baseline. Source not yet integrated/deployed. Compact acceptance JSON retained; zip was read in memory and released, never saved. No local env/build/database/log archive, shared Atlas/PIPER/API/DNA/deployment operation.

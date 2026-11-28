@@ -1,10 +1,12 @@
 ## Progress
 
+2026-11-28 UTC — O07 accepted on all3 real stores and actual WEB4 build. This session has added1 fully verified row (O07); M01 remains pending. Maintained table cells now tally142/168; the owner's130/164 baseline predates the current168-entry table. Preserve every existing feature and accepted proof; this tally is not a new audit of old green rows. Completion still requires every checklist feature, not dropping four rows to fit an older denominator.
+
 Maintained by cloud session cloud-cosmic-B (claims in `Docs/WIP/Release and Status/WORK-CLAIMS.md`).
 
 | Date (UTC) | Row | Status | Evidence |
 |---|---|---|---|
-| 2026-11-27 | O07 | IMPLEMENTED; native0/3 pending; no progress credit | work/gpt-o07; Core6613656; GPT_COSMIC_LEDGER_2026-11-27.md |
+| 2026-11-28 | O07 | DONE: native 3/3 in CI; Development integration pending | [46103037019](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/46103037019), cdefa9ee/Core6613656a |
 | 2026-11-25 | Q60 | DONE: native 3/3 in CI, merged to Development | [run 45724212746](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/45724212746) |
 | 2026-11-25 | A13 | DONE: native 3/3 in CI, merged to Development | [run 45714298575](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/45714298575) |
 | 2026-11-25 | Q47 | DONE: native 3/3 in CI, merged to Development | [run 45716513951](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/45716513951) |
@@ -543,7 +545,7 @@ older chronological roadmap is supporting history, not the source of green statu
 | O04 | Savepoints and nested transaction behaviour | ❌ | ❌ | ❌ | Blocker: depends on O03. MongoDB has no savepoints and Neo4j has no nested transactions, so savepoints would be a SQLite-only feature unless emulated by the unit-of-work part model. |
 | O05 | Configurable transaction isolation / repeatable-read snapshots | ❌ | ❌ | ❌ | Blocker: depends on O03. Isolation would be per store (SQLite serializable, MongoDB snapshot, Neo4j read-committed), so a common repeatable-read contract needs held transactions on reads. |
 | O06 | Ambient System.Transactions / distributed enlistment | ❌ | ❌ | ❌ | Blocker: no cross-store two-phase commit (MongoDB, SQLite and Neo4j cannot enlist in one System.Transactions scope). Cross-store consistency uses the HyperDrive replication outbox instead. |
-| O07 | Automatic execution strategies with transaction-safe retry policy | ❌ | ❌ | ❌ | Implemented on work/gpt-o07 (Core6613656): bounded retries require provider-confirmed abort evidence bound to the original actor, operation and physical source. Unknown outcome performs one read-only receipt check and never replays from absence. Native MongoDB/SQLite/Neo4j CI0/3 pending; row remains uncredited. See GPT_COSMIC_LEDGER_2026-11-27.md. |
+| O07 | Automatic execution strategies with transaction-safe retry policy | ✅ | ✅ | ✅ | Native 3/3 and actual WEB4 build passed [46103037019](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/46103037019) on cdefa9ee/Core6613656a. Bounded retry requires a native-owner confirmed-abort certificate bound to the original actor, operation and physical source. Unknown outcomes recover their native receipt once without replay, including absent receipts. Ten representative groups/store, exact owned cleanup, zero shared DB calls. Client transport faults are injected only at the boundary; writes and receipt reads use shipping native stores. See O07_NATIVE_ACCEPTANCE_2026-11-28.json. Not deployed. |
 | O08 | First-level session cache | ✅ | ✅ | ✅ | The session identity map is the first-level cache: Find returns the cached instance with fresh ID-only authorization and no negative caching; detach forces a fresh load ([44777556408](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44777556408)); navigation-loaded children are cached too ([45424767497](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/45424767497)). All three stores. |
 | O09 | Pluggable second-level entity/collection cache | ❌ | ❌ | ❌ | Not started. A second-level cache needs invalidation from every write path (including HyperDrive replicas and other WEB4 nodes) and per-actor grant checks on cache hits; no shared cache infrastructure is chosen (Redis is excluded by policy). |
 | O10 | Query cache and invalidation | ❌ | ❌ | ❌ | Not started; same invalidation and authorization requirements as O09, keyed by query plan and actor. |
