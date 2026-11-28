@@ -48,7 +48,7 @@ CosmicProjectedSetInput.FromEntityProjection captures a native entity-stage quer
 
 ### Entity-stage input JSON (native-qualified)
 
-A selected set leaf may specify EntityStages (Where/OrderBy/Skip/Take/Reverse) after its ordinary source Where/order/page and before explicit Columns; selected Stages then follow selection. This field uses the same bounded entity-stage schema as set output, but at its own leaf position. Leaf EntityStages require Columns and cannot accompany a nested Set envelope. Actor/provider/model and all source bounds remain fixed by the enclosing request. Null EntityStages is omitted from request fingerprints. Runtime columns and the exact selected pipeline lower through the native entity-source set contract; no independent managed evaluator. Owner/foreign/anonymous native HTTP qualification passed46141533128 on5d20cf3e/Corecf34fb1a. and dedicated typed gRPC/GraphQL set contracts remain open.
+A selected set leaf may specify EntityStages (Where/OrderBy/Skip/Take/Reverse) after its ordinary source Where/order/page and before explicit Columns; selected Stages then follow selection. This field uses the same bounded entity-stage schema as set output, but at its own leaf position. Leaf EntityStages require Columns and cannot accompany a nested Set envelope. Actor/provider/model and all source bounds remain fixed by the enclosing request. Null EntityStages is omitted from request fingerprints. Runtime columns and the exact selected pipeline lower through the native entity-source set contract; no independent managed evaluator. Owner/foreign/anonymous native HTTP qualification passed46141533128 on5d20cf3e/Corecf34fb1a. Dedicated typed gRPC/GraphQL set contracts remain open.
 
 
 ### Backend SQL entity inputs (native-qualified)

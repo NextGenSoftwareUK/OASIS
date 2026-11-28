@@ -23,7 +23,7 @@ Each latest artifact has18entries inspected in RAM, hash-bound compact acceptanc
 
 ## Current gate
 
-**5a8241a4114cc44fdbb1d31376816b0f16263b80**, CI **46143154521 pending**: posts one representative owner/foreign/anonymous SQL trio directly to the shipping /api/data/query-cql/sql middleware/action, then existing typed native execution. No client compiler for those calls. Expected12HTTPgroups/31timings and20settled native operations per store; one owned fixture write, exact cleanup. Independent review found no blockers. Superseded duplicate queued46143168518 canceled.
+**5a8241a4114cc44fdbb1d31376816b0f16263b80**, CI **46143154521 failed isolated-host source linkage; corrected candidate awaiting CI**: posts one representative owner/foreign/anonymous SQL trio directly to the shipping /api/data/query-cql/sql middleware/action, then existing typed native execution. No client compiler for those calls. Expected12HTTPgroups/31timings and20settled native operations per store; one owned fixture write, exact cleanup. Independent review found no blockers. Superseded duplicate queued46143168518 canceled.
 
 Remaining selected-set families: identity-set late-projection operands and standalone staged entity-derived SQL requests. Full M04 relationships/collections, schema/table placement, full IUserType and remaining generators stay open. Other open parity rows remain in the checklist.
 
