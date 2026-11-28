@@ -1,0 +1,18 @@
+{
+  "provider": "GarnetOASIS",
+  "suite": "core-storage-v2",
+  "mode": "native",
+  "source": "d7a6ed18ab054dce1290537d407e6b025c76e0f2",
+  "core": "0fd03dede3f2caaa02ec6e2c5ff75319f9528e55",
+  "run": 46122538895,
+  "url": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/46122538895",
+  "conclusion": "success",
+  "sync": 26,
+  "async": 26,
+  "passed": 52,
+  "total": 52,
+  "skipped": 0,
+  "backend": "Official Microsoft Garnet2.2.5 linux/amd64 sha256:87e22ffa38533c207c5210ed2c11c39ed34f5b84981837a752ac2b4ec813a674; Lua transaction mode enabled",
+  "cleanup": "Native DBSIZE0 before/after; owned labelled container, volumes and fixture removed; cleanup exit0",
+  "scope": "Shipping StackExchange.Redis client and encrypted Garnet storage; isolated CI only. Hosted admission, retained durability/restart, all interfaces and cross-provider release gates separate. No shared Atlas or laptop runtime."
+}
