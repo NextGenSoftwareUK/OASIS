@@ -12,10 +12,12 @@ OPORTAL, the ONODE popup and billing UI are now owned by a different session. CQ
 
 | Scope | Done/total | Evidence |
 |---|---|---|
-| Requested Firebase/Turso/PocketBase rechecks | 2/3 | Firebase CI 46099124837; Turso CI 46099193518, both Development `d91bf074fa16`, 26 sync + 26 async with cleanup. PocketBase remains claimed by the existing HyperDrive session. |
+| Requested Firebase/Turso/PocketBase rechecks | 3/3 | Firebase46099124837 and Turso46099193518 on Development `d91bf074fa16`; PocketBase46103379382 on Development `6426cde360bd`. Each26sync+26async with owned cleanup. PocketBase’s stale claim was reconciled before takeover. |
 | Programme estimate carried from 26 November | about 115/234 | Rechecks refresh acceptance; they are not counted as new providers. Exact consolidated recount remains pending. |
 
-Both runs used isolated real backends in CI; no shared Atlas test operations or local runtime/download/build output. Compact receipts are in `NativeEvidence/*-development-2026-11-27.json`. Hosted acceptance and global v2 gates remain open. OPORTAL continuation is limited to gaps beyond the other session’s accepted work; verified MCP source-link correction is tracked in OPORTAL-JS.
+All three rechecks used isolated real backends in CI; no shared Atlas test operations or local runtime/download/build output. Compact receipts are in `NativeEvidence/*-development-2026-11-27.json`. Hosted acceptance and global v2 gates remain open. OPORTAL continuation is limited to gaps beyond the other session’s accepted work; verified MCP source-link correction is tracked in OPORTAL-JS.
+
+Miden integration: existing native implementation0289f57c/CI45753725053 is accepted on its original Core526ebc2b. `work/gpt-miden-native-integration` reuses it on current Core41e46d93 and fixes shipped SDK provisioning/environment configuration; current published-artifact CI is pending. No hosted/deployment acceptance is claimed.
 
 ## Progress (local HyperDrive programme, updated 2026-11-25 03:00 UTC)
 

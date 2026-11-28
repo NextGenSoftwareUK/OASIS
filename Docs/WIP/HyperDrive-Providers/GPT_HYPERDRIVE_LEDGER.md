@@ -17,3 +17,7 @@
 - Programme remains about115/234; existing-provider identity fixes do not add providers. Rechecks2/3, PocketBase retained by its owner. Hosted/global v2 gates stay open.
 - OPORTAL: corrected private-source public-link exposure, runtime label mismatch, bounded transient artifact retention; removed9138068830bytes of superseded failed reports. GitHub quota recount pending; no claim that laptop disk grew by this amount.
 - No local runtime/env/download/build/database/output, no shared Atlas/protected delivery operations. Private Git indexes removed in finally; compact receipts retained.
+
+## 2026-11-27 — Miden accepted-source integration (in progress)
+
+Claimed integration separately after finding Claude’s green52native checks on0289f57c/45753725053; original ownership credited as DONE(unmerged). Reused only Miden files. Current Core differs, and source shipping SDK provisioning/configuration/pack assets required completion. Native qualification now uses published output, the actual normal constructor and the shared locked installer used by all7API images. No local SDK/runtime/env/build/test output; caches/CI fixtures/published output have explicit cleanup. Current native CI pending; hosted and global gates remain open. Programme still about115/234, required rechecks3/3; no count inflated for reused evidence.

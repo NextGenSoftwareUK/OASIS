@@ -78,6 +78,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
 
         private static IKeyValueBackend CreateBackend(string rpcUrl, string accountId, string keySeed, string kuboApi, byte[] encryptionKey)
         {
+            rpcUrl ??= Environment.GetEnvironmentVariable("OASIS_MIDEN_RPC_URL");
+            accountId ??= Environment.GetEnvironmentVariable("OASIS_MIDEN_STORAGE_ACCOUNT");
+            keySeed ??= Environment.GetEnvironmentVariable("OASIS_MIDEN_STORAGE_KEY_SEED");
+            kuboApi ??= Environment.GetEnvironmentVariable("OASIS_MIDEN_KUBO");
+            var encodedKey = Environment.GetEnvironmentVariable("OASIS_MIDEN_STORAGE_KEY");
+            if (encryptionKey == null && encodedKey != null)
+                encryptionKey = Convert.FromBase64String(encodedKey);
             if (rpcUrl == null && accountId == null && keySeed == null && kuboApi == null && encryptionKey == null)
                 return new UnconfiguredMidenStorageBackend();
             if (string.IsNullOrWhiteSpace(rpcUrl) || string.IsNullOrWhiteSpace(accountId) || string.IsNullOrWhiteSpace(keySeed) || string.IsNullOrWhiteSpace(kuboApi))

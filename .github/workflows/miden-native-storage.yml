@@ -2,9 +2,10 @@ name: Miden native storage
 
 on:
   push:
-    branches: [work/miden-native-storage]
+    branches: [work/miden-native-storage, work/gpt-miden-native-integration]
     paths:
       - '.github/workflows/miden-native-storage.yml'
+      - 'Docker/install-miden-sdk.sh'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.MidenOASIS/**'
       - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.MidenOASIS.IntegrationTests/MidenNativeStorageConformanceTests.cs'
   workflow_dispatch:
@@ -59,11 +60,12 @@ jobs:
       - name: Build the provider tests and provision the pinned SDK worker
         run: |
           set -euo pipefail
-          dotnet build "$TESTS" -p:NativeStorageConformance=true -m:2 -nr:false -p:UseSharedCompilation=false
-          bridge="$(find "$TESTS/bin" -type d -name MidenSdkBridge | head -1)"
-          test -f "$bridge/worker.mjs" && test -f "$bridge/oasis_kv.masm"
-          (cd "$bridge" && npm ci --no-audit --no-fund)
-          echo "BRIDGE=$PWD/$bridge" >> "$GITHUB_ENV"
+          publish="$(mktemp -d "$RUNNER_TEMP/oasis-miden-publish.XXXXXXXX")"
+          echo "PUBLISHED_MIDEN_TESTS=$publish" >> "$GITHUB_ENV"
+          dotnet publish "$TESTS" -p:NativeStorageConformance=true -o "$publish" -m:2 -nr:false -p:UseSharedCompilation=false
+          bridge="$publish/MidenSdkBridge"
+          sh Docker/install-miden-sdk.sh "$bridge"
+          echo "BRIDGE=$bridge" >> "$GITHUB_ENV"
       - name: Run the shared core storage suite against a disposable Miden local network and Kubo
         run: |
           set -euo pipefail
@@ -92,6 +94,10 @@ jobs:
 
           # Create, fund and deploy the public storage account once; the provider imports it by id.
           account_seed="$(openssl rand -hex 32)"; key_seed="$(openssl rand -hex 32)"
+          echo "::add-mask::$account_seed"
+          echo "::add-mask::$key_seed"
+          encryption_key="$(openssl rand -base64 32)"
+          echo "::add-mask::$encryption_key"
           request="$(jq -cn --arg a "$account_seed" --arg k "$key_seed" '{id:1,operation:"deploy",rpcUrl:"http://127.0.0.1:57291",accountSeed:$a,keySeed:$k,faucetUrl:"http://127.0.0.1:50401"}')"
           reply="$(printf '%s\n' "$request" | (cd "$BRIDGE" && node worker.mjs) | sed -n 's/^@@OASIS-MIDEN@@//p')"
           jq -e '.ok' <<<"$reply" >/dev/null || { jq -c '{ok, error}' <<<"$reply" >&2; exit 1; }
@@ -100,10 +106,21 @@ jobs:
 
           export OASIS_NATIVE_STORAGE_FIXTURE="$fixture" OASIS_MIDEN_RPC_URL="http://127.0.0.1:57291" \
             OASIS_MIDEN_STORAGE_ACCOUNT="$account" OASIS_MIDEN_STORAGE_KEY_SEED="$key_seed" \
-            OASIS_MIDEN_KUBO="http://127.0.0.1:15001" OASIS_MIDEN_STORAGE_KEY="$(openssl rand -base64 32)"
-          dotnet test "$TESTS" --no-build -p:NativeStorageConformance=true \
-            --filter "FullyQualifiedName~MidenNativeStorageConformanceTests" --logger "console;verbosity=normal"
+            OASIS_MIDEN_KUBO="http://127.0.0.1:15001" OASIS_MIDEN_STORAGE_KEY="$encryption_key"
+          dotnet vstest "$PUBLISHED_MIDEN_TESTS/NextGenSoftware.OASIS.API.Providers.MidenOASIS.IntegrationTests.dll" \
+            --TestCaseFilter:"FullyQualifiedName~MidenNativeStorageConformanceTests" --logger:"console;verbosity=normal"
           for mode in async sync; do
             jq -e '.Succeeded and .FixtureCleanupComplete and (.Passed | length == 26)' "$fixture/$mode.json" >/dev/null
           done
           echo "Miden passed both storage modes against a local network."
+
+      - name: Remove the owned published SDK and test output
+        if: always()
+        run: |
+          set -euo pipefail
+          if [[ -n "${PUBLISHED_MIDEN_TESTS:-}" ]]; then
+            [[ "$PUBLISHED_MIDEN_TESTS" == "$RUNNER_TEMP"/oasis-miden-publish.* ]]
+            rm -rf -- "$PUBLISHED_MIDEN_TESTS"
+            test ! -e "$PUBLISHED_MIDEN_TESTS"
+            echo "Removed the owned published Miden SDK and test output."
+          fi

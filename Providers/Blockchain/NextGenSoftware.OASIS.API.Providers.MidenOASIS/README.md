@@ -1,3 +1,23 @@
+# Native core storage configuration
+
+Core avatar/avatar-detail/holon storage uses the locked official Miden SDK0.18.1, a public account with the `oasis::kv` component, and encrypted Kubo record envelopes. Claude’s implementation passed26sync+26async checks on the Miden0.18.3 local network (CI45753725053, commit0289f57c). Current Development integration is verified separately; this is not a claim that every optional provider capability or hosted account is accepted.
+
+The normal constructor used by the BootLoader reads these environment/secret-store fields when explicit constructor arguments are absent:
+
+- `OASIS_MIDEN_RPC_URL`: native node RPC endpoint.
+- `OASIS_MIDEN_STORAGE_ACCOUNT`: deployed public storage-account ID.
+- `OASIS_MIDEN_STORAGE_KEY_SEED`: signing seed; secret store only.
+- `OASIS_MIDEN_KUBO`: Kubo HTTP API for encrypted envelopes.
+- `OASIS_MIDEN_STORAGE_KEY`: base64 record-encryption key, exactly32bytes; secret store only.
+
+Configure a coherent set. Partial/invalid settings fail explicitly. An unconfigured provider cannot activate storage; public read-only account/block source configuration is separate. No deployment secret belongs in OASIS DNA or this README.
+
+WEB4–WEB10 Docker builds install and verify the locked SDK beside the published bridge via `Docker/install-miden-sdk.sh`. Installation occurs at build time, and its temporary npm cache is removed. The long-lived worker starts only when the provider is used. For standalone managed/NuGet consumers, Node24 and the bridge assets are prerequisites: run `sh MidenSdkBridge/install-sdk.sh "$PWD/MidenSdkBridge"` once after publishing. The package includes its worker, component, locked manifest and installer.
+
+The native CI publishes the test consumer, provisions the same SDK installer, and exercises the shipping constructor against isolated real Miden/Kubo services. It removes owned containers/volumes, fixture and published output. Hosted node/account credentials and deployment acceptance remain separate.
+
+---
+
 # Miden OASIS Provider
 
 Miden privacy provider for OASIS offering private note management, STARK proof workflows, and zkVM interactions.

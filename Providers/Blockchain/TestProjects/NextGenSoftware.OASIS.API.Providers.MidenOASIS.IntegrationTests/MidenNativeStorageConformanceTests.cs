@@ -30,9 +30,8 @@ public sealed class MidenNativeStorageConformanceTests
         var kubo = Env("OASIS_MIDEN_KUBO");
         Assert.IsTrue(new Uri(rpc).IsLoopback && new Uri(kubo).IsLoopback, "The fixture endpoints must be local.");
 
-        var provider = new MidenOASIS(network: "local", rpcUrl: rpc, storageAccountId: Env("OASIS_MIDEN_STORAGE_ACCOUNT"),
-            storageKeySeed: Env("OASIS_MIDEN_STORAGE_KEY_SEED"), kuboApi: kubo,
-            encryptionKey: Convert.FromBase64String(Env("OASIS_MIDEN_STORAGE_KEY")));
+        // The shipping BootLoader uses this constructor; storage settings come from the secret/environment store.
+        var provider = new MidenOASIS(network: "local");
 
         var report = await CoreStorageConformance.RunAsync(provider, provider.ProviderName, "native", synchronous,
             async checkpoint =>
@@ -41,30 +40,6 @@ public sealed class MidenNativeStorageConformanceTests
                 File.Move(reportPath + ".next", reportPath, overwrite: true);
             });
 
-        if (!report.Succeeded)
-        {
-            var probes = new (string, Func<Task<string>>)[]
-            {
-                ("activate", async () =>
-                {
-                    var activation = await provider.ActivateProviderAsync();
-                    return $"error={activation.IsError} result={activation.Result} {activation.Message} {activation.Exception}";
-                }),
-                ("save", async () =>
-                {
-                    var probe = new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id = Guid.NewGuid(), Username = "probe-" + Guid.NewGuid().ToString("N"), Email = Guid.NewGuid().ToString("N") + "@example.invalid" };
-                    var saved = await provider.SaveAvatarAsync(probe);
-                    return $"error={saved.IsError} saved={saved.IsSaved} count={saved.SavedCount} {saved.Message} {saved.Exception}";
-                }),
-                ("avatar", async () => (await provider.LoadAvatarAsync(report.OwnerId)).Message),
-                ("holon", async () => (await provider.LoadHolonAsync(report.RootId, loadChildren: false)).Message),
-            };
-            foreach (var (name, probe) in probes)
-            {
-                try { Console.WriteLine($"Diagnose({name}): {await probe()}"); }
-                catch (Exception error) { Console.WriteLine($"Diagnose({name}): {error.GetType().Name} {error.Message}"); }
-            }
-        }
         Assert.IsTrue(report.Succeeded, $"{report.CurrentCase}: {report.FailureType} {report.FailureContract}; {report.Passed.Count} checks passed.");
         Assert.IsTrue(report.FixtureCleanupComplete);
         Assert.AreEqual(CoreStorageConformance.ChecksPerMode, report.Passed.Count);
