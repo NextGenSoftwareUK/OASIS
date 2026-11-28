@@ -176,6 +176,6 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 
 | Reconcile existing cloud-hyperdrive-A and Redis-family accepted CI evidence into matrix/registry (no reruns) | HyperDrive evidence | local: gpt-hyperdrive | work/gpt-provider-evidence-reconciliation | 2026-11-28 04:56 UTC | IN PROGRESS |
 
-| Correct ProviderManager architecture README after accepted canonical facade fix (documentation only) | HyperDrive controls | local: gpt-hyperdrive | work/gpt-hyperdrive-release-gates | 2026-11-28 00:04 UTC | IN PROGRESS |
+| Correct ProviderManager architecture README after accepted canonical facade fix (documentation only) | HyperDrive controls | local: gpt-hyperdrive | work/gpt-hyperdrive-release-gates | 2026-11-28 05:04 UTC | IN PROGRESS |
 
-| Synchronize current provider inventory references with tracked238-project receipt (preserve historical checkpoints) | Provider docs/sites | local: gpt-hyperdrive | work/gpt-provider-evidence-reconciliation | 2026-11-28 00:05 UTC | IN PROGRESS |
+| Synchronize current provider inventory references with tracked238-project receipt (preserve historical checkpoints) | Provider docs/sites | local: gpt-hyperdrive | work/gpt-provider-evidence-reconciliation | 2026-11-28 05:05 UTC | IN PROGRESS |
