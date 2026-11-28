@@ -109,3 +109,54 @@ CI46122538895 passed26sync+26async with zero skips on official Garnet2.2.5, nati
 ## 2026-11-28 — real account recovery accepted
 
 CI46123580498passed actual forgot/reset/new-password sign-in and previous-password refusal on exact fbea image/Core98952d72 +OPORTAL8d66cb77, including native one-day expiry and consumed token. Five Startup cleanup flags, package container absence and browser/runtime/cache/TLS absence verified from4483-byte artifact15254776924 inspected in RAM. API token redaction retained. Core6247348c preserves current CQLc14 source and identical accepted recovery files; gitlink/manifest paired. Email delivery, founder activation, hosted adoption and whole-portal completion separate. Provider baseline stays123/163. Two failed package-only selections used the wrong full/teaching scope; corrected to exact built cql-api scope, no rebuild. No unrelated accepted popup flow replayed, new David action or laptop runtime/output/database.
+
+## 2026-11-28 — current portal SDK delivery and ONODE controls
+
+OPORTAL SDK delivery46125573999passed3/3current WEB4/WEB5/WEB6locked bundle/module/cache checks and existing privacy/settings units. WEB4 merged source56449c9e preserves Profile while adding current route/CQL/recovery fixes; WEB5 source5266ed88 and WEB6ed3843bd included. Auth/core/Profile source unchanged, existing native evidence retained. Exact Git pins avoid stale registry content while existing A1/A2/API-SURFACE-PUBLISH owner access remains open. No new owner action, npm publish retry or whole-portal certification. Existing subscription fixtures updated for Claude Settings mounting/window events, original privacy/usage assertions retained. ONODE command availability now uses the selected registered snapshot or known API state, never a previous node; unknown/busy disabled. One bounded UI-state unit passed, no backend lifecycle certification. Recovery accepted and merged Developmentf6be65d0 at08:23UTC; running deployment acceptance still separate. Matrix stays123/163.
+
+## 2026-11-28 — populated OAPP acceptance
+
+Native/browser46126474607passed2/2new populated OAPP Map/Launcher journeys on current portalbe5da21c and real shipping WEB4/WEB5/native Mongo. Typed create publishes the root+child membership atomically; shallow response excludes children and explicit deep returns the actual child. Map filters/reset, Launcher category/search/detail/browse return and normal closes pass. Artifact15256241206(3361bytes) inspected in RAM proves all5Startup cleanup conditions; publish/browser/cache/TLS absent. Earlier apparent backend graph gap was an invalid fixture: a bare parent pointer does not add membership to a stored parent manifest. Resolver/admission/visibility remain unchanged; no fallback added. Baseline123/163unchanged, no global HyperDrive or whole-portal100%claim. No laptop environment/runtime/download/build/database/output, shared Atlas or new owner action.
+
+## 2026-11-28 — provider migration accepted
+
+Native/browser46130012906passed1/1provider migration journey: actual password-issued Wizard, source preview, one Mongo→SQLite copy, destination preview, complete parent/child readback from both stores/source retained, native SQLite file and close. Portalbdbec73c, immutable fbea API image. Artifact15257412281(4462bytes) inspected in RAM;5Startup cleanup flags/package absence/browser-runtime-cache-TLS absence verified. Private bootstrap refs/project/output deleted immediately; copied entry DLL/SQLite file removed with owned API container. Source role seeded through actual shipping provider; no direct DB role patch, synthetic JWT, shared Atlas, real funds or local outputs. Native123/163baseline unchanged; automatic HyperDrive and whole portal remain open. No new owner action.
+
+
+## 2026-11-28 — real OAPP error acceptance
+
+CI46132041520passed1/1new API contract probe through the actual current WEB5 SDK and shipping WEB5 source2e8ae614, ONODE.Coref2c6b219/STARfdc8e3a3. A cold missing-ID read returns declared400, IsError=true, OASIS_RECORD_NOT_FOUND and No Holon Found even with the isolated legacy test-data setting enabled. Original populated Map/Launcher46126474607was not rerun. Artifact15257639687(3232bytes) inspected in RAM: all5Startup cleanup conditions true; publish/browser/cache/TLS outputs absent. No shared Atlas, source DNA/Railway settings change, local runtime/download/build/database/results or new owner action. Native storage baseline123/163unchanged. Whole OPORTAL and global HyperDrive gates remain open.
+
+
+## 2026-11-28 — dev deployment metadata
+
+GitHub deployment statuses for Development5b28612aa73are7/7SUCCESS (last WEB4 update09:44:37UTC), checked through GitHub metadata only. Portaldevfe794415Vercel status SUCCESS and one static portal.html request returned200 with migration controls/current3SDK cache keys. No hosted sign-in/browser/API/database verification is implied. Core1b24c629AvatarManager tree matches recovery-qualified6247348c (read-only diff empty). No shared Atlas operations.
+
+
+## 2026-11-28 — ONET breadth in progress
+
+Claimed unaccepted ONET popup scope before implementation; CI46132765901runs one real local read/start/stop journey on immutable fbea API and portalfe794415. Existing ONODE native/config tests not repeated. Local browser JavaScript and Python syntax checks passed. No local runtime/download/build/database/results; only source Git objects/private index, index removed immediately. Existing disposable native Mongo/Wizard provider bootstrap and finally cleanup reused. Public discovery/bootstrap/HyperDrive workers disabled in isolated fixture; no shared Atlas or source/deployed DNA changes. No acceptance until native result/cleanup. Native123/163unchanged; OPORTAL/global HyperDrive open.
+
+
+## 2026-11-28 — ONET native browser acceptance
+
+CI46133501110passed1/1new ONET journey on real immutable fbea WEB4/native Mongo and portalfe794415: password-issued Wizard, initial status/statistics, empty peer list, active ONODE/topology reads, one actual local start and stop with independent status reads, normal close. Artifact15259220405(4838bytes) inspected in RAM: all5Startup cleanup conditions true, package container absent. Workflow runtime/cache/TLS absence check passed; bootstrap private outputs removed immediately and copied entry DLL removed with owned API. No shared Atlas, public peer, source/deployed DNA change, local runtime/download/build/database/result or new owner action. Peer connect/disconnect/broadcast, HoloNET mode and hosted deployment remain separate. Native storage baseline123/163unchanged; whole OPORTAL and automatic HyperDrive gates open.
+
+
+## 2026-11-28 — Holon Diff breadth source recovery
+
+Recovered lost STAR0bc4d64f shared startup/demo-substitution fix while preserving newer public visibility/PublishById behavior. Paired STARbda2d2a8 in source233dad7b, dependency validator7Dockerfiles passed. Added one unaccepted native browser journey only: cold history, two real metadata publications, version comparison and stored-ID seals. JavaScript/Python syntax passed; runtime/acceptance pending. No local downloads/runtime/env/database/build/results; Git private index removed in finally. Remote disposable data/output uses existing owned cleanup. Native123/163unchanged, no global/whole-site claim or owner action.
+
+
+## 2026-11-28 — Holon publication diagnostic
+
+46134066175compiled current Core72245df5/STARbda2d2a8 and passed cold native history/typed create, but first real metadata publication returned IsError. No published comparison acceptance inferred. Add one bounded sanitized message to the existing HTTP facts;46134706515diagnoses that same failed path, not an accepted-flow replay. Artifact15259007014all5cleanup flags true; workflow publish/browser/cache/TLS absence verified in successful cleanup step. No local downloads/runtime/build/database/results or owner action. Automatic/whole-portal gates remain open,123/163native baseline unchanged.
+
+2026-11-28:Corec0e8f2b8 recognizes the two real metadata read tariff names used by publication. New WEB5 fixture config only; unchanged WEB4 image gets no unsupported tariff. Last46135304200failed at that old-image tariff validation before browser; cleanup15259089049all5true. No mocks, billing guard bypass, source/deployed DNA setting change, shared Atlas or local runtime outputs. Current CQL49f8f1c7/Core551ac0d8 preserved.
+
+
+## 2026-11-28 — populated Holon Diff acceptance
+
+Native/browser46136436169passed1/1new two-version flow on sourcef6d4d602/Corec0e8f2b8/STARbda2d2a8 and portal61f68f16. Cold real history, typed create, two acknowledged metadata publications1.0.0/2.0.0with distinct stored IDs, actual version comparison, two stored-ID seal requests and normal close pass. The test verifies seal dispatch uses the two returned stored identities; it does not assert which of the six returned seal statuses applies or certify cryptographic sealed-history verification. Existing empty Browser/OAPP/GPX proofs retained, no all-portal claim.
+
+Root fix restores earlier0bc4d64f shared Holon boot filter/demo-substitution removal while preserving later public visibility/PublishById behavior. Core tariff registry now recognizes the two actual metadata reads used inside metered publication; explicit WEB5 zero-price fixtures retain real provider/price/duplicate guards and old immutable WEB4 keeps its compatible tariffs. All CQL route policies unchanged. Artifact15260206717(3348bytes) inspected in RAM:5owned cleanup flags true; publish/browser/cache/TLS outputs absent. No shared Atlas, source/deployed DNA setting, local runtime/download/env/build/database/results or new owner action. Native baseline123/163unchanged. Native scope qualifies next Development batch; saved/running deployment acceptance remains separate.

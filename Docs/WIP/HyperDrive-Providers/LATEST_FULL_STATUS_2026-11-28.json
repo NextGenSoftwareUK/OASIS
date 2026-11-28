@@ -1,0 +1,145 @@
+{
+  "date": "2026-11-28",
+  "status": "in-progress-not-whole-portal-or-hyperdrive-certified",
+  "source": {
+    "oasisDevelopment": "49f8f1c77ff23529496a46efb7b0d4441dc661ce",
+    "portalDev": "3d2d0b0b1d0d6757877b53e77c876afb2e64d5e7",
+    "portalDocsMain": "d7a73d895b44d17101753e55bff6a8e8a49ec554",
+    "corePinned": "551ac0d8302dfe66415b3a9b78b5d16fc0b08590",
+    "runningCurrentDeploymentsVerified": false,
+    "portalStaticAssetsVerified": {
+      "url": "https://dev.oportal.oasisomniverse.one/portal.html",
+      "httpStatus": 200,
+      "migrationControls": true,
+      "currentSdkCacheKeys": "3/3",
+      "scope": "One static HTML request; no browser execution/sign-in/backend request"
+    },
+    "deploymentMetadata": {
+      "oasisRevision": "7c8bb492b613ae653c4dee372588de3efb246ce0",
+      "done": 7,
+      "total": 7,
+      "status": "success",
+      "lastUpdated": "2026-11-28T10:16:07Z",
+      "scope": "GitHub deployment metadata only; no hosted sign-in or functional certification"
+    }
+  },
+  "providers": {
+    "trackedProjects": {
+      "done": 238,
+      "total": 238
+    },
+    "nonStorageProjectRows": 75,
+    "storageAndSpecializedProjectRows": 163,
+    "nativeBaselineRows": {
+      "done": 123,
+      "total": 163
+    },
+    "rowsWithoutNativeBaseline": 40,
+    "limits": "Historical accepted baseline and project inventory include legacy/obsolete/specialized rows. Not123current-hosted/all-interface certifications or40eligible missing backend implementations."
+  },
+  "portal": {
+    "inventory": {
+      "done": 45,
+      "total": 45,
+      "meaning": "Current source surfaces reconciled with retained reports, not45completed screens."
+    },
+    "fullyAccepted": false,
+    "latestSelectedNativeBrowser": {
+      "done": 6,
+      "total": 6,
+      "runs": {
+        "recovery": 46123580498,
+        "populatedMapLauncher": 46126474607,
+        "providerMigration": 46130012906,
+        "onet": 46133501110,
+        "holonDiff": 46136436169
+      }
+    },
+    "sdkDelivery": {
+      "done": 3,
+      "total": 3,
+      "run": 46125573999,
+      "versions": {
+        "web4": "2.0.18 Git56449c9e",
+        "web5": "1.0.8 Git5266ed88",
+        "web6": "2.1.2 Gited3843bd"
+      }
+    },
+    "onode": {
+      "acceptedNativeConfigurationAndRouting": 45257965206,
+      "newSelectedNodeUiStateUnit": true,
+      "publishedServiceLifecycleAndPeers": "open"
+    },
+    "remaining": "Per-surface CURRENT_ACCEPTANCE remaining column still applies. Includes AI/HolonDiff native flows and ONET peers/broadcast/HoloNET, published service/app actions, real email/paid billing and hosted/signed-in deployment gates.",
+    "latestSelectedApiContract": {
+      "done": 1,
+      "total": 1,
+      "run": 46132041520,
+      "scope": "Cold OAPP detail missing-record result through real SDK/native API; not a new screen"
+    },
+    "onet": {
+      "done": 1,
+      "total": 1,
+      "run": 46133501110,
+      "scope": "Real reads and local start/stop; peer/broadcast/HoloNET/hosted remain open"
+    },
+    "holonDiff": {
+      "done": 1,
+      "total": 1,
+      "run": 46136436169,
+      "scope": "Cold history, real two metadata publications, populated comparison, distinct stored-ID seal dispatch and close",
+      "specificSealStatusOrCryptographicVerificationAccepted": false
+    }
+  },
+  "hyperdrive": {
+    "releaseGates": "open",
+    "allProviderAutomaticReliabilityVerified": false,
+    "protectedDeliveriesUntouched": [
+      535,
+      543
+    ],
+    "sharedAtlasTestOperations": 0
+  },
+  "activeWork": [
+    {
+      "item": "Generic app-labelled place visit contract and Our World/OPORTAL map integration",
+      "branch": "work/gpt-oportal-map-integration",
+      "source": "ae60feda69fcfd9fbe28e77007fcea278717aa9c",
+      "core": "5668324bd169f819e743d07aaf4f921115a0b6fa",
+      "unity": "9d4d53c1137cdad67415b2668ad5cebd38f6d6c0",
+      "status": "source implemented; native API/browser and cross-surface guide verification pending"
+    }
+  ],
+  "ownerActions": {
+    "new": [],
+    "existing": [
+      "A1/A2/API-SURFACE-PUBLISH npm account/trusted-publisher access",
+      "OPORTAL-CI1 approved dedicated signed-in credential custody; shared Atlas limits still apply",
+      "MIDEN-HOSTED1 persistent hosted backend/signing custody"
+    ],
+    "source": "Docs/WIP/Release and Status/ACTIONS-FOR-DAVID.md"
+  },
+  "cleanup": {
+    "localRuntimeDownloadEnvironmentBuildDatabaseOutputsCreated": false,
+    "ownedTemporaryIndexesObserved": 0,
+    "lastObservedFreeGiB": 32.81,
+    "freeSpaceReclamationClaimed": false,
+    "cloudOwnedContainersDatabasesVolumesBrowserCachesAndBootstrapOutputsRemoved": true,
+    "compactEvidenceInspectedInMemory": true
+  },
+  "documents": {
+    "status": "Docs/WIP/HyperDrive-Providers/CURRENT_STATUS.md",
+    "matrix": "Docs/WIP/HyperDrive-Providers/PROVIDER_MATRIX.md",
+    "releaseGates": "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md",
+    "portal": "https://github.com/NextGenSoftwareUK/OPORTAL-JS/blob/dev/Docs/WIP/CURRENT_ACCEPTANCE.md"
+  },
+  "completedPendingIntegration": [
+    {
+      "item": "Published Holon comparison and explicit metadata-read tariff contract",
+      "source": "14080b373a58cc29e3c55899f806b5bb5ba755a6",
+      "run": 46136436169,
+      "core": "c0e8f2b8e0ffee1a3e8993db5b068ff26ed6c1d8",
+      "star": "bda2d2a8f9a3d2177cadf202771756d9cfb9f333"
+    }
+  ]
+}

@@ -219,3 +219,11 @@ Server SQL COUNT(alias) and COUNT(DISTINCT alias) over bounded selected sets now
 ## 2026-11-28 backend aggregate acceptance
 
 CI46137078181 accepted d0d03d2f/Core1b061dca: compiler17/17, native15/15, actual WEB4 and exact cleanup. All18artifact entries independently inspected in RAM; artifact15260118428 SHA256 b51945b844f09a3ae6dfe511535d2afeafdfda6dd9e6481b0deaa83f9f3c0ced. Server parser32 checks; each real-provider HTTP journey9groups/25timings/16settled operations, including MIN/MAX and nullable/distinct selected counts with owner/foreign/anonymous boundaries. Both LINQ extrema paths use the same native scalar owner. Independent review passed. This supersedes the earlier pending aggregate note. Main144/168 extension4/13 unchanged; mixed identity-set late-projection operands/full parent rows remain OPEN. New XML custom types45d6/Core00cdfbcd remain pending separate qualification and excluded from the next Dev aggregate batch.
+
+
+Next Development batch carries qualified d0d03d2f/Core1b061dca only; registered XML custom types00cdfbcd remain excluded pending their separate gate. Normal push not before11:00:43UTC. Native acceptance does not imply a new hosted browser/query walkthrough.
+
+
+## Combined dependency qualification
+
+Development advanced concurrently to308ed7cf with Corec0e8f2b8 real metadata-read tariff classification. The push guard preserved that work. Aggregate source d0d03d2f/Core1b061dca remains accepted46137078181, but this exact new dependency pair must qualify before deployment. Paired aggregate Core60c4e11f includes only accepted native extrema plus peer billing; XML custom types are excluded. Existing one feature branch is used for this frozen integration checkpoint; pending XML source45d6fdaa and corrected full Core0a4074ec remain preserved in commit history for the next source slice. XML dictionary-capture compile failure46137736017/46137735964 was fixed in Core9c0e297b with a bounded129-entry snapshot. Full M04 remains OPEN. No new branch/worktree/environment, no shared Atlas/PIPER operation, no unverified Dev push.

@@ -16,7 +16,7 @@ The goal David set on 2026-11-26: one full end-to-end demo of everything OASIS h
 
 HyperDrive matrix:123/163 storage-role rows have recorded26sync+26async native baselines;238tracked provider projects include75non-storage and legacy variants. This is not all-provider hosted/current-graph certification. Global v2 gates remain open. See `../HyperDrive-Providers/CURRENT_STATUS.md`.
 
-OPORTAL: existing dev/checkout browser runs passed203/203 executed checks per target;80signed-in checks were skipped without CI account credentials. Representative isolated real-backend popup journeys have separate evidence; Social Graph/Activity Feed continuation is in progress. Whole-portal and paid subscription acceptance remain open.
+OPORTAL: existing dev/checkout browser runs passed203/203 executed checks per target;80signed-in checks were skipped without CI account credentials. Selected new isolated real-backend continuation is5/5 (recovery1, populated Map/Launcher2, migration1, ONET1); separate OAPP SDK/API error contract1/1 and current SDK delivery3/3. Social/Activity prior acceptance is retained without new-screen credit. Whole-portal and paid subscription acceptance remain open.
 
 ## Historical workstream checkpoint (26 Nov 2026)
 
@@ -44,3 +44,12 @@ OPORTAL: existing dev/checkout browser runs passed203/203 executed checks per ta
 ## How the work is run
 
 Claude (Tech Lead plus Sonnet dev sessions) and GPT agents share this plan. Claim items on the `claims` branch, push to Development in 30-minute batches, take the recommended option on decisions, report progress as done/total, and log only secrets, accounts or payments in ACTIONS-FOR-DAVID.md.
+
+
+## Verified continuation — 28 November 2026
+
+Current provider baseline is123/163storage/specialized project rows (26sync+26async), within238tracked provider projects/75non-storage rows; historical26Nov denominators above are retained. This is not123current hosted/all-interface certifications. Global HyperDrive v2 gates remain open.
+
+OPORTAL current source inventory45/45is reconciled, not45completed screens. Selected new native/browser continuation5/5: recovery46123580498(1), populated Map/Launcher46126474607(2), migration46130012906(1), ONET real reads/local start-stop46133501110(1). Separate real SDK/API OAPP missing-detail contract46132041520passed1/1. Current SDK delivery46125573999is3/3; read-only28Novrefresh confirms source heads and registry versions unchanged, so no accepted bundle/native reruns. Existing npm access actions A1/A2 remain open.
+
+Holon Diff cold history/typed creation pass on current source, but first real metadata publication fails;46134706515is diagnosing the result. No comparison/seal acceptance, whole-portal100%or all-provider reliability claim. Paid billing/email/hosted/device gates remain scoped in the existing owner list; no new owner action. Shared Atlas test operations0; held535/543untouched. CI-owned resource cleanup receipts retained; laptop32.81GiBfree, owned temporary Git indexes0, no local downloads/env/build/database/results. Accepted OAPP/ONET source is staged for the shared Development batch after09:58CQL integration, not yet recorded as deployed.

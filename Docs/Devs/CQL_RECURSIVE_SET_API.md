@@ -36,3 +36,6 @@ The server SQL compiler accepts `WITH q AS ((SELECT Name AS Label FROM MongoDBOA
 ### Selected-value counts
 
 `WITH q AS ((SELECT Name AS Label FROM MongoDBOASIS LIMIT 2) UNION ALL (SELECT Name AS Label FROM MongoDBOASIS LIMIT 2)) SELECT COUNT(DISTINCT Label) AS Total FROM q` excludes nulls and counts unique visible Label values. `COUNT(Label)` preserves non-null occurrences. Both lower on the server to the existing native selected stages and `LongCount` contract, after every earlier membership/window/filter. In a multi-column tuple set, distinct counting selects only the requested visible alias before its final Distinct; it does not change the earlier set equality. Original budgets and caller/provider proof still apply. Qualification pending.
+
+
+2026-11-28 qualification update: selected-set extrema and value/distinct counts passed46137078181 on d0d03d2f/Core1b061dca (compiler17/native15/actual WEB4/exact cleanup). This supersedes pending notes above. Full set parent scope and dedicated typed gRPC/GraphQL operations remain open; no new hosted acceptance claimed.

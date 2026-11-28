@@ -1,0 +1,54 @@
+{
+  "run": 46125573999,
+  "url": "https://github.com/NextGenSoftwareUK/OPORTAL-JS/actions/runs/46125573999",
+  "conclusion": "success",
+  "source": "3e5fb6eef9b988fa664c4add65431f480a5dc45a",
+  "generated": "db19ad6beb092ea63b2c0eab6bd2e94e30fdab58",
+  "done": 3,
+  "total": 3,
+  "backendCalls": 0,
+  "browserAccepted": false,
+  "hostedAccepted": false,
+  "clients": {
+    "web4": {
+      "version": "2.0.18",
+      "source": "git+https://github.com/NextGenSoftwareUK/OASIS-API-Javascipt-Package-WEB4.git#56449c9e6ad2045f9d30b62b1035e48d0c17fcc4",
+      "sha256": "f4604ebe917f6573127a74ea79ae1f0a05e5dea2074cb01126adf6bbeff39761",
+      "bytes": 139007,
+      "constructor": "OASISClient",
+      "modules": [
+        "profile",
+        "avatar",
+        "wallet",
+        "subscription"
+      ]
+    },
+    "web5": {
+      "version": "1.0.8",
+      "source": "git+https://github.com/NextGenSoftwareUK/OASIS-API-Javascript-Package-WEB5.git#5266ed884436160ff269e5c4b7eb1fb370f203aa",
+      "sha256": "43bc5633579d186d5205c24b87da37247d5e548faf8dbcd4305210234ba320b4",
+      "bytes": 105142,
+      "constructor": "STARClient",
+      "modules": [
+        "quests",
+        "missions",
+        "games",
+        "oAPPs",
+        "inventoryItems"
+      ]
+    },
+    "web6": {
+      "version": "2.1.2",
+      "source": "git+https://github.com/NextGenSoftwareUK/OASIS-API-Javascript-Package-WEB6.git#ed3843bd663fd651278098a765ca4324d7da9101",
+      "sha256": "5eff442f04d6079108b73b3ee0fa655a60a8e4b483ae43902482f3f3c75e0762",
+      "bytes": 47515,
+      "constructor": "Web6Client",
+      "modules": [
+        "completion"
+      ]
+    }
+  },
+  "cleanup": "Always cleanup passed: owned node_modules and per-run npm cache removed. No laptop runtime/install/cache/build/database/output.",
+  "retainedEvidence": "WEB4 src/core, Auth.js and Profile.js identical to preceding portal pin; existing native auth/profile evidence retained, not rerun.",
+  "ownerActions": "Existing A1/A2/API-SURFACE-PUBLISH npm account access, no new action."
+}

@@ -1,0 +1,37 @@
+{
+  "run": 46130012906,
+  "url": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/46130012906",
+  "conclusion": "success",
+  "control": "327e368ade40aa3daa27f9bf02bb515606f9f4a2",
+  "source": "fbea95eb33b67bfa1dc11d6a2b6c15bc9a7d7717",
+  "image": "sha256:f5cca6cd4781834468545a5ec2e24e50e1d7a34e3f2511a5e7d8b1a8eda8cabb",
+  "portal": "bdbec73c27391f1fd14d01b0be532e22a91e14e9",
+  "done": 1,
+  "total": 1,
+  "accepted": [
+    "Actual ordinary role403 and shipping-provider-owned Wizard seed",
+    "Real password-issued sign-in, no synthetic JWT",
+    "Selected root+child source graph in native Mongo",
+    "Source and destination shallow UI previews",
+    "One explicit Mongo-to-SQLite copy and actual API acknowledgement",
+    "Independent complete graph readback from both stores; source retained",
+    "Native persisted SQLite file header",
+    "Normal popup close"
+  ],
+  "cleanup": {
+    "ownedContainersAbsent": true,
+    "ownedNetworkAbsent": true,
+    "ephemeralDatabaseVolumesRemoved": true,
+    "web5ProcessStopped": true,
+    "web5DnaAbsent": true,
+    "packageContainerAbsent": true,
+    "browserRuntimeCacheTlsAbsent": true,
+    "privateBootstrapRefsProjectOutputsAbsent": true
+  },
+  "artifact": {
+    "id": 15257412281,
+    "bytes": 4462,
+    "inspection": "RAM only"
+  },
+  "limits": "One representative manual copy/browser journey on already accepted real providers. Auto failover/replication/load balancing, other pairs/conflict recovery, hosted and whole-portal acceptance separate. No shared Atlas, real funds, local runtime/build/download/environment/database/output."
+}

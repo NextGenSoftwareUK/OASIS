@@ -17,46 +17,14 @@ public sealed partial class CqlV1Web4NativeTests
         public ConvertedCode? Code {get;set;}
     }
 
-    private const string XmlConvertedValues="""
-        <hibernate-mapping xmlns='urn:nhibernate-mapping-2.2'>
-          <class name='Converted'>
-            <property name='Units' column='stored_units' type='scaled-units'/>
-            <property name='Code' column='stored_code' type='code-value'/>
-          </class>
-        </hibernate-mapping>
-        """;
-    [DataTestMethod] [DataRow("MongoDBOASIS")] [DataRow("SQLLiteDBOASIS")] [DataRow("Neo4jOASIS")]
-    public Task NativeXmlUserTypesRoundtripFilterProjectAndTrack(string providerName)
-        =>RunGroupedDistinctNativeFixture(providerName,false,
-            nativeJourney:(p,o,t)=>VerifyValueConversionJourney(p,o,t,true),nativeJourneySuffix:"-xml-user-type-native.json");
-
-    [TestMethod] public void XmlUserTypeRegistryIsExplicitAndAtomic()
-    {
-        var contracts=new Dictionary<string,Type>{{"Converted",typeof(ConvertedReadingHolon)}};
-        var builder=new CosmicModelBuilder();
-        var invalid=new Dictionary<string,CosmicValueConverter>{
-            ["scaled-units"]=new CosmicValueConverter<string,string>(x=>x,x=>x)};
-        Assert.IsTrue(builder.ImportNHibernateXml(XmlConvertedValues,contracts,invalid).IsError);
-        Assert.IsTrue(builder.Build().IsError);
-        Assert.IsTrue(builder.ImportNHibernateXml(XmlConvertedValues,contracts).IsError);
-        Assert.IsTrue(builder.Build().IsError);
-        var good=new Dictionary<string,CosmicValueConverter>{
-            ["scaled-units"]=new CosmicValueConverter<int,long>(x=>x,x=>checked((int)x),CosmicValueConversionSemantics.Ordering),
-            ["code-value"]=new CosmicValueConverter<ConvertedCode,string>(x=>x.Value,x=>new ConvertedCode{Value=x})};
-        var canonical=XmlConvertedValues.Replace("name='Units'","name='Name'").Replace("type='scaled-units'","type='code-value'");
-        Assert.IsTrue(builder.ImportNHibernateXml(canonical,contracts,good).IsError);Assert.IsTrue(builder.Build().IsError);
-        Assert.IsFalse(builder.ImportNHibernateXml(XmlConvertedValues,contracts,good).IsError);
-        good.Clear();Assert.IsFalse(builder.Build().IsError,"The imported converter registry must be frozen.");
-    }
-
     [DataTestMethod]
     [DataRow("MongoDBOASIS")] [DataRow("SQLLiteDBOASIS")] [DataRow("Neo4jOASIS")]
     public Task NativeValueConversionsRoundtripFilterProjectAndTrack(string providerName)
         =>RunGroupedDistinctNativeFixture(providerName,false,
-            nativeJourney:(p,o,t)=>VerifyValueConversionJourney(p,o,t,false),nativeJourneySuffix:"-value-conversion-native.json");
+            nativeJourney:VerifyValueConversionJourney,nativeJourneySuffix:"-value-conversion-native.json");
 
     private static async Task<NativeFixtureJourneyProof> VerifyValueConversionJourney(
-        IOASISStorageProvider provider,List<Guid> owned,Dictionary<string,long> timings,bool fromXml=false)
+        IOASISStorageProvider provider,List<Guid> owned,Dictionary<string,long> timings)
     {
         var adapter=(ICosmicQueryStorageProvider)provider;
         var dna=new OASISDNA{OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS{
@@ -75,18 +43,8 @@ public sealed partial class CqlV1Web4NativeTests
             value=>value%10==0?checked((int)(value/10)):throw new ArgumentException("Invalid units representation."),
             CosmicValueConversionSemantics.Ordering);
         var builder=new CosmicModelBuilder();
-        if(fromXml)
-        {
-            var types=new Dictionary<string,CosmicValueConverter>{{"scaled-units",unitsConversion},{"code-value",codeConversion}};
-            var imported=builder.ImportNHibernateXml(XmlConvertedValues,
-                new Dictionary<string,Type>{{"Converted",typeof(ConvertedReadingHolon)}},types);
-            Assert.IsFalse(imported.IsError,imported.Message+imported.Exception);types.Clear();
-        }
-        else
-        {
         builder.Entity<ConvertedReadingHolon>().Property(row=>row.Units).HasConversion(unitsConversion).HasMetadataKey("stored_units");
         builder.Entity<ConvertedReadingHolon>().Property(row=>row.Code).HasConversion(codeConversion).HasMetadataKey("stored_code");
-        }
         var built=builder.Build();Assert.IsFalse(built.IsError,built.Message);
         var frozen=built.Result.WithoutQueryFilters();
         // Reconfiguration must not affect an already built model, including its filter-bypass copy.

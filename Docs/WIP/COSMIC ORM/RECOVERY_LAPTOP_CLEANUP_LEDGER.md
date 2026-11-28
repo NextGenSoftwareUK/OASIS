@@ -11459,34 +11459,17 @@ Owned Chrome stopped; marker/path and process absence verified before normal rec
 2026-11-28 2026-11-28T08:53:45.749Z — Native scalar paired CI46126840806 artifact15256053536 (10608bytes) inspected in RAM only;14entries, exactRoot233d9f1c/Core1b24c629,12/12 + WEB4/cleanup. Archive released; no local download retained. Backend parser14/14 uses existing Node18; source/test/docs only, no build/test result directory, runtime install, database, container or environment created locally. Native HTTP candidate CI46127912136 uses isolated CI stores and owned usage DB prefixes with exact cleanup, uploads compact evidence retention2days. Cfree32.85GiB; no space-reclamation claim. Scoped index removed after snapshots; no shared Atlas/PIPER access. Source-only recovery drafts remain source, not disposable build output; unrelated files untouched.
 
 
-2026-11-28T10:00:16.370Z — Composition native artifact15257792940 16747bytes/18entries inspected in RAM and released; compact accepted source/hash/CI proof retained. No local build/env/install/database/container/download archive/test output. Native owned fixtures absent; CI artifacts2day retention. Existing Node parser20controls emits no files. Shared Atlas/PIPER operations0; temporary snapshot index removed. No unrelated cleanup or space-reclamation claim.
+2026-11-28T09:57:39.941Z — Accepted native composition artifact15257792940 (16747bytes,18entries) inspected only in RAM and released; compact source/CI/hash proof committed. No local build/env/install/database/container/download archive/test-output created. CI native and compiler15/15+WEB4 exact cleanup; isolated stores only, shared Atlas/PIPER calls0. Node backend parser20/20 for separate pending SQL numeric candidate emits no files. Temporary scoped Git index removed after each snapshot; no unrelated cleanup.
 
 
-## 2026-11-28 canonical XML version acceptance
-
-CI46134517647 qualified d36a143c/Core551ac0d8: native3/3 plus one atomic-admission control, actual WEB4 build and exact owned cleanup. All five artifact entries inspected in RAM; artifact15259323174 SHA256 dae858c2187682d2c573df7eeaeba425bba536844c57a976e7b0444315fe0c8b. Each provider verified acknowledged Version, next-version increment, stale-write rejection, preserved winner and foreign-reader isolation (five groups/six timings). CQL regression46134517653 also passed. Full M04 OPEN; main144/168 extension4/13 unchanged. No shared Atlas/PIPER operations. Review/deployment pending.
-
-
-## 2026-11-28 backend selected-set extrema (qualification pending)
-
-Added shared native selected-set scalar Min/Max planning/execution through the existing one-attempt owner and complete source/stage proof, without constructing enclosing DTOs. The owner re-admits the actual provider extrema domain immediately before dispatch. Backend SQL WITH/derived selected set MIN(alias)/MAX(alias) lowers to the same set route and currently visible alias. Caller/provider, windows, null/empty and canonical scalar wire semantics remain explicit. Browser engines untouched. Local Node18 parser26/26 and runner syntax passed; native compiler17/native15 and actual WEB4 build are pending CI. Full Q50/Q51/Q53/Q54 remain OPEN; main144/168 extension4/13 unchanged. No shared Atlas/PIPER operations or local builds/installations.
-
-
-## 2026-11-28 backend selected-value counts (qualification pending)
-
-Server SQL COUNT(alias) and COUNT(DISTINCT alias) over bounded selected sets now lower to native null exclusion, explicit selected alias/Distinct when requested, then the existing independently enrolled LongCount path. Original set tuple membership, filters and windows stay before scalar reduction. No new route/Core/provider fallback. Local server parser32/32 passed; native owner/foreign/anonymous cases for duplicate occurrences and distinct visible values added to the existing three-store HTTP journey. Pending representative CI/actual WEB4, no full parity credit. Main144/168 extension4/13 unchanged; browser engines and shared Atlas/PIPER untouched.
-
-
-2026-11-28 CI46136308349 rejected the extrema backend build because CosmicProjectionColumn.ModelValueType was internal. Fixed the owning Core column contract by making its existing exact read-only model domain public (Core3c23ee04), preserving configured converter semantics instead of guessing a provider type. Superseded count run46136695804 cancelled to avoid another known failing build. Combined extrema/count candidate reruns compiler17/native15/actual WEB4; native count fixture now stores null Description to prove COUNT(nullable-alias)=0 while COUNT(*) and COUNT(DISTINCT Name) retain their independent occurrence/value semantics. No extra fixture writes, local build outputs or shared data calls. Full rows remain OPEN; main144/168 extension4/13.
-
-
-## 2026-11-28 M04 registered XML custom scalar types (qualification pending)
-
-Added ImportNHibernateXml overload with a bounded explicit name-to-CosmicValueConverter registry. XML never loads a type/assembly; unknown names, mismatched CLR types and canonical Holon-field conversion overrides fail atomically. The isolated import copies its frozen conversion bindings into the destination model. Scalar property mappings reuse native storage/query/projection/session conversion and declared equality/ordering semantics; components and full NHibernate IUserType/relational SQL type contracts are not claimed.
-
-Representative qualification reuses the real conversion journey on MongoDB/SQLite/Neo4j (native save/representation, filter/order/projection/membership/set, caller isolation, acknowledged mutable update and frozen model) plus an atomic registry control. Together with accepted XML Version regression the gate is native6 +admission2, actual WEB4 and exact cleanup. Source pending, main144/168 extension4/13; full M04 OPEN. No local builds/installs/DBs/artifact downloads or shared Atlas/PIPER operations.
+2026-11-28: SQL numeric artifact15258119047 (18 entries/17061B) and XML version artifact15259323174 (5 entries/3395B) inspected only in RAM, buffers released; compact acceptance JSON retained. No local installs, runtimes, build outputs, databases or worktrees created. No files removed or disk reclamation claimed. Temporary scoped Git indexes removed by their owning helper.
 
 
 ## 2026-11-28 backend aggregate acceptance
 
 CI46137078181 accepted d0d03d2f/Core1b061dca: compiler17/17, native15/15, actual WEB4 and exact cleanup. All18artifact entries independently inspected in RAM; artifact15260118428 SHA256 b51945b844f09a3ae6dfe511535d2afeafdfda6dd9e6481b0deaa83f9f3c0ced. Server parser32 checks; each real-provider HTTP journey9groups/25timings/16settled operations, including MIN/MAX and nullable/distinct selected counts with owner/foreign/anonymous boundaries. Both LINQ extrema paths use the same native scalar owner. Independent review passed. This supersedes the earlier pending aggregate note. Main144/168 extension4/13 unchanged; mixed identity-set late-projection operands/full parent rows remain OPEN. New XML custom types45d6/Core00cdfbcd remain pending separate qualification and excluded from the next Dev aggregate batch.
+
+
+## Combined dependency qualification
+
+Development advanced concurrently to308ed7cf with Corec0e8f2b8 real metadata-read tariff classification. The push guard preserved that work. Aggregate source d0d03d2f/Core1b061dca remains accepted46137078181, but this exact new dependency pair must qualify before deployment. Paired aggregate Core60c4e11f includes only accepted native extrema plus peer billing; XML custom types are excluded. Existing one feature branch is used for this frozen integration checkpoint; pending XML source45d6fdaa and corrected full Core0a4074ec remain preserved in commit history for the next source slice. XML dictionary-capture compile failure46137736017/46137735964 was fixed in Core9c0e297b with a bounded129-entry snapshot. Full M04 remains OPEN. No new branch/worktree/environment, no shared Atlas/PIPER operation, no unverified Dev push.
