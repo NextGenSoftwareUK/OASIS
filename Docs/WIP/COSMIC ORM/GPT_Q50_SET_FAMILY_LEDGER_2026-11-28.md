@@ -211,3 +211,6 @@ Server SQL COUNT(alias) and COUNT(DISTINCT alias) over bounded selected sets now
 
 
 2026-11-28 CI46136308349 rejected the extrema backend build because CosmicProjectionColumn.ModelValueType was internal. Fixed the owning Core column contract by making its existing exact read-only model domain public (Core3c23ee04), preserving configured converter semantics instead of guessing a provider type. Superseded count run46136695804 cancelled to avoid another known failing build. Combined extrema/count candidate reruns compiler17/native15/actual WEB4; native count fixture now stores null Description to prove COUNT(nullable-alias)=0 while COUNT(*) and COUNT(DISTINCT Name) retain their independent occurrence/value semantics. No extra fixture writes, local build outputs or shared data calls. Full rows remain OPEN; main144/168 extension4/13.
+
+
+2026-11-28: both existing scalar-set and typed-view LINQ Min/Max now call the same shared native extrema planner/executor as the backend. Removed the separate lowered-row/materialization logic; all three entry paths read the validated winning cell through one scalar owner and retain exact registered provider checks. Existing native LINQ scalar/typed-view groups cover these changed paths in the representative cohort; no new test matrix or fixture writes added. Qualification pending.
