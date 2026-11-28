@@ -1,0 +1,65 @@
+{
+  "run": 46104535369,
+  "job": 140854212357,
+  "artifact": 15247490880,
+  "source": {
+    "source": "20ff7eee591f15048e36c4a7c5fd1c13520c96ba",
+    "core": "0623246cfed39f68b72bb0b5d03c2e04ae601605",
+    "nativePassed": 3,
+    "ordinaryClassesVerified": true,
+    "actualWeb4Compiled": true,
+    "ownedFixturesAbsent": true,
+    "sharedDatabaseCalls": 0,
+    "deployed": false
+  },
+  "trx": {
+    "total": "3",
+    "executed": "3",
+    "passed": "3",
+    "failed": "0",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  },
+  "reports": [
+    {
+      "provider": "MongoDBOASIS",
+      "groups": 10,
+      "writes": 7,
+      "timings": 18,
+      "cleanup": true
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "groups": 10,
+      "writes": 7,
+      "timings": 18,
+      "cleanup": true
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "groups": 10,
+      "writes": 7,
+      "timings": 18,
+      "cleanup": true
+    }
+  ],
+  "artifactSha256": "65575f186d5ca69e1122c444ef74c984ab22a9fcb5e0161ea49808e479c5f8d4",
+  "artifactBytes": 3815,
+  "entries": [
+    "MongoDBOASIS-ordinary-class-native.json",
+    "Neo4jOASIS-ordinary-class-native.json",
+    "SQLLiteDBOASIS-ordinary-class-native.json",
+    "ordinary-class-native.trx",
+    "source.json"
+  ]
+}
