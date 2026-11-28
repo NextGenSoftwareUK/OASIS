@@ -9,8 +9,8 @@ async function main(){
  const api=new URL(process.env.OASIS_STARTUP_API_URL);assert.equal(api.hostname,'127.0.0.1');assert.equal(api.protocol,'http:');
  const api5=process.env.OASIS_STARTUP_WEB5_URL?new URL(process.env.OASIS_STARTUP_WEB5_URL):null;
  const popupGroup=process.env.OASIS_STARTUP_POPUP_GROUP||'none';
- assert.ok(['none','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data'].includes(popupGroup));
- const selectedPopups=popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
+ assert.ok(['none','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data','social-activity'].includes(popupGroup));
+ const selectedPopups=popupGroup==='social-activity'?['SocialGraph','ActivityFeed']:popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
   popupGroup==='data-messaging'?['Data','Messaging']:
   popupGroup==='none'?[]:[{nft:'NFT',data:'Data','data-crud':'DataWrite','data-edit':'DataWrite','files-write':'FilesWrite','map-route':'MapRoute',messaging:'Messaging','messaging-read':'MessagingRead',chat:'Chat','directory-message':'DirectoryMessage',clan:'Clan'}[popupGroup]];
  const messageText='Owned portal message '+process.env.GITHUB_RUN_ID+'-'+process.env.GITHUB_RUN_ATTEMPT;
@@ -63,9 +63,12 @@ async function main(){
   if(api5)await admitFree(account);
   if(selectedPopups.length){
    assert.equal(api5,null,'WEB4-only popup journey');ownedToken=await admitFree(account);
-   if(selectedPopups.includes('Messaging')||selectedPopups.includes('MessagingRead')||selectedPopups.includes('Chat')||selectedPopups.includes('DirectoryMessage')||selectedPopups.includes('Clan')){
+   if(selectedPopups.includes('Messaging')||selectedPopups.includes('MessagingRead')||selectedPopups.includes('Chat')||selectedPopups.includes('DirectoryMessage')||selectedPopups.includes('Clan')||selectedPopups.includes('SocialGraph')){
     recipient=await createOwnedAvatar(api.href);recipientToken=await admitFree(recipient);
    }
+  }
+  if(popupGroup==='social-activity'){
+   assert.equal(await recipient.call('owned social contact','POST','/api/messaging/send-message-to-avatar/'+account.avatar.id,messageText,recipientToken),true);
   }
   if(popupGroup==='messaging-read'){
    assert.equal(await recipient.call('owned incoming message','POST','/api/messaging/send-message-to-avatar/'+account.avatar.id,messageText,recipientToken),true);
@@ -241,6 +244,34 @@ async function main(){
     }catch{closePassed=false;passed=false;if(observedStage===name)observedStage=name+' close';}
     outcomes.push({name,passed,stage:observedStage,closePassed});
    }
+   await checkPopup('SocialGraph','#social-graph-modal-close-btn',async()=>{
+    stage='Social graph native contacts';
+    await page.evaluate(()=>window.openSocialGraphModal());
+    await page.waitForFunction(()=>document.getElementById('social-graph-status').textContent.includes('1 messaging contacts'));
+    const contact=page.locator('#social-graph-svg [data-contact-id="'+recipient.avatar.id.toLowerCase()+'"]');
+    await contact.waitFor({state:'visible'});
+    assert.equal(await page.locator('#social-graph-svg circle').count(),2);
+    assert.equal(await page.locator('#social-graph-more-btn').isVisible(),false);
+    stage='Social graph composer handoff';await contact.focus();await contact.press('Enter');
+    await page.locator('#messaging-tab-send').waitFor({state:'visible'});
+    assert.equal(await page.locator('#msg-to-avatar').inputValue(),recipient.avatar.id.toLowerCase());
+    assert.equal(sentMessage,0,'Contact navigation must never send a message');
+    await page.locator('#messaging-modal-close-btn').click();
+    await page.locator('#social-graph-modal-block.is-selected').waitFor({state:'visible'});
+   });
+   await checkPopup('ActivityFeed','#activity-feed-modal-close-btn',async()=>{
+    stage='Activity feed native empty read';
+    await page.evaluate(()=>window.openActivityFeedModal());
+    await page.waitForFunction(()=>document.getElementById('activity-feed-status').textContent==='No activity yet.');
+    assert.equal(await page.locator('#activity-feed-list').textContent(),'');
+    assert.equal(await page.locator('#activity-feed-type-sel option').count(),1);
+    stage='Activity feed refresh';
+    const refreshed=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/karma/activity');
+    await page.locator('#activity-feed-refresh-btn').click();
+    const raw=await(await refreshed).json(),result=typeof raw.isError==='boolean'?raw:raw.result;
+    assert.equal(result.isError,false);assert.deepEqual(result.result,[]);
+    await page.waitForFunction(()=>document.getElementById('activity-feed-status').textContent==='No activity yet.');
+   });
    await checkPopup('NFT','#nft-modal-close-btn',async()=>{
    stage='NFT catalogue';await page.locator('#dash-card-nfts').click();
    await page.waitForFunction(()=>['standard','geo','oland'].every(kind=>
