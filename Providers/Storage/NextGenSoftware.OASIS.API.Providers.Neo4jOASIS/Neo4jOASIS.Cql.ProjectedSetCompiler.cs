@@ -18,7 +18,7 @@ public partial class Neo4jOASIS
         {
         var text=new StringBuilder();
         void Input(string name,CosmicProjectionCompositionPlan<T,TResult> leaf,CosmicProjectedSetPlan<T,TResult> child,
-            CosmicProjectionQuery<T,TResult> selection)
+            CosmicSetProjectionPlan<T,TResult> identity,CosmicProjectionQuery<T,TResult> selection)
         {
             if(child!=null)
             {
@@ -29,6 +29,7 @@ public partial class Neo4jOASIS
                     .Append("]}] AS ").Append(name).Append("Values } ");
                 return;
             }
+            if(identity!=null){AppendCqlProjectedIdentityInput(text,name,identity,parameters);return;}
             var command=CompileCqlSelected(leaf.Query,ProjectedSetInputLimits(leaf.Options),entity:leaf.EntitySource,sharedParameters:parameters);
             text.Append("CALL { CALL { ").Append(command.Text)
                 .Append(" } WITH phase,position,sourcePosition,proof,nativeCount,stageWork ORDER BY phase,position ")
@@ -42,8 +43,8 @@ public partial class Neo4jOASIS
                 .Append(string.Join(",",selection.OutputColumnIndices.Select(column=>"input[positions[index]].values["+column+"]")))
                 .Append("]}] AS ").Append(name).Append("Values } ");
         }
-        Input("left",node.Left,node.LeftSet,node.Query.LeftInput.Anchor);
-        Input("right",node.Right,node.RightSet,node.Query.RightInput.Anchor);
+        Input("left",node.Left,node.LeftSet,node.LeftIdentity,node.Query.LeftInput.Anchor);
+        Input("right",node.Right,node.RightSet,node.RightIdentity,node.Query.RightInput.Anchor);
         string Occurrences(string name,int side)=>"[index IN range(0,size("+name+"Values)-1) | {side:"+side+",index:index,values:"+name+"Values[index].values}]";
         text.Append("WITH leftProof,rightProof,").Append(Occurrences("left",0)).Append("+")
             .Append(Occurrences("right",1)).Append(" AS input ");

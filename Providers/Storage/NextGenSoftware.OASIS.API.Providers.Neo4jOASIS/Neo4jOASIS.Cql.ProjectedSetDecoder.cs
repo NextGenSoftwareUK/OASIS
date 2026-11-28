@@ -25,8 +25,8 @@ public partial class Neo4jOASIS
         {
             check();
             if(record.Count!=(nodeLimits.NumericReduction!=null?7:nodeLimits.CountOnly?6:5))throw Invalid("Native selected-set snapshot requires one exact envelope.");
-            var left=Input("leftProof",node.Left,node.LeftSet,node.Options.Bounds.MaximumLeftInputRows);
-            var right=Input("rightProof",node.Right,node.RightSet,node.Options.Bounds.MaximumRightInputRows);
+            var left=Input("leftProof",node.Left,node.LeftSet,node.LeftIdentity,node.Options.Bounds.MaximumLeftInputRows);
+            var right=Input("rightProof",node.Right,node.RightSet,node.RightIdentity,node.Options.Bounds.MaximumRightInputRows);
             long proofBytes=0;
             CosmicProjectedSetStageProof Stage(object raw)
             {
@@ -83,9 +83,10 @@ public partial class Neo4jOASIS
             }
             check();return CosmicProjectedSetPacket.FromTree(left.Proof,right.Proof,members,stages,rows,work);
             (CosmicProjectedSetInputPacket Proof,IReadOnlyList<CosmicProjectionRow> Rows) Input(string key,
-                CosmicProjectionCompositionPlan<T,TResult> leaf,CosmicProjectedSetPlan<T,TResult> child,int maximum)
+                CosmicProjectionCompositionPlan<T,TResult> leaf,CosmicProjectedSetPlan<T,TResult> child,CosmicSetProjectionPlan<T,TResult> identity,int maximum)
             {
                 var envelope=record[key].As<IReadOnlyDictionary<string,object>>();
+                if(identity!=null)return IdentityInput(identity,envelope);
                 if(envelope.Count!=2 || envelope["kind"].As<string>()!=(child==null?"source":"set"))
                     throw Invalid("The native selected input envelope does not match its captured source or subtree.");
                 if(child!=null)
@@ -105,6 +106,53 @@ public partial class Neo4jOASIS
                 var sourcePacket=decoder.Complete();
                 return(new(sourcePacket,null),sourcePacket.Rows.Select(row=>row.Row).ToArray());
             }
+        }
+        private (CosmicProjectedSetInputPacket Proof,IReadOnlyList<CosmicProjectionRow> Rows) IdentityInput(
+            CosmicSetProjectionPlan<T,TResult> identity,IReadOnlyDictionary<string,object> envelope)
+        {
+            if(envelope.Count!=4||envelope["kind"].As<string>()!="identity")
+                throw Invalid("The native late identity envelope differs from its captured source.");
+            var inputLimits=ProjectedSetInputLimits(identity.SelectedOptions);
+            var sourceGuard=new NeoCqlEntityInputProof(new CosmicEntityCompositionOptions(
+                Math.Max(identity.Source.Options.MaximumLeftInputRows,identity.Source.Options.MaximumRightInputRows),
+                identity.Source.Options.MaximumInputPayloadBytes),checked((int)identity.Source.MaximumLeafRows));
+            var input=new List<CosmicProjectionRow>();long inputBytes=0;
+            foreach(var value in envelope["source"].As<IReadOnlyList<object>>())
+            {
+                check();var row=value.As<IReadOnlyDictionary<string,object>>();
+                if(row.Count!=10)throw Invalid("The native identity source envelope has the wrong shape.");
+                if(row["traversalCycle"].As<bool>())throw Invalid("Identity source traversal encountered a cycle.");
+                if(row["traversalLimit"].As<bool>())throw new NeoCqlLimitException("Identity source exceeds its native traversal/work/payload allowance.");
+                if(!row["valid"].As<bool>())throw Invalid("Identity source ownership or membership is invalid.");
+                if(row["entityInput"].As<bool>()){sourceGuard.Observe(row);continue;}
+                if(row["payloadLimit"].As<bool>())throw new NeoCqlLimitException("Identity selected row exceeds its native payload allowance.");
+                if(input.Count>=inputLimits.MaximumInputRows)throw new NeoCqlLimitException("Identity selected input exceeds its result bound.");
+                var selected=ReadNativeProjectionRow(row["cells"].As<IReadOnlyList<object>>(),identity.Selection.Query.Columns);
+                inputBytes=checked(inputBytes+16);foreach(var cell in selected.Values)Reserve(cell,ref inputBytes,inputLimits.MaximumInputPayloadBytes);
+                input.Add(selected);
+            }
+            var nativeStages=envelope["stages"].As<IReadOnlyList<object>>();
+            if(nativeStages.Count!=identity.Query.Selection.ResultStages.Count)throw Invalid("Identity selected stage proof is incomplete.");
+            var stages=new List<CosmicSetProjectionSelectedStageProof>();long proofBytes=checked(4L*input.Count);
+            foreach(var native in nativeStages)
+            {
+                var positions=new List<int>();var seen=new HashSet<int>();
+                foreach(var value in native.As<IReadOnlyList<object>>())
+                {
+                    check();if(value is not long ordinal||ordinal<0||ordinal>=input.Count||!seen.Add((int)ordinal))
+                        throw Invalid("Identity selected stage contains an invalid or repeated occurrence.");
+                    positions.Add((int)ordinal);proofBytes=checked(proofBytes+4);
+                    if(proofBytes>inputLimits.MaximumProofPayloadBytes)throw new NeoCqlLimitException("Identity selected proof exceeds its byte allowance.");
+                }
+                stages.Add(new(positions));
+            }
+            if(proofBytes>inputLimits.MaximumProofPayloadBytes)throw new NeoCqlLimitException("Identity input proof exceeds its byte allowance.");
+            var final=stages.Count==0?Enumerable.Range(0,input.Count).ToArray():stages[stages.Count-1].Occurrences.ToArray();
+            var work=Number(envelope,"work");
+            if(work<0||work>inputLimits.MaximumStageRows||final.Length>inputLimits.MaximumResults)
+                throw new NeoCqlLimitException("Identity selected stages exceed their work/result allowance.");
+            var packet=new CosmicSetProjectionCompositionPacket(input,stages,final.Select(index=>input[index]).ToArray(),work);
+            return(CosmicProjectedSetInputPacket.FromIdentitySelection(packet,identity.Query.Source.TreeDepth,identity.Query.Source.LeafCount),packet.Rows);
         }
         internal CosmicProjectedSetPacket Complete()
         {

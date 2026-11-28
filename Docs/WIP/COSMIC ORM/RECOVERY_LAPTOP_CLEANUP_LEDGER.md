@@ -11582,3 +11582,10 @@ New backend SQL lowering preserves bounded plain entity sources and post-page en
 - Existing native late-selection compiler now publishes reusable rows/rank/proof SQL and supports an explicit zero-selected-stage native header. Full original source guards execute before any outer empty result.
 - Representative existing journey enabled for Mongo and SQLite:27groups/41timings, unchanged4owned records/1write; Neo remains26/37 and new admission is closed. Root qualification pending; full Q50/Q51/Q53/Q54 remain OPEN, main144/168 extension4/13.
 - Core remainsb4ddeb4a; Development remains qualified52110089/Corefa4ea2e2 (SUCCESS). No shared Atlas/PIPER calls, local builds/installs/databases/worktrees or artifact downloads.
+
+
+### 2026-11-28 — Neo4j late identity operands, native3 gate pending
+- Native Neo4j identity source, selected stages and outer set algebra now compile into one Cypher statement. Existing identity-set publication/canonical snapshot guard and projection cell decoder are reused; no multi-query source capture, rebinding, separate owner or fabricated source IDs.
+- Set-tree parameters and node names have a unique shared namespace; entity work/output parameters use the existing binder. Aggregate snapshot character lower bound is checked before native publication; canonical guard enforces exact UTF8 bytes after transfer.
+- All three new source enrollments are explicit. Existing selected journey now27groups/41timings per provider, same4owned IDs/1successfulwrite. Source kinds/visible aliases, duplicate occurrences, source windows, caller isolation and input bounds before outer Take(0) remain represented. New native3 acceptance pending; Mongo46149700249 and Mongo+SQLite46150404741 CI succeeded separately (artifacts awaiting inspection).
+- Main144/168 extension4/13 unchanged; full parent rows and backend JSON/SQL capture for this source family remain open. Development stays52110089/Corefa4ea2e2; no live promotion from unqualified work. No Atlas/PIPER calls or local builds/installs/databases/worktrees/download files.

@@ -204,7 +204,8 @@ public sealed partial class CqlV1Web4NativeTests
         var guardedPlan=Plan(guardedSet,new CosmicProjectedSetOptions(new CosmicSetQueryOptions(1,8,1048576,10)));
         var guardedRead=await Timed("entity-source-bound-before-empty-set",()=>manager.ExecuteProjectedSetQueryAsync(guardedPlan,new[]{adapter},10));
         Assert.IsTrue(guardedRead.IsError,"A late empty selected set must not hide an oversized original entity input.");
-        var identityEnrolled=adapter.QueryProviderType is ProviderType.MongoDBOASIS or ProviderType.SQLLiteDBOASIS;
+        var identityEnrolled=native.ProjectedSetCapabilities.IdentityInputs!=null;
+        Assert.IsTrue(identityEnrolled,"All three shipping providers must independently enroll the late identity-source owner.");
         if(identityEnrolled)
         {
             var identityA=CosmicLinq.Create(manager,adapter,EntitySource(access,0),maximumResults:8).Result;

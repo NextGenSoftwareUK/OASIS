@@ -13,8 +13,10 @@ public partial class Neo4jOASIS
         IReadOnlyList<CosmicProjectionColumn> projection,int maximumProjectionBytes,bool countOnly) where T:IHolon
     {
         var parameters=anchor.Translator.Parameters;
-        parameters.Add("entityWorkBound",32000);
-        parameters.Add("entityOutputTake",maximumResults+1);
+        var treePrefix="setTree"+parameters.Count+"_";var rootName=treePrefix+"Root";
+        var workBound=anchor.Translator.Bind(32000);
+        var outputTake=anchor.Translator.Bind(maximumResults+1);
+        var sourceBytes=anchor.Translator.Bind(root.Options.MaximumInputPayloadBytes);
         var ordinal=0;
         string Leaf(CosmicQuery<T> query,int maximum,string name)
         {
@@ -37,7 +39,7 @@ public partial class Neo4jOASIS
         }
         string Node(CosmicSetQueryPlan<T> plan,string name)
         {
-            var leftName="tree"+(ordinal++);var rightName="tree"+(ordinal++);
+            var leftName=treePrefix+(ordinal++);var rightName=treePrefix+(ordinal++);
             var prefix=plan.LeftSet==null?Leaf(plan.Query.Left,plan.Options.MaximumLeftInputRows,leftName):Node(plan.LeftSet,leftName);
             prefix+=plan.RightSet==null?Leaf(plan.Query.Right,plan.Options.MaximumRightInputRows,rightName):Node(plan.RightSet,rightName);
             parameters.Add(name+"LeftBound",plan.Options.MaximumLeftInputRows);
@@ -62,19 +64,21 @@ public partial class Neo4jOASIS
                 "CALL { WITH l,r,combined WITH l.proof+r.proof AS entitySource,combined AS selected,"+
                 "l.cycle OR r.cycle AS entityCycle,l.limit OR r.limit OR size(l.rows)>$"+name+"LeftBound OR size(r.rows)>$"+name+"RightBound AS entityLimit,"+
                 "l.work+r.work AS entityWork ");
-            AppendCqlEntityStages(text,plan.Query.Output.Source,plan.Query.Output.Stages,anchor.Translator,name);
+            AppendCqlEntityStages(text,plan.Query.Output.Source,plan.Query.Output.Stages,anchor.Translator,name,workBound);
             text.Append("RETURN entitySource,selected,entityCycle,entityLimit,entityWork } RETURN "+
                 "{rows:selected,proof:entitySource,invalid:l.invalid OR r.invalid,cycle:entityCycle,limit:entityLimit,work:entityWork} AS "+name+" } ");
             return text.ToString();
         }
-        var output=new StringBuilder("CALL { "+anchor.Source+"WHERE NOT valid WITH h LIMIT 1 RETURN count(h)>0 AS setSchemaInvalid } "+Node(root,"treeRoot"));
+        var output=new StringBuilder("CALL { "+anchor.Source+"WHERE NOT valid WITH h LIMIT 1 RETURN count(h)>0 AS setSchemaInvalid } "+Node(root,rootName));
+        output.Append("WITH "+rootName+",reduce(total=0,item IN "+rootName+".proof | total+coalesce(size(item.h.SnapshotJson),"+sourceBytes+"+1)) AS sourceBytes ")
+            .Append("WITH {rows:"+rootName+".rows,proof:"+rootName+".proof,invalid:"+rootName+".invalid,cycle:"+rootName+".cycle,limit:"+rootName+".limit OR sourceBytes>"+sourceBytes+",work:"+rootName+".work} AS "+rootName+" ");
         var positionName=projection==null?"setEntryPosition":"entityPosition";
         var fields="id,revision,valid,snapshot,traversalCycle,traversalLimit,entityInput"+(countOnly?",entityCount":"")+","+positionName+(projection==null?"":",payloadLimit,cells");
-        output.Append("CALL { WITH treeRoot WITH treeRoot WHERE treeRoot.invalid RETURN null AS id,null AS revision,false AS valid,null AS snapshot,"+
-            "treeRoot.cycle AS traversalCycle,treeRoot.limit AS traversalLimit,false AS entityInput,"+(countOnly?"null AS entityCount,":"")+"-1 AS "+positionName+
-            (projection==null?" ":",false AS payloadLimit,[] AS cells ")+"UNION ALL WITH treeRoot WITH treeRoot WHERE NOT treeRoot.invalid "+
-            "WITH treeRoot.proof AS entitySource,treeRoot.rows AS selected,treeRoot.cycle AS entityCycle,treeRoot.limit AS entityLimit,treeRoot.work AS entityWork ");
-        AppendCqlEntityPublication(output,countOnly,projection,maximumProjectionBytes,anchor.Translator,orderedOccurrences:true);
+        output.Append("CALL { WITH "+rootName+" WITH "+rootName+" WHERE "+rootName+".invalid RETURN null AS id,null AS revision,false AS valid,null AS snapshot,"+
+            rootName+".cycle AS traversalCycle,"+rootName+".limit AS traversalLimit,false AS entityInput,"+(countOnly?"null AS entityCount,":"")+"-1 AS "+positionName+
+            (projection==null?" ":",false AS payloadLimit,[] AS cells ")+"UNION ALL WITH "+rootName+" WITH "+rootName+" WHERE NOT "+rootName+".invalid "+
+            "WITH "+rootName+".proof AS entitySource,"+rootName+".rows AS selected,"+rootName+".cycle AS entityCycle,"+rootName+".limit AS entityLimit,"+rootName+".work AS entityWork ");
+        AppendCqlEntityPublication(output,countOnly,projection,maximumProjectionBytes,anchor.Translator,orderedOccurrences:true,outputTake:outputTake);
         return output+" } RETURN "+fields+" ORDER BY "+positionName;
     }
 }
