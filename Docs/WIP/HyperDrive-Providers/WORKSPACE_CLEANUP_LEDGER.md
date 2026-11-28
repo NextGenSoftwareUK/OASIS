@@ -3125,3 +3125,8 @@ Native/browser46130012906passed1/1provider migration journey: actual password-is
 ## 2026-11-28 — real OAPP error acceptance
 
 CI46132041520passed1/1new API contract probe through the actual current WEB5 SDK and shipping WEB5 source2e8ae614, ONODE.Coref2c6b219/STARfdc8e3a3. A cold missing-ID read returns declared400, IsError=true, OASIS_RECORD_NOT_FOUND and No Holon Found even with the isolated legacy test-data setting enabled. Original populated Map/Launcher46126474607was not rerun. Artifact15257639687(3232bytes) inspected in RAM: all5Startup cleanup conditions true; publish/browser/cache/TLS outputs absent. No shared Atlas, source DNA/Railway settings change, local runtime/download/build/database/results or new owner action. Native storage baseline123/163unchanged. Whole OPORTAL and global HyperDrive gates remain open.
+
+
+## 2026-11-28 — Holon Diff breadth source recovery
+
+Recovered lost STAR0bc4d64f shared startup/demo-substitution fix while preserving newer public visibility/PublishById behavior. Paired STARbda2d2a8 in source233dad7b, dependency validator7Dockerfiles passed. Added one unaccepted native browser journey only: cold history, two real metadata publications, version comparison and stored-ID seals. JavaScript/Python syntax passed; runtime/acceptance pending. No local downloads/runtime/env/database/build/results; Git private index removed in finally. Remote disposable data/output uses existing owned cleanup. Native123/163unchanged, no global/whole-site claim or owner action.

@@ -131,3 +131,8 @@ CI46132041520passed1/1new API contract probe through the actual current WEB5 SDK
 ## 2026-11-28 — dev deployment metadata
 
 GitHub deployment statuses for Development5b28612aa73are7/7SUCCESS (last WEB4 update09:44:37UTC), checked through GitHub metadata only. Portaldevfe794415Vercel status SUCCESS and one static portal.html request returned200 with migration controls/current3SDK cache keys. No hosted sign-in/browser/API/database verification is implied. Core1b24c629AvatarManager tree matches recovery-qualified6247348c (read-only diff empty). No shared Atlas operations.
+
+
+## 2026-11-28 — Holon Diff breadth source recovery
+
+Recovered lost STAR0bc4d64f shared startup/demo-substitution fix while preserving newer public visibility/PublishById behavior. Paired STARbda2d2a8 in source233dad7b, dependency validator7Dockerfiles passed. Added one unaccepted native browser journey only: cold history, two real metadata publications, version comparison and stored-ID seals. JavaScript/Python syntax passed; runtime/acceptance pending. No local downloads/runtime/env/database/build/results; Git private index removed in finally. Remote disposable data/output uses existing owned cleanup. Native123/163unchanged, no global/whole-site claim or owner action.
