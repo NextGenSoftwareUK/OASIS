@@ -9,9 +9,9 @@ async function main(){
  const api=new URL(process.env.OASIS_STARTUP_API_URL);assert.equal(api.hostname,'127.0.0.1');assert.equal(api.protocol,'http:');
  const api5=process.env.OASIS_STARTUP_WEB5_URL?new URL(process.env.OASIS_STARTUP_WEB5_URL):null;
  const popupGroup=process.env.OASIS_STARTUP_POPUP_GROUP||'none';
- assert.ok(['none','clan-membership','map-purpose','map-visit','map-search','map-renderer','map-geo','map-places','onet','web5-diff','web5-errors','provider-migration','web5-depth','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data','social-activity','account-recovery'].includes(popupGroup));
+ assert.ok(['none','clan-leave','clan-membership','map-purpose','map-visit','map-search','map-renderer','map-geo','map-places','onet','web5-diff','web5-errors','provider-migration','web5-depth','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data','social-activity','account-recovery'].includes(popupGroup));
  let visitWrites=0;
- const selectedPopups=popupGroup==='clan-membership'?['ClanMembership']:popupGroup==='map-purpose'?[]:popupGroup==='map-visit'?['MapVisit']:popupGroup==='map-search'?[]:popupGroup==='map-renderer'?['MapRenderer']:popupGroup==='map-geo'?['MapGeo']:popupGroup==='map-places'?['MapPlaces']:popupGroup==='onet'?['ONET']:popupGroup==='web5-diff'?['HolonDiff']:popupGroup==='web5-errors'?['CatalogueErrors']:popupGroup==='provider-migration'?['Migration']:popupGroup==='web5-depth'?['OappMap','Launcher']:popupGroup==='account-recovery'?['AccountRecovery']:popupGroup==='social-activity'?['SocialGraph','ActivityFeed']:popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
+ const selectedPopups=popupGroup==='clan-leave'?['ClanLeave']:popupGroup==='clan-membership'?['ClanMembership']:popupGroup==='map-purpose'?[]:popupGroup==='map-visit'?['MapVisit']:popupGroup==='map-search'?[]:popupGroup==='map-renderer'?['MapRenderer']:popupGroup==='map-geo'?['MapGeo']:popupGroup==='map-places'?['MapPlaces']:popupGroup==='onet'?['ONET']:popupGroup==='web5-diff'?['HolonDiff']:popupGroup==='web5-errors'?['CatalogueErrors']:popupGroup==='provider-migration'?['Migration']:popupGroup==='web5-depth'?['OappMap','Launcher']:popupGroup==='account-recovery'?['AccountRecovery']:popupGroup==='social-activity'?['SocialGraph','ActivityFeed']:popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
   popupGroup==='data-messaging'?['Data','Messaging']:
   popupGroup==='none'?[]:[{nft:'NFT',data:'Data','data-crud':'DataWrite','data-edit':'DataWrite','files-write':'FilesWrite','map-route':'MapRoute',messaging:'Messaging','messaging-read':'MessagingRead',chat:'Chat','directory-message':'DirectoryMessage',clan:'Clan'}[popupGroup]];
  let expectedMapSearchQuery=null,mapSearchRequestCount=0;
@@ -112,7 +112,7 @@ async function main(){
   if(api5||['map-search','map-visit','map-purpose'].includes(popupGroup))ownedToken=await admitFree(account);
   if(selectedPopups.length&&popupGroup!=='account-recovery'){
    stage='explicit backend selection';assert.equal(!!api5,['web5-depth','web5-errors','web5-diff','map-geo'].includes(popupGroup),'Explicit matching backend selection');if(!api5)ownedToken=await admitFree(account);
-   if(selectedPopups.includes('Messaging')||selectedPopups.includes('MessagingRead')||selectedPopups.includes('Chat')||selectedPopups.includes('DirectoryMessage')||selectedPopups.includes('Clan')||selectedPopups.includes('ClanMembership')||selectedPopups.includes('SocialGraph')){
+   if(selectedPopups.includes('Messaging')||selectedPopups.includes('MessagingRead')||selectedPopups.includes('Chat')||selectedPopups.includes('DirectoryMessage')||selectedPopups.includes('Clan')||selectedPopups.includes('ClanMembership')||selectedPopups.includes('ClanLeave')||selectedPopups.includes('SocialGraph')){
     recipient=await createOwnedAvatar(api.href,readOwnedVerificationToken);recipientToken=await admitFree(recipient);
    }
   }
@@ -208,6 +208,9 @@ async function main(){
       assert.equal(body.providerType,'MongoDBOASIS');assert.deepEqual(Object.keys(body.expectedRevisions),[savedHolonId]);
       assert.match(body.expectedRevisions[savedHolonId],/^[0-9a-f-]{36}$/i);ownedOperation=true;
      }
+    }
+    if(popupGroup==='clan-leave'&&request.method()==='DELETE'&&clanId&&url.pathname==='/api/clan/'+clanId+'/members/'+account.avatar.id){
+     assert.equal(++clanMemberRemovals,1,'One explicit authenticated self leave');ownedOperation=true;
     }
     if(popupGroup==='clan-membership'&&request.method()==='DELETE'&&clanId&&url.pathname==='/api/clan/'+clanId+'/members/'+recipient.avatar.id){
      assert.equal(++clanMemberRemovals,1,'One explicit owner member removal');ownedOperation=true;
@@ -408,12 +411,14 @@ async function main(){
    assert.equal(new Set(diffStoredIds).size,2,'Two independently stored published versions');
   }
   if(['map-search','map-visit','map-purpose'].includes(popupGroup))ownedToken=await page.evaluate(()=>window.oasisClient.http.tokenStore.getToken());
-  if(popupGroup==='clan-membership'){
+  if(['clan-membership','clan-leave'].includes(popupGroup)){
    stage='Owned clan membership fixture';ownedToken=await page.evaluate(()=>window.oasisClient.http.tokenStore.getToken());
-   const created=await account.call('owned membership clan','POST','/api/clan',{name:clanName,description:'Owned member removal fixture'},ownedToken,true);
-   clanId=created.id;assert.match(clanId,/^[0-9a-f-]{36}$/i);assert.equal(created.ownerAvatarId,account.avatar.id);assert.deepEqual(created.memberIds,[account.avatar.id]);
-   assert.equal(await account.call('owned member fixture','POST','/api/clan/'+clanId+'/members/'+recipient.avatar.id,undefined,ownedToken,true),true);
-   const before=await recipient.call('member fixture readback','GET','/api/clan/'+clanId,undefined,recipientToken,true);assert.equal(before.memberIds.length,2);assert.ok(before.memberIds.includes(recipient.avatar.id));
+   const owner=popupGroup==='clan-leave'?recipient:account,member=popupGroup==='clan-leave'?account:recipient;
+   const ownerToken=popupGroup==='clan-leave'?recipientToken:ownedToken,memberToken=popupGroup==='clan-leave'?ownedToken:recipientToken;
+   const created=await owner.call('owned membership clan','POST','/api/clan',{name:clanName,description:'Owned membership fixture'},ownerToken,true);
+   clanId=created.id;assert.match(clanId,/^[0-9a-f-]{36}$/i);assert.equal(created.ownerAvatarId,owner.avatar.id);assert.deepEqual(created.memberIds,[owner.avatar.id]);
+   assert.equal(await owner.call('owned member fixture','POST','/api/clan/'+clanId+'/members/'+member.avatar.id,undefined,ownerToken,true),true);
+   const before=await member.call('member fixture readback','GET','/api/clan/'+clanId,undefined,memberToken,true);assert.equal(before.memberIds.length,2);assert.ok(before.memberIds.includes(member.avatar.id));
   }
   if(['map-renderer','map-search','map-visit','map-purpose'].includes(popupGroup)){
    stage='Create actual stored map location';
@@ -818,6 +823,15 @@ async function main(){
     await page.waitForFunction(id=>document.getElementById('data-modal-status').hidden&&
      !document.querySelector('#data-browse-grid [data-holon-idx="'+id+'"]'),savedHolonId);
     assert.equal(holonSaves,popupGroup==='data-edit'?2:1);assert.equal(pointReads,popupGroup==='data-edit'?2:1);assert.equal(holonDeletes,1);
+   });
+   await checkPopup('ClanLeave','#clan-close-btn',async()=>{
+    stage='Clan member self leave selection';await page.evaluate(()=>window.openClanModal());await page.locator('[data-clan-view="'+clanId+'"]').click();
+    const leave=page.locator('#clan-leave-btn');await leave.waitFor({state:'visible'});assert.equal(await page.locator('#clan-edit-form').count(),0,'Member does not have owner controls');
+    stage='Clan acknowledged member self leave';const responsePromise=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/clan/'+clanId+'/members/'+account.avatar.id&&r.request().method()==='DELETE');
+    await leave.click();const response=await responsePromise,raw=await response.json(),reply=typeof raw.isError==='boolean'?raw:raw.result;assert.equal(response.status(),200);assert.equal(reply.isError,false);assert.equal(reply.result,true);assert.equal(clanMemberRemovals,1);
+    await page.waitForFunction(()=>!document.getElementById('clan-leave-btn')&&document.getElementById('clan-detail-panel')?.textContent.includes('MEMBERS (1)'));
+    stage='Clan self leave persisted membership';const stored=await recipient.call('self leave owner readback','GET','/api/clan/'+clanId,undefined,recipientToken,true);assert.equal(stored.id,clanId);assert.equal(stored.ownerAvatarId,recipient.avatar.id);assert.deepEqual(stored.memberIds,[recipient.avatar.id]);
+    stage='Clan self leave writer identity';httpFacts.push({path:'/api/clan/{id}',status:200,isError:false,routingMessage:'Actual leaving member is recorded writer: '+String(stored.modifiedByAvatarId===account.avatar.id)});assert.equal(stored.modifiedByAvatarId,account.avatar.id,'Mutation records the authenticated actor rather than the owner');
    });
    await checkPopup('ClanMembership','#clan-close-btn',async()=>{
     stage='Clan existing member selection';await page.evaluate(()=>window.openClanModal());
