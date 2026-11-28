@@ -73,8 +73,8 @@ public partial class SolanaOASIS
             if (holonResult.Result != null)
             {
                 // Delete holon from Solana blockchain using provider key (transaction hash)
-                if (holonResult.Result.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.SolanaOASIS) &&
-                    holonResult.Result.ProviderUniqueStorageKey.TryGetValue(Core.Enums.ProviderType.SolanaOASIS, out var providerKey))
+                if (holonResult.Result.ProviderUniqueStorageKey.ContainsKey(_storageProviderType) &&
+                    holonResult.Result.ProviderUniqueStorageKey.TryGetValue(_storageProviderType, out var providerKey))
                 {
                     return await DeleteHolonAsync(providerKey);
                 }
@@ -110,7 +110,7 @@ public partial class SolanaOASIS
             var stored = await _solanaRepository.GetAsync<SolanaHolonDto>(providerKey);
             var (deleted,tombstone)=await CreateVerifiedTombstoneAsync<SolanaHolonDto,IHolon>(
                 providerKey,stored.Id,stored.Version,record=>record.GetHolon());
-            deleted.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS] = tombstone;
+            deleted.ProviderUniqueStorageKey[_storageProviderType] = tombstone;
             result.Result = deleted;
             result.IsDeleted = true;
             result.DeletedCount = 1;

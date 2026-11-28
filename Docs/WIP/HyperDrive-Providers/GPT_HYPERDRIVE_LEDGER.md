@@ -17,3 +17,11 @@
 - Programme remains about115/234; existing-provider identity fixes do not add providers. Rechecks2/3, PocketBase retained by its owner. Hosted/global v2 gates stay open.
 - OPORTAL: corrected private-source public-link exposure, runtime label mismatch, bounded transient artifact retention; removed9138068830bytes of superseded failed reports. GitHub quota recount pending; no claim that laptop disk grew by this amount.
 - No local runtime/env/download/build/database/output, no shared Atlas/protected delivery operations. Private Git indexes removed in finally; compact receipts retained.
+
+## 2026-11-27 — Eclipse and PocketBase acceptance / release checkpoint
+
+- Eclipse native CI46101901966 passes26sync+26async plus outer-provider key/update round trips. Applied the remaining SVM portion of existing6c95573c, adapted to the current Eclipse implementation; accepted source matches exactly. SDK default-Solana26+26 evidence from46100237006 preserved rather than rerun.
+- PocketBase claim was stale (>24h, retired branch, no PocketBase commits since17Nov or dirty files); reconciled claim then ran current Development6426cde3 CI46103379382:52/52, zero skipped rows, owned runtime/data/output removed. Requested current-source rechecks now3/3; programme estimate remains about115/234 without double-counting.
+- OPORTAL dev/checkout203executed checks pass per target,80authenticated checks skipped. Only artifact-upload quota fails; no unnecessary rerun.35superseded artifacts/9649851300bytes removed, release/latest-good builds retained; exact receipt is in OPORTAL-JS Docs/WIP/CI_ARTIFACT_CLEANUP_2026-11-27.json.
+- Consolidated OPORTAL-CI1 custody and MIDEN-HOSTED1 persistent-fixture actions in the single owner list. Miden accepted source reused; current-graph/shipped-SDK qualification pending46104748678. Public switcher source audit recorded without prematurely running global backend gates.
+- Preserved concurrent COSMIC O07 Core6613656a and dependency manifest. Miden’s superseded queued46104588888 cancelled before replacement; no other agent’s runs cancelled. No local SDK/build/env/download/database/test output or shared Atlas operation. Private indexes removed in finally.

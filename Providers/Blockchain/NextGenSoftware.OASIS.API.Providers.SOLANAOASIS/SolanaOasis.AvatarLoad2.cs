@@ -68,7 +68,7 @@ public partial class SolanaOASIS
             foreach(var entry in records)
             {
                 var record=entry.Record.GetAvatarDetail();
-                record.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS]=entry.Signature;
+                record.ProviderUniqueStorageKey[_storageProviderType]=entry.Signature;
                 mapped.Add(record);
             }
             result.Result=mapped;
@@ -91,8 +91,8 @@ public partial class SolanaOASIS
             string transactionHash;
             var solanaAvatarDto = avatar.GetSolanaAvatarDto();
             // Update if avatar if transaction hash exist
-            if (avatar.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.SolanaOASIS) &&
-                avatar.ProviderUniqueStorageKey.TryGetValue(Core.Enums.ProviderType.SolanaOASIS,
+            if (avatar.ProviderUniqueStorageKey.ContainsKey(_storageProviderType) &&
+                avatar.ProviderUniqueStorageKey.TryGetValue(_storageProviderType,
                     out var avatarSolanaHash))
             {
                 var persistedAvatar = await _solanaRepository.GetAsync<SolanaAvatarDto>(avatarSolanaHash);
@@ -110,7 +110,7 @@ public partial class SolanaOASIS
 
             if (!string.IsNullOrEmpty(transactionHash))
             {
-                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS] = transactionHash;
+                avatar.ProviderUniqueStorageKey[_storageProviderType] = transactionHash;
                 PublishSolanaCreationOrigin(avatar,solanaAvatarDto);
                 avatar.Version=solanaAvatarDto.Version;
                 avatar.PreviousVersionId=solanaAvatarDto.PreviousVersionId;
@@ -146,8 +146,8 @@ public partial class SolanaOASIS
             string transactionHash;
             var solanaAvatarDetailDto = avatar.GetSolanaAvatarDetailDto();
             // Update if avatar if transaction hash exist
-            if (avatar.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.SolanaOASIS) &&
-                avatar.ProviderUniqueStorageKey.TryGetValue(Core.Enums.ProviderType.SolanaOASIS,
+            if (avatar.ProviderUniqueStorageKey.ContainsKey(_storageProviderType) &&
+                avatar.ProviderUniqueStorageKey.TryGetValue(_storageProviderType,
                     out var avatarDetailSolanaHash))
             {
                 var persistedDetail =
@@ -166,7 +166,7 @@ public partial class SolanaOASIS
 
             if (!string.IsNullOrEmpty(transactionHash))
             {
-                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS] = transactionHash;
+                avatar.ProviderUniqueStorageKey[_storageProviderType] = transactionHash;
                 PublishSolanaCreationOrigin(avatar,solanaAvatarDetailDto);
                 avatar.Version=solanaAvatarDetailDto.Version;
                 avatar.PreviousVersionId=solanaAvatarDetailDto.PreviousVersionId;
@@ -226,7 +226,7 @@ public partial class SolanaOASIS
                 return result;
             }
             if(avatarResult.Result?.ProviderUniqueStorageKey==null
-                || !avatarResult.Result.ProviderUniqueStorageKey.TryGetValue(Core.Enums.ProviderType.SolanaOASIS,out var signature)
+                || !avatarResult.Result.ProviderUniqueStorageKey.TryGetValue(_storageProviderType,out var signature)
                 || string.IsNullOrWhiteSpace(signature))
                 throw new InvalidOperationException("Authenticated avatar has no Solana storage signature for deletion.");
             return await DeleteAvatarAsync(signature,softDelete);
@@ -278,7 +278,7 @@ public partial class SolanaOASIS
             if(!detail.IsError)
             {
                 if(detail.Result==null || detail.Result.Id!=avatar.Result.Id || detail.Result.Version<0
-                    || !detail.Result.ProviderUniqueStorageKey.TryGetValue(Core.Enums.ProviderType.SolanaOASIS,out detailSignature)
+                    || !detail.Result.ProviderUniqueStorageKey.TryGetValue(_storageProviderType,out detailSignature)
                     || string.IsNullOrWhiteSpace(detailSignature))
                     throw new InvalidDataException("Authenticated Solana avatar detail has invalid deletion identity/signature.");
                 _=checked(detail.Result.Version+1);
@@ -336,7 +336,7 @@ public partial class SolanaOASIS
                     Message = "Solana signature does not reference the requested record version."
                 };
             var holon=solanaHolonDto.GetHolon();
-            holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS]=providerKey;
+            holon.ProviderUniqueStorageKey[_storageProviderType]=providerKey;
             var graphRecords=new List<IHolon> {holon};
             if(loadChildren && loadChildrenFromProvider)
             {
@@ -345,7 +345,7 @@ public partial class SolanaOASIS
                 {
                     if(entry.Record.Id==holon.Id) continue;
                     var child=entry.Record.GetHolon();
-                    child.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS]=entry.Signature;
+                    child.ProviderUniqueStorageKey[_storageProviderType]=entry.Signature;
                     graphRecords.Add(child);
                 }
             }
