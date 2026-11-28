@@ -2,11 +2,13 @@
 
 Updated2026-11-28UTC. Shared Atlas is not a test backend; protected deliveries535/543 remain untouched. Work uses owned branch refs and isolated CI, preserving concurrent physical checkouts.
 
-## Latest portal continuation — 28 November,11:00UTC
+## Latest portal continuation — 28 November
 
 Selected new native/browser continuation6/6(recovery1, populated Map/Launcher2, migration1, ONET1, Holon Diff1), separate OAPP error contract1/1 and SDK delivery3/3. Holon46136436169accepts actual publication/comparison and correct stored-ID seal dispatch, not a particular verification status or cryptographic sealing. Qualified source is integrated Development308ed7cf/Corec0e8f2b8/STARbda2d2a8, preserving CQL49f8f1c7. Hosted rollout acceptance is separate.
 
-Generic app-labelled place visits are implemented in sourceb0c2f5a6/Core18dad5ae/Unity9d4d53c1; immutable WEB4 build46138363710is running. Native API/browser, website/SDK guide checks and Unity hosted/device gates remain open. No shared Atlas test or new owner action. Whole OPORTAL/global HyperDrive remain open;123/163native storage/specialized baseline within238projects unchanged. [Current structured report](LATEST_FULL_STATUS_2026-11-28.json).
+Generic app-labelled place visits are implemented on the isolated source branchb0c2f5a6/Core18dad5ae/Unity7e9e3490; image46138363710built successfully. Native46140605906timed out at real catalogue; reduced-query46141372411failed upstream CONNECT before visits. Both completed fixtures have5/5cleanup flags and stopped proxies. No place/karma credit or shared source promotion. Populated hotspot/quest journey46141859638is running; GeoNFT/device/canvas/hosted gates remain open. Docs/Learn guides updated and observed2/2HTTP200; SDK guide3e8d07c3preserves qualified Profile source. No shared Atlas test or new owner action. Whole OPORTAL/global HyperDrive remain open;123/163baseline within238projects unchanged. [Current structured report](LATEST_FULL_STATUS_2026-11-28.json).
+
+Development308ed7cfhas7/7SUCCESS GitHub service statuses through11:14:43UTC; metadata does not certify current running revisions or hosted behavior.
 
 ## Latest accepted integrations
 
