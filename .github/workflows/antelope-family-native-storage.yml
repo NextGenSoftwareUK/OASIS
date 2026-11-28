@@ -13,6 +13,12 @@ on:
       - 'Providers/Shared/TestSupport/CoreStorageConformance.cs'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS/**'
   workflow_dispatch:
+    inputs:
+      provider:
+        description: Native provider to verify (limit reruns to changed paths)
+        type: choice
+        options: [all, TelosOASIS, SEEDSOASIS]
+        default: all
 
 permissions:
   contents: read
@@ -25,9 +31,7 @@ jobs:
       fail-fast: false
       matrix:
         mode: [async, sync]
-        project:
-          - Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TelosOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.TelosOASIS.IntegrationTests.csproj
-          - Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.IntegrationTests.csproj
+        project: ${{ fromJSON(inputs.provider == 'TelosOASIS' && '["Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TelosOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.TelosOASIS.IntegrationTests.csproj"]' || inputs.provider == 'SEEDSOASIS' && '["Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.IntegrationTests.csproj"]' || '["Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TelosOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.TelosOASIS.IntegrationTests.csproj","Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.IntegrationTests.csproj"]') }}
     defaults:
       run:
         working-directory: OASIS
