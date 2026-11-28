@@ -5,7 +5,7 @@
     "projects": 238,
     "nonStorage": 75,
     "storage": 163,
-    "nativeRows": 113
+    "nativeRows": 115
   },
   "providers": [
     {
@@ -1080,7 +1080,7 @@
       "provider": "DragonflyOASIS",
       "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.DragonflyOASIS/NextGenSoftware.OASIS.API.Providers.DragonflyOASIS.csproj",
       "family": "Key-value/object",
-      "nativeBaseline": false
+      "nativeBaseline": true
     },
     {
       "provider": "DruidOASIS",
@@ -1134,7 +1134,7 @@
       "provider": "KeyDBOASIS",
       "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.KeyDBOASIS/NextGenSoftware.OASIS.API.Providers.KeyDBOASIS.csproj",
       "family": "Key-value/object",
-      "nativeBaseline": false
+      "nativeBaseline": true
     },
     {
       "provider": "LanceDBOASIS",
