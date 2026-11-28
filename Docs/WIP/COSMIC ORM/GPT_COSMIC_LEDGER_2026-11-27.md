@@ -11,3 +11,9 @@
 - Shared checkout protection: an unrelated pending ACTIONS-FOR-DAVID edit prevented a checkout switch. Parent commits are isolated on work/gpt-o07 using a separate temporary index; existing working-tree changes are preserved. Core's clean checkout uses work/gpt-o07 directly.
 - Discovered accounting discrepancy: the current checklist text has168 feature entries,141 with no red cells, while the handoff/roadmap report130/164. Do not silently credit rows or rewrite accepted evidence; normalize the tally against the declared checklist scope separately.
 - Remaining: native3 CI, representative failure/cleanup evidence, scoped Development batch, docs-only master integration. Other phases and deferred owner decisions remain intact.
+
+### 2026-11-28 UTC — O07 CI contract correction; backend query ownership
+
+Native run 46100733894 stopped at SQLite compilation: its repository interface omitted the new bound execution method. Added the exact contract to IHolonRepository and made its implementation public. No native acceptance credit; MongoDB/SQLite/Neo4j verification remains 0/3 pending the corrected run. Owned CI Mongo container and service cleanup succeeded. No local build output or downloaded logs retained.
+
+SQL and AI query engines remain backend-owned (`POST /api/data/query-cql/sql` and `/ask`). Future engine improvements belong in server code; do not modify Web4Site cql-text.js or cql-ask.js.

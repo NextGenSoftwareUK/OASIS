@@ -37,7 +37,7 @@ public partial class HolonRepository
         return Task.FromResult(ExecuteAtomicHolonWrite(request?.WriteRequest,null,cancellationToken,propertyWrite:request));
     }
 
-    internal Task<OASISResult<IEnumerable<IHolon>>> ExecuteBoundConditionalHolonWriteAsync(
+    public Task<OASISResult<IEnumerable<IHolon>>> ExecuteBoundConditionalHolonWriteAsync(
         ConditionalHolonWriteRequest request,CosmicStorageIdentity expectedSource,CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
