@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""One M04 XML increment provider batch; caller owns the adjacent producer/consumer build lease."""
+"""Native set publication-count batch; caller owns the adjacent producer/consumer build lease."""
 import json
 import os
 from pathlib import Path
