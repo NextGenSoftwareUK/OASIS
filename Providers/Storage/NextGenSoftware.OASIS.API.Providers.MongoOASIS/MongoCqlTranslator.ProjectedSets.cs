@@ -37,8 +37,8 @@ internal sealed partial class MongoCqlTranslator
         CosmicProjectionCompositionExecutionLimits leftLimits,CosmicProjectionCompositionExecutionLimits rightLimits,
         string collection) where T:IHolon
     {
-        var left=plan.LeftSet==null?CompileSelected(plan.Query.Left,leftLimits):null;
-        var right=plan.RightSet==null?CompileSelected(plan.Query.Right,rightLimits):null;
+        var left=plan.LeftSet==null?CompileSelected(plan.Query.Left,leftLimits,entity:plan.Left.EntitySource):null;
+        var right=plan.RightSet==null?CompileSelected(plan.Query.Right,rightLimits,entity:plan.Right.EntitySource):null;
         MongoCqlProjectedSetCommand Child(CosmicProjectedSetPlan<T,TResult> child)
             =>child==null?null:CompileProjectedSet(child,ProjectedSetInputLimits(child.LeftInputOptions),
                 ProjectedSetInputLimits(child.RightInputOptions),collection);

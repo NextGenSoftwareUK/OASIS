@@ -177,10 +177,37 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.IsFalse(typedLast.IsError,typedLast.Message+typedLast.Exception);Assert.AreEqual("z",typedLast.Result.Value);
         Assert.AreEqual(0,SelectedCountProbe.ConstructorCalls,"Do not construct the original set DTO.");
         Assert.AreEqual(0,SelectedFinalProbe.ConstructorCalls,"Do not construct an intermediate final shape that was reselected.");
+        var entitySelected=CosmicLinq.Create(manager,adapter,EntitySource(access,0),maximumResults:8).Result
+            .Where(row=>row.Description=="y").Select(row=>new{Name=row.Name,Category=row.Description}).OrderBy(row=>row.Category);
+        var entityOther=CosmicLinq.Create(manager,adapter,EntitySource(access,2),maximumResults:8).Result
+            .Where(row=>row.Name=="b").Select(row=>new{Name=row.Name,Category=row.Description}).OrderBy(row=>row.Category);
+        var entityControl=await Timed("ordinary-entity-selected-control",()=>entitySelected.ToCosmicListAsync());
+        Assert.IsFalse(entityControl.IsError,entityControl.Message+entityControl.Exception);
+        CollectionAssert.AreEqual(new[]{"a|y"},entityControl.Result.Select(row=>row.Name+"|"+row.Category).ToArray());
+        var entityValues=await Timed("entity-selections-feed-native-sets",()=>entitySelected.Concat(entityOther).Concat(lc).ToCosmicListAsync());
+        Assert.IsFalse(entityValues.IsError,entityValues.Message+entityValues.Exception);
+        CollectionAssert.AreEqual(new[]{"a|y","b|z","a|x","b|z"},entityValues.Result.Select(row=>row.Name+"|"+row.Category).ToArray());
+        var capturedEntity=EntitySource(access,0).Compose().Result.Where(row=>row.Description=="y").Result.SelectColumns(columns).Result;
+        var entityInput=CosmicProjectedSetInput<Holon,CosmicProjectionRecord>.FromEntityProjection(capturedEntity).Result;
+        var capturedEntitySet=CosmicProjectedSetQuery<Holon,CosmicProjectionRecord>.CreateTree(entityInput,Leaf(c),CosmicSetQueryKind.Union).Result;
+        Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED",CosmicProjectedSetPlanner.Plan(capturedEntitySet,adapter.QueryProviderType,target,flat).ErrorCode);
+        Assert.AreEqual("CQL_QUERY_LIMIT",CosmicProjectedSetPlanner.Plan(capturedEntitySet,adapter.QueryProviderType,target,native.ProjectedSetCapabilities,
+            new CosmicProjectedSetOptions(new CosmicSetQueryOptions(8,8,1048576,10),maximumStageRows:1)).ErrorCode);
+        var foreignEntity=EntitySource(foreign.Source.ReadAccess,0).Compose().Result.Where(row=>row.Description=="y").Result.SelectColumns(columns).Result;
+        var hiddenEntitySet=CosmicProjectedSetQuery<Holon,CosmicProjectionRecord>.CreateTree(
+            CosmicProjectedSetInput<Holon,CosmicProjectionRecord>.FromEntityProjection(foreignEntity).Result,Leaf(foreign),CosmicSetQueryKind.Union).Result;
+        Assert.AreEqual(0,(await Read("entity-selected-foreign",hiddenEntitySet)).Length);
+        var unbounded=CosmicQuery<Holon>.Create(scope).WithReadAccess(access).Result.Where(row=>ids.Contains(row.Id)).Result;
+        var guardedEntity=unbounded.Compose().Result.Where(row=>row.Name=="b").Result.SelectColumns(columns).Result;
+        var guardedSet=CosmicProjectedSetQuery<Holon,CosmicProjectionRecord>.CreateTree(
+            CosmicProjectedSetInput<Holon,CosmicProjectionRecord>.FromEntityProjection(guardedEntity).Result,Leaf(c),CosmicSetQueryKind.Concat).Result.Take(0).Result;
+        var guardedPlan=Plan(guardedSet,new CosmicProjectedSetOptions(new CosmicSetQueryOptions(1,8,1048576,10)));
+        var guardedRead=await Timed("entity-source-bound-before-empty-set",()=>manager.ExecuteProjectedSetQueryAsync(guardedPlan,new[]{adapter},10));
+        Assert.IsTrue(guardedRead.IsError,"A late empty selected set must not hide an oversized original entity input.");
         using var cancel=new CancellationTokenSource();cancel.Cancel();
         var stopped=await Timed("selected-cancel",()=>manager.ExecuteProjectedSetQueryAsync(Plan(query),new[]{adapter},10,cancellationToken:cancel.Token));
         Assert.IsTrue(stopped.IsError);Assert.AreEqual("CQL_QUERY_CANCELLED",stopped.ErrorCode);
-        return new NativeFixtureJourneyProof(25,1,new Dictionary<string,bool>{["typedViewsFeedFurtherNativeSets"]=true,["typedViewNativeElements"]=true,["typedViewCardinalityAndExtrema"]=true,["typedViewNumericTerminal"]=true,["typedFinalSelectionWithoutIntermediateConstructors"]=true,["registeredLinqNativeSumAverage"]=true,["sharedOrdinaryNumericDecoderControl"]=true,["nativeSumAverageAfterSetWindows"]=true,["numericVisibleEqualityAndForeignScope"]=true,["nestedVisibleOutputBindings"]=true,["nativeScalarExtremaAfterWindows"]=true,["nativeCountIndependentOfPublication"]=true,["nativeCardinalityWithoutConstructors"]=true,["foreignNativeCount"]=true,["registeredLinqLeftTree"]=true,["registeredLinqRightTree"]=true,["explicitTreeAdmission"]=true,["concatOccurrences"]=true,
+        return new NativeFixtureJourneyProof(26,1,new Dictionary<string,bool>{["nativeEntityStageSelectedOperands"]=true,["typedViewsFeedFurtherNativeSets"]=true,["typedViewNativeElements"]=true,["typedViewCardinalityAndExtrema"]=true,["typedViewNumericTerminal"]=true,["typedFinalSelectionWithoutIntermediateConstructors"]=true,["registeredLinqNativeSumAverage"]=true,["sharedOrdinaryNumericDecoderControl"]=true,["nativeSumAverageAfterSetWindows"]=true,["numericVisibleEqualityAndForeignScope"]=true,["nestedVisibleOutputBindings"]=true,["nativeScalarExtremaAfterWindows"]=true,["nativeCountIndependentOfPublication"]=true,["nativeCardinalityWithoutConstructors"]=true,["foreignNativeCount"]=true,["registeredLinqLeftTree"]=true,["registeredLinqRightTree"]=true,["explicitTreeAdmission"]=true,["concatOccurrences"]=true,
             ["visibleTupleUnion"]=true,["visibleTupleIntersectExcept"]=true,["nodeWindows"]=true,["rightNested"]=true,
             ["foreignIsolation"]=true,["childBoundBeforeEmpty"]=true,["cancellation"]=true});
     }

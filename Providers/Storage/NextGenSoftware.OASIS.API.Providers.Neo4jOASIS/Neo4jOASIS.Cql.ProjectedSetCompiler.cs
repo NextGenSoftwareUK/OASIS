@@ -29,7 +29,7 @@ public partial class Neo4jOASIS
                     .Append("]}] AS ").Append(name).Append("Values } ");
                 return;
             }
-            var command=CompileCqlSelected(leaf.Query,ProjectedSetInputLimits(leaf.Options),sharedParameters:parameters);
+            var command=CompileCqlSelected(leaf.Query,ProjectedSetInputLimits(leaf.Options),entity:leaf.EntitySource,sharedParameters:parameters);
             text.Append("CALL { CALL { ").Append(command.Text)
                 .Append(" } WITH phase,position,sourcePosition,proof,nativeCount,stageWork ORDER BY phase,position ")
                 .Append("WITH collect({phase:phase,position:position,sourcePosition:sourcePosition,proof:proof,nativeCount:nativeCount,stageWork:stageWork}) AS captured ")

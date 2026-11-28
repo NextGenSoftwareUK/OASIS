@@ -89,12 +89,12 @@ public partial class HolonRepository
         }
     }
 
-    private static EntityCompositionSql CompileEntityCompositionSql<T>(CosmicEntityCompositionPlan<T> plan)
+    private static EntityCompositionSql CompileEntityCompositionSql<T>(CosmicEntityCompositionPlan<T> plan,List<SqliteParameter> sharedParameters=null)
         where T : IHolon
     {
         if (plan == null) throw new ArgumentNullException(nameof(plan));
         var source = plan.Query.Source;
-        var translator = new CqlSqlTranslator(source.ReadAccess);
+        var translator = new CqlSqlTranslator("Holon",sharedParameters??new List<SqliteParameter>(),source.ReadAccess);
         var predicate = translator.TranslateSource(source.Predicates);
         var ordering = translator.TranslateOrdering(source.Orderings);
         var definitions = new List<string>();

@@ -58,11 +58,12 @@ public partial class Neo4jOASIS : ICosmicQueryEntityCountStorageProvider
     {
         var translator = compiled.Translator;
         var parameters = translator.Parameters;
-        parameters.Add("entityOffset", plan.Query.Source.Offset);
-        parameters.Add("entityTake", Math.Min(plan.Query.Source.Limit ?? plan.Options.MaximumInputRows + 1, plan.Options.MaximumInputRows + 1));
-        parameters.Add("entityInputBound", plan.Options.MaximumInputRows);
-        parameters.Add("entityWorkBound", plan.Options.MaximumStageRows);
-        parameters.Add("entityOutputTake", maximumResults + 1);
+        var parameterPrefix="entity"+parameters.Count+"_";
+        var offset=translator.Bind(plan.Query.Source.Offset);
+        var take=translator.Bind(Math.Min(plan.Query.Source.Limit??plan.Options.MaximumInputRows+1,plan.Options.MaximumInputRows+1));
+        var inputBound=translator.Bind(plan.Options.MaximumInputRows);
+        var workBound=translator.Bind(plan.Options.MaximumStageRows);
+        var outputTake=translator.Bind(maximumResults+1);
         const string invalid = "null AS id,null AS revision,false AS valid,null AS snapshot,";
         var selectedFields=projection==null ? "" : ",entityPosition,payloadLimit,cells";
         var emptySelection=projection==null ? "" : ",-1 AS entityPosition,false AS payloadLimit,[] AS cells";
@@ -74,10 +75,10 @@ public partial class Neo4jOASIS : ICosmicQueryEntityCountStorageProvider
             .Concat(new[] { "p.f_Id ASC" }));
         var text = new StringBuilder(compiled.EligibleSource + "WHERE (" + compiled.DescendantPredicate + ") AND NOT("
             + compiled.Cycle + " OR " + compiled.TraversalLimit + ") WITH h,p" + projected + " ORDER BY " + ordering
-            + " SKIP $entityOffset LIMIT $entityTake WITH collect({h:h,p:p}) AS candidates "
+            + " SKIP "+offset+" LIMIT "+take+" WITH collect({h:h,p:p}) AS candidates "
             + "WITH candidates AS entitySource,candidates AS selected,false AS entityCycle,"
-            + "size(candidates)>$entityInputBound AS entityLimit,0 AS entityWork ");
-        AppendCqlEntityStages(text,plan.Query.Source,plan.Query.Stages,translator);
+            + "size(candidates)>"+inputBound+" AS entityLimit,0 AS entityWork ");
+        AppendCqlEntityStages(text,plan.Query.Source,plan.Query.Stages,translator,parameterPrefix,workBound);
         if(relationOnly)
         {
             const string relationFields="entityValid,entitySource,selected,entityCycle,entityLimit";
@@ -89,7 +90,7 @@ public partial class Neo4jOASIS : ICosmicQueryEntityCountStorageProvider
                 +"false AS entityCycle,false AS entityLimit LIMIT 1"+relationErrors+" UNION ALL "+text
                 +" RETURN true AS entityValid,entitySource,selected,entityCycle,entityLimit } RETURN "+relationFields;
         }
-        AppendCqlEntityPublication(text,countOnly,projection,maximumProjectionBytes,translator);
+        AppendCqlEntityPublication(text,countOnly,projection,maximumProjectionBytes,translator,outputTake:outputTake);
         var sourceErrors = compiled.Translator.TraversalClauses.Count == 0 ? "" : " UNION ALL " + compiled.EligibleSource
             + "WHERE " + compiled.Cycle + " OR " + compiled.TraversalLimit + " RETURN " + invalid
             + compiled.Cycle + " AS traversalCycle," + compiled.TraversalLimit + " AS traversalLimit,false AS entityInput" + nullCount +emptySelection+ " LIMIT 1";
@@ -100,7 +101,7 @@ public partial class Neo4jOASIS : ICosmicQueryEntityCountStorageProvider
 
 
     private static void AppendCqlEntityStages<T>(StringBuilder text,CosmicQuery<T> source,
-        IReadOnlyList<CosmicEntityStage> stages,NeoCqlTranslator translator,string parameterPrefix="entity") where T:IHolon
+        IReadOnlyList<CosmicEntityStage> stages,NeoCqlTranslator translator,string parameterPrefix="entity",string workBound="$entityWorkBound") where T:IHolon
     {
         var parameters=translator.Parameters;
         var index = 0;
@@ -108,7 +109,7 @@ public partial class Neo4jOASIS : ICosmicQueryEntityCountStorageProvider
         {
             // Work and failure state survive every later window, even Take(0).
             text.Append("WITH entitySource,selected,entityCycle,entityLimit,entityWork+size(selected) AS entityWork ")
-                .Append("WITH entitySource,selected,entityCycle,entityLimit OR entityWork>$entityWorkBound AS entityLimit,entityWork ");
+                .Append("WITH entitySource,selected,entityCycle,entityLimit OR entityWork>").Append(workBound).Append(" AS entityLimit,entityWork ");
             if (stage is CosmicEntityFilterStage<T> filter)
             {
                 var native = new NeoCqlTranslator("h", "p", parameters, source.ReadAccess);
@@ -151,12 +152,12 @@ public partial class Neo4jOASIS : ICosmicQueryEntityCountStorageProvider
 
     private static void AppendCqlEntityPublication(StringBuilder text,bool countOnly,
         IReadOnlyList<CosmicProjectionColumn> projection,int maximumProjectionBytes,
-        NeoCqlTranslator translator,bool orderedOccurrences=false)
+        NeoCqlTranslator translator,bool orderedOccurrences=false,string outputTake="$entityOutputTake")
     {
         var parameters=translator.Parameters;
         var entries="CASE WHEN entityCycle OR entityLimit THEN [{h:null,p:null,input:false}] "
             + "ELSE [item IN entitySource | {h:item.h,p:item.p,input:true}] + "
-            + (countOnly ? "[{h:null,p:null,input:false,count:size(selected)}]" : "[item IN selected[..$entityOutputTake] | {h:item.h,p:item.p,input:false}]") + " END";
+            + (countOnly ? "[{h:null,p:null,input:false,count:size(selected)}]" : "[item IN selected[.."+outputTake+"] | {h:item.h,p:item.p,input:false}]") + " END";
         if(projection==null)
         {
         if(orderedOccurrences)
@@ -172,7 +173,7 @@ public partial class Neo4jOASIS : ICosmicQueryEntityCountStorageProvider
         else
         {
             var columns=translator.TranslateProjection(projection);
-            parameters.Add("entityProjectionBytes",maximumProjectionBytes);
+            var projectionBytes=translator.Bind(maximumProjectionBytes);
             text.Append("WITH entityCycle,entityLimit,"+entries+" AS entries ")
                 .Append("UNWIND CASE WHEN size(entries)=0 THEN [] ELSE range(0,size(entries)-1) END AS entityPosition ")
                 .Append("WITH entries[entityPosition] AS entry,entityPosition,entityCycle,entityLimit ")
@@ -185,8 +186,8 @@ public partial class Neo4jOASIS : ICosmicQueryEntityCountStorageProvider
             text.Append("RETURN entry.h.Id AS id,entry.h.ProviderRevisionId AS revision,NOT(entityCycle OR entityLimit) AS valid,"
                 +"CASE WHEN entry.input AND size(entry.h.SnapshotJson)<=2097152 THEN entry.h.SnapshotJson ELSE null END AS snapshot,"
                 +"entityCycle AS traversalCycle,entityLimit AS traversalLimit,entry.input AS entityInput,entityPosition,"
-                +"NOT entry.input AND ("+lower+")>$entityProjectionBytes AS payloadLimit,"
-                +"CASE WHEN entry.input OR ("+lower+")>$entityProjectionBytes THEN [] ELSE "+cells+" END AS cells ");
+                +"NOT entry.input AND ("+lower+")>"+projectionBytes+" AS payloadLimit,"
+                +"CASE WHEN entry.input OR ("+lower+")>"+projectionBytes+" THEN [] ELSE "+cells+" END AS cells ");
         }
     }
 }

@@ -37,7 +37,7 @@ public partial class HolonRepository
         if (bounded.IsError) throw new ArgumentException(bounded.Message);
         if (query.ResultStages.Count == 0 && terminal == null && !cardinality && numeric == null && !selectedSetInput) throw new ArgumentException("A selected-result pipeline is required.");
         if (query.Source.GraphOptions != null) throw new NotSupportedException("Composed graph sources require separate native enrollment.");
-        var entitySql=entity==null ? null : CompileEntityCompositionSql(entity);
+        var entitySql=entity==null ? null : CompileEntityCompositionSql(entity,sharedParameters);
         var parameters = entitySql?.Parameters ?? sharedParameters ?? new List<SqliteParameter>();
         var translator = entitySql?.SourceTranslator ?? new CqlSqlTranslator("Holon", parameters, query.Source.ReadAccess);
         var predicate = entitySql?.SourcePredicate ?? translator.TranslateSource(query.Source.Predicates);

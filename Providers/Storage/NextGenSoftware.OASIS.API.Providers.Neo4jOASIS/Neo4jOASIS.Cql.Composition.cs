@@ -132,30 +132,16 @@ public partial class Neo4jOASIS : ICosmicQueryProjectedAllStorageProvider, ICosm
                 return new OASISResult<NeoSelectedResult>(new NeoSelectedResult{SetProof=setPacket}){IsLoaded=true};
             }
             var decoder=new NeoCqlCompositionDecoder<T,TResult>(query,limits,budget.Check,terminal:all != null, cardinality:plan?.RequestsCardinality == true, numeric:plan?.NumericReduction);
-            var entityProof=entity ? new NeoCqlEntityInputProof((plan?.EntitySource??all?.EntitySource).Options) : null;
-            long observedEntity=0;long? expectedEntity=null;var selectedStarted=false;
+            var entityProof=entity ? new NeoCqlEntitySelectedProof((plan?.EntitySource??all?.EntitySource).Options) : null;
             while(true)
             {
                 budget.Check();
                 if(!await cursor.FetchAsync().ConfigureAwait(false))break;
                 budget.Check();
                 var record=cursor.Current;
-                if(entityProof!=null && record["phase"].As<long>()==-3)
-                {
-                    if(selectedStarted || record.Values.Count!=6 || record["position"].As<long>()!=observedEntity
-                        || record["sourcePosition"].As<long>()!=-1 || record["stageWork"].As<long>()!=0)
-                        throw new System.IO.InvalidDataException("Entity source proof phase/order is invalid.");
-                    var count=record["nativeCount"].As<long>();
-                    if(count<=observedEntity || expectedEntity.HasValue && expectedEntity.Value!=count)
-                        throw new System.IO.InvalidDataException("Entity source proof count changed.");
-                    expectedEntity=count;
-                    entityProof.Observe(record["proof"].As<IReadOnlyDictionary<string,object>>());observedEntity++;
-                    continue;
-                }
-                selectedStarted=true;decoder.Add(record.Values);
+                if(entityProof?.Consume(record.Values)!=true)decoder.Add(record.Values);
             }
-            if(expectedEntity.HasValue && observedEntity!=expectedEntity.Value)
-                throw new System.IO.InvalidDataException("Entity source proof is incomplete.");
+            entityProof?.Complete();
             budget.Check();var packet=decoder.Complete();
             await transaction.CommitAsync().ConfigureAwait(false);budget.Check();
             return new OASISResult<NeoSelectedResult>(new NeoSelectedResult { Proof=packet,Counterexamples=decoder.Counterexamples }){IsLoaded=true};

@@ -65,7 +65,10 @@ public partial class Neo4jOASIS
                     +",cycle:false,traversalLimit:false,payloadLimit:joinBytes>"+byteLimit+",bytes:joinBytes,keys:["+string.Join(",",keys)
                     +"],values:CASE WHEN joinBytes>"+byteLimit+" THEN [] ELSE ["+string.Join(",",values)+"] END,"
                     +"ordering:CASE WHEN joinBytes>"+byteLimit+" THEN [] ELSE ["+string.Join(",",order)+"] END}";
-                return "CALL { "+relation+" } WITH collect({valid:entityValid,cycle:entityCycle,limited:entityLimit,source:entitySource,selected:selected}) AS scopes "
+                var entityPayload=translator.Bind(entity.Options.MaximumInputPayloadBytes);
+                // Bound the complete guard envelope before collect/send. Character count is
+                // a UTF-8 byte lower bound; the existing decoder enforces exact UTF-8 bytes.
+                return "CALL { "+relation+" } WITH collect({valid:entityValid,cycle:entityCycle,limited:(entityLimit OR reduce(total=0,item IN entitySource | total+size(coalesce(item.h.SnapshotJson,'')))>"+entityPayload+"),source:entitySource,selected:selected}) AS scopes "
                     +"WITH scopes,head([scope IN scopes WHERE scope.valid | scope]) AS outcome "
                     +"CALL { WITH scopes UNWIND scopes AS scope UNWIND CASE WHEN NOT scope.valid OR scope.cycle OR scope.limited "
                     +"THEN [{h:null,p:null,valid:scope.valid,cycle:scope.cycle,limited:scope.limited}] "

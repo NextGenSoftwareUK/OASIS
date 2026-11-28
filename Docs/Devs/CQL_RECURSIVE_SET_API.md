@@ -39,3 +39,8 @@ The server SQL compiler accepts `WITH q AS ((SELECT Name AS Label FROM MongoDBOA
 
 
 2026-11-28 qualification update: selected-set extrema and value/distinct counts passed46137078181 on d0d03d2f/Core1b061dca (compiler17/native15/actual WEB4/exact cleanup). This supersedes pending notes above. Full set parent scope and dedicated typed gRPC/GraphQL operations remain open; no new hosted acceptance claimed.
+
+
+### Entity-stage selected operands (native SDK qualification pending)
+
+CosmicProjectedSetInput.FromEntityProjection captures a native entity-stage query followed by selection, preserving the exact source/actor/model and all entity windows before selected equality. Registered LINQ entity-mode selections can feed further selected-value sets with the same native manager/adapter and detached result shape. Each provider must independently advertise entity-input capabilities and implement the combined entity/projection contract. Shared root guard-payload allowances are divided across leaves; declared source-row maxima reserve worst-case entity-stage work without changing reported selected-work counters. Explicitly lower source limits or increase admitted budgets when this conservative reservation is exhausted. Existing ordinary selected bounds and complete proof remain enforced. This does not add identity-set late-projection operands or their SQL/JSON transport; those are separate open families. No full Q50/Q51/Q53/Q54 credit.

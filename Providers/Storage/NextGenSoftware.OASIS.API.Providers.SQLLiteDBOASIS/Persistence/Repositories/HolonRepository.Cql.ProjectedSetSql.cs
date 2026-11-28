@@ -21,7 +21,7 @@ public partial class HolonRepository
         List<SqliteParameter> parameters) where T:IHolon
     {
         var query=plan.Query;
-        var left=plan.LeftSet==null?CompileSelectedSql(query.Left,plan.Left.Options,ProjectedSetInputLimits(plan.Left.Options),selectedSetInput:true,sharedParameters:parameters):null;
+        var left=plan.LeftSet==null?CompileSelectedSql(query.Left,plan.Left.Options,ProjectedSetInputLimits(plan.Left.Options),entity:plan.Left.EntitySource,selectedSetInput:true,sharedParameters:parameters):null;
         var right=plan.RightSet==null?CompileSelectedSql(query.Right,plan.Right.Options,ProjectedSetInputLimits(plan.Right.Options),selectedSetInput:true,sharedParameters:parameters):null;
         var leftSet=plan.LeftSet==null?null:CompileProjectedSetSql(plan.LeftSet,parameters);
         var rightSet=plan.RightSet==null?null:CompileProjectedSetSql(plan.RightSet,parameters);

@@ -95,10 +95,13 @@ public partial class Neo4jOASIS
                     return(new(null,childPacket),childPacket.Rows);
                 }
                 var decoder=new NeoCqlCompositionDecoder<T,TResult>(leaf.Query,ProjectedSetInputLimits(leaf.Options),check,selectedSetInput:true);
+                var entityProof=leaf.EntitySource==null?null:new NeoCqlEntitySelectedProof(leaf.EntitySource.Options);
                 foreach(var row in envelope["proof"].As<IReadOnlyList<object>>())
                 {
-                    check();decoder.Add(row.As<IReadOnlyDictionary<string,object>>());
+                    check();var captured=row.As<IReadOnlyDictionary<string,object>>();
+                    if(entityProof?.Consume(captured)!=true)decoder.Add(captured);
                 }
+                entityProof?.Complete();
                 var sourcePacket=decoder.Complete();
                 return(new(sourcePacket,null),sourcePacket.Rows.Select(row=>row.Row).ToArray());
             }
