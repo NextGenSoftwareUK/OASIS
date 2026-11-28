@@ -17,8 +17,8 @@ public partial class HolonRepository
         =>ExecuteSelectedSnapshotOwnerAsync(async(session,Options,token)=>
         {
             var command=new MongoCqlTranslator().CompileProjectedSet(plan,
-                MongoCqlTranslator.ProjectedSetInputLimits(plan.Left?.Options??plan.Options.Operand(plan.Options.Bounds.MaximumLeftInputRows)),
-                MongoCqlTranslator.ProjectedSetInputLimits(plan.Right?.Options??plan.Options.Operand(plan.Options.Bounds.MaximumRightInputRows)),
+                MongoCqlTranslator.ProjectedSetInputLimits(plan.LeftInputOptions),
+                MongoCqlTranslator.ProjectedSetInputLimits(plan.RightInputOptions),
                 _dbContext.Holon.CollectionNamespace.CollectionName);
             async Task<CosmicProjectedSetPacket> ReadNode(CosmicProjectedSetPlan<T,TResult> node,
                 MongoCqlProjectedSetCommand native,CosmicProjectedSetExecutionLimits nodeLimits)

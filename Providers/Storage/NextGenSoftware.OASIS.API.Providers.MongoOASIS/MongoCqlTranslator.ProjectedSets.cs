@@ -25,8 +25,8 @@ internal sealed partial class MongoCqlTranslator
         var left=plan.LeftSet==null?CompileSelected(plan.Query.Left,leftLimits):null;
         var right=plan.RightSet==null?CompileSelected(plan.Query.Right,rightLimits):null;
         MongoCqlProjectedSetCommand Child(CosmicProjectedSetPlan<T,TResult> child)
-            =>child==null?null:CompileProjectedSet(child,ProjectedSetInputLimits(child.Left?.Options??child.Options.Operand(child.Options.Bounds.MaximumLeftInputRows)),
-                ProjectedSetInputLimits(child.Right?.Options??child.Options.Operand(child.Options.Bounds.MaximumRightInputRows)),collection);
+            =>child==null?null:CompileProjectedSet(child,ProjectedSetInputLimits(child.LeftInputOptions),
+                ProjectedSetInputLimits(child.RightInputOptions),collection);
         var leftSet=Child(plan.LeftSet);var rightSet=Child(plan.RightSet);
         List<BsonDocument> Input(BsonDocument[] pipeline,CosmicProjectionQuery<T,TResult> query,int side)
         {
@@ -68,7 +68,7 @@ internal sealed partial class MongoCqlTranslator
         ValidatePipeline(members);
         var stages=CompileSelectedStages(plan.Query.Output,current,occurrences:true);
         var rawRows=current.Select(stage=>(BsonDocument)stage.DeepClone()).ToArray();
-        ValidatePipeline(rawRows);
+        ValidatePipeline(current);
         return new(){Left=left,Right=right,LeftSet=leftSet,RightSet=rightSet,Rows=rawRows,Members=members.ToArray(),Stages=stages};
     }
 }
