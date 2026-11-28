@@ -1,0 +1,40 @@
+{
+  "date": "2026-11-28",
+  "suite": "actual OPORTAL clan owner member removal",
+  "run": 46153889539,
+  "source": "e60162c2aa1f94298a7cac0d1f8fcedd663df15f",
+  "image": "sha256:0d54d74cb87f16ba9f111f66f49c6757fe7d4d18a25ec253424c34d5b2b0eae6",
+  "portal": "0a3c854185f2b9ae669dcc07733f661a4ae38e22",
+  "done": 1,
+  "total": 1,
+  "checks": [
+    "two real owned avatars",
+    "shipping clan/member fixture",
+    "one owner UI member removal",
+    "acknowledged result",
+    "refreshed MEMBERS1",
+    "independent stored membership preserves owner",
+    "normal close"
+  ],
+  "artifact": {
+    "id": 15266822447,
+    "bytes": 4367,
+    "sha256": "f5110d961128641b19b9e18255d1ceecb18d89cb4035361152b0f4a7b55f5f41"
+  },
+  "cleanup": {
+    "ownedContainerAbsent": true,
+    "ownedContainersAbsent": true,
+    "ownedNetworkAbsent": true,
+    "ephemeralDatabaseVolumesRemoved": true,
+    "web5ProcessStopped": true,
+    "web5DnaAbsent": true
+  },
+  "sharedAtlasOperations": 0,
+  "excluded": [
+    "self-leave",
+    "treasury transfer",
+    "old lifecycle rerun",
+    "hosted",
+    "current merged graph acceptance"
+  ]
+}
