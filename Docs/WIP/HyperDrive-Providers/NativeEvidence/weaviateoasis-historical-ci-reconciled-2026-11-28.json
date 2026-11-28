@@ -1,0 +1,20 @@
+{
+  "provider": "WeaviateOASIS",
+  "suite": "core-storage-v2",
+  "mode": "native",
+  "run": 43284284598,
+  "url": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43284284598",
+  "source": "8ac3db8f2a600545d50fcf2566b2917b00f11c3d",
+  "conclusion": "success",
+  "sync": 26,
+  "async": 26,
+  "passed": 52,
+  "total": 52,
+  "skipped": 0,
+  "reconciledAgainst": "ce6f80915fde614261fd00f01d51ad966d11ed50",
+  "providerTreeAtRun": "30d61e14debe843a2d4dd5bd885cc7851e544b70",
+  "providerTreeNow": "0aefedf618ab34d362cace0007bd3485403ca02e",
+  "providerTreeUnchanged": false,
+  "cleanup": "Both mode logs report FixtureCleanupComplete true and owned node/volumes/fixture removal.",
+  "scope": "Historical accepted native baseline only. Current query-client binding field and query source changed; current row remains pending and is not added to reconciled tally."
+}

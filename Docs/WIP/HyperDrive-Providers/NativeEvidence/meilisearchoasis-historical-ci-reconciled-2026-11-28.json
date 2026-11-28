@@ -1,0 +1,20 @@
+{
+  "provider": "MeilisearchOASIS",
+  "suite": "core-storage-v2",
+  "mode": "native",
+  "run": 43271453934,
+  "url": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43271453934",
+  "source": "8c90f41e72119bb48947f23f2c9b7d11845cd196",
+  "conclusion": "success",
+  "sync": 26,
+  "async": 26,
+  "passed": 52,
+  "total": 52,
+  "skipped": 0,
+  "reconciledAgainst": "ce6f80915fde614261fd00f01d51ad966d11ed50",
+  "providerTreeAtRun": "47dc8725ee21b1731801384b9a3722055e0db357",
+  "providerTreeNow": "47dc8725ee21b1731801384b9a3722055e0db357",
+  "providerTreeUnchanged": true,
+  "cleanup": "Both mode logs report FixtureCleanupComplete true and owned node/volumes/fixture removal.",
+  "scope": "Historical accepted native baseline; provider tree byte-identical. No new test or latest shared-graph/hosted/full-interface certification."
+}

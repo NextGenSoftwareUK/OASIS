@@ -5,7 +5,7 @@
     "projects": 238,
     "nonStorage": 75,
     "storage": 163,
-    "nativeRows": 118
+    "nativeRows": 121
   },
   "providers": [
     {
@@ -1158,7 +1158,7 @@
       "provider": "MeilisearchOASIS",
       "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS/NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS.csproj",
       "family": "Search/vector storage",
-      "nativeBaseline": false
+      "nativeBaseline": true
     },
     {
       "provider": "MemcachedOASIS",
@@ -1224,7 +1224,7 @@
       "provider": "OpenSearchOASIS",
       "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS/NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS.csproj",
       "family": "Search/vector storage",
-      "nativeBaseline": false
+      "nativeBaseline": true
     },
     {
       "provider": "OracleDBOASIS",
@@ -1314,7 +1314,7 @@
       "provider": "SolrOASIS",
       "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SolrOASIS/NextGenSoftware.OASIS.API.Providers.SolrOASIS.csproj",
       "family": "Search/vector storage",
-      "nativeBaseline": false
+      "nativeBaseline": true
     },
     {
       "provider": "SQLLiteDBOASIS",

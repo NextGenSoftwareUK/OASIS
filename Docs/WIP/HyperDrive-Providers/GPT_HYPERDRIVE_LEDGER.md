@@ -81,3 +81,7 @@ Read-only selected build logs prove WEB6/7/9failed at my unconditional Miden SDK
 Corrected the stale HoloOASIS.Desktop matrix row to obsolete, consistent with its existing README and owner decision. Retained canonical HoloOASIS priority and original historical CI45723092086; no new Desktop tests, source deletion, runtime change, build or download. Inventory238 and native-baseline118/163 remain unchanged; denominator includes retained legacy variants.
 
 - Refreshed remaining current CQL inventory references to238and added the4missing non-storage rows with explicit no-CQL/no-hosted acceptance. Exact current table238rows; old dated CQL feature metrics unchanged. Demo26Nov checkpoint retained with a28Nov scoped118/163and OPORTAL coverage note. No tests/builds/downloads needed for documentation.
+
+## 2026-11-28 — recovered search native receipts without reruns
+
+Recovered4/4green native receipts with explicit26checks per mode, zero skips, owned cleanup. Meilisearch43271453934, OpenSearch45721795632 and Solr43217963814 have byte-identical provider trees and are now recorded as historical baselines; matrix121/163. Weaviate43284284598 is preserved as historical evidence only because its query-client source changed; no current source pass inferred. Original CI-wiring ownership preserved. No new provider tests, builds, downloads, environments or Atlas operations. Logs inspected in memory; compact hash-bound receipts only.
