@@ -42,7 +42,7 @@ jobs:
           python3 -B - <<'PY'
           import json, os, re
           from pathlib import Path
-          p=json.loads(Path('control/Docs/WIP/HyperDrive-Providers/OPORTAL_WEB5_STARTUP_2026-11-23.json').read_text())
+          p=json.loads(Path('control/Docs/WIP/HyperDrive-Providers/OPORTAL_WEB5_DEPTH_2026-11-28.json').read_text())
           assert re.fullmatch('[0-9a-f]{40}', os.environ['PORTAL'])
           assert re.fullmatch('[0-9a-f]{40}', p['source'])
           assert re.fullmatch('sha256:[0-9a-f]{64}', p['image'])
