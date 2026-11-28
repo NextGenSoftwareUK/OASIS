@@ -158,10 +158,10 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 
 - DONE 2026-11-26 (Web4Site 4b6ed77; docs Development e35bfad9, master e55de16c) by CQL sandbox session (local_b7903255): AFTER_DEMO_BACKLOG "Full native payload mapping for browser demo copies" - string native payload carried exactly with PayloadSchema 2; typed scalars and legacy-copy upgrade remain open.
 | WEB4 memory at rest: on-demand sandbox sidecars | Docker sidecar supervisor, CqlV1Providers, SandboxSettings DNA | local: web4-memory-654103 | claude/web4-memory-654103 | 2026-11-27 | DONE 2026-11-27; open: IPFS/SOLID production queries, Holochain on demand |
-| COSMIC O07 transaction-safe execution strategy | COSMIC ORM | local: gpt-cosmic | work/gpt-o07 | 2026-11-28 02:32 | IN PROGRESS |
+| COSMIC O07 transaction-safe execution strategy | COSMIC ORM | local: gpt-cosmic | work/gpt-o07 | 2026-11-28 02:32 | IN PROGRESS — source 4e74f9db50a9 / Core 6613656a264d; native CI 46102113566 pending |
 | FirebaseOASIS current-Development native core-storage recheck | HyperDrive providers | local: gpt-hyperdrive | work/gpt-firebase-native-recheck | 2026-11-28 02:35 UTC | DONE 7b4df6bfc78032041d711a6eadb55b987919cb65 |
 | TursoOASIS current-Development native core-storage recheck | HyperDrive providers | local: gpt-hyperdrive | work/gpt-turso-native-recheck | 2026-11-28 02:36 UTC | DONE 7b4df6bfc78032041d711a6eadb55b987919cb65 |
 | Integrate existing 6c95573c delegated-key fix and align EOSIO canonical save/key lookup | HyperDrive providers | local: gpt-hyperdrive | work/gpt-delegated-storage-keys | 2026-11-28 02:45 UTC | IN PROGRESS: Antelope verified/integrated 6426cde3; Eclipse pending CI46101901966 |
 | SEEDSOASIS composed storage identity and native provider-key round trips (same delegated-key batch) | HyperDrive providers | local: gpt-hyperdrive | work/gpt-delegated-storage-keys | 2026-11-28 02:58 UTC | DONE 6426cde360bd1ae9f936ad06d82f2e1d469c45a1 |
-| COSMIC M01 ordinary POCO persistence without IHolon | COSMIC ORM | local: gpt-cosmic | work/gpt-m01 | 2026-11-28 02:59 | IN PROGRESS |
+| COSMIC M01 ordinary POCO persistence without IHolon | COSMIC ORM | local: gpt-cosmic | work/gpt-m01 | 2026-11-28 02:59 | IN PROGRESS — source 8829ccd6d14d / Core 866dde797307; native CI 46102873786 pending |
 | HyperDrive v2 remaining-gate inventory and provider-switcher source audit (no global backend tests before acceptance) | HyperDrive release gates | local: gpt-hyperdrive | work/gpt-hyperdrive-release-gates | 2026-11-28 03:21 UTC | IN PROGRESS |
