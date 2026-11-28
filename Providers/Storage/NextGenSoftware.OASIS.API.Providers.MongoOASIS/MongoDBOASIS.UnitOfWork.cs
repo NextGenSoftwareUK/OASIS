@@ -26,7 +26,7 @@ public partial class MongoDBOASIS : IConditionalHolonUnitOfWorkStorageProvider
             if (request == null) throw new ArgumentNullException(nameof(request));
             if (request.Write.Authority != Core.Enums.ProviderType.MongoDBOASIS)
                 return Error("COSMIC_AUTHORITY_MISMATCH", "The unit of work belongs to another provider authority.");
-            if(held!=null&&(!ReferenceEquals(_holonRepository,held.Repository)||request.Write.ActorId!=held.Access.ActorId))
+            if(held!=null&&(!IsProviderActivated||!ReferenceEquals(_holonRepository,held.Repository)||request.Write.ActorId!=held.Access.ActorId))
                 return Error("COSMIC_TRANSACTION_SCOPE_INVALID","The staged write changed the held actor or storage instance.");
             var (save, delete) = request.CreatePartRequests();
             if (save == null && delete == null)

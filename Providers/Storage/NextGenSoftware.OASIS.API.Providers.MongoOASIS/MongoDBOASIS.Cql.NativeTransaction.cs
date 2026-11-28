@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Driver;
-using NextGenSoftware.OASIS.API.Core.Enums;
+using NativeProviderType=NextGenSoftware.OASIS.API.Core.Enums.ProviderType;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Queries;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories;
@@ -18,7 +18,7 @@ public partial class MongoDBOASIS:ICosmicNativeTransactionStorageProvider
         try
         {
             if(access==null||access.ActorId==Guid.Empty||options==null
-                ||access.Authority.HasValue&&access.Authority.Value!=ProviderType.MongoDBOASIS)
+                ||access.Authority.HasValue&&access.Authority.Value!=NativeProviderType.MongoDBOASIS)
                 return new(){IsError=true,ErrorCount=1,ErrorCode="COSMIC_TRANSACTION_SCOPE_INVALID",Message="Bind one native MongoDB actor and transaction bounds."};
             if(!IsProviderActivated||_holonRepository is not HolonRepository repository)
                 return new(){IsError=true,ErrorCount=1,ErrorCode="CQL_PROVIDER_NOT_READY",Message="Activate MongoDB before opening a held transaction."};
@@ -40,9 +40,9 @@ public partial class MongoDBOASIS:ICosmicNativeTransactionStorageProvider
         internal HolonRepository Repository {get;}
         internal IClientSessionHandle Session {get;}
         public CosmicQueryReadAccess Access {get;}
-        public ProviderType Authority=>ProviderType.MongoDBOASIS;
+        public NativeProviderType Authority=>NativeProviderType.MongoDBOASIS;
         public ICosmicQueryStorageProvider Reads=>this;
-        ProviderType ICosmicQueryStorageProvider.QueryProviderType=>Authority;
+        NativeProviderType ICosmicQueryStorageProvider.QueryProviderType=>Authority;
         CosmicQueryCapabilities ICosmicQueryStorageProvider.QueryCapabilities=>CqlCapabilities;
         internal MongoHeldTransactionCommands(MongoDBOASIS provider,HolonRepository repository,IClientSessionHandle session,
             CosmicQueryReadAccess access,CosmicNativeTransactionOptions options)

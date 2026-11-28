@@ -8,12 +8,12 @@ using NextGenSoftware.OASIS.API.DNA;
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 public sealed partial class CqlV1Web4NativeTests
 {
-    [DataTestMethod] [DataRow("MongoDBOASIS")]
+    [DataTestMethod] [DataRow("MongoDBOASIS")] [DataRow("SQLLiteDBOASIS")]
     public Task NativeHeldOwnerPreservesExistingMixedUnitOfWork(string providerName)
         =>RunGroupedDistinctNativeFixture(providerName,false,nativeJourney:VerifyMixedUnitOfWorkJourney,
             nativeJourneySuffix:"-held-owner-mixed-uow-native.json");
 
-    [DataTestMethod] [DataRow("MongoDBOASIS")]
+    [DataTestMethod] [DataRow("MongoDBOASIS")] [DataRow("SQLLiteDBOASIS")]
     public Task NativeHeldTransactionsKeepProvisionalWritesAndReadsInsideOneOwner(string providerName)
         =>RunGroupedDistinctNativeFixture(providerName,false,nativeJourney:VerifyHeldTransactionJourney,
             nativeJourneySuffix:"-held-transaction-native.json");

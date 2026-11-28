@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities;
 using NextGenSoftware.OASIS.Common;
@@ -17,8 +18,13 @@ public partial class HolonRepository
     /// atomic write (revisions, receipts, delta, outbox) under its derived operation ID; the parent
     /// receipt binds both under the caller's operation ID. Nothing commits unless both halves do.
     /// </summary>
-    public OASISResult<IEnumerable<IHolon>> ExecuteConditionalHolonUnitOfWork(ConditionalHolonUnitOfWorkRequest request, CancellationToken token)
+    public OASISResult<IEnumerable<IHolon>> ExecuteConditionalHolonUnitOfWork(ConditionalHolonUnitOfWorkRequest request,CancellationToken token)
+        =>ExecuteUnitOfWorkWithinOwner(request,token);
+
+    internal OASISResult<IEnumerable<IHolon>> ExecuteUnitOfWorkWithinOwner(ConditionalHolonUnitOfWorkRequest request,
+        CancellationToken token,SqliteTransaction ambient=null)
     {
+        var owned=ambient==null;
         if (request == null) throw new ArgumentNullException(nameof(request));
         if (request.Write.Authority != Core.Enums.ProviderType.SQLLiteDBOASIS)
             return ConditionalError("COSMIC_AUTHORITY_MISMATCH", "The unit of work belongs to another provider authority.");
@@ -28,14 +34,17 @@ public partial class HolonRepository
         if (_dbContext.ChangeTracker.HasChanges())
             return ConditionalError("COSMIC_CONTEXT_HAS_PENDING_CHANGES", "A conditional transaction cannot commit unrelated pending context changes.");
         SqliteTransaction native = null; Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction enlisted = null;
-        var commitEntered = false; OASISResult<IEnumerable<IHolon>> result;
-        _dbContext.Database.OpenConnection();
+        var commitEntered=false;var rollbackAttempted=false;OASISResult<IEnumerable<IHolon>> result;
+        if(owned)_dbContext.Database.OpenConnection();
         try
         {
             token.ThrowIfCancellationRequested();
             var connection = (SqliteConnection)_dbContext.Database.GetDbConnection();
-            native = connection.BeginTransaction(deferred: false);
-            enlisted = _dbContext.Database.UseTransaction(native);
+            native=owned?connection.BeginTransaction(deferred:false):ambient;
+            if(owned)enlisted=_dbContext.Database.UseTransaction(native);
+            else if(!ReferenceEquals(native.Connection,connection)
+                ||!ReferenceEquals(_dbContext.Database.CurrentTransaction?.GetDbTransaction(),native))
+                throw new InvalidOperationException("The held SQLite transaction must own this exact enlisted connection.");
             var parentId = request.Write.OperationId.ToString("D");
             string storedParent = null;
             using (var read = connection.CreateCommand())
@@ -47,6 +56,8 @@ public partial class HolonRepository
             }
             if (storedParent != null && storedParent != request.ParentFingerprint)
                 return Rollback(ConditionalError("COSMIC_OPERATION_ID_REUSED", "This operation ID is already bound to different write content or actor."));
+            if(storedParent!=null&&!owned)
+                return Rollback(ConditionalError("COSMIC_TRANSACTION_OPERATION_ALREADY_COMMITTED","A held transaction requires a fresh operation identity."));
             if (storedParent != null && !PartReceiptsExist(connection, native, request))
                 return Rollback(ConditionalError("COSMIC_RECEIPT_INVALID", "The unit-of-work receipt is missing a committed part."));
             var saved = save == null ? Empty() : ExecuteAtomicHolonWrite(save, null, token, ambient: native);
@@ -71,13 +82,16 @@ public partial class HolonRepository
                     receipt.ExecuteNonQuery();
                 }
             token.ThrowIfCancellationRequested();
-            commitEntered = true;
-            if (storedParent == null) enlisted.Commit(); else enlisted.Rollback();
+            if(owned)
+            {
+                commitEntered=true;
+                if(storedParent==null)enlisted.Commit();else enlisted.Rollback();
+            }
             result = Combine(request, saved, deleted);
         }
         catch (Exception cause)
         {
-            if (!commitEntered) { try { native?.Rollback(); } catch (Exception rollback) { cause = new AggregateException(cause, rollback); } }
+            if (owned&&!commitEntered&&!rollbackAttempted) { try { rollbackAttempted=true;native?.Rollback(); } catch (Exception rollback) { cause = new AggregateException(cause, rollback); } }
             DetachAll();
             result = ConditionalError(commitEntered ? "COSMIC_WRITE_RECONCILIATION_REQUIRED"
                 : cause is OperationCanceledException ? "COSMIC_CONDITIONAL_WRITE_CANCELLED" : "COSMIC_CONDITIONAL_WRITE_FAILED",
@@ -85,8 +99,9 @@ public partial class HolonRepository
         }
         finally
         {
-            enlisted?.Dispose(); native?.Dispose();
-            _dbContext.Database.CloseConnection();
+            if(owned)
+            {enlisted?.Dispose();native?.Dispose();_dbContext.Database.CloseConnection();}
+            else DetachAll();
         }
         result.MetaData ??= new Dictionary<string, string>();
         result.MetaData["COSMIC.OperationId"] = request.Write.OperationId.ToString("D");
@@ -96,7 +111,7 @@ public partial class HolonRepository
 
         OASISResult<IEnumerable<IHolon>> Rollback(OASISResult<IEnumerable<IHolon>> failure)
         {
-            native.Rollback(); DetachAll();
+            if(owned){rollbackAttempted=true;native.Rollback();}DetachAll();
             return failure ?? ConditionalError("COSMIC_CONDITIONAL_WRITE_FAILED", "A unit-of-work part returned no outcome.");
         }
     }
