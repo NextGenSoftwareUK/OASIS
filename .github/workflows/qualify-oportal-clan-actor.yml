@@ -1,0 +1,106 @@
+name: Qualify OPORTAL clan actor source bindings
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: Exact paired source revision
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ inputs.source }}
+          path: OASIS
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - name: Validate exact graph and read non-secret sibling pins
+        id: pins
+        working-directory: OASIS
+        shell: bash
+        env:
+          EXPECTED_SOURCE: ${{ inputs.source }}
+        run: |
+          set -euo pipefail
+          [[ "$EXPECTED_SOURCE" =~ ^[0-9a-f]{40}$ ]]
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE"
+          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          python3 -B Scripts/sync_railway_dependency_manifest.py --check-ref HEAD
+          grep -E '^(LIBRARIES_COMMIT|HOLOCHAIN_COMMIT)=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.pins.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.pins.outputs.HOLOCHAIN_COMMIT }}
+          path: holochain-client-csharp
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Own disposable compiler caches
+        shell: bash
+        run: |
+          set -euo pipefail
+          owned="$RUNNER_TEMP/oportal-clan-actor-$GITHUB_RUN_ID"
+          test "$(realpath -m "$owned")" = "$owned"
+          printf '%s\n' "DOTNET_CLI_HOME=$owned/dotnet-home" "NUGET_PACKAGES=$owned/nuget" "NUGET_HTTP_CACHE_PATH=$owned/nuget-http" "DOTNET_CLI_TELEMETRY_OPTOUT=1" "DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1" "DOTNET_GENERATE_ASPNET_CERTIFICATE=false" >> "$GITHUB_ENV"
+      - name: Compile actual shipping MCP tools against paired Core
+        id: compile
+        working-directory: OASIS
+        shell: pwsh
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner oportal-clan-actor-mcp-ci -Operation {
+            dotnet build 'WEB6/NextGenSoftware.OASIS.MCP.Tools/NextGenSoftware.OASIS.MCP.Tools.csproj' -c Release -m:2 -nr:false -p:UseSharedCompilation=false
+            if ($LASTEXITCODE) { throw 'Actual MCP clan actor source compilation failed.' }
+          }
+      - name: Clean owned compiler outputs and retain compact receipt
+        if: always()
+        shell: bash
+        env:
+          EXPECTED_SOURCE: ${{ inputs.source }}
+          COMPILE_OUTCOME: ${{ steps.compile.outcome }}
+        run: |
+          set -euo pipefail
+          workspace="$(realpath "$GITHUB_WORKSPACE")"
+          for name in OASIS NextGenSoftware-Libraries holochain-client-csharp; do
+            repo="$workspace/$name"
+            if [ -d "$repo/.git" ] || [ -f "$repo/.git" ]; then
+              test "$(realpath "$repo")" = "$repo"
+              git -C "$repo" submodule foreach --recursive 'git clean -qfdX'
+              git -C "$repo" clean -qfdX
+            fi
+          done
+          owned="$RUNNER_TEMP/oportal-clan-actor-$GITHUB_RUN_ID"
+          test "$(realpath -m "$owned")" = "$owned"
+          rm -rf -- "$owned"
+          test ! -e "$owned"
+          python3 - <<'PY'
+          import json,os,pathlib
+          receipt={'source':os.environ['EXPECTED_SOURCE'],'mcpCompilerPassed':os.environ['COMPILE_OUTCOME']=='success','ownedIgnoredOutputsCleaned':True,'ownedCacheAbsent':True,'backendCalls':0,'nativeTransportAcceptance':False,'hostedAcceptance':False}
+          pathlib.Path(os.environ['GITHUB_WORKSPACE'],'oportal-clan-actor-source-receipt.json').write_text(json.dumps(receipt,indent=2))
+          PY
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: oportal-clan-actor-source
+          path: oportal-clan-actor-source-receipt.json
+          retention-days: 14
+      - name: Remove uploaded owned receipt
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          receipt="$GITHUB_WORKSPACE/oportal-clan-actor-source-receipt.json"
+          test "$(realpath -m "$receipt")" = "$(realpath "$GITHUB_WORKSPACE")/oportal-clan-actor-source-receipt.json"
+          rm -f -- "$receipt"
