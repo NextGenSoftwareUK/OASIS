@@ -203,3 +203,5 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | OPORTAL standalone account recovery: correct portal-home redirects and verify one real forgot/reset/password-login journey on existing email-disabled isolated Startup | OPORTAL | local: gpt-hyperdrive | work/gpt-oportal-account-recovery | 2026-11-28T07:01:08.904Z | IN PROGRESS; no shared Atlas, external mail, key copies or replay of accepted popup flows |
 
 | AvatarManager recovery root fixes exposed by real browser46119731964: anonymous cache dereference, write-error acknowledgement, one-day token lifetime and default reset page path | OPORTAL/Core recovery | local: gpt-hyperdrive | work/gpt-oportal-account-recovery | 2026-11-28T07:09:40.664Z | IN PROGRESS; preserve Core0fd03de/COSMIC, real shipping image required before acceptance |
+
+| GarnetOASIS native core-storage52 acceptance using existing Redis-family shipping SDK and isolated official server; skip accepted KeyDB/Dragonfly cases | HyperDrive providers | local: gpt-hyperdrive | work/gpt-garnet-native-storage | 2026-11-28T07:24:37.365Z | IN PROGRESS; account recovery image46120364405continues independently |
