@@ -15,3 +15,6 @@ SQL and AI Search remain backend-owned at POST /api/data/query-cql/sql and /ask.
 Coordination: peer Development67663f81 adds qualified Typesense/provider evidence and CI changes after our8ed batch; reviewed as non-overlapping, preserved. Next normal Development push >=07:01:10 UTC and only qualified scoped changes. No staging/production deployment. Railway WEB43118e6df reports SUCCESS for peer67663f81 containing qualified8ed94e27/Core0fd03ded. Deployment metadata is distinct from app-data/browser acceptance.
 
 Cleanup: no local .NET build/runtime/environment/database/container/image/install/download/archive. CI artifacts have2-day retention; owned CI fixtures/containers require exact cleanup. Compact proofs and source-only recovery drafts retained. No shared Atlas/PIPER data/API calls, no new owner action, no disk reclamation claimed.
+
+
+Latest batch: qualified entity/LINQ/late selection00a7be99/Core39488eac pushed Development2026-11-28T07:15:22Z; next normal batch>=07:45:22, rollout acceptance pending. Current selected-tuple capture/proof and Mongo native source are feature-only: selected-tree Mongo1 + flat tuple3 + entity/count6 (10cases) required; SQLite/Neo selected recursion still explicitly unavailable. Main144/168 + extension4/13 unchanged.

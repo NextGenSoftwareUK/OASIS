@@ -13,7 +13,7 @@ public partial class MongoDBOASIS : ICosmicQueryProjectedSetStorageProvider
     public CosmicProjectedSetCapabilities ProjectedSetCapabilities=>new(
         CosmicSetQueryFeatures.Union|CosmicSetQueryFeatures.Concat|CosmicSetQueryFeatures.Intersect|CosmicSetQueryFeatures.Except,
         CqlCompositionCapabilities.OrderingDomains.ToArray(),CqlCompositionCapabilities.OrderingDomains.ToArray(),
-        CqlCompositionCapabilities);
+        CqlCompositionCapabilities,supportsNestedSets:true);
     public Task<OASISResult<CosmicProjectedSetPacket>> ExecuteCosmicProjectedSetAsync<T,TResult>(
         CosmicProjectedSetPlan<T,TResult> plan,CosmicProjectedSetExecutionLimits limits,
         CancellationToken cancellationToken=default) where T:IHolon

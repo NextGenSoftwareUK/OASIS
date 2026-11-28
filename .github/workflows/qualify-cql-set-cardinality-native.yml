@@ -1,9 +1,13 @@
-name: Qualify recursive entity sets and native publication counts
+name: Qualify recursive selected and entity sets with native publication counts
 
 on:
   push:
     branches: [work/gpt-q50]
     paths:
+      - "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoCqlTranslator.ProjectedSets.cs"
+      - "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Repositories/HolonRepository.Cql.ProjectedSets.cs"
+      - "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoDBOASIS.Cql.ProjectedSets.cs"
+      - "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.RecursiveSelectedSets.cs"
       - "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoCqlTranslator.Set.cs"
       - "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoCqlTranslator.EntityComposition.cs"
       - "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoCqlTranslator.SetCount.cs"
@@ -106,7 +110,7 @@ jobs:
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: cql-recursive-entity-set-native
+          name: cql-recursive-selected-set-native
           path: |
             OASIS/TestResults/Neo4jCurrent/recursive-entity-set-native.trx
             OASIS/TestResults/Neo4jCurrent/*-set-publication-count-native.json
