@@ -358,6 +358,18 @@
       "blockers": [
         "Current Development6426cde360bd passed native26sync+26async in CI46103379382; runtime/data/output removed. Hosted access/rules, retained-data compatibility and full interfaces remain separate."
       ]
+    },
+    {
+      "provider": "MidenOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/midenoasis-development-2026-11-28.json",
+      "sha256": "6077f489cef55c5feeb5d9aca63870cc11ac514f73e6624a18178febdc451a42",
+      "blockers": [
+        "Published shipping SDK/native initializer and lifecycle passed CI46106768815; hosted account/RPC/Kubo/signing-key custody remains MIDEN-HOSTED1."
+      ]
     }
   ],
   "providerBlockers": {
