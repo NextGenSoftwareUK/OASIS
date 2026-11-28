@@ -1,0 +1,18 @@
+{
+  "provider": "KeyDBOASIS",
+  "suite": "core-storage-v2",
+  "mode": "native",
+  "run": 45753785312,
+  "url": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/45753785312",
+  "source": "6b5464451fe3ad3f5f7c107591b87db242e61dfe",
+  "currentParent": "bfaf7957092735dfe31d83f5284b46ad738f5b5d",
+  "providerTree": "a611830b9c8308fffd4b3e282f3e251b14fc9f14",
+  "currentProviderTree": "a611830b9c8308fffd4b3e282f3e251b14fc9f14",
+  "sync": 26,
+  "async": 26,
+  "conclusion": "success",
+  "workflow": ".github/workflows/redis-compatible-native-storage.yml",
+  "evidence": "Selected job succeeded; workflow requires Succeeded, FixtureCleanupComplete,26checks each mode and independent DBSIZE0 before/after.",
+  "cleanup": "Existing EXIT trap removes owned container and fixture. No rerun or local runtime/output.",
+  "scope": "Unchanged provider tree; accepted native baseline, separate from current shared-dependency, hosted and full-interface acceptance."
+}

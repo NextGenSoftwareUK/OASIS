@@ -47,3 +47,5 @@ Shipping build46109274477 passed3manifest gates and WEB4 compilation. Native4610
 Reconciled17/17existing native receipts; provider-directory trees match Developmentbfaf7957. Corrected14stale matrix rows and bound17compact receipts in registry. No reruns/downloads/environments/database/processes; Git objects and compact reports only. Matrix inventory tally113/163native52-check rows; approximate115/234programme carry-forward is not increased by17. Hosted/full-interface/shared-dependency graph gates remain distinct.
 
 - Source reconciliation found the inherited headline stale:238tracked matching provider projects,75matrix non-storage and163storage/specialized. Exact project-path set matches matrix238/238, with no duplicate/missing rows. Inventory includes legacy variants; do not advertise238active/fully implemented backends. Earlier234/56/178are historical.
+
+- Recovered already-green KeyDB/Dragonfly CI45753785312,52/52 each and independent DBSIZE0. Credited original owner claim DONE6b5464451fe; no backend rerun. Reconciliation19/19; matrix115/163native-baseline rows.
