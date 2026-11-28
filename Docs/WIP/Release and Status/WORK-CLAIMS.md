@@ -207,3 +207,5 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | GarnetOASIS native core-storage52 acceptance using existing Redis-family shipping SDK and isolated official server; skip accepted KeyDB/Dragonfly cases | HyperDrive providers | local: gpt-hyperdrive | work/gpt-garnet-native-storage | 2026-11-28T07:24:37.365Z | DONE 3cb6bbe7ed6a; native CI46122538895passed52/52; cleanup verified; hosted durability separate |
 
 | OPORTAL populated OAPP/Launcher real child creation failure45184249838: reconcile request contract and fix only unaccepted flow | OPORTAL/WEB5 | local: gpt-hyperdrive | work/gpt-oportal-oapp-breadth | 2026-11-28T07:55:15.519Z | IN PROGRESS; inspect retained failure first, no accepted empty-flow replay |
+
+| OPORTAL ONODE controls: prevent API state leaking into registered-node command availability and disable unknown/loading controls | OPORTAL UI | local: gpt-hyperdrive | work/gpt-oportal-onode-controls | 2026-11-28T08:08:17.375Z | IN PROGRESS; registered snapshot has service states but no aggregate API isRunning; preserve real command acknowledgement |
