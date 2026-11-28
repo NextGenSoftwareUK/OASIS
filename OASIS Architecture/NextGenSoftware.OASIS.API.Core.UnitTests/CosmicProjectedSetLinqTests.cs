@@ -63,7 +63,7 @@ public sealed partial class CosmicSetQueryExecutorTests
         var result=await query.ToCosmicListAsync();
         Assert.False(result.IsError,result.Message+result.Exception);Assert.True(result.IsLoaded);
         Assert.Equal(1,native.Calls);
-        var plan=Assert.IsType<CosmicProjectedSetPlan<Holon,string>>(native.LastPlan);
+        var plan=Assert.IsType<CosmicProjectedSetPlan<Holon,CosmicProjectionRecord>>(native.LastPlan);
         Assert.Equal(kind,plan.Query.Kind);
         Assert.Equal(1,plan.Query.Left.Source.Offset);Assert.Equal(3,plan.Query.Left.Source.Limit);
         Assert.Equal(2,plan.Query.Right.Source.Offset);Assert.Equal(4,plan.Query.Right.Source.Limit);
@@ -93,10 +93,10 @@ public sealed partial class CosmicSetQueryExecutorTests
         var query=root.Where(row=>row.Name==leftName).Select(row=>row.Name)
             .Concat(root.Where(row=>row.Name==rightName).Select(row=>row.Name));
         var first=await query.ToCosmicListAsync();Assert.False(first.IsError,first.Message);
-        var before=Assert.IsType<CosmicProjectedSetPlan<Holon,string>>(native.LastPlan);
+        var before=Assert.IsType<CosmicProjectedSetPlan<Holon,CosmicProjectionRecord>>(native.LastPlan);
         leftName="changed-left";rightName="changed-right";
         var second=await query.ToCosmicListAsync();Assert.False(second.IsError,second.Message);
-        var after=Assert.IsType<CosmicProjectedSetPlan<Holon,string>>(native.LastPlan);
+        var after=Assert.IsType<CosmicProjectedSetPlan<Holon,CosmicProjectionRecord>>(native.LastPlan);
         Assert.Equal("first",Assert.IsType<CosmicQueryComparison>(before.Query.Left.Source.BusinessPredicates[0]).Literal.Value);
         Assert.Equal("changed-left",Assert.IsType<CosmicQueryComparison>(after.Query.Left.Source.BusinessPredicates[0]).Literal.Value);
         Assert.Equal("second",Assert.IsType<CosmicQueryComparison>(before.Query.Right.Source.BusinessPredicates[0]).Literal.Value);

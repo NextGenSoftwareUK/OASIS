@@ -30,3 +30,6 @@ Typed final-view source: Core1ae4f815 adds DTO/anonymous/scalar reselection with
 
 
 Typed-view scalar terminals now implemented in Core6f3f3c80, representative native tests pending. Further set algebra over typed views remains OPEN. Mongo numeric boundary repairfa3b8aa4 is the current independent gate46130453011; no new full-row or live acceptance.
+
+
+Current source candidate Core72245df5: canonical tuple layout allows further native sets over typed views; native element windows and scalar terminals retained. DTO Distinct capture and typed Min compilation gaps fixed. Required gate15 compiler/capture controls +15 native cases + actual WEB4 build; selected native journey25groups/33timings. Earlier failed runs remain recorded, no new full-row/live credit. Mixed identity-set late-projection operands and SQL numeric-set aggregate exposure remain OPEN. Peer Development5b28612a changes portal fixtures/docs only, Core1b24c629 unchanged.
