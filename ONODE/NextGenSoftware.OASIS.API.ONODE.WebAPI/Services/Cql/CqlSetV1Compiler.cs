@@ -95,7 +95,7 @@ public static partial class CqlV1Compiler
     {
         if(reduction!=(request?.Reduction!=null) || !reduction && request?.ReductionWhere!=null)
             throw new ArgumentException("Scalar set reductions require their independent compiler.");
-        if(reduction && (request.Reduction is not ("Count" or "LongCount" or "Any" or "All")
+        if(reduction && (request.Reduction is not ("Count" or "LongCount" or "Any" or "All" or "Sum" or "Average")
             || request.Reduction=="All" && request.ReductionWhere==null
             || request.IncludeMetadata || request.OutputColumns!=null || request.SelectedStages!=null&&!UsesSelectedSet(request)))
             throw new ArgumentException("A native entity set reduction and unambiguous scalar output are required.");
@@ -104,7 +104,13 @@ public static partial class CqlV1Compiler
             request.MaximumResults is <1 or >100 || request.Skip is <0 or >10000 ||
             request.Take is <0 or >100)
             throw new ArgumentException("Two bounded native entity sources without graph expansion are required.");
-        _=UsesSelectedSet(request);
+        var selected=UsesSelectedSet(request);
+        if(request.Reduction is "Sum" or "Average")
+        {
+            if(!selected||string.IsNullOrEmpty(request.ReductionColumn)||request.ReductionColumn.Length>128)
+                throw new ArgumentException("Numeric set reduction requires one visible selected alias.");
+        }
+        else if(request.ReductionColumn!=null)throw new ArgumentException("Only selected numeric reductions accept ReductionColumn.");
         return ParseNativeSetKind(request.Kind);
     }
     private static CosmicQuery<Holon> SetSource(CqlSetV1Source source,Guid actor,ProviderType? provider,CosmicQueryReadAccess access)

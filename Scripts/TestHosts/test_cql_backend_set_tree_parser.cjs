@@ -20,6 +20,10 @@ for(const provider of ['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS']) {
  q=compile("WITH q AS ("+selected+") SELECT Name AS Label FROM q WHERE Description = 'x' ORDER BY Name LIMIT 3");
  assert.deepEqual(q.body.selectedStages.map(s=>s.operation),['Where','OrderBy','Take','Select']);
  assert.deepEqual(q.body.selectedStages.at(-1).columns,[{alias:'Label',sourceAlias:'Name'}]);checks++;
+ q=compile('WITH q AS ((SELECT Version AS Number FROM '+provider+' LIMIT 2) UNION ALL (SELECT Version AS Number FROM '+provider+' LIMIT 2)) SELECT SUM(Number) AS Total FROM q');
+ assert.equal(q.body.reduction,'Sum');assert.equal(q.body.reductionColumn,'Number');assert.equal(q.scalarAlias,'Total');checks++;
+ q=compile('WITH q AS ((SELECT Version AS Number FROM '+provider+' LIMIT 2) UNION ALL (SELECT Version AS Number FROM '+provider+' LIMIT 2)) SELECT AVG(Number) AS Mean FROM q WHERE Number > 0');
+ assert.equal(q.body.reduction,'Average');assert.equal(q.body.reductionColumn,'Number');assert.equal(q.body.selectedStages[0].operation,'Where');checks++;
 }
 assert.throws(()=>compile('SELECT * FROM MongoDBOASIS UNION SELECT * FROM SQLLiteDBOASIS'),/same provider/);checks++;
 assert.throws(()=>compile('WITH q AS ((SELECT Name FROM MongoDBOASIS) UNION (SELECT Name FROM MongoDBOASIS)) SELECT Name FROM q'),/explicit TOP|LIMIT|FETCH/);checks++;

@@ -28,4 +28,20 @@ public sealed class CqlRecursiveSetV1CompilerTests
         Assert.Throws<ArgumentException>(()=>CqlRequestCapture.Capture(request));
         Assert.Throws<ArgumentException>(()=>CqlV1Compiler.CompileProjectedSet(request,Guid.NewGuid(),ProviderType.MongoDBOASIS));
     }
+    [Fact] public void NumericReductionCapturesAndRequiresItsVisibleAlias()
+    {
+        var request=Tree();
+        foreach(var leaf in new[]{request.Left.Set!.Left,request.Left.Set.Right,request.Right})
+            leaf.Columns=new[]{new CqlProjectionV1Column{Field="Version",Alias="Amount"}};
+        request.Reduction="Sum";request.ReductionColumn="Amount";request.MaximumResults=1;
+        var copy=CqlRequestCapture.Capture(request);request.ReductionColumn="changed";
+        Assert.Equal("Amount",copy.ReductionColumn);
+        var query=CqlV1Compiler.CompileProjectedSetReduction(copy,Guid.NewGuid(),ProviderType.MongoDBOASIS);
+        Assert.Equal("Amount",Assert.Single(query.Output.OutputAliases));
+        copy.ReductionColumn="hidden";
+        Assert.Throws<ArgumentException>(()=>CqlV1Compiler.CompileProjectedSetReduction(copy,Guid.NewGuid(),ProviderType.MongoDBOASIS));
+        copy.ReductionColumn=null;
+        Assert.Throws<ArgumentException>(()=>CqlV1Compiler.CompileProjectedSetReduction(copy,Guid.NewGuid(),ProviderType.MongoDBOASIS));
+    }
+
 }

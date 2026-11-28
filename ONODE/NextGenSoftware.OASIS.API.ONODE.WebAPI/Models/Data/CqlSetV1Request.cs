@@ -8,9 +8,12 @@ public sealed class CqlSetV1Request
 {
     public string? Provider { get; set; }
     public string Kind { get; set; } = "Union";
-    /// <summary>Optional native scalar reduction after entity set windows/stages.
-    /// Count/LongCount/Any accept a final predicate; All requires one.</summary>
+    /// <summary>Optional native scalar reduction after set windows/stages.
+    /// Count/LongCount/Any accept a final predicate; All requires one. Sum/Average use ReductionColumn.</summary>
     public string? Reduction {get;set;}
+    /// <summary>Currently visible selected alias for Sum/Average; absent for cardinality reductions.</summary>
+    [JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)]
+    public string? ReductionColumn {get;set;}
     public CqlWhereV1Predicate? ReductionWhere {get;set;}
     public CqlSetV1Source Left { get; set; } = new();
     public CqlSetV1Source Right { get; set; } = new();
@@ -27,8 +30,8 @@ public sealed class CqlSetV1Request
     /// <summary>Selection after entity membership and output entity windows.
     /// Cannot be combined with selected columns/stages on either operand.</summary>
     public CqlProjectionV1Column[]? OutputColumns {get;set;}
-    /// <summary>Native selected-value stages after OutputColumns. Distinct compares
-    /// the currently visible selected tuple, after entity identity membership.</summary>
+    /// <summary>Native selected-value stages after OutputColumns or selected-value set membership.
+    /// Distinct compares the currently visible selected tuple.</summary>
     public CqlCompositionV1Stage[]? SelectedStages {get;set;}
 }
 

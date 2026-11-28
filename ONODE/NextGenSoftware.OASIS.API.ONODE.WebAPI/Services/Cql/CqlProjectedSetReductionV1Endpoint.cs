@@ -15,6 +15,8 @@ public static partial class CqlV1Endpoint
         ICqlV1Providers providers,Guid actor,ProviderType selected,CosmicQueryReadAccess access,
         IOASISProvider storage,ICosmicQueryStorageProvider rowAdapter)
     {
+        if(request.Reduction is "Sum" or "Average")
+            return await ExecuteProjectedSetNumericReductionAsync(http,request,providers,actor,selected,access,storage,rowAdapter);
         if(rowAdapter is not ICosmicQueryProjectedSetCountStorageProvider {SupportsProjectedSetCount:true} adapter)
             return Failure(400,"CQL_CAPABILITY_UNSUPPORTED","The provider has no native selected-value count contract.");
         var intent=CqlV1Compiler.CompileProjectedSetReduction(request,actor,selected,access);

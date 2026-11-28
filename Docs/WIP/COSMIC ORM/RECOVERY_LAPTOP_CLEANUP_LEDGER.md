@@ -11460,3 +11460,6 @@ Owned Chrome stopped; marker/path and process absence verified before normal rec
 
 
 2026-11-28T09:57:39.941Z — Accepted native composition artifact15257792940 (16747bytes,18entries) inspected only in RAM and released; compact source/CI/hash proof committed. No local build/env/install/database/container/download archive/test-output created. CI native and compiler15/15+WEB4 exact cleanup; isolated stores only, shared Atlas/PIPER calls0. Node backend parser20/20 for separate pending SQL numeric candidate emits no files. Temporary scoped Git index removed after each snapshot; no unrelated cleanup.
+
+
+2026-11-28: SQL numeric artifact15258119047 (18 entries/17061B) and XML version artifact15259323174 (5 entries/3395B) inspected only in RAM, buffers released; compact acceptance JSON retained. No local installs, runtimes, build outputs, databases or worktrees created. No files removed or disk reclamation claimed. Temporary scoped Git indexes removed by their owning helper.

@@ -1,0 +1,19 @@
+{
+  "run": 46134517647,
+  "artifact": 15259323174,
+  "artifactEntries": 5,
+  "sha256": "dae858c2187682d2c573df7eeaeba425bba536844c57a976e7b0444315fe0c8b",
+  "source": "d36a143c3211802df09a240626e0a36b6ad74462",
+  "core": "551ac0d8302dfe66415b3a9b78b5d16fc0b08590",
+  "nativePassed": 3,
+  "admissionControlsPassed": 1,
+  "canonicalXmlVersionVerified": true,
+  "nativeStaleWritesRejected": true,
+  "winnerPreserved": true,
+  "callerPolicyPreserved": true,
+  "actualWeb4Compiled": true,
+  "ownedFixturesAbsent": true,
+  "sharedDatabaseCalls": 0,
+  "fullNhXmlComplete": false,
+  "deployed": false
+}

@@ -736,6 +736,70 @@
               }
             }
           }
+        },
+        {
+          "name": "Backend SQL Sum over bounded selected sets (qualification pending)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "description": "Required; use a new value for each new intent. Reusing one is refused with 409."
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/data/query-cql/sql",
+            "description": "Read-only; MongoDBOASIS, SQLLiteDBOASIS or Neo4jOASIS. Preserves both source windows and selected tuple semantics. Uses the backend engine; requires the matching qualified release.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"WITH amounts AS ((SELECT Version AS Amount FROM {{provider}} LIMIT 2) UNION ALL (SELECT Version AS Amount FROM {{provider}} LIMIT 2)) SELECT SUM(Amount) AS Total FROM amounts\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Backend SQL Average over bounded selected sets (qualification pending)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "description": "Required; use a new value for each new intent. Reusing one is refused with 409."
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/data/query-cql/sql",
+            "description": "Read-only; MongoDBOASIS, SQLLiteDBOASIS or Neo4jOASIS. Preserves both source windows and selected tuple semantics. Uses the backend engine; requires the matching qualified release.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"WITH amounts AS ((SELECT Version AS Amount FROM {{provider}} LIMIT 2) UNION ALL (SELECT Version AS Amount FROM {{provider}} LIMIT 2)) SELECT AVG(Amount) AS Total FROM amounts\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
         }
       ]
     }
