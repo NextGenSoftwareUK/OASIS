@@ -46,14 +46,15 @@
     },
     "fullyAccepted": false,
     "latestSelectedNativeBrowser": {
-      "done": 6,
-      "total": 6,
+      "done": 7,
+      "total": 7,
       "runs": {
         "recovery": 46123580498,
         "populatedMapLauncher": 46126474607,
         "providerMigration": 46130012906,
         "onet": 46133501110,
-        "holonDiff": 46136436169
+        "holonDiff": 46136436169,
+        "populatedGeoLayers": 46142470160
       }
     },
     "sdkDelivery": {
@@ -90,6 +91,13 @@
       "run": 46136436169,
       "scope": "Cold history, real two metadata publications, populated comparison, distinct stored-ID seal dispatch and close",
       "specificSealStatusOrCryptographicVerificationAccepted": false
+    },
+    "mapGeo": {
+      "done": 1,
+      "total": 1,
+      "run": 46142470160,
+      "scope": "Real visible/hidden hotspot and linked root quest creation/readback plus OPORTAL layer status and close",
+      "populatedGeoNftOrRendererOrUnityAccepted": false
     }
   },
   "hyperdrive": {
@@ -116,10 +124,9 @@
       "status": "Image built; real public catalogue timeout/upstream connection failure before visits. No native visit acceptance, no shared Development source promotion. Completed failed fixtures cleaned."
     },
     {
-      "item": "Populated visible/hidden hotspot and linked quest OPORTAL layers",
-      "failedControlRun": 46141859638,
-      "run": 46142470160,
-      "status": "Corrected fixture backend selection; native journey running. No geo writes were reached in first run; all5cleanup flags true. No new screen acceptance yet."
+      "item": "Correct ID/model binding and map provider/runtime ownership for Provider Controls",
+      "branch": "work/gpt-oportal-map-controls",
+      "status": "Root cause trace: complex-body legacy endpoints, unassigned per-request Core map provider, distinct Contracts SPI used by shared map providers. No successful provider command acceptance yet."
     }
   ],
   "ownerActions": {
@@ -138,7 +145,7 @@
     "freeSpaceReclamationClaimed": false,
     "cloudOwnedContainersDatabasesVolumesBrowserCachesAndBootstrapOutputsRemoved": true,
     "compactEvidenceInspectedInMemory": true,
-    "scope": "Completed native runs only, all acknowledged cleaned; running46142470160owns resources until its final cleanup."
+    "scope": "All completed runs through46142470160have acknowledged owned cleanup; no current owned acceptance job running."
   },
   "documents": {
     "status": "Docs/WIP/HyperDrive-Providers/CURRENT_STATUS.md",
@@ -157,5 +164,5 @@
     }
   },
   "completedPendingIntegration": [],
-  "asOfUtc": "2026-11-28T12:00:21.062Z"
+  "asOfUtc": "2026-11-28T12:09:46.987Z"
 }
