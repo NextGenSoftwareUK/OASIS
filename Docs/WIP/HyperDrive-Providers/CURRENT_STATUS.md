@@ -60,3 +60,11 @@ Ledger: [GPT_HYPERDRIVE_LEDGER.md](GPT_HYPERDRIVE_LEDGER.md). Private Git indexe
 Previously accepted real-API journeys were rechecked against the changed router: Social Graph persisted contact-to-composer keyboard handoff and Activity Feed native read/refresh. Existing accepted popup cohorts are not repeated. CI46118199642passed2/2router compatibility journeys and exact cleanup; earlier runs exposed harness declarations and the current router X-to-/portal.html contract. No whole-portal acceptance is claimed. Shared Atlas remains untouched.
 
 OPORTAL current source inventory45/45is reconciled in `NextGenSoftwareUK/OPORTAL-JS` dev4c4d90af/main4ecb86db, Docs/WIP/CURRENT_ACCEPTANCE.md. Original Social/Activity45172482199and Gifts/Inventory/native histories retained; no new-screen credit for repeated flows. Remaining valid signup/recovery, ONET/ONODE bridge, Holon Diff and billing gates are explicit.
+
+## OPORTAL recovery accepted in isolation
+
+CI46123580498passed actual forgot/reset/new-password sign-in and previous-password refusal on exact fbea image/Core98952d72 +OPORTAL8d66cb77, including native one-day expiry and consumed token. Five Startup cleanup flags, package container absence and browser/runtime/cache/TLS absence verified from4483-byte artifact15254776924 inspected in RAM. API token redaction retained. Core6247348c preserves current CQLc14 source and identical accepted recovery files; gitlink/manifest paired. Email delivery, founder activation, hosted adoption and whole-portal completion separate.
+
+## Current portal SDK delivery
+
+OPORTAL SDK delivery46125573999passed3/3current WEB4/WEB5/WEB6locked bundle/module/cache checks and existing privacy/settings units. WEB4 merged source56449c9e preserves Profile while adding current route/CQL/recovery fixes; WEB5 source5266ed88 and WEB6ed3843bd included. Auth/core/Profile source unchanged, existing native evidence retained. Exact Git pins avoid stale registry content while existing A1/A2/API-SURFACE-PUBLISH owner access remains open. No new owner action, npm publish retry or whole-portal certification. ONODE selected-node UI-state fix77c4c942is checked separately; real published service lifecycle remains open. Populated OAPP Map/Launcher work continues against isolated real WEB4/WEB5/native Mongo.

@@ -1,0 +1,33 @@
+{
+  "scope": "OPORTAL representative real account recovery",
+  "run": 46123580498,
+  "url": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/46123580498",
+  "conclusion": "success",
+  "source": "fbea95eb33b67bfa1dc11d6a2b6c15bc9a7d7717",
+  "core": "98952d720d1573d01683f0873e46bcbe2569f21d",
+  "portal": "8d66cb77ca6e4585e6d4010319124acd68b73036",
+  "image": "sha256:f5cca6cd4781834468545a5ec2e24e50e1d7a34e3f2511a5e7d8b1a8eda8cabb",
+  "passed": [
+    "Real forgot form and same-host ReturnUrl",
+    "Native reset expiry24hours",
+    "Actual valid-token reset and consumed token",
+    "Portal-home redirect",
+    "New-password real sign-in/dashboard",
+    "Old password refusal"
+  ],
+  "artifact": {
+    "id": 15254776924,
+    "bytes": 4483,
+    "inspection": "RAM only"
+  },
+  "cleanup": {
+    "ownedContainersAbsent": true,
+    "ownedNetworkAbsent": true,
+    "ephemeralDatabaseVolumesRemoved": true,
+    "web5ProcessStopped": true,
+    "web5DnaAbsent": true,
+    "packageContainerAbsent": true,
+    "browserRuntimeCacheTlsAbsent": true
+  },
+  "limits": "Emails disabled; no delivery, founder activation, hosted adoption or whole-portal claim. Stored-token API redaction preserved. No shared Atlas."
+}

@@ -61,3 +61,7 @@ Remaining:
   route constant in `Scripts/api_surface_route_constants.json`). The MCP unit test project has still not been run, and the
   three new tools have not been called against a live API.
 - `scripts/extract-endpoints.js` in the WEB4 SDK skips routes written as `"~" + Constant`; teach it before the next regeneration.
+
+## 2026-11-28 OPORTAL delivery update
+
+Portal devbe5da21c contains qualified current WEB4/WEB5/WEB6 Git-source bundles (CI46125573999,3/3delivery checks); WEB4 source56449c9e merges main4e49abe fixes with the existing atomic Profile client. This is delivery/source compatibility, not a fresh route recount or native/hosted/full-screen certificate. Registry publication remains the existing A1/A2/API-SURFACE-PUBLISH account action; WEB4/5 publish attempts reached E404/access. No known-blocked publication retry.

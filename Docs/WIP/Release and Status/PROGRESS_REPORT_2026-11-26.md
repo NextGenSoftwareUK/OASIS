@@ -112,3 +112,7 @@ These came out of a review of the OASIS design. David reports that 4, 5 and 6 ar
 - GitHub Actions: check billing or capacity.
 - TronGrid key for TRON, and accounts for the hosted-account providers.
 - Cloud workers: give them the git identity line and the claims and CI rules.
+
+## 2026-11-28 continuation (gpt-hyperdrive)
+
+Native storage baseline123/163storage/specialized project rows,238tracked provider projects including75non-storage/legacy variants. Latest Garnet native46122538895passed26sync+26async/zero skips and owned cleanup. Whole-provider hosted/all-interface and HyperDrive v2 global reliability gates remain open. OPORTAL real recovery46123580498passed and backend Developmentf6be65d0 published; Portal devbe5da21c includes accepted recovery, selected-node ONODE UI-state fix and current SDK3/3delivery46125573999. Existing45/45surface inventory is planning coverage, not45fully accepted screens. Populated OAPP depth comparison remains under investigation; signed-in hosted acceptance, real mail, paid billing and other listed native gaps remain. Existing owner actions updated; no new owner action. Shared Atlas untouched, no laptop build/runtime/download/env/database/output, remote owned cleanup verified.

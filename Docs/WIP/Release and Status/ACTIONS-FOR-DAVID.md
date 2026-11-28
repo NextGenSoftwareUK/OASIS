@@ -1761,13 +1761,15 @@ Status: OPEN (2026-11-27). Details: `API_SURFACE_SYNC_STATUS.md`. npm publishing
    (needs the change on the branch the workflow builds from).
 
 
+Verified2026-11-28: registry latest WEB4 2.0.17/WEB5 1.0.6/WEB6 2.1.2. WEB4 publish45945446516 and WEB5 publish45574421308 reached npm and failed E404/access; tests had passed. Follow existing A1/A2 account/trusted-publisher steps; do not copy a token into source. OPORTAL now has qualified3/3current Git-source deliveries (CI46125573999): WEB4 2.0.18 merged source56449c9e retains atomic Profile absent from default main4e49abe; WEB5 source5266ed88; WEB6 sourceed3843bd includes unpublished changes at the same2.1.2version. Review/promote the merged WEB4 source before publishing so Profile is retained. No known-blocked publication rerun or new competing owner action; MCP action above is unchanged.
+
 ## OPORTAL-CI1 — approved signed-in test credential custody
 
 Open, verified2026-11-27 by gpt-hyperdrive. OPORTAL-JS repository Actions secret-name inventory is empty; the browser workflow expects `OPORTAL_TEST_EMAIL` and `OPORTAL_TEST_PASSWORD`. The 25November OPORTAL handoff says David already supplied an approved account to Claude, but those values are not in the repository secret store and cannot be recovered from GitHub. No credential or account identifier is recorded here.
 
 Owner/custodian action: arrange for the previously approved dedicated account credentials to be placed in those two repository Actions secrets (Settings → Secrets and variables → Actions). Use the existing approved custody route; do not paste credentials into this document or chat, and do not create a competing account solely for this entry. Source handoff: OPORTAL-JS `Docs/WIP/OPORTAL-E2E.md`.
 
-Engineering will first review the authenticated request scope and shared-Atlas isolation rules before dispatching signed-in acceptance; adding secrets alone does not authorize a broad shared-cluster test. The current signed-out run reported202passes/80skips per target and cannot establish that every authenticated popup is100% complete. Other portal fixes and provider work continue independently.
+Engineering will first review the authenticated request scope and shared-Atlas isolation rules before dispatching signed-in acceptance; adding secrets alone does not authorize a broad shared-cluster test. The current signed-out run46102330540reported203passes/80skips per target and cannot establish that every authenticated popup is100% complete. Other portal fixes and provider work continue independently.
 
 
 
@@ -1775,4 +1777,4 @@ Engineering will first review the authenticated request scope and shared-Atlas i
 
 Open2026-11-27, gpt-hyperdrive. This concerns future hosted storage acceptance, not the isolated native CI. Reuse the approved custody route to provision a persistent Miden RPC endpoint, public account carrying the `oasis::kv` component and its signing seed, a Kubo API endpoint, and a32-byte base64 record-encryption key. Account initialization/real-fee funding must be owner-controlled; the agent will not transfer real crypto. Keep dev/staging/production identities and secrets separate as intended.
 
-The shipping constructor reads `OASIS_MIDEN_RPC_URL`, `OASIS_MIDEN_STORAGE_ACCOUNT`, `OASIS_MIDEN_STORAGE_KEY_SEED`, `OASIS_MIDEN_KUBO`, `OASIS_MIDEN_STORAGE_KEY` from the service environment. Configure credentials only in the environment secret store, never source DNA or this document. No values are requested in chat. Current integration source: `work/gpt-miden-native-integration`; original native52/52 CI45753725053 is preserved, and current graph/published SDK CI46104748678 is pending. Engineering will verify the deployed revision and selected sanitized configuration before any hosted write.
+The shipping constructor reads `OASIS_MIDEN_RPC_URL`, `OASIS_MIDEN_STORAGE_ACCOUNT`, `OASIS_MIDEN_STORAGE_KEY_SEED`, `OASIS_MIDEN_KUBO`, `OASIS_MIDEN_STORAGE_KEY` from the service environment. Configure credentials only in the environment secret store, never source DNA or this document. No values are requested in chat. Current integration source: `work/gpt-miden-native-integration`; original native52/52 CI45753725053 is preserved; current published-SDK/native lifecycle CI46106768815passed52/52 plus worker-loss/reopen/disposal. Hosted acceptance remains open. Engineering will verify the deployed revision and selected sanitized configuration before any hosted write.
