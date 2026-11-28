@@ -202,6 +202,9 @@ console.log(JSON.stringify(b));
                 if time.monotonic() > deadline:
                     raise RuntimeError('Full image Docker health readiness deadline.')
                 time.sleep(2)
+        if popup_group == 'provider-migration':
+            from owned_migration_bootstrap import prepare
+            prepare(root,api,marker)
         auth_checked = os.environ.get('OASIS_STARTUP_AUTHENTICATION') == 'true'
         portal_checked = False
         if portal_root:

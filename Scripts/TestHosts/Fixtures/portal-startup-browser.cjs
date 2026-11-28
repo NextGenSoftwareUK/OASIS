@@ -45,13 +45,15 @@ async function main(){
   const ordinary=await account.call('ordinary migration sign-in','POST','/api/avatar/authenticate',{username:account.username,password:account.password},undefined,true);
   const refused=await fetch(api.origin+'/api/data/copy-holon/providers',{headers:{Authorization:'Bearer '+ordinary.jwtToken},signal:AbortSignal.timeout(20000)});
   assert.equal(refused.status,403,'Ordinary role cannot enumerate admin copy providers');await refused.arrayBuffer();
-  stage='Owned Wizard fixture bootstrap';
-  execFileSync('docker',['stop','--time','20',apiName],{encoding:'utf8',timeout:30000});
-  // One trusted fixture role grant, on the newly registered owned native account only.
-  // No password/token/JWT is written, synthesized, printed or placed on a command line.
-  const query='const c=db.getSiblingDB('+JSON.stringify(database)+').getCollection("Avatar");const row=c.findOne({Username:'+JSON.stringify(account.username)+'},{AvatarType:1});if(!row||row.AvatarType?.Value!==1)throw new Error("Owned User role required");const fields={"AvatarType.Value":0};if(Object.prototype.hasOwnProperty.call(row.AvatarType,"Name"))fields["AvatarType.Name"]="Wizard";const r=c.updateOne({_id:row._id,"AvatarType.Value":1},{$set:fields});if(r.matchedCount!==1||r.modifiedCount!==1)throw new Error("Owned role grant not acknowledged");print("OWNED_ROLE_GRANTED");';
-  assert.equal(execFileSync('docker',['exec',mongo,'mongosh','--quiet','--eval',query],{encoding:'utf8',timeout:15000}).trim(),'OWNED_ROLE_GRANTED');
-  execFileSync('docker',['start',apiName],{encoding:'utf8',timeout:30000});
+  stage='Owned Wizard native provider bootstrap';
+  try{
+   const seeded=execFileSync('docker',['exec',apiName,'dotnet','exec','--depsfile','/app/NextGenSoftware.OASIS.API.ONODE.WebAPI.deps.json','--runtimeconfig','/app/NextGenSoftware.OASIS.API.ONODE.WebAPI.runtimeconfig.json','/app/OwnedMigrationBootstrap.dll',owner,account.username,account.avatar.id],{encoding:'utf8',timeout:30000});
+   assert.ok(seeded.split(/\r?\n/).includes('OWNED_WIZARD_NATIVE_PROVIDER_SEED'));
+  }catch(error){
+   const code=String(error.stderr||'').match(/MIGRATION_BOOTSTRAP_FAILURE:[A-Z_]+/);
+   httpFacts.push({path:'/api/data/copy-holon/providers',status:0,isError:true,errorCode:'OWNED_NATIVE_BOOTSTRAP_FAILED',...(code?{routingMessage:code[0]}:{})});throw error;
+  }
+  execFileSync('docker',['restart','--time','20',apiName],{encoding:'utf8',timeout:30000});
   const probe="(async()=>{let r;try{r=await fetch('http://127.0.0.1:8080/api/health',{signal:AbortSignal.timeout(3000)});}catch(e){if(e.cause?.code==='ECONNREFUSED')process.exit(2);throw e;}if(r.status===503)process.exit(2);if(!r.ok)throw Error('Health status');const b=await r.json();if(b.status!=='healthy'||b.service!=='OASIS API ONODE WebAPI')throw Error('Health identity');})().catch(()=>process.exit(1));";
   const deadline=Date.now()+90000;let ready=false;
   while(Date.now()<deadline){
@@ -390,7 +392,7 @@ async function main(){
     assert.equal(migrationCopies,1);assert.deepEqual(migrationReads,{MongoDBOASIS:1,SQLLiteDBOASIS:1});
     stage='Migration persisted native SQLite';
     const owner='oasis_startup_'+process.env.GITHUB_RUN_ID+'_'+process.env.GITHUB_RUN_ATTEMPT;assert.match(owner,/^oasis_startup_[0-9]+_[0-9]+$/);
-    const check="const fs=require('fs'),assert=require('assert/strict');const p="+JSON.stringify('/tmp/'+owner+'_migration.sqlite')+";assert.ok(fs.statSync(p).isFile());const fd=fs.openSync(p,'r'),header=Buffer.alloc(16);try{fs.readSync(fd,header,0,16,0);}finally{fs.closeSync(fd);}assert.equal(header.toString('binary'),'SQLite format 3\\0');";
+    const check="const fs=require('fs'),assert=require('assert/strict');const p="+JSON.stringify('/tmp/'+owner+'_migration.sqlite')+";assert.ok(fs.statSync(p).isFile());const fd=fs.openSync(p,'r'),header=Buffer.alloc(16);try{fs.readSync(fd,header,0,16,0);}finally{fs.closeSync(fd);}assert.equal(header.subarray(0,15).toString('ascii'),'SQLite format 3');assert.equal(header[15],0);";
     execFileSync('docker',['exec',owner+'_api','node','-e',check],{encoding:'utf8',timeout:15000});
    });
    await checkPopup('OappMap','#oapp-map-modal-close-btn',async()=>{

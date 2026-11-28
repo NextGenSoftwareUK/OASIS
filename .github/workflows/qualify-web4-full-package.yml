@@ -132,6 +132,8 @@ jobs:
           cp Scripts/TestHosts/owned_docker_resources.py "$RUNNER_TEMP/owned_docker_resources.py"
           cp Scripts/TestHosts/owned_web5_startup.py "$RUNNER_TEMP/owned_web5_startup.py"
           cp Scripts/TestHosts/Fixtures/startup-authentication.cjs "$RUNNER_TEMP/startup-authentication.cjs"
+          cp Scripts/TestHosts/owned_migration_bootstrap.py "$RUNNER_TEMP/owned_migration_bootstrap.py"
+          cp Scripts/TestHosts/Fixtures/migration-wizard-bootstrap.cs "$RUNNER_TEMP/migration-wizard-bootstrap.cs"
           cp Scripts/TestHosts/Fixtures/portal-startup-browser.cjs "$RUNNER_TEMP/portal-startup-browser.cjs"
           cp Scripts/TestHosts/Fixtures/profile-browser-runtime.json "$RUNNER_TEMP/profile-browser-runtime.json"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -147,6 +149,8 @@ jobs:
           cp "$RUNNER_TEMP/owned_web5_startup.py" Scripts/TestHosts/owned_web5_startup.py
           mkdir -p Scripts/TestHosts/Fixtures
           cp "$RUNNER_TEMP/startup-authentication.cjs" Scripts/TestHosts/Fixtures/startup-authentication.cjs
+          cp "$RUNNER_TEMP/owned_migration_bootstrap.py" Scripts/TestHosts/owned_migration_bootstrap.py
+          cp "$RUNNER_TEMP/migration-wizard-bootstrap.cs" Scripts/TestHosts/Fixtures/migration-wizard-bootstrap.cs
           cp "$RUNNER_TEMP/startup-authentication.cjs" Scripts/TestHosts/Fixtures/startup-authentication.cjs
           cp "$RUNNER_TEMP/portal-startup-browser.cjs" Scripts/TestHosts/Fixtures/portal-startup-browser.cjs
       - name: Validate immutable portal browser selection
@@ -180,6 +184,10 @@ jobs:
           actual="$(npm view "playwright-core@$version" dist.integrity --registry https://registry.npmjs.org --cache "$owned/npm-cache")"
           test "$actual" = "$expected"
           npm install --prefix "$owned/runtime" --cache "$owned/npm-cache" --registry https://registry.npmjs.org --ignore-scripts --no-audit --no-fund "playwright-core@$version"
+      - uses: actions/setup-dotnet@v4
+        if: inputs.startup_popup_group == 'provider-migration'
+        with:
+          dotnet-version: '10.0.x'
       - uses: docker/login-action@v3
         with:
           registry: ghcr.io
