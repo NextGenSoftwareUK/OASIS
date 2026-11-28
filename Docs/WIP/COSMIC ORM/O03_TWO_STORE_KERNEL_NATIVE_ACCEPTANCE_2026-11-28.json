@@ -1,0 +1,76 @@
+{
+  "date": "2026-11-28",
+  "root": "83f63a7cb89fae8f3b5eb70cc4ac34a5dcf2265a",
+  "core": "b9881e3397666a2393fbac835afa16a1daacc68c",
+  "run": 46156584432,
+  "artifact": 15267694307,
+  "artifactBytes": 4387,
+  "kernelProviderDone": 2,
+  "kernelProviderTotal": 3,
+  "fullO03Complete": false,
+  "publicSessionWriteIntegrationComplete": false,
+  "mainDone": 148,
+  "mainTotal": 168,
+  "extensionDone": 4,
+  "extensionTotal": 13,
+  "receipt": {
+    "sha256": "c342c16498dea31d3f0c8abbbed859326afc9cb0c0e798f8564d52f2aa073f7d",
+    "entries": 6,
+    "reports": {
+      "MongoDBOASIS-held-owner-mixed-uow-native.json": 26,
+      "MongoDBOASIS-held-transaction-native.json": 9,
+      "SQLLiteDBOASIS-held-owner-mixed-uow-native.json": 26,
+      "SQLLiteDBOASIS-held-transaction-native.json": 9
+    },
+    "source": {
+      "source": "83f63a7cb89fae8f3b5eb70cc4ac34a5dcf2265a",
+      "core": "b9881e3397666a2393fbac835afa16a1daacc68c",
+      "heldNativeProviders": [
+        "MongoDBOASIS",
+        "SQLLiteDBOASIS"
+      ],
+      "heldProviderDone": 2,
+      "heldProviderTotal": 3,
+      "nativePassed": 4,
+      "provisionalKernelOnly": true,
+      "publicSessionOwnedWriteEnlistmentComplete": false,
+      "fullO03Complete": false,
+      "actualWeb4Compiled": true,
+      "ownedFixturesAbsent": true,
+      "sharedDatabaseCalls": 0,
+      "deployed": false
+    },
+    "timingsMilliseconds": {
+      "MongoDBOASIS": {
+        "held-create-stage": 22,
+        "held-read-own-create": 5,
+        "held-outside-before-commit": 1,
+        "held-update-stage": 5,
+        "held-read-own-update": 1,
+        "held-commit": 4,
+        "held-outside-after-commit": 1,
+        "held-rollback-stage": 5,
+        "held-read-before-rollback": 1,
+        "held-rollback": 1,
+        "held-outside-after-rollback": 0,
+        "held-foreign": 1,
+        "held-foreign-rollback": 0
+      },
+      "SQLLiteDBOASIS": {
+        "held-create-stage": 9,
+        "held-read-own-create": 1,
+        "held-outside-before-commit": 1,
+        "held-update-stage": 3,
+        "held-read-own-update": 0,
+        "held-commit": 25,
+        "held-outside-after-commit": 1,
+        "held-rollback-stage": 4,
+        "held-read-before-rollback": 0,
+        "held-rollback": 0,
+        "held-outside-after-rollback": 1,
+        "held-foreign": 0,
+        "held-foreign-rollback": 0
+      }
+    }
+  }
+}
