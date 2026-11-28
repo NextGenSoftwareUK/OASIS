@@ -62,7 +62,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS.UnitTests
         }
 
         [Fact]
-        public async Task ActivateProviderAsync_ShouldReturnSuccess()
+        public async Task ActivateProviderAsync_WithoutStorageConfiguration_FailsClearly()
         {
             // Arrange
             var elrondProvider = new ElrondOASIS();
@@ -70,10 +70,11 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS.UnitTests
             // Act
             var result = await elrondProvider.ActivateProviderAsync();
 
-            // Assert
-            Assert.False(result.IsError);
-            Assert.True(result.Result);
-            Assert.Contains("Elrond provider activated successfully", result.Message);
+            // Assert: an unconfigured provider must refuse to activate rather than
+            // pretend it has a MultiversX store behind it.
+            Assert.True(result.IsError);
+            Assert.False(result.Result);
+            Assert.Contains("requires an explicit proxy", result.Message);
         }
 
         [Fact]
@@ -88,7 +89,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS.UnitTests
             // Assert
             Assert.False(result.IsError);
             Assert.True(result.Result);
-            Assert.Contains("Elrond provider deactivated successfully", result.Message);
+            Assert.Contains("ElrondOASIS deactivated", result.Message);
         }
 
         [Fact]

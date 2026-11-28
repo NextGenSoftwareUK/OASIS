@@ -25,7 +25,7 @@ using System.Text.Json;
 using System.Linq;
 using System.IO;
 
-namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
+namespace NextGenSoftware.OASIS.API.Providers.PLANOASIS
 {
     public partial class PLANOASIS
     {

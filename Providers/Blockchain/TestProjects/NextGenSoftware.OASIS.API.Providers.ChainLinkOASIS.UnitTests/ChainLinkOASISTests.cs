@@ -92,7 +92,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS.UnitTests
         }
 
         [Fact]
-        public void LoadOnChainNFTData_ShouldReturnChainLinkNFT()
+        public void LoadOnChainNFTData_IsNotSupported()
         {
             // Arrange
             var chainLinkProvider = new ChainLinkOASIS();
@@ -102,11 +102,11 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS.UnitTests
             var result = chainLinkProvider.LoadOnChainNFTData(tokenAddress);
 
             // Assert
-            Assert.False(result.IsError);
-            Assert.NotNull(result.Result);
-            Assert.Equal(tokenAddress, result.Result.NFTTokenAddress);
-            Assert.Contains("ChainLink NFT", result.Result.Title);
-            Assert.Contains("ChainLink oracle", result.Result.Description);
+            // ChainLink is an oracle network with no NFT store, so the provider
+            // reports this as unsupported instead of inventing NFT data.
+            Assert.True(result.IsError);
+            Assert.Null(result.Result);
+            Assert.Contains("not supported", result.Message);
         }
     }
 }

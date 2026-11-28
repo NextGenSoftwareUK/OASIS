@@ -26,7 +26,8 @@ public class TronPreparedOutboxTests
             return new HttpResponseMessage(System.Net.HttpStatusCode.OK){Content=new StringContent(JsonSerializer.Serialize(response),System.Text.Encoding.UTF8,"application/json")};
         }
     }
-    [Fact]
+    [SubscriptionMongoFact]
+    [Trait("Category", "LiveService")]
     public async Task RealSignedRuntimeAdapterPersistsOriginalAndRejectsWrongSender()
     {
         const string connection="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";

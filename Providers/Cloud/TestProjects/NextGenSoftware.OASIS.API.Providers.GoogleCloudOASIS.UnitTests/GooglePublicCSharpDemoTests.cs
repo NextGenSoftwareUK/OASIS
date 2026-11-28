@@ -5,7 +5,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests;
 [TestClass]
 public class GooglePublicCSharpDemoTests
 {
-    [TestMethod, TestCategory("GooglePublicCSharpDemoNative")]
+    [TestMethod, TestCategory("GooglePublicCSharpDemoNative"), TestCategory("LiveService")]
     public async Task PublishedConsoleWalkthroughUsesRealGoogleMetadataThroughManagerAndLinq()
     {
         var path = Environment.GetEnvironmentVariable("OASIS_GCS_PUBLIC_SOURCE")

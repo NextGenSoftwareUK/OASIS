@@ -92,21 +92,19 @@ namespace NextGenSoftware.OASIS.API.Providers.PLANOASIS.UnitTests
         }
 
         [Fact]
-        public async Task LoadAvatarAsync_ShouldReturnPLANAvatar()
+        public async Task LoadAvatarAsync_WhenApiUnreachable_ReturnsErrorInsteadOfThrowing()
         {
-            // Arrange
-            var planProvider = new PLANOASIS();
-            var avatarId = Guid.NewGuid();
+            // Arrange: nothing listens on port 1, so the call fails fast and
+            // offline, without depending on the public PLAN API.
+            var planProvider = new PLANOASIS("http://127.0.0.1:1/v1");
 
             // Act
-            var result = await planProvider.LoadAvatarAsync(avatarId);
+            var result = await planProvider.LoadAvatarAsync(Guid.NewGuid());
 
             // Assert
-            Assert.False(result.IsError);
-            Assert.NotNull(result.Result);
-            Assert.Equal(avatarId, result.Result.Id);
-            Assert.Contains("plan_user", result.Result.Username);
-            Assert.Contains("plan.example", result.Result.Email);
+            Assert.True(result.IsError);
+            Assert.Null(result.Result);
+            Assert.False(string.IsNullOrWhiteSpace(result.Message));
         }
     }
 }

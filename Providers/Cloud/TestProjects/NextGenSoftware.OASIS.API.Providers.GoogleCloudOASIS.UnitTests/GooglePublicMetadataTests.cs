@@ -105,7 +105,7 @@ public class GooglePublicMetadataTests
         Assert.IsTrue((await source.ActivateQuerySourceAsync(default)).IsError);Assert.AreEqual(0,native.Reads.Count);
     }
 
-    [TestMethod,TestCategory("GcsPublicNative")]
+    [TestMethod,TestCategory("GcsPublicNative"),TestCategory("LiveService")]
     public async Task AnonymousSdkCqlReturnsThreeRealObjectsAndTwoRecordSubset()
     {
         var path=Environment.GetEnvironmentVariable("OASIS_GCS_PUBLIC_SOURCE")??throw new InvalidOperationException("Explicit owned source config required.");

@@ -53,7 +53,12 @@ public class NearRecordPublicationTests
             var save=Save();pending=save;
             var ready=Path.Combine(root,"ready.json");var deadline=DateTime.UtcNow.AddSeconds(10);
             while(!File.Exists(ready)){if(save.IsCompleted){await save;Assert.Fail("Save ended before controlled acknowledgement");}if(DateTime.UtcNow>deadline)Assert.Fail("Controlled fixture never reached write");await Task.Delay(10);}
-            using var signal=System.Text.Json.JsonDocument.Parse(await File.ReadAllTextAsync(ready));
+            // The fixture renames ready.json into place, but on Windows another process (antivirus,
+            // indexer) can still hold the new file for a moment; retry the sharing violation until the deadline.
+            string readyText;
+            while(true){try{readyText=await File.ReadAllTextAsync(ready);break;}
+                catch(IOException) when(DateTime.UtcNow<deadline){await Task.Delay(10);}}
+            using var signal=System.Text.Json.JsonDocument.Parse(readyText);
             var key=signal.RootElement.GetProperty("key").GetString()!;
             Assert.AreEqual(original,source.Id,"Caller must still be unpublished while the fixture holds its acknowledgement.");
             Assert.IsFalse(File.Exists(Path.Combine(root,"release")),"No earlier release may satisfy the current acknowledgement.");

@@ -15,7 +15,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PLANOASIS.TestHarness
             try
             {
                 // Initialize PLAN provider
-                var planProvider = new global::NextGenSoftware.OASIS.API.Providers.BlockStackOASIS.PLANOASIS();
+                var planProvider = new global::NextGenSoftware.OASIS.API.Providers.PLANOASIS.PLANOASIS();
                 
                 Console.WriteLine("✅ PLAN Provider initialized successfully");
                 Console.WriteLine($"Provider Name: {planProvider.ProviderName}");

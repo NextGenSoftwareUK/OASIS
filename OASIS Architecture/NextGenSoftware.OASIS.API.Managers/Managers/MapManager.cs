@@ -365,6 +365,10 @@ namespace NextGenSoftware.OASIS.API.Managers
         /// <returns>True if within radius</returns>
         public bool IsWithinRadius(Geolocation location1, Geolocation location2, float radiusInMeters)
         {
+            // Without a provider there is no distance to compare, so CalculateDistance
+            // returns 0; that must not count as "within radius" for every location.
+            if (CurrentMapProvider == null) return false;
+
             float distance = CalculateDistance(location1, location2);
             return distance <= radiusInMeters;
         }

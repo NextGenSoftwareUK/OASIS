@@ -1206,6 +1206,29 @@ jobs:
     - name: Install ReportGenerator
       run: dotnet tool install -g dotnet-reportgenerator-globaltool
     
+    - name: Setup Node.js for SDK bridges
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: Install Cosmos SDK bridge into the Cosmos unit test output
+      working-directory: OASIS
+      run: |
+        dotnet build "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests.csproj" --configuration Release
+        npm ci --prefix "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests/bin/Release/net10.0/CosmosSdkBridge" --no-audit --no-fund
+
+    - name: Install Web3Core Solidity compiler for TRON codegen tests
+      working-directory: OASIS/Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS
+      run: npm ci --ignore-scripts --no-audit --no-fund
+
+    - name: Install NEAR SDK bridge for NEAR unit tests
+      working-directory: OASIS/Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.NEAROASIS/SdkBridge
+      run: npm ci --ignore-scripts --no-audit --no-fund
+
+    - name: Install Polkadot SDK bridge for Polkadot unit tests
+      working-directory: OASIS/Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/SdkBridge
+      run: npm ci --ignore-scripts --no-audit --no-fund
+
     - name: Run tests with coverage
       working-directory: OASIS
       run: |
@@ -1214,6 +1237,44 @@ jobs:
           "OASIS Architecture/NextGenSoftware.OASIS.API.DNA.UnitTests/NextGenSoftware.OASIS.API.DNA.UnitTests.csproj"
           "OASIS Architecture/NextGenSoftware.OASIS.Common.UnitTests/NextGenSoftware.OASIS.Common.UnitTests.csproj"
           "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader.UnitTests/NextGenSoftware.OASIS.OASISBootLoader.UnitTests.csproj"
+          "OASIS Architecture/NextGenSoftware.OASIS.API.Contracts.UnitTests/NextGenSoftware.OASIS.API.Contracts.UnitTests.csproj"
+          "OASIS Architecture/NextGenSoftware.OASIS.API.Managers.UnitTests/NextGenSoftware.OASIS.API.Managers.UnitTests.csproj"
+          "OASIS Architecture/NextGenSoftware.OASIS.Edge.Messaging.UnitTests/NextGenSoftware.OASIS.Edge.Messaging.UnitTests.csproj"
+          "OASIS Architecture/NextGenSoftware.OASIS.Edge.NearbySync.UnitTests/NextGenSoftware.OASIS.Edge.NearbySync.UnitTests.csproj"
+          "Tools/NextGenSoftware.OASIS.HyperDrive.Migration.UnitTests/NextGenSoftware.OASIS.HyperDrive.Migration.UnitTests.csproj"
+          "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.UnitTests.csproj"
+          "Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.UnitTests.csproj"
+          "Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge.UnitTests/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge.UnitTests.csproj"
+          "Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS.UnitTests.csproj"
+          "Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity.UnitTests/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity.UnitTests.csproj"
+          "Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS.UnitTests.csproj"
+          "Providers/Storage/NextGenSoftware.OASIS.API.Providers.EdgeSQLiteOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.EdgeSQLiteOASIS.UnitTests.csproj"
+          "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.ElrondOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.ElrondOASIS.UnitTests.csproj"
+          "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS.UnitTests.csproj"
+          "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BlockStackOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.BlockStackOASIS.UnitTests.csproj"
+          "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.FantomOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.FantomOASIS.UnitTests.csproj"
+          "Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.UnitTests.csproj"
+          "Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.PLANOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.PLANOASIS.UnitTests.csproj"
+          "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BaseOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.BaseOASIS.UnitTests.csproj"
+          "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.AvalancheOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.AvalancheOASIS.UnitTests.csproj"
+          "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests.csproj"
+          "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.UnitTests.csproj"
+          "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.UnitTests.csproj"
+          "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests/NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests.csproj"
+          "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests.csproj"
+          "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS.UnitTests.csproj"
+          "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.UnitTests.csproj"
+          "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ArweaveOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.ArweaveOASIS.UnitTests.csproj"
+          "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.RadixOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.RadixOASIS.UnitTests.csproj"
+          "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.CouchDBOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.CouchDBOASIS.UnitTests.csproj"
+          "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS.UnitTests.csproj"
+          "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.CloudflareOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.CloudflareOASIS.UnitTests.csproj"
+          "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.AptosOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.AptosOASIS.UnitTests.csproj"
+          "ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.Tests/NextGenSoftware.OASIS.API.ONODE.WebAPI.Tests.csproj"
+          "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests.csproj"
+          "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.UnitTests.csproj"
+          "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests.csproj"
+          "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.csproj"
           "ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.Core.UnitTests/NextGenSoftware.OASIS.API.ONODE.Core.Tests/NextGenSoftware.OASIS.API.ONODE.Core.Tests.csproj"
           "ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.csproj"
           "STAR ODK/NextGenSoftware.OASIS.STAR.UnitTests/NextGenSoftware.OASIS.STAR.UnitTests.csproj"
@@ -1223,12 +1284,22 @@ jobs:
           "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI.UnitTests/NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.csproj"
         )
 
+        # Run every project even when one fails, so a single failure cannot
+        # hide the results of the projects after it; fail the step at the end.
+        failed=()
         for project in "${test_projects[@]}"; do
-          dotnet test "$project" \
+          if ! dotnet test "$project" \
             --configuration Release \
+            --filter 'Category!=LiveService&TestCategory!=LiveService' \
             --collect:"XPlat Code Coverage" \
-            --results-directory ./coverage
+            --results-directory ./coverage; then
+            failed+=("$project")
+          fi
         done
+        if [ ${#failed[@]} -gt 0 ]; then
+          printf '::error::Tests failed in %s\n' "${failed[@]}"
+          exit 1
+        fi
     
     - name: Generate coverage report
       working-directory: OASIS
