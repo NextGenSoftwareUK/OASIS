@@ -4,7 +4,7 @@ Reconciled17/17 cloud-hyperdrive-A provider receipts without rerunning a backend
 
 All17provider-directory Git trees exactly match Developmentbfaf79570927. Shared Core/dependencies have evolved: these are accepted historical native baselines, not new current-graph, hosted or all-interface certification. Matrix already recorded3ofthese passes; the other14were stale not-run rows. Registry had none ofthese17receipts. Do not add17to the approximate115programme total.
 
-The matrix now records113/178storage/specialized projects with an explicit native52-check baseline; this is an inventory tally, not a freshly independently auditedCI acceptance total.234shipping projects remains the product inventory;56are non-storage. Controlled52-check and4-case smoke rows are excluded. A whole-programme CI/source consolidation remains separate.
+The matrix now records113/163storage/specialized projects with an explicit native52-check baseline; this is an inventory tally, not a freshly independently auditedCI acceptance total.238tracked provider projects match the documented selection rules;75matrix rows are non-storage and163storage/specialized. Earlier234/56/178header values were stale. Legacy project variants are included: this is not an active-backend or fully implemented product count. The inventory receipt lists every matched project and role. Controlled52-check and4-case smoke rows are excluded. A whole-programme CI/source consolidation remains separate.
 
 | Provider | Accepted CI | Provider source |
 |---|---|---|

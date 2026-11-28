@@ -1,7 +1,7 @@
 # Provider breadth-first status matrix
 
-Inventory covers **234 shipping provider projects** using the selection rules in `Scripts/Providers/update_provider_matrix.py`.
-Current roles: **56 non-storage**, **178 storage/specialized-storage**. SDK/API source evidence remains unverified for **0** providers; **7** have hash-bound source reviews proving the current adapter is missing.
+Inventory covers **238 tracked provider projects matching the inventory selection rules** using the selection rules in `Scripts/Providers/update_provider_matrix.py`.
+Current roles: **75 non-storage**, **163 storage/specialized-storage**. SDK/API source evidence remains unverified for **0** providers; **7** have hash-bound source reviews proving the current adapter is missing.
 
 Current required storage suite: **core-storage-v2**. Earlier-suite totals remain historical and do not establish a current-suite pass.
 
