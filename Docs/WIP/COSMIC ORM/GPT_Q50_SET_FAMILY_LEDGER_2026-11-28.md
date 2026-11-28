@@ -326,3 +326,16 @@ New backend SQL lowering preserves bounded plain entity sources and post-page en
 - Set+Columns now means an identity-set subtree selected after its own membership/entity stages, followed by selected Stages before outer tuple equality. Source leaf settings remain disallowed on the envelope; selected subtrees cannot acquire a second entity selection. Recursive capture/depth/leaf bounds and one actor/provider/model policy are unchanged.
 - Server SQL lowering now retains this shape for derived/WITH identity results used as selected operands;47 parser controls passed in RAM. WEB6 server drafting guidance and Postman examples updated; browser engines untouched. Existing generic SDK/MCP JSON forwarding uses the same endpoint; dedicated typed gRPC/GraphQL set operations remain OPEN.
 - Representative HTTP journey adds owner/foreign/anonymous requests through both typed and direct SQL paths:14groups/37timings,24authenticated settlements, same1owned record/1write per store. Compiler20/native15/WEB4/cleanup gate pending. Main144/168 extension4/13 unchanged; full parent rows OPEN.
+
+
+### 2026-11-28 — late identity operands native-qualified3/3
+- Exact Rootb23498a594e3d8d27be0d3cc01b4233b2142b09e/Coreb4ddeb4a89482f985a46946116dd5e42a27a45e5 passed46151376266:18compiler/15native, actualWEB4 build and exactcleanup. Selected journey27groups/41timings allthree. Independent owner reviews found no blockers.
+- Artifact15265873063,18,041B/18entries, SHA2563983a7d8f92ee3c05520a6031fe5d5f45090d73b8f90f782c426673f05fa556d inspected in RAM and released. Shared databasecalls0. Native source/occurrence/caller/bound-before-empty checks passed; timings are observations, not benchmarks.
+- Backend JSON/SQL0ce39fef/Coree7dbd42d CI46152193758 remains pending; parser47/review passed. No full-parent credit or new live acceptance yet. Main144/168 extension4/13 unchanged. Hold next Dev batch for the combined qualified source.
+
+
+### 2026-11-28 — Q50/Q51/Q53/Q54 completed, main148/168
+- Exact0ce39fef/Coree7dbd42d passed46152193758:20compiler/15native/WEB4/exactcleanup; backend47parser controls and independent source/scope reviews passed. HTTP14groups/37timings and24settled operations per store; one native provider attempt/receipt each authenticated call, no anonymous reservation.
+- Artifact15267090010,18,455B/18entries,SHA256ffc3c9a483cddb2d89e752ef0db0254639f26c3c089b315c52f25684d4d37a06 verified in RAM, buffer released. Increment source retains fullSetParentsComplete=false; four named rows earn combined-family credit from this gate plus preserved preceding native cohorts, not from rewriting that scoped receipt.
+- Native functional rows4/4 done across3stores; overall148/168 and extension4/13. Dedicated typed gRPC/GraphQL, advanced hosted presets/walkthrough, standalone staged entity SQL and deeper hardening remain separate. No universal EF parity or new hosted acceptance claimed.
+- Peer Developmentd22ee312/Core2d076f7c arrived while CI ran; preserve portal/tariff/framing changes, combine then qualify exact source before Dev push. Next M04 ordinary-class bags/sets uses the existing codec; O03 claimed for session-held transaction design, provisional writes must never publish committed acknowledgements.
