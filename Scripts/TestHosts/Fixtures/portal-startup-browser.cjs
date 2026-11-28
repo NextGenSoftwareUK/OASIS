@@ -252,7 +252,7 @@ async function main(){
    assert.ok(api5);stage='First direct OAPP detail missing record';
    const probePage=await context.newPage();await probePage.goto(origin+'/owned-sdk-host',{waitUntil:'load'});
    const result=await probePage.evaluate(async({base,token,id})=>{
-    const client=new window.STARClient({baseUrl:base,persistSession:false});client.setToken(token);
+    const client=new window.STARClient({persistSession:false});client.setToken(token);
     const response=await client.oAPPs.getOAPP({id});
     return {status:response.statusCode,isError:response.isError,missing:response.result==null,errorCode:response.raw?.errorCode,message:response.message};
    },{base:proxy5Origin,token:ownedToken,id:require('node:crypto').randomUUID()});
