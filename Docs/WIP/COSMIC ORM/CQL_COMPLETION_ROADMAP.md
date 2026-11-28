@@ -1,27 +1,27 @@
 ## Next phases (set by David, 2026-11-26)
 
-Phase 1 is the COSMIC ORM parity checklist (`CQL_PARITY_CHECKLIST.md`): Entity Framework and NHibernate features working natively on MongoDB, SQLite and Neo4j. Status: 130/164.
+Phase 1 is the COSMIC ORM parity checklist (`CQL_PARITY_CHECKLIST.md`): Entity Framework and NHibernate features working natively on MongoDB, SQLite and Neo4j. Maintained checklist: **144/168** main rows verified, with **4/13** extension rows tracked separately (28 November 2026). The historical130/164 count used an older denominator; no rows are removed. See `CQL_PARITY_CHECKLIST.md` and `GPT_COSMIC_CURRENT_STATUS.md` for current native evidence and open scope.
 
-### Phase 2a: SQL-like and free-text queries as API endpoints (do first)
+### Phase 2a: SQL-like and free-text queries as API endpoints — DONE
 
-Today the WEB4 sandbox offers three query modes, but only JSON CQL is a server endpoint:
+SQL compilation and AI question drafting are backend-owned on Development. The browser calls the API; it does not own the parser or prompt engine.
 
-| Mode | Today | Target |
+| Mode | Server endpoint | Execution |
 |---|---|---|
-| JSON CQL | `POST /api/data/query-cql*` | unchanged |
-| SQL-like | browser only (Web4Site `cql-text.js` compiles it to JSON CQL) | `POST /api/data/query-cql/sql`: a server-side parser that compiles to the existing CQL requests |
-| Free text (Ask) | browser only (Web4Site `cql-ask.js`; WEB6 `/v1/complete` turns the question into SQL-like) | `POST /api/data/query-cql/ask`: WEB6 translates on the server, then runs it as SQL-like |
+| JSON CQL | `POST /api/data/query-cql*` | Existing typed provider query paths |
+| SQL-like | `POST /api/data/query-cql/sql` | Server parser compiles to the existing typed requests |
+| Free text / Ask Your Data | `POST /api/data/query-cql/ask` | Server calls WEB6, validates the generated SQL and compiles it through the same parser |
 
-Both new endpoints get the same validation, size limits, idempotency and usage metering as JSON CQL. They are added to the WEB4 SDK, the Postman collection, the Docs site and the STAR CLI (`cql run sql`, `cql ask`). The sandbox page then calls them instead of doing the work in the browser.
+Both text endpoints accept `execute:false` for review without provider execution. Executed requests retain typed-query authorization, usage admission and provider attempt ownership. This completion does not imply full provider feature parity or a new hosted acceptance run.
 
-**Important for all agents (Claude and GPT):** the SQL-like parser and the free-text prompt move into the WEB4 server. The single source of truth becomes the copy inside the ONODE WebAPI (run server-side with an embedded JavaScript engine, so behaviour stays identical to today's sandbox). Do not add features to the browser copies in Web4Site (`cql-text.js`, `cql-ask.js`): new SQL syntax, providers or prompt rules go in the server copy, and the sandbox page is switched to call `/api/data/query-cql/sql` and `/ask`. Any change made only in the browser is lost work.
+**Single source of truth:** `ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/Text/cql-text.js` and `cql-ask.js`, embedded and executed by `CqlTextCompiler.cs`; `CqlTextMiddleware.cs` owns request preparation. New SQL syntax, provider drafting rules and prompt changes belong there. **Do not edit Web4Site `cql-text.js` or `cql-ask.js`.** Browser changes should call these endpoints and render/review their responses. Keep the existing SDK, Postman, docs and STAR CLI contracts synchronized when an endpoint changes.
 
 ### Phase 2b: every parity feature on every provider
 
-- Goal: every checklist feature works on all OASIS providers (about 234 provider projects), not just the three.
+- Goal: every checklist feature works on all OASIS providers (238 tracked provider projects, including legacy variants), not just the three.
 - Native translation where the provider can express it; otherwise a clearly flagged fallback (OASIS reads the records through the provider and evaluates the query in memory). No silent emulation.
 - Providers that cannot store data (read-only chain adapters, "no record store" service providers) support the read-only query kinds only.
-- Tracked as a provider x feature matrix in done/total form. Priority providers first, breadth first. Depends on HyperDrive native storage (about 115/234 providers so far).
+- Tracked as a provider x feature matrix in done/total form. Priority providers first, breadth first. Depends on HyperDrive native storage (122/163 storage-role matrix rows have recorded native core-storage baselines;238tracked projects in total, not238eligible stores or hosted certifications).
 
 ### Phase 2c: native data import and virtual holon mappings on every provider
 
@@ -29,8 +29,8 @@ See `Docs/Devs/NATIVE_DATA_IMPORT.md`.
 
 | Capability | Status | Target |
 |---|---|---|
-| Native data import (`INativeDataImportProvider`: list sources, read pages, holonize with stable ids) | 8/234 providers: MongoDB, SQLite, Neo4j, Azure Cosmos DB, SOLID, ActivityPub, IPFS, Solana | every provider that can expose its own data |
-| Virtual holon mappings (`/api/native-data/{provider}/virtual-mappings/prepare`, `/{id}/query`, `/{id}/snapshot`): query native data in place without importing | 3/234 providers (MongoDB, SQLite, Neo4j), and only whitelisted sandbox demo sources (`CqlV1Providers.VirtualMappings.cs`) | every provider, on any source the user maps (not just the demo sources) |
+| Native data import (`INativeDataImportProvider`: list sources, read pages, holonize with stable ids) | 8/238 tracked projects: MongoDB, SQLite, Neo4j, Azure Cosmos DB, SOLID, ActivityPub, IPFS, Solana | every provider that can expose its own data |
+| Virtual holon mappings (`/api/native-data/{provider}/virtual-mappings/prepare`, `/{id}/query`, `/{id}/snapshot`): query native data in place without importing | 3/238 tracked projects (MongoDB, SQLite, Neo4j), and only whitelisted sandbox demo sources (`CqlV1Providers.VirtualMappings.cs`) | every provider, on any source the user maps (not just the demo sources) |
 
 Same rules as phase 2b: native where possible, a clearly flagged fallback otherwise, tracked as done/total.
 
