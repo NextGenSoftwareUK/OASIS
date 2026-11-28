@@ -1,0 +1,40 @@
+{
+  "date": "2026-11-28",
+  "suite": "actual delivered WEB4 SDK map-purpose native contract",
+  "run": 46153459167,
+  "source": "e60162c2aa1f94298a7cac0d1f8fcedd663df15f",
+  "image": "sha256:0d54d74cb87f16ba9f111f66f49c6757fe7d4d18a25ec253424c34d5b2b0eae6",
+  "portal": "0a3c854185f2b9ae669dcc07733f661a4ae38e22",
+  "sdk": "6795c431c3c3f0eccec6d48215bfce38fa8826b4",
+  "done": 1,
+  "total": 1,
+  "checks": {
+    "actualSdk": true,
+    "jsonStringBody": true,
+    "savedAcknowledgement": true,
+    "persistedPurpose": true,
+    "identityMatched": true,
+    "visitWrites": 1
+  },
+  "artifact": {
+    "id": 15266686174,
+    "bytes": 4295,
+    "sha256": "85cfd8437b38d2a7c105d796d2318b50112886e4bb287a1d4b93ed79147b6e79"
+  },
+  "cleanup": {
+    "ownedContainerAbsent": true,
+    "ownedContainersAbsent": true,
+    "ownedNetworkAbsent": true,
+    "ephemeralDatabaseVolumesRemoved": true,
+    "web5ProcessStopped": true,
+    "web5DnaAbsent": true
+  },
+  "sharedAtlasOperations": 0,
+  "excluded": [
+    "new popup credit",
+    "physical place karma",
+    "hosted",
+    "all seven SDK operations on native backends",
+    "current merged graph acceptance"
+  ]
+}

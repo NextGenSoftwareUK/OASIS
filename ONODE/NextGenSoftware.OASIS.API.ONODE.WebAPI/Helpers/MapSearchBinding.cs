@@ -1,6 +1,5 @@
 using System;
 using Microsoft.AspNetCore.Http;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
@@ -8,12 +7,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
     /// <summary>Map-search transport binding; the host's existing authorization policy remains authoritative.</summary>
     public static class MapSearchBinding
     {
-        public static Guid RequireAvatarId(HttpContext? context)
-        {
-            if (context?.Items["Avatar"] is not IAvatar avatar || avatar.Id == Guid.Empty)
-                throw new InvalidOperationException("The authenticated map avatar is unavailable.");
-            return avatar.Id;
-        }
+        public static Guid RequireAvatarId(HttpContext? context) => AuthenticatedRequestAvatar.RequireId(context);
 
         public static LocationType? ParseLocationType(string? value)
         {

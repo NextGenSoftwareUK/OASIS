@@ -50,7 +50,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                         Message = "Clan name is required."
                     }, HttpStatusCode.BadRequest);
                 }
-                var result = await ClanManager.CreateClanAsync(AvatarId, request.Name.Trim(), request.Description?.Trim());
+                var result = await ClanManager.CreateClanAsync(AvatarId, request.Name.Trim(), request.Description?.Trim(), actingAvatarId: Helpers.AuthenticatedRequestAvatar.RequireId(HttpContext));
                 return HttpResponseHelper.FormatResponse(result);
             }
             catch (Exception ex)
@@ -95,7 +95,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     return HttpResponseHelper.FormatResponse(new OASISResult<IClan> { IsError = true, Message = "Unauthorized. Only the clan owner can update it." }, HttpStatusCode.Unauthorized);
                 clan.Name = request.Name.Trim();
                 clan.Description = request.Description?.Trim() ?? "";
-                var result = await ClanManager.UpdateClanAsync(clan);
+                var result = await ClanManager.UpdateClanAsync(clan, actingAvatarId: Helpers.AuthenticatedRequestAvatar.RequireId(HttpContext));
                 return HttpResponseHelper.FormatResponse(result);
             }
             catch (Exception ex)
@@ -199,7 +199,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 var refusal = await RefuseUnauthorizedClanMutationAsync(clanId, storageProvider);
                 if (refusal != null)
                     return refusal;
-                var result = await ClanManager.DeleteClanAsync(clanId, storageProvider);
+                var result = await ClanManager.DeleteClanAsync(clanId, storageProvider, actingAvatarId: Helpers.AuthenticatedRequestAvatar.RequireId(HttpContext));
                 if (result.IsError && !result.Result)
                     return HttpResponseHelper.FormatResponse(result, HttpStatusCode.NotFound);
                 return HttpResponseHelper.FormatResponse(result);
@@ -228,7 +228,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 var refusal = await RefuseUnauthorizedClanMutationAsync(clanId, storageProvider);
                 if (refusal != null)
                     return refusal;
-                var result = await ClanManager.AddAvatarToClanAsync(clanId, avatarId, storageProvider);
+                var result = await ClanManager.AddAvatarToClanAsync(clanId, avatarId, storageProvider, actingAvatarId: Helpers.AuthenticatedRequestAvatar.RequireId(HttpContext));
                 return HttpResponseHelper.FormatResponse(result);
             }
             catch (Exception ex)
@@ -255,7 +255,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 var refusal = await RefuseUnauthorizedClanMutationAsync(clanId, storageProvider, avatarId);
                 if (refusal != null)
                     return refusal;
-                var result = await ClanManager.RemoveAvatarFromClanAsync(clanId, avatarId, storageProvider);
+                var result = await ClanManager.RemoveAvatarFromClanAsync(clanId, avatarId, storageProvider, actingAvatarId: Helpers.AuthenticatedRequestAvatar.RequireId(HttpContext));
                 return HttpResponseHelper.FormatResponse(result);
             }
             catch (Exception ex)

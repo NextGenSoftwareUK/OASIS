@@ -12,12 +12,12 @@ subprocess.run(['dotnet','test','Providers/Storage/TestProjects/NextGenSoftware.
  '--results-directory',str(RESULTS),'--logger','trx;LogFileName=held-transaction-native.trx'],cwd=ROOT,check=True)
 ns={'t':'http://microsoft.com/schemas/VisualStudio/TeamTest/2010'}
 c=ET.parse(RESULTS/'held-transaction-native.trx').find('.//t:Counters',ns)
-assert c is not None and c.attrib['total']=='4' and c.attrib['passed']=='4' and c.attrib['failed']=='0'
-for store in ['MongoDBOASIS','SQLLiteDBOASIS']:
+assert c is not None and c.attrib['total']=='6' and c.attrib['passed']=='6' and c.attrib['failed']=='0'
+for store in ['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS']:
  r=json.loads((RESULTS/(store+'-held-transaction-native.json')).read_text(encoding='utf-8-sig'))
- assert r['provider']==store and r['checks']==9 and r['ownedCleanupIds']==2 and r['successfulHolonWrites']==2
- assert r['nativeProviderVerified'] and r['exactCleanupVerified'] and len(r['queryElapsedMilliseconds'])==13
- assert set(r['evidence'])=={'heldNativeOwner','provisionalWriteWithoutSavedAcknowledgement','readOwnUncommittedWrites',
+ assert r['provider']==store and r['checks']==10 and r['ownedCleanupIds']==2 and r['successfulHolonWrites']==3
+ assert r['nativeProviderVerified'] and r['exactCleanupVerified'] and len(r['queryElapsedMilliseconds'])==18
+ assert set(r['evidence'])=={'nativeUniqueClaimsShareTransaction','heldNativeOwner','provisionalWriteWithoutSavedAcknowledgement','readOwnUncommittedWrites',
   'outsideReadCannotSeeProvisionalWrites','sequentialNativeRevisionUpdate','immutableProvisionalSnapshots',
   'acknowledgedCommitAndRollback','capturedCallerPolicy','cancelBeforeCommitDoesNotDispatch'} and all(r['evidence'].values())
  old=json.loads((RESULTS/(store+'-held-owner-mixed-uow-native.json')).read_text(encoding='utf-8-sig'))
@@ -27,6 +27,6 @@ subprocess.run(['dotnet','build','ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI',
 def git(*args):return subprocess.check_output(['git',*args],cwd=ROOT,text=True).strip()
 source=git('rev-parse','HEAD');assert source==os.environ['GITHUB_SHA']
 (RESULTS/'source.json').write_text(json.dumps({'source':source,'core':git('-C','OASIS Architecture/NextGenSoftware.OASIS.API.Core','rev-parse','HEAD'),
- 'heldNativeProviders':['MongoDBOASIS','SQLLiteDBOASIS'],'heldProviderDone':2,'heldProviderTotal':3,'nativePassed':4,'provisionalKernelOnly':True,
+ 'heldNativeProviders':['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS'],'heldProviderDone':3,'heldProviderTotal':3,'nativePassed':6,'provisionalKernelOnly':True,
  'publicSessionOwnedWriteEnlistmentComplete':False,'fullO03Complete':False,'actualWeb4Compiled':True,
  'ownedFixturesAbsent':True,'sharedDatabaseCalls':0,'deployed':False},indent=2)+'\n',encoding='utf-8')

@@ -13,96 +13,113 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 
 public partial class Neo4jOASIS : IConditionalHolonUnitOfWorkStorageProvider
 {
-    /// <summary>Mixed saves and deletions in one Neo4j transaction; each half uses the normal atomic write.</summary>
-    public async Task<OASISResult<IEnumerable<IHolon>>> ExecuteConditionalHolonUnitOfWorkAsync(ConditionalHolonUnitOfWorkRequest request,
-        CancellationToken cancellationToken = default)
+    /// <summary>Ordinary UOW owns its commit; held owners reuse exactly the native staging work below.</summary>
+    public async Task<OASISResult<IEnumerable<IHolon>>> ExecuteConditionalHolonUnitOfWorkAsync(
+        ConditionalHolonUnitOfWorkRequest request,CancellationToken cancellationToken=default)
     {
-        static OASISResult<IEnumerable<IHolon>> Error(string code, string message, Exception cause = null)
-            => new() { IsError = true, ErrorCount = 1, ErrorCode = code, Message = message, Exception = cause };
-        if (request == null) return Error("COSMIC_UNIT_OF_WORK_INVALID", "A unit of work is required.");
-        if (request.Write.Authority != Core.Enums.ProviderType.Neo4jOASIS)
-            return Error("COSMIC_AUTHORITY_MISMATCH", "The unit of work belongs to another provider authority.");
-        if (!IsProviderActivated || _driver == null) return Error("COSMIC_AUTHORITY_UNAVAILABLE", "Neo4j provider is not activated.");
-        var (save, delete) = request.CreatePartRequests();
-        if (save == null && delete == null) return Error("COSMIC_UNIT_OF_WORK_INVALID", "A unit of work needs at least one entry.");
-        var expected = request.Write.ReplicationEnrollment?.SourceStorageIdentity;
-        if (expected != null) await _lifecycleGate.WaitAsync(cancellationToken).ConfigureAwait(false);
-        var commitDispatched = false;
+        if(request==null)return NativeUnitOfWorkError("COSMIC_UNIT_OF_WORK_INVALID","A unit of work is required.");
+        if(request.Write.Authority!=Core.Enums.ProviderType.Neo4jOASIS)
+            return NativeUnitOfWorkError("COSMIC_AUTHORITY_MISMATCH","The unit of work belongs to another provider authority.");
+        if(!IsProviderActivated||_driver==null)return NativeUnitOfWorkError("COSMIC_AUTHORITY_UNAVAILABLE","Neo4j provider is not activated.");
+        var binding=request.Write.ReplicationEnrollment?.SourceStorageIdentity;
+        var gateHeld=false;var commitDispatched=false;var rollbackAttempted=false;var acknowledged=false;
+        OASISResult<IEnumerable<IHolon>> result=null;Exception primary=null;
         try
         {
-            await using var session = _driver.AsyncSession();
-            if (request.UniqueKeys.Count > 0)
-                await (await session.RunAsync("CREATE CONSTRAINT cosmic_unique_key IF NOT EXISTS FOR (k:CosmicUniqueKey) REQUIRE k.KeyId IS UNIQUE")
-                    .ConfigureAwait(false)).ConsumeAsync().ConfigureAwait(false);
-            var transaction = await session.BeginTransactionAsync(config => config.WithMetadata(new Dictionary<string, object> {
-                ["COSMIC.OperationId"] = request.Write.OperationId.ToString("D") })).ConfigureAwait(false);
+            if(binding!=null){await _lifecycleGate.WaitAsync(cancellationToken).ConfigureAwait(false);gateHeld=true;}
+            await using var session=_driver.AsyncSession();
+            await using var transaction=await session.BeginTransactionAsync(config=>config.WithMetadata(
+                new Dictionary<string,object>{["COSMIC.OperationId"]=request.Write.OperationId.ToString("D")})).ConfigureAwait(false);
             try
             {
+                var staged=await StageNativeUnitOfWorkAsync(request,transaction,cancellationToken,allowReplay:true).ConfigureAwait(false);
+                result=staged.Result;primary=result?.Exception;
+                if(result==null||result.IsError)
+                {
+                    rollbackAttempted=true;await transaction.RollbackAsync().ConfigureAwait(false);
+                    return result??NativeUnitOfWorkError("COSMIC_CONDITIONAL_WRITE_FAILED","A native unit-of-work stage returned no outcome.");
+                }
                 cancellationToken.ThrowIfCancellationRequested();
-                var parentId = request.Write.OperationId.ToString("D");
-                var parentRows = await (await transaction.RunAsync("MATCH (r:CosmicWriteReceipt {OperationId:$operation}) RETURN r",
-                    new { operation = parentId }).ConfigureAwait(false)).ToListAsync().ConfigureAwait(false);
-                var replay = parentRows.Count == 1;
-                if (replay)
-                {
-                    var stored = parentRows[0]["r"].As<INode>();
-                    if (!stored.Properties.TryGetValue("Fingerprint", out var fingerprint) || (fingerprint as string) != request.ParentFingerprint)
-                    { await transaction.RollbackAsync().ConfigureAwait(false); return Error("COSMIC_OPERATION_ID_REUSED", "This operation ID is bound to different write intent or actor."); }
-                }
-                var results = new List<OASISResult<IEnumerable<IHolon>>>();
-                foreach (var part in new[] { save, delete }.Where(part => part != null))
-                {
-                    var plan = part.Write.ReplicationEnrollment == null ? ConditionalHolonPlan.Create(part, Core.Enums.ProviderType.Neo4jOASIS)
-                        : ConditionalHolonPlan.CreateReplicating(part, Core.Enums.ProviderType.Neo4jOASIS, part.Write.ReplicationEnrollment);
-                    var write = new NeoAtomicHolonWrite(plan, part.Write.ActorId, cancellationToken) {
-                        ExpectedStorage = expected, StorageBindingCodePrefix = "COSMIC_SOURCE_STORAGE_BINDING", Ambient = transaction };
-                    var written = await SaveHolonSnapshotsAsync(part.Roots, false, false, 0, 0, write).ConfigureAwait(false);
-                    if (written == null || written.IsError)
-                    { await transaction.RollbackAsync().ConfigureAwait(false); return written ?? Error("COSMIC_CONDITIONAL_WRITE_FAILED", "A unit-of-work part returned no outcome."); }
-                    if (replay != write.AmbientReplayed)
-                    { await transaction.RollbackAsync().ConfigureAwait(false); return Error("COSMIC_RECEIPT_INVALID", "The unit-of-work receipt and its part receipts disagree."); }
-                    results.Add(written);
-                }
-                if (replay) await transaction.RollbackAsync().ConfigureAwait(false);
-                else
-                {
-                    if (!await ApplyUniqueKeyClaimsAsync(transaction, request).ConfigureAwait(false))
-                    { await transaction.RollbackAsync().ConfigureAwait(false); return Error("COSMIC_UNIQUE_KEY_CONFLICT", "A unique key in this unit of work is already held by another record."); }
-                    await (await transaction.RunAsync("CREATE (r:CosmicWriteReceipt {OperationId:$operation,Fingerprint:$fingerprint,ResultJson:$json,CommittedAtUtc:$now})",
-                        new { operation = parentId, fingerprint = request.ParentFingerprint, now = DateTime.UtcNow.ToString("O"),
-                            json = "{\"kind\":\"" + ConditionalHolonUnitOfWorkRequest.ReceiptKind + "\",\"save\":\"" + request.SaveOperationId.ToString("D")
-                                + "\",\"delete\":\"" + request.DeleteOperationId.ToString("D") + "\"}" }).ConfigureAwait(false)).ConsumeAsync().ConfigureAwait(false);
-                    cancellationToken.ThrowIfCancellationRequested();
-                    commitDispatched = true;
-                    await transaction.CommitAsync().ConfigureAwait(false);
-                }
-                var savedPart = save == null ? null : results[0];
-                var deletedPart = delete == null ? null : results[results.Count - 1];
-                var combined = new OASISResult<IEnumerable<IHolon>>(results.SelectMany(row => row.Result).ToList()) {
-                    IsSaved = true, IsDeleted = deletedPart != null, HasAnyHolonsChanged = true, SavedCount = savedPart?.SavedCount ?? 0, DeletedCount = deletedPart?.DeletedCount ?? 0,
-                    MetaData = new Dictionary<string, string> { ["COSMIC.OperationId"] = parentId,
-                        ["COSMIC.SaveOperationId"] = request.SaveOperationId.ToString("D"), ["COSMIC.DeleteOperationId"] = request.DeleteOperationId.ToString("D") } };
-                foreach (var (part, name) in new[] { (savedPart, "Save"), (deletedPart, "Delete") })
-                    if (part?.MetaData != null)
-                        foreach (var pair in part.MetaData.Where(pair => pair.Key != "COSMIC.OperationId")) combined.MetaData[pair.Key + "." + name] = pair.Value;
-                return combined;
+                if(staged.Replay){rollbackAttempted=true;await transaction.RollbackAsync().ConfigureAwait(false);}
+                else{commitDispatched=true;await transaction.CommitAsync().ConfigureAwait(false);}
+                acknowledged=true;return result;
             }
-            catch (Exception cause) when (!commitDispatched)
+            catch(Exception cause) when(!commitDispatched&&!rollbackAttempted)
             {
-                try { await transaction.RollbackAsync().ConfigureAwait(false); }
-                catch (Exception rollback) { throw new AggregateException(cause, rollback); }
+                try{rollbackAttempted=true;await transaction.RollbackAsync().ConfigureAwait(false);}
+                catch(Exception rollback){throw new AggregateException(cause,rollback);}
                 throw;
             }
-            finally { await transaction.DisposeAsync().ConfigureAwait(false); }
         }
-        catch (Exception cause)
+        catch(Exception cause)
         {
-            return Error(commitDispatched ? "COSMIC_WRITE_RECONCILIATION_REQUIRED"
-                : cause is OperationCanceledException ? "COSMIC_CONDITIONAL_WRITE_CANCELLED" : "COSMIC_CONDITIONAL_WRITE_FAILED",
-                commitDispatched ? "Reconcile the original unit-of-work receipt before another mutation." : "The Neo4j unit of work did not commit.", cause);
+            if(primary!=null&&!ReferenceEquals(primary,cause))cause=new AggregateException(primary,cause);
+            if(acknowledged&&result!=null)
+            {result.IsWarning=true;result.WarningCount++;result.Exception=cause;
+                result.Message="The Neo4j unit of work is acknowledged, but native cleanup failed.";return result;}
+            return NativeUnitOfWorkError(commitDispatched?"COSMIC_WRITE_RECONCILIATION_REQUIRED":
+                cause is OperationCanceledException?"COSMIC_CONDITIONAL_WRITE_CANCELLED":"COSMIC_CONDITIONAL_WRITE_FAILED",
+                commitDispatched?"Reconcile the original unit-of-work receipt before another mutation.":"The Neo4j unit of work did not commit.",cause);
         }
-        finally { if (expected != null) _lifecycleGate.Release(); }
+        finally{if(gateHeld)_lifecycleGate.Release();}
     }
+
+    private async Task<(OASISResult<IEnumerable<IHolon>> Result,bool Replay)> StageNativeUnitOfWorkAsync(
+        ConditionalHolonUnitOfWorkRequest request,IAsyncTransaction transaction,CancellationToken cancellationToken,bool allowReplay)
+    {
+        if(request==null||transaction==null)return(NativeUnitOfWorkError("COSMIC_UNIT_OF_WORK_INVALID","A request and native transaction are required."),false);
+        if(request.Write.Authority!=Core.Enums.ProviderType.Neo4jOASIS)
+            return(NativeUnitOfWorkError("COSMIC_AUTHORITY_MISMATCH","The unit of work belongs to another provider authority."),false);
+        var(save,delete)=request.CreatePartRequests();
+        if(save==null&&delete==null)return(NativeUnitOfWorkError("COSMIC_UNIT_OF_WORK_INVALID","A unit of work needs at least one entry."),false);
+        var expected=request.Write.ReplicationEnrollment?.SourceStorageIdentity;
+        cancellationToken.ThrowIfCancellationRequested();
+        var parentId=request.Write.OperationId.ToString("D");
+        var parents=await(await transaction.RunAsync("MATCH (r:CosmicWriteReceipt {OperationId:$operation}) RETURN r",
+            new{operation=parentId}).ConfigureAwait(false)).ToListAsync().ConfigureAwait(false);
+        if(parents.Count>1)return(NativeUnitOfWorkError("COSMIC_RECEIPT_INVALID","The native operation receipt is not unique."),false);
+        var replay=parents.Count==1;
+        if(replay)
+        {
+            var stored=parents[0]["r"].As<INode>();
+            if(!stored.Properties.TryGetValue("Fingerprint",out var fingerprint)||(fingerprint as string)!=request.ParentFingerprint)
+                return(NativeUnitOfWorkError("COSMIC_OPERATION_ID_REUSED","This operation identity is bound to another write intent or actor."),false);
+            if(!allowReplay)return(NativeUnitOfWorkError("COSMIC_TRANSACTION_OPERATION_ALREADY_COMMITTED","A held transaction requires a fresh operation identity."),true);
+        }
+        var results=new List<OASISResult<IEnumerable<IHolon>>>();
+        foreach(var part in new[]{save,delete}.Where(part=>part!=null))
+        {
+            var plan=part.Write.ReplicationEnrollment==null?ConditionalHolonPlan.Create(part,Core.Enums.ProviderType.Neo4jOASIS)
+                :ConditionalHolonPlan.CreateReplicating(part,Core.Enums.ProviderType.Neo4jOASIS,part.Write.ReplicationEnrollment);
+            var write=new NeoAtomicHolonWrite(plan,part.Write.ActorId,cancellationToken){ExpectedStorage=expected,
+                StorageBindingCodePrefix="COSMIC_SOURCE_STORAGE_BINDING",Ambient=transaction};
+            var written=await SaveHolonSnapshotsAsync(part.Roots,false,false,0,0,write).ConfigureAwait(false);
+            if(written==null||written.IsError)return(written??NativeUnitOfWorkError("COSMIC_CONDITIONAL_WRITE_FAILED","A unit-of-work part returned no outcome."),replay);
+            if(replay!=write.AmbientReplayed)return(NativeUnitOfWorkError("COSMIC_RECEIPT_INVALID","The parent and part receipts disagree."),replay);
+            results.Add(written);
+        }
+        if(!replay)
+        {
+            if(!await ApplyUniqueKeyClaimsAsync(transaction,request).ConfigureAwait(false))
+                return(NativeUnitOfWorkError("COSMIC_UNIQUE_KEY_CONFLICT","A unique key is already held by another record."),false);
+            await(await transaction.RunAsync("CREATE (r:CosmicWriteReceipt {OperationId:$operation,Fingerprint:$fingerprint,ResultJson:$json,CommittedAtUtc:$now})",
+                new{operation=parentId,fingerprint=request.ParentFingerprint,now=DateTime.UtcNow.ToString("O"),
+                    json=System.Text.Json.JsonSerializer.Serialize(new{kind=ConditionalHolonUnitOfWorkRequest.ReceiptKind,
+                        save=request.SaveOperationId.ToString("D"),delete=request.DeleteOperationId.ToString("D")})}).ConfigureAwait(false)).ConsumeAsync().ConfigureAwait(false);
+        }
+        cancellationToken.ThrowIfCancellationRequested();
+        var saved=save==null?null:results[0];var deleted=delete==null?null:results[results.Count-1];
+        var combined=new OASISResult<IEnumerable<IHolon>>(results.SelectMany(item=>item.Result).ToList()){
+            IsSaved=true,IsDeleted=deleted!=null,HasAnyHolonsChanged=true,SavedCount=saved?.SavedCount??0,DeletedCount=deleted?.DeletedCount??0,
+            IsWarning=results.Any(item=>item.IsWarning),WarningCount=results.Sum(item=>item.WarningCount),
+            MetaData=new Dictionary<string,string>{["COSMIC.OperationId"]=parentId,["COSMIC.SaveOperationId"]=request.SaveOperationId.ToString("D"),
+                ["COSMIC.DeleteOperationId"]=request.DeleteOperationId.ToString("D")}};
+        foreach(var(part,name)in new[]{(saved,"Save"),(deleted,"Delete")})
+            if(part?.MetaData!=null)foreach(var pair in part.MetaData.Where(pair=>pair.Key!="COSMIC.OperationId"))combined.MetaData[pair.Key+"."+name]=pair.Value;
+        return(combined,replay);
+    }
+    private static OASISResult<IEnumerable<IHolon>> NativeUnitOfWorkError(string code,string message,Exception cause=null)
+        =>new(){IsError=true,ErrorCount=1,ErrorCode=code,Message=message,Exception=cause};
 
     /// <summary>M10 claims in the unit-of-work transaction; the KeyId constraint rejects racing claims.</summary>
     private static async Task<bool> ApplyUniqueKeyClaimsAsync(IAsyncTransaction transaction, ConditionalHolonUnitOfWorkRequest request)

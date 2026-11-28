@@ -74,7 +74,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
             {
                 if (!Guid.TryParse(request.OwnerAvatarId, out var ownerId))
                     return new JsonResponse { IsError = true, Message = "Invalid owner avatar ID." };
-                var result = await ClanManager.Instance.CreateClanAsync(ownerId, request.Name, string.IsNullOrWhiteSpace(request.Description) ? null : request.Description);
+                var result = await ClanManager.Instance.CreateClanAsync(ownerId, request.Name, string.IsNullOrWhiteSpace(request.Description) ? null : request.Description, actingAvatarId: Helpers.AuthenticatedRequestAvatar.RequireId(context.GetHttpContext()));
                 return result.IsError
                     ? new JsonResponse { IsError = true, Message = result.Message }
                     : new JsonResponse { Json = JsonSerializer.Serialize(result.Result) };
@@ -88,7 +88,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
             {
                 if (!Guid.TryParse(request.ClanId, out var clanId))
                     return new OASISGrpcResponse { IsError = true, Message = "Invalid clan ID." };
-                var result = await ClanManager.Instance.DeleteClanAsync(clanId);
+                var result = await ClanManager.Instance.DeleteClanAsync(clanId, actingAvatarId: Helpers.AuthenticatedRequestAvatar.RequireId(context.GetHttpContext()));
                 return result.IsError ? new OASISGrpcResponse { IsError = true, Message = result.Message } : new OASISGrpcResponse();
             }
             catch (Exception ex) { return new OASISGrpcResponse { IsError = true, Message = ex.Message }; }
@@ -100,7 +100,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
             {
                 if (!Guid.TryParse(request.ClanId, out var clanId)) return new OASISGrpcResponse { IsError = true, Message = "Invalid clan ID." };
                 if (!Guid.TryParse(request.AvatarId, out var avatarId)) return new OASISGrpcResponse { IsError = true, Message = "Invalid avatar ID." };
-                var result = await ClanManager.Instance.AddAvatarToClanAsync(clanId, avatarId);
+                var result = await ClanManager.Instance.AddAvatarToClanAsync(clanId, avatarId, actingAvatarId: Helpers.AuthenticatedRequestAvatar.RequireId(context.GetHttpContext()));
                 return result.IsError ? new OASISGrpcResponse { IsError = true, Message = result.Message } : new OASISGrpcResponse();
             }
             catch (Exception ex) { return new OASISGrpcResponse { IsError = true, Message = ex.Message }; }
@@ -112,7 +112,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
             {
                 if (!Guid.TryParse(request.ClanId, out var clanId)) return new OASISGrpcResponse { IsError = true, Message = "Invalid clan ID." };
                 if (!Guid.TryParse(request.AvatarId, out var avatarId)) return new OASISGrpcResponse { IsError = true, Message = "Invalid avatar ID." };
-                var result = await ClanManager.Instance.RemoveAvatarFromClanAsync(clanId, avatarId);
+                var result = await ClanManager.Instance.RemoveAvatarFromClanAsync(clanId, avatarId, actingAvatarId: Helpers.AuthenticatedRequestAvatar.RequireId(context.GetHttpContext()));
                 return result.IsError ? new OASISGrpcResponse { IsError = true, Message = result.Message } : new OASISGrpcResponse();
             }
             catch (Exception ex) { return new OASISGrpcResponse { IsError = true, Message = ex.Message }; }
@@ -124,7 +124,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
             {
                 if (!Guid.TryParse(request.SenderAvatarId, out var senderId)) return new OASISGrpcResponse { IsError = true, Message = "Invalid sender avatar ID." };
                 if (!Guid.TryParse(request.ClanId, out var clanId)) return new OASISGrpcResponse { IsError = true, Message = "Invalid clan ID." };
-                var result = await ClanManager.Instance.SendItemToClanAsync(senderId, clanId, request.ItemName, request.Quantity);
+                var result = await ClanManager.Instance.SendItemToClanAsync(senderId, clanId, request.ItemName, request.Quantity, actingAvatarId: Helpers.AuthenticatedRequestAvatar.RequireId(context.GetHttpContext()));
                 return result.IsError ? new OASISGrpcResponse { IsError = true, Message = result.Message } : new OASISGrpcResponse();
             }
             catch (Exception ex) { return new OASISGrpcResponse { IsError = true, Message = ex.Message }; }

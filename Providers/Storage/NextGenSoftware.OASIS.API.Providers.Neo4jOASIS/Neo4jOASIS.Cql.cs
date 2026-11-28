@@ -43,7 +43,7 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider, ICosmicJoinFetchS
     private async Task<OASISResult<CqlReadOutcome>> ExecuteCqlReadAsync<T>(CosmicQueryPlan<T> plan,
         int maximumResults, CancellationToken cancellationToken, CosmicEntityCompositionPlan<T> composition=null,
         bool countOnly=false,CosmicSetQueryPlan<T> set=null,Action<string,IReadOnlyDictionary<string,object>> explain=null,
-        NeoCqlJoinFetch joinFetch=null) where T:IHolon
+        NeoCqlJoinFetch joinFetch=null,NeoHeldTransactionCommands held=null) where T:IHolon
     {
         OASISResult<CqlReadOutcome> Error(string code,string message,Exception cause=null)
             => new(){IsError=true,ErrorCount=1,ErrorCode=code,Message=message,Exception=cause};
@@ -135,34 +135,44 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider, ICosmicJoinFetchS
             if(explain!=null){explain(query,translator.Parameters);return new OASISResult<CqlReadOutcome>(new CqlReadOutcome(Array.Empty<IHolon>())){IsLoaded=true};}
             using var budget=readBudget=new NeoCqlReadBudget(plan.Query.GraphOptions?.MaximumPayloadBytes??32*1024*1024,cancellationToken);
             budget.Check();
-            await using var readOwner = await LeaseCqlReadAsync(budget.Token).ConfigureAwait(false);
-            using var session = readOwner.Driver.AsyncSession(config => config.WithDefaultAccessMode(AccessMode.Read));
-            using var transaction = await session.BeginTransactionAsync(config => config.WithTimeout(TimeSpan.FromSeconds(30))).ConfigureAwait(false);
-            budget.Check();
-            if (joinFetch != null) joinFetch.NativeCommands++;
-            var cursor = await transaction.RunAsync(query, translator.Parameters).ConfigureAwait(false);
-            long nativeCount=0;
-            var options=composition?.Options??(set==null?null:new CosmicEntityCompositionOptions(
-                Math.Max(set.Options.MaximumLeftInputRows,set.Options.MaximumRightInputRows),set.Options.MaximumInputPayloadBytes));
-            var rows=await ReadCqlRowsAsync(cursor,joinFetch==null?rootBudget:rootBudget+1,budget,options,
-                countOnly ? new Action<long>(count=>nativeCount=count) : null,
-                set==null?null:checked((int)set.MaximumLeafRows),joinFetch?.Children).ConfigureAwait(false);
-            if(!countOnly && plan.Query.GraphOptions!=null)
+            async Task<OASISResult<CqlReadOutcome>> ReadWithinOwner(IAsyncTransaction readTransaction)
             {
-                Task<IReadOnlyList<IHolon>> ReadChildren(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.CosmicQueryChildSelection selection,CancellationToken token)
-                    => ReadCqlChildrenAsync(selection,transaction,budget);
-                var graph=plan.Query.ReadAccess==null
-                    ? await NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonGraphQueryExpansion.ExpandAsync(
-                        rows,plan.Query.GraphOptions,ReadChildren,cancellationToken,budget.Check).ConfigureAwait(false)
-                    : await NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonGraphQueryExpansion.ExpandAsync(
-                        rows,plan.Query.GraphOptions,plan.Query.ReadAccess,ReadChildren,cancellationToken,budget.Check).ConfigureAwait(false);
-                if(graph.IsError)return Core.Helpers.OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(graph,new OASISResult<CqlReadOutcome>());
-                rows=graph.Result;
+                budget.Check();
+                if (joinFetch != null) joinFetch.NativeCommands++;
+                var cursor = await readTransaction.RunAsync(query, translator.Parameters).ConfigureAwait(false);
+                long nativeCount=0;
+                var options=composition?.Options??(set==null?null:new CosmicEntityCompositionOptions(
+                    Math.Max(set.Options.MaximumLeftInputRows,set.Options.MaximumRightInputRows),set.Options.MaximumInputPayloadBytes));
+                var rows=await ReadCqlRowsAsync(cursor,joinFetch==null?rootBudget:rootBudget+1,budget,options,
+                    countOnly ? new Action<long>(count=>nativeCount=count) : null,
+                    set==null?null:checked((int)set.MaximumLeafRows),joinFetch?.Children).ConfigureAwait(false);
+                if(!countOnly && plan.Query.GraphOptions!=null)
+                {
+                    Task<IReadOnlyList<IHolon>> ReadChildren(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.CosmicQueryChildSelection selection,CancellationToken token)
+                        => ReadCqlChildrenAsync(selection,readTransaction,budget);
+                    var graph=plan.Query.ReadAccess==null
+                        ? await NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonGraphQueryExpansion.ExpandAsync(
+                            rows,plan.Query.GraphOptions,ReadChildren,cancellationToken,budget.Check).ConfigureAwait(false)
+                        : await NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonGraphQueryExpansion.ExpandAsync(
+                            rows,plan.Query.GraphOptions,plan.Query.ReadAccess,ReadChildren,cancellationToken,budget.Check).ConfigureAwait(false);
+                    if(graph.IsError)return Core.Helpers.OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(graph,new OASISResult<CqlReadOutcome>());
+                    rows=graph.Result;
+                }
+                budget.Check();
+                return new OASISResult<CqlReadOutcome>(new CqlReadOutcome(rows,nativeCount)) { IsLoaded = true };
             }
-            budget.Check();
-            await transaction.CommitAsync().ConfigureAwait(false);
-            budget.Check();
-            return new OASISResult<CqlReadOutcome>(new CqlReadOutcome(rows,nativeCount)) { IsLoaded = true };
+            if(held!=null)
+            {
+                if(!ReferenceEquals(_driver,held.Driver)||plan.Query.ReadAccess==null||!plan.Query.ReadAccess.SamePolicy(held.Access))
+                    return Error("COSMIC_TRANSACTION_SCOPE_INVALID","The held Neo4j read changed its source driver or actor policy.");
+                return await ReadWithinOwner(held.Transaction).ConfigureAwait(false);
+            }
+            await using var readOwner=await LeaseCqlReadAsync(budget.Token).ConfigureAwait(false);
+            using var session=readOwner.Driver.AsyncSession(config=>config.WithDefaultAccessMode(AccessMode.Read));
+            using var transaction=await session.BeginTransactionAsync(config=>config.WithTimeout(TimeSpan.FromSeconds(30))).ConfigureAwait(false);
+            var result=await ReadWithinOwner(transaction).ConfigureAwait(false);
+            if(result.IsError)return result;
+            budget.Check();await transaction.CommitAsync().ConfigureAwait(false);budget.Check();return result;
         }
         catch (Exception cause) when (cancellationToken.IsCancellationRequested)
         { return Error("CQL_QUERY_CANCELLED", "Neo4j CQL read was cancelled.", cause); }

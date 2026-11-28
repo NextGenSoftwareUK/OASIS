@@ -88,7 +88,7 @@ public partial class HolonRepository
         try
         {
             session.StartTransaction(new TransactionOptions(readConcern:ReadConcern.Snapshot,
-                writeConcern:WriteConcern.WMajority.With(journal:true)));
+                writeConcern:WriteConcern.WMajority.With(journal:true),readPreference:ReadPreference.Primary));
             return session;
         }
         catch{session.Dispose();throw;}

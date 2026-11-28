@@ -8,12 +8,12 @@ using NextGenSoftware.OASIS.API.DNA;
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 public sealed partial class CqlV1Web4NativeTests
 {
-    [DataTestMethod] [DataRow("MongoDBOASIS")] [DataRow("SQLLiteDBOASIS")]
+    [DataTestMethod] [DataRow("MongoDBOASIS")] [DataRow("SQLLiteDBOASIS")] [DataRow("Neo4jOASIS")]
     public Task NativeHeldOwnerPreservesExistingMixedUnitOfWork(string providerName)
         =>RunGroupedDistinctNativeFixture(providerName,false,nativeJourney:VerifyMixedUnitOfWorkJourney,
             nativeJourneySuffix:"-held-owner-mixed-uow-native.json");
 
-    [DataTestMethod] [DataRow("MongoDBOASIS")] [DataRow("SQLLiteDBOASIS")]
+    [DataTestMethod] [DataRow("MongoDBOASIS")] [DataRow("SQLLiteDBOASIS")] [DataRow("Neo4jOASIS")]
     public Task NativeHeldTransactionsKeepProvisionalWritesAndReadsInsideOneOwner(string providerName)
         =>RunGroupedDistinctNativeFixture(providerName,false,nativeJourney:VerifyHeldTransactionJourney,
             nativeJourneySuffix:"-held-transaction-native.json");
@@ -33,9 +33,11 @@ public sealed partial class CqlV1Web4NativeTests
             var row=new Holon{Id=Guid.NewGuid(),Name=name,CreatedByAvatarId=actor,CreatedDate=DateTime.UtcNow,
                 IsActive=true,IsPublic=false,IsNewHolon=true,Version=1,VersionId=Guid.NewGuid()};owned.Add(row.Id);return row;
         }
-        ConditionalHolonUnitOfWorkRequest Write(Holon row,Guid? revision=null)=>new(
+        var keyScope="held_"+Guid.NewGuid().ToString("N");var nativeKeys=(ICosmicUniqueKeyStorageProvider)provider;
+        ConditionalHolonUnitOfWorkRequest Write(Holon row,Guid? revision=null,bool delete=false)=>new(
             new ConditionalHolonWrite(Guid.NewGuid(),actor,authority,new[]{new HolonWriteCondition(row.Id,revision)}),
-            new[]{new ConditionalHolonUnitOfWorkEntry(row,ConditionalHolonOperation.Save)});
+            new[]{new ConditionalHolonUnitOfWorkEntry(row,delete?ConditionalHolonOperation.HardDelete:ConditionalHolonOperation.Save)},
+            uniqueKeys:delete?null:new[]{new CosmicUniqueKeyClaim(row.Id,keyScope,row.Id.ToString("N"))});
         CosmicQuery<Holon> Query(Guid id,CosmicQueryReadAccess policy)=>CosmicQuery<Holon>.Create(scope)
             .WithReadAccess(policy).Result.Where(row=>row.Id==id).Result.Take(2).Result;
         async Task<IReadOnlyList<Holon>> Outside(Guid id)
@@ -68,7 +70,9 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.AreEqual(2,committed.Result.Operations.Count);Assert.AreEqual(CosmicNativeTransactionState.Committed,transaction.State);
             Assert.IsTrue((await transaction.CommitAsync()).IsError,"Never replay a committed native transaction.");
         }
-        Assert.AreEqual("held-updated",(await Timed("held-outside-after-commit",()=>Outside(first.Id))).Single().Name);
+        var final=(await Timed("held-outside-after-commit",()=>Outside(first.Id))).Single();Assert.AreEqual("held-updated",final.Name);
+        var claimed=await Timed("held-key-after-commit",()=>nativeKeys.FindUniqueKeyHolderAsync(keyScope,first.Id.ToString("N")));
+        Assert.IsFalse(claimed.IsError,claimed.Message+claimed.Exception);Assert.AreEqual(first.Id,claimed.Result);
         var rollback=await CosmicNativeTransaction.BeginAsync(manager,adapter,access);Assert.IsFalse(rollback.IsError,rollback.Message+rollback.Exception);
         await using(var transaction=rollback.Result)
         {
@@ -81,6 +85,8 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.IsTrue((await transaction.ReadAsync(Query(second.Id,access),4)).IsError);
         }
         Assert.AreEqual(0,(await Timed("held-outside-after-rollback",()=>Outside(second.Id))).Count);
+        var absentKey=await Timed("held-key-after-rollback",()=>nativeKeys.FindUniqueKeyHolderAsync(keyScope,second.Id.ToString("N")));
+        Assert.IsFalse(absentKey.IsError,absentKey.Message+absentKey.Exception);Assert.AreEqual(Guid.Empty,absentKey.Result);
         var foreignAccess=CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result;
         var foreign=await CosmicNativeTransaction.BeginAsync(manager,adapter,foreignAccess);Assert.IsFalse(foreign.IsError,foreign.Message+foreign.Exception);
         await using(var transaction=foreign.Result)
@@ -93,7 +99,17 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.AreEqual(CosmicNativeTransactionState.Active,transaction.State);
             Assert.IsFalse((await Timed("held-foreign-rollback",()=>transaction.RollbackAsync())).IsError);
         }
-        return new NativeFixtureJourneyProof(9,2,new Dictionary<string,bool>{["heldNativeOwner"]=true,["provisionalWriteWithoutSavedAcknowledgement"]=true,
+        var cleanup=await CosmicNativeTransaction.BeginAsync(manager,adapter,access);Assert.IsFalse(cleanup.IsError,cleanup.Message+cleanup.Exception);
+        await using(var transaction=cleanup.Result)
+        {
+            var revision=CosmicConcurrency.GetProviderRevisionId(final,authority);Assert.IsTrue(revision.HasValue);
+            var deleted=await Timed("held-delete-stage",()=>transaction.StageAsync(Write(final,revision,true)));
+            Assert.IsFalse(deleted.IsError,deleted.Message+deleted.Exception);Assert.IsFalse(deleted.IsSaved);
+            var committed=await Timed("held-delete-commit",()=>transaction.CommitAsync());Assert.IsFalse(committed.IsError,committed.Message+committed.Exception);Assert.IsTrue(committed.IsSaved);
+        }
+        var released=await Timed("held-key-after-delete",()=>nativeKeys.FindUniqueKeyHolderAsync(keyScope,first.Id.ToString("N")));
+        Assert.IsFalse(released.IsError,released.Message+released.Exception);Assert.AreEqual(Guid.Empty,released.Result);
+        return new NativeFixtureJourneyProof(10,3,new Dictionary<string,bool>{["nativeUniqueClaimsShareTransaction"]=true,["heldNativeOwner"]=true,["provisionalWriteWithoutSavedAcknowledgement"]=true,
             ["readOwnUncommittedWrites"]=true,["outsideReadCannotSeeProvisionalWrites"]=true,["sequentialNativeRevisionUpdate"]=true,
             ["immutableProvisionalSnapshots"]=true,["acknowledgedCommitAndRollback"]=true,["capturedCallerPolicy"]=true,["cancelBeforeCommitDoesNotDispatch"]=true});
     }
