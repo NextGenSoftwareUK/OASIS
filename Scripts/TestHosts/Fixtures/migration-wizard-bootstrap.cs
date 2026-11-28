@@ -25,7 +25,7 @@ try
     var saved=await provider.SaveAvatarAsync(loaded.Result);
     if(saved.IsError || !saved.IsSaved || saved.Result?.Id!=id || saved.Result.AvatarType?.Value!=AvatarType.Wizard) throw new InvalidOperationException();
     stage="NATIVE_DEACTIVATION";
-    var closed=await provider.DeactivateProviderAsync();if(closed.IsError) throw new InvalidOperationException();provider=null;
+    var closed=await provider.DeActivateProviderAsync();if(closed.IsError) throw new InvalidOperationException();provider=null;
     Console.WriteLine("OWNED_WIZARD_NATIVE_PROVIDER_SEED");return 0;
 }
 catch
@@ -34,5 +34,5 @@ catch
 }
 finally
 {
-    if(provider!=null)await provider.DeactivateProviderAsync();
+    if(provider!=null)await provider.DeActivateProviderAsync();
 }
