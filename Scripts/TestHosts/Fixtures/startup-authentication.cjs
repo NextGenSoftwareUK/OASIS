@@ -10,7 +10,8 @@ async function createOwnedAvatar(base,readOwnedVerificationToken){
  async function call(label,method,endpoint,body,token,wrapped=false){
   stage=label;
   const response=await fetch(base+endpoint,{method,signal:AbortSignal.timeout(20000),
-   headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},
+   headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{}),
+    ...(body?.operationId?{'Idempotency-Key':body.operationId}:{})},
    ...(body===undefined?{}:{body:JSON.stringify(body)})});
   let json;
   try { json=await response.json(); }
