@@ -103,10 +103,18 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.AreEqual(0,SelectedCountProbe.ConstructorCalls,"Native selected counts must not construct selected objects.");
         var foreignCount=await Timed("selected-foreign-native-count",()=>manager.ExecuteProjectedSetCountQueryAsync(Plan(foreignTree),new[]{adapter}));
         Assert.IsFalse(foreignCount.IsError,foreignCount.Message+foreignCount.Exception);Assert.AreEqual(0L,foreignCount.Result.Providers.Single().Value);
+        var sa=CosmicLinq.Create(manager,adapter,EntitySource(access,0),maximumResults:4).Result.Select(row=>row.Description);
+        var sb=CosmicLinq.Create(manager,adapter,EntitySource(access,1),maximumResults:4).Result.Select(row=>row.Description);
+        var sc=CosmicLinq.Create(manager,adapter,EntitySource(access,2),maximumResults:4).Result.Select(row=>row.Description);
+        var scalars=sa.Concat(sb).Take(3).Concat(sc);
+        var minimum=await Timed("selected-min-after-window",()=>scalars.Skip(1).Take(1).ToCosmicMinAsync());
+        Assert.IsFalse(minimum.IsError,minimum.Message+minimum.Exception);Assert.AreEqual("y",minimum.Result);
+        var maximum=await Timed("selected-native-max",()=>scalars.ToCosmicMaxAsync());
+        Assert.IsFalse(maximum.IsError,maximum.Message+maximum.Exception);Assert.AreEqual("z",maximum.Result);
         using var cancel=new CancellationTokenSource();cancel.Cancel();
         var stopped=await Timed("selected-cancel",()=>manager.ExecuteProjectedSetQueryAsync(Plan(query),new[]{adapter},10,cancellationToken:cancel.Token));
         Assert.IsTrue(stopped.IsError);Assert.AreEqual("CQL_QUERY_CANCELLED",stopped.ErrorCode);
-        return new NativeFixtureJourneyProof(14,1,new Dictionary<string,bool>{["nativeCountIndependentOfPublication"]=true,["nativeCardinalityWithoutConstructors"]=true,["foreignNativeCount"]=true,["registeredLinqLeftTree"]=true,["registeredLinqRightTree"]=true,["explicitTreeAdmission"]=true,["concatOccurrences"]=true,
+        return new NativeFixtureJourneyProof(15,1,new Dictionary<string,bool>{["nativeScalarExtremaAfterWindows"]=true,["nativeCountIndependentOfPublication"]=true,["nativeCardinalityWithoutConstructors"]=true,["foreignNativeCount"]=true,["registeredLinqLeftTree"]=true,["registeredLinqRightTree"]=true,["explicitTreeAdmission"]=true,["concatOccurrences"]=true,
             ["visibleTupleUnion"]=true,["visibleTupleIntersectExcept"]=true,["nodeWindows"]=true,["rightNested"]=true,
             ["foreignIsolation"]=true,["childBoundBeforeEmpty"]=true,["cancellation"]=true});
     }

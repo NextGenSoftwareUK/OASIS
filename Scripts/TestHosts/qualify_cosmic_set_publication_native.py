@@ -39,15 +39,15 @@ for store in ['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS']:
  assert flat['concatMultiplicityVerified'] and flat['nullTupleCellVerified'] and flat['foreignRowsHiddenVerified']
 for store in ['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS']:
  selected=json.loads((RESULTS/(store+'-recursive-selected-set-native.json')).read_text(encoding='utf-8-sig'))
- assert selected['provider']==store and selected['checks']==14 and selected['ownedCleanupIds']==4 and selected['successfulHolonWrites']==1
- assert selected['nativeProviderVerified'] and selected['exactCleanupVerified'] and len(selected['queryElapsedMilliseconds'])==17
- assert set(selected['evidence'])=={'nativeCountIndependentOfPublication','nativeCardinalityWithoutConstructors','foreignNativeCount','registeredLinqLeftTree','registeredLinqRightTree','explicitTreeAdmission','concatOccurrences','visibleTupleUnion','visibleTupleIntersectExcept','nodeWindows','rightNested','foreignIsolation','childBoundBeforeEmpty','cancellation'} and all(selected['evidence'].values())
+ assert selected['provider']==store and selected['checks']==15 and selected['ownedCleanupIds']==4 and selected['successfulHolonWrites']==1
+ assert selected['nativeProviderVerified'] and selected['exactCleanupVerified'] and len(selected['queryElapsedMilliseconds'])==19
+ assert set(selected['evidence'])=={'nativeScalarExtremaAfterWindows','nativeCountIndependentOfPublication','nativeCardinalityWithoutConstructors','foreignNativeCount','registeredLinqLeftTree','registeredLinqRightTree','explicitTreeAdmission','concatOccurrences','visibleTupleUnion','visibleTupleIntersectExcept','nodeWindows','rightNested','foreignIsolation','childBoundBeforeEmpty','cancellation'} and all(selected['evidence'].values())
 subprocess.run(['dotnet','build','ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI',*BOUNDS],cwd=ROOT,check=True)
 def git(*args):
  return subprocess.check_output(['git',*args],cwd=ROOT,text=True).strip()
 source=git('rev-parse','HEAD')
 assert source==os.environ['GITHUB_SHA']
 proof={'source':source,'core':git('-C','OASIS Architecture/NextGenSoftware.OASIS.API.Core','rev-parse','HEAD'),
- 'nativePassed':12,'nativeSetPublicationCountsVerified':True,'nativeRecursiveEntitySetProviders':['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS'],'nativeRecursiveSelectedSetProviders':['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS'],'nativeSelectedSetCountVerified':True,'fullSetParentsComplete':False,'actualWeb4Compiled':True,'ownedFixturesAbsent':True,
+ 'nativePassed':12,'nativeSetPublicationCountsVerified':True,'nativeRecursiveEntitySetProviders':['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS'],'nativeRecursiveSelectedSetProviders':['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS'],'nativeSelectedSetCountVerified':True,'nativeSelectedSetScalarExtremaVerified':True,'fullSetParentsComplete':False,'actualWeb4Compiled':True,'ownedFixturesAbsent':True,
  'sharedDatabaseCalls':0,'deployed':False}
 (RESULTS/'source.json').write_text(json.dumps(proof,indent=2)+'\n',encoding='utf-8')
