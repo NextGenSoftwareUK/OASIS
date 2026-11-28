@@ -3135,3 +3135,15 @@ Claimed unaccepted ONET popup scope before implementation; CI46132765901runs one
 ## 2026-11-28 — ONET native browser acceptance
 
 CI46133501110passed1/1new ONET journey on real immutable fbea WEB4/native Mongo and portalfe794415: password-issued Wizard, initial status/statistics, empty peer list, active ONODE/topology reads, one actual local start and stop with independent status reads, normal close. Artifact15259220405(4838bytes) inspected in RAM: all5Startup cleanup conditions true, package container absent. Workflow runtime/cache/TLS absence check passed; bootstrap private outputs removed immediately and copied entry DLL removed with owned API. No shared Atlas, public peer, source/deployed DNA change, local runtime/download/build/database/result or new owner action. Peer connect/disconnect/broadcast, HoloNET mode and hosted deployment remain separate. Native storage baseline123/163unchanged; whole OPORTAL and automatic HyperDrive gates open.
+
+
+## 2026-11-28 — Holon Diff breadth source recovery
+
+Recovered lost STAR0bc4d64f shared startup/demo-substitution fix while preserving newer public visibility/PublishById behavior. Paired STARbda2d2a8 in source233dad7b, dependency validator7Dockerfiles passed. Added one unaccepted native browser journey only: cold history, two real metadata publications, version comparison and stored-ID seals. JavaScript/Python syntax passed; runtime/acceptance pending. No local downloads/runtime/env/database/build/results; Git private index removed in finally. Remote disposable data/output uses existing owned cleanup. Native123/163unchanged, no global/whole-site claim or owner action.
+
+
+## 2026-11-28 — Holon publication diagnostic
+
+46134066175compiled current Core72245df5/STARbda2d2a8 and passed cold native history/typed create, but first real metadata publication returned IsError. No published comparison acceptance inferred. Add one bounded sanitized message to the existing HTTP facts;46134706515diagnoses that same failed path, not an accepted-flow replay. Artifact15259007014all5cleanup flags true; workflow publish/browser/cache/TLS absence verified in successful cleanup step. No local downloads/runtime/build/database/results or owner action. Automatic/whole-portal gates remain open,123/163native baseline unchanged.
+
+2026-11-28:Corec0e8f2b8 recognizes the two real metadata read tariff names used by publication. New WEB5 fixture config only; unchanged WEB4 image gets no unsupported tariff. Last46135304200failed at that old-image tariff validation before browser; cleanup15259089049all5true. No mocks, billing guard bypass, source/deployed DNA setting change, shared Atlas or local runtime outputs. Current CQL49f8f1c7/Core551ac0d8 preserved.

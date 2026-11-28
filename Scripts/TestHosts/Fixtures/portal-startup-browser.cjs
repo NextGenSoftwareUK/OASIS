@@ -9,11 +9,12 @@ async function main(){
  const api=new URL(process.env.OASIS_STARTUP_API_URL);assert.equal(api.hostname,'127.0.0.1');assert.equal(api.protocol,'http:');
  const api5=process.env.OASIS_STARTUP_WEB5_URL?new URL(process.env.OASIS_STARTUP_WEB5_URL):null;
  const popupGroup=process.env.OASIS_STARTUP_POPUP_GROUP||'none';
- assert.ok(['none','onet','web5-errors','provider-migration','web5-depth','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data','social-activity','account-recovery'].includes(popupGroup));
- const selectedPopups=popupGroup==='onet'?['ONET']:popupGroup==='web5-errors'?['CatalogueErrors']:popupGroup==='provider-migration'?['Migration']:popupGroup==='web5-depth'?['OappMap','Launcher']:popupGroup==='account-recovery'?['AccountRecovery']:popupGroup==='social-activity'?['SocialGraph','ActivityFeed']:popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
+ assert.ok(['none','onet','web5-diff','web5-errors','provider-migration','web5-depth','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data','social-activity','account-recovery'].includes(popupGroup));
+ const selectedPopups=popupGroup==='onet'?['ONET']:popupGroup==='web5-diff'?['HolonDiff']:popupGroup==='web5-errors'?['CatalogueErrors']:popupGroup==='provider-migration'?['Migration']:popupGroup==='web5-depth'?['OappMap','Launcher']:popupGroup==='account-recovery'?['AccountRecovery']:popupGroup==='social-activity'?['SocialGraph','ActivityFeed']:popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
   popupGroup==='data-messaging'?['Data','Messaging']:
   popupGroup==='none'?[]:[{nft:'NFT',data:'Data','data-crud':'DataWrite','data-edit':'DataWrite','files-write':'FilesWrite','map-route':'MapRoute',messaging:'Messaging','messaging-read':'MessagingRead',chat:'Chat','directory-message':'DirectoryMessage',clan:'Clan'}[popupGroup]];
  const onetWrites={};
+ let diffIdentity;const diffStoredIds=[],diffSealReads=[];
  let migrationRootId,migrationChildId;const migrationReads={MongoDBOASIS:0,SQLLiteDBOASIS:0};let migrationCopies=0;
  let catalogueAppId,catalogueIdentity;const catalogueName='Owned depth catalogue';
  let recoveryToken,recoveryPassword;const recoveryRequests={forgot:0,reset:0,login:0};
@@ -104,7 +105,7 @@ async function main(){
   }
   if(api5)ownedToken=await admitFree(account);
   if(selectedPopups.length&&popupGroup!=='account-recovery'){
-   assert.equal(!!api5,['web5-depth','web5-errors'].includes(popupGroup),'Explicit matching backend selection');if(!api5)ownedToken=await admitFree(account);
+   assert.equal(!!api5,['web5-depth','web5-errors','web5-diff'].includes(popupGroup),'Explicit matching backend selection');if(!api5)ownedToken=await admitFree(account);
    if(selectedPopups.includes('Messaging')||selectedPopups.includes('MessagingRead')||selectedPopups.includes('Chat')||selectedPopups.includes('DirectoryMessage')||selectedPopups.includes('Clan')||selectedPopups.includes('SocialGraph')){
     recipient=await createOwnedAvatar(api.href,readOwnedVerificationToken);recipientToken=await admitFree(recipient);
    }
@@ -204,6 +205,9 @@ async function main(){
     if(popupGroup==='onet'&&request.method()==='POST'&&url.pathname.startsWith('/api/v1/onet/')){
      assert.ok(['/api/v1/onet/network/start','/api/v1/onet/network/stop'].includes(url.pathname),'Only owned local ONET lifecycle writes');
      assert.equal(onetWrites[url.pathname]=(onetWrites[url.pathname]||0)+1,1,'One explicit lifecycle command');ownedOperation=true;
+    }
+    if(popupGroup==='web5-diff'&&request.method()==='GET'&&url.pathname.startsWith('/api/data/holon-seal/verify/')){
+     const id=url.pathname.split('/').pop();assert.ok(diffStoredIds.includes(id),'Seal read uses returned stored identity');assert.ok(!diffSealReads.includes(id),'One selected seal read per stored version');diffSealReads.push(id);
     }
     if(popupGroup==='provider-migration'&&request.method()==='POST'){
      const body=request.postDataJSON();
@@ -353,6 +357,29 @@ async function main(){
    httpFacts.push({path:'/api/data/save-holon',status:created.status(),isError:saved?.isError===true,...(typeof saved?.errorCode==='string'&&/^[A-Z0-9_]{1,80}$/.test(saved.errorCode)?{errorCode:saved.errorCode}:{})});
    assert.equal(created.status(),200);assert.equal(saved.isError,false);assert.equal(saved.isSaved,true);assert.equal(saved.result.id,migrationRootId);assert.ok(saved.result.children.some(row=>row.id===migrationChildId));
   }
+  if(popupGroup==='web5-diff'){
+   const owner='oasis_startup_'+process.env.GITHUB_RUN_ID+'_'+process.env.GITHUB_RUN_ATTEMPT;
+   const hex=require('node:crypto').createHash('sha256').update(owner+'_diff').digest('hex').slice(0,32);
+   diffIdentity=hex.slice(0,8)+'-'+hex.slice(8,12)+'-'+hex.slice(12,16)+'-'+hex.slice(16,20)+'-'+hex.slice(20);
+   const headers={Authorization:'Bearer '+ownedToken};
+   stage='Holon cold real history';const empty=await context.request.get(proxy5Origin+'/api/holons/'+diffIdentity+'/versions',{headers});
+   const initial=await empty.json();assert.equal(empty.status(),200);assert.equal(initial.isError,false);assert.deepEqual(initial.result,[]);
+   stage='Holon real typed create';const operation=require('node:crypto').randomUUID();
+   const made=await context.request.post(proxy5Origin+'/api/holons',{headers:{...headers,'Idempotency-Key':operation,'X-COSMIC-Operation-Id':operation},data:{id:diffIdentity,name:'Owned diff Smart Brick',description:'Actual published version comparison'}});
+   const created=await made.json();httpFacts.push({path:'/api/holons',status:made.status(),isError:created.isError===true});assert.equal(made.status(),200);assert.equal(created.isError,false);assert.equal(created.result.starnetdna.id,diffIdentity);
+   const folder=path.join(owned,'holon-diff-source');await fs.mkdir(folder);const dnaFile=path.join(folder,'HolonDNA.json');
+   for(const version of ['1.0.0','2.0.0']){
+    stage='Holon real publish '+version;
+    let sourcePath='';
+    if(version==='2.0.0'){
+     const first=await context.request.get(proxy5Origin+'/api/holons/'+diffIdentity+'/version/1.0.0',{headers});const stored=await first.json();assert.equal(first.status(),200);assert.equal(stored.isError,false);
+     await fs.writeFile(dnaFile,JSON.stringify({...stored.result.starnetdna,version:'2.0.0',description:'Actual second published version'}));sourcePath=folder;
+    }
+    const op=require('node:crypto').randomUUID();const published=await context.request.post(proxy5Origin+'/api/holons/'+diffIdentity+'/publish',{headers:{...headers,'Idempotency-Key':op,'X-COSMIC-Operation-Id':op},data:{sourcePath,launchTarget:'',edit:false,registerOnSTARNET:true,generateBinary:false,uploadToCloud:false}});
+    const body=await published.json();let diagnostic=String(body.message||'').replace(/(?:mongodb(?:\+srv)?|https?):\/\/[^\s]+/gi,'[URI]').replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g,'[JWT]');if(/password|secret|credential|connectionstring|refresh.?token/i.test(diagnostic))diagnostic='Sensitive diagnostic withheld';httpFacts.push({path:'/api/holons/{id}/publish',status:published.status(),isError:body.isError===true,routingMessage:diagnostic.slice(0,320),...(typeof body.errorCode==='string'&&/^[A-Z0-9_]{1,80}$/.test(body.errorCode)?{errorCode:body.errorCode}:{})});assert.equal(published.status(),200);assert.equal(body.isError,false);assert.equal(body.isSaved,true);assert.equal(body.result.starnetdna.version,version);diffStoredIds.push(body.result.id);
+   }
+   assert.equal(new Set(diffStoredIds).size,2,'Two independently stored published versions');
+  }
   if(popupGroup==='web5-depth'){
    stage='Catalogue create actual OAPP graph';const operationId=require('node:crypto').randomUUID();
    const rootId=require('node:crypto').randomUUID(),child={id:require('node:crypto').randomUUID(),parentHolonId:rootId,holonType:'Holon',name:'Owned catalogue child',description:'Actual selected descendant'};
@@ -414,6 +441,15 @@ async function main(){
     const stopped=await context.request.get(proxyOrigin+'/api/v1/onet/network/status',{headers:{Authorization:'Bearer '+ownedToken}});
     assert.equal(stopped.status(),200);const off=await stopped.json();assert.equal(off.isError,false);assert.equal(off.result.isRunning,false);
     assert.deepEqual(onetWrites,{'/api/v1/onet/network/start':1,'/api/v1/onet/network/stop':1});
+   });
+   await checkPopup('HolonDiff','#holon-diff-modal-close-btn',async()=>{
+    stage='Holon Diff published versions';await page.evaluate(id=>window.openHolonDiffModal(id),diffIdentity);
+    await page.waitForFunction(()=>document.getElementById('holon-diff-status')?.textContent==='Comparing published versions 1.0.0 and 2.0.0.');
+    assert.equal(await page.locator('#holon-diff-ver-a option').count(),2);
+    assert.ok((await page.locator('#holon-diff-pre-a').textContent()).includes('1.0.0'));assert.ok((await page.locator('#holon-diff-pre-b').textContent()).includes('2.0.0'));
+    stage='Holon Diff actual stored seal identities';await page.waitForFunction(()=>{const s=document.getElementById('holon-diff-seal');return s?.children.length===2&&!s.textContent.includes('checking sealed history')&&!s.textContent.includes('verification failed');});
+    assert.deepEqual([...diffSealReads].sort(),[...diffStoredIds].sort());
+    const seal=await page.locator('#holon-diff-seal').textContent();assert.ok(seal.includes('Version 1.0.0:'));assert.ok(seal.includes('Version 2.0.0:'));
    });
    await checkPopup('Migration','#provider-migration-modal-close-btn',async()=>{
     stage='Migration registered real providers';await page.evaluate(()=>window.openProviderMigrationModal());
