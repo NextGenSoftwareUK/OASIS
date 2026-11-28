@@ -1,0 +1,26 @@
+{
+  "date": "2026-11-28",
+  "run": 46133501110,
+  "conclusion": "success",
+  "done": 1,
+  "total": 1,
+  "scope": "ONET reads and real local start/stop, not peer/broadcast/HoloNET/hosted acceptance",
+  "control": "aba4dcf90b3943218876ec28f23536552ea2a072",
+  "apiSource": "fbea95eb33b67bfa1dc11d6a2b6c15bc9a7d7717",
+  "portal": "fe7944157ed9d8e4c98ceca24eda8ae4790c2574",
+  "artifact": 15259220405,
+  "artifactBytes": 4838,
+  "cleanup": {
+    "ownedContainersAbsent": true,
+    "ownedNetworkAbsent": true,
+    "ephemeralDatabaseVolumesRemoved": true,
+    "web5ProcessStopped": true,
+    "web5DnaAbsent": true,
+    "ownedPackageContainerAbsent": true,
+    "ownedRuntimeCacheTlsAbsent": true
+  },
+  "sharedAtlasTouched": false,
+  "nativeStorageDone": 123,
+  "nativeStorageTotal": 163,
+  "wholePortalAccepted": false
+}

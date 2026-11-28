@@ -2,8 +2,8 @@
   "date": "2026-11-28",
   "status": "in-progress-not-whole-portal-or-hyperdrive-certified",
   "source": {
-    "oasisDevelopment": "5b28612aa73dbd1836630b661b8d72131ffb33c6",
-    "portalDev": "fe7944157ed9d8e4c98ceca24eda8ae4790c2574",
+    "oasisDevelopment": "7c8bb492b613ae653c4dee372588de3efb246ce0",
+    "portalDev": "61f68f16cb3defc2729b34e4427be2ff4a364c81",
     "portalDocsMain": "e114e9bf0d800ba9199286b306b39f691ddae787",
     "corePinned": "1b24c6291c6500888d735e9eb9d81b30b802d1e8",
     "runningCurrentDeploymentsVerified": false,
@@ -45,12 +45,13 @@
     },
     "fullyAccepted": false,
     "latestSelectedNativeBrowser": {
-      "done": 4,
-      "total": 4,
+      "done": 5,
+      "total": 5,
       "runs": {
         "recovery": 46123580498,
         "populatedMapLauncher": 46126474607,
-        "providerMigration": 46130012906
+        "providerMigration": 46130012906,
+        "onet": 46133501110
       }
     },
     "sdkDelivery": {
@@ -68,12 +69,18 @@
       "newSelectedNodeUiStateUnit": true,
       "publishedServiceLifecycleAndPeers": "open"
     },
-    "remaining": "Per-surface CURRENT_ACCEPTANCE remaining column still applies. Includes ONET/AI/HolonDiff native flows, published service/app actions, real email/paid billing and hosted/signed-in deployment gates.",
+    "remaining": "Per-surface CURRENT_ACCEPTANCE remaining column still applies. Includes AI/HolonDiff native flows and ONET peers/broadcast/HoloNET, published service/app actions, real email/paid billing and hosted/signed-in deployment gates.",
     "latestSelectedApiContract": {
       "done": 1,
       "total": 1,
       "run": 46132041520,
       "scope": "Cold OAPP detail missing-record result through real SDK/native API; not a new screen"
+    },
+    "onet": {
+      "done": 1,
+      "total": 1,
+      "run": 46133501110,
+      "scope": "Real reads and local start/stop; peer/broadcast/HoloNET/hosted remain open"
     }
   },
   "hyperdrive": {
@@ -87,11 +94,12 @@
   },
   "activeWork": [
     {
-      "item": "ONET uncovered native browser read/local-lifecycle flow",
-      "branch": "work/gpt-oportal-onet-breadth",
-      "control": "59cb7e4ddb2b9f7a8f28427fcf411828e5507a63",
-      "run": 46132765901,
-      "status": "running; not accepted"
+      "item": "Holon Diff recovered shared startup and real published-version browser flow",
+      "branch": "work/gpt-oportal-holon-diff",
+      "source": "233dad7b2e7e5f01060ef5f855674a8b90187354",
+      "control": "b0334d9781d906c8beba89c1e4a02ec7b3613fce",
+      "run": 46134066175,
+      "status": "running; not accepted or deployed"
     }
   ],
   "ownerActions": {
@@ -106,7 +114,7 @@
   "cleanup": {
     "localRuntimeDownloadEnvironmentBuildDatabaseOutputsCreated": false,
     "ownedTemporaryIndexesObserved": 0,
-    "lastObservedFreeGiB": 32.87,
+    "lastObservedFreeGiB": 32.81,
     "freeSpaceReclamationClaimed": false,
     "cloudOwnedContainersDatabasesVolumesBrowserCachesAndBootstrapOutputsRemoved": true,
     "compactEvidenceInspectedInMemory": true
@@ -117,10 +125,16 @@
     "releaseGates": "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md",
     "portal": "https://github.com/NextGenSoftwareUK/OPORTAL-JS/blob/dev/Docs/WIP/CURRENT_ACCEPTANCE.md"
   },
-  "completedPendingIntegration": {
-    "item": "Truthful OAPP catalogue/detail errors",
-    "source": "dc27a0298995ce1fa005a33a508ae8dda2a6d6ab",
-    "run": 46132041520,
-    "starPreservingPeerCli": "5542303630989aaf81a899dbf9fe247e18f9f255"
-  }
+  "completedPendingIntegration": [
+    {
+      "item": "Truthful OAPP detail errors",
+      "candidate": "5e225f8d7ba9d59670a764a22874576afca5387e",
+      "run": 46132041520
+    },
+    {
+      "item": "ONET reads/local lifecycle qualification",
+      "source": "4de930514ea6e58f980ba8fa275023b9253cb08c",
+      "run": 46133501110
+    }
+  ]
 }
