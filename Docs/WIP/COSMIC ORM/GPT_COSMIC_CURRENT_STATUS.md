@@ -18,6 +18,9 @@ SQL and AI Search use **POST /api/data/query-cql/sql** and **/ask**. Phase2a rem
 
 ## Development and cleanup
 
-Verified native batch db6963c4 pushed08:47:38UTC on peer f6be65d0; backend API candidate is task-only and awaiting CI. At most one normal own Development push per30 minutes. No staging/production promotion. Deployment metadata and live application acceptance are recorded separately.
+Verified native batch db6963c4 pushed08:47:38UTC on peer f6be65d0. Railway deployment5781d109-d15b-4e1c-81e5-566ceb2792f3 reports SUCCESS for that exact revision; this is metadata, not a new live-data test. Peer Development25336bd9 adds portal/startup evidence without changing Core1b24c629. Backend API candidate remains task-only. At most one normal own Development push per30 minutes. No staging/production promotion. Deployment metadata and live application acceptance are recorded separately.
 
 No local .NET builds, runtime installs, databases or containers. Parser checks use existing Node and emit no files. CI artifact archives inspected only in RAM and released; compact evidence retained. No shared Atlas/PIPER calls or data changes. Last free-space reading33.06GiB; no reclamation claim. Unrelated working-tree changes preserved; temporary scoped Git indexes removed after commit.
+
+
+Current source-only gates: backend recursive SQL/API9fe4f5c9 in46128402238; native selected-set Sum/Average and registered LINQ1fbd9678/Coree0304746 in46129166552. Numeric representative scope is Int32 Sum and Int32-to-Double Average, with windows, visible Union, foreign isolation and ordinary decoder control; other domains are implementation, not newly hardened acceptance. Full parent rows remain OPEN.
