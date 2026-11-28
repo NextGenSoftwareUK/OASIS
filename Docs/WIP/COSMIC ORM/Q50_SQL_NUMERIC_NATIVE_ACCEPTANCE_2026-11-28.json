@@ -1,0 +1,46 @@
+{
+  "run": 46132720360,
+  "artifact": 15258119047,
+  "sha256": "1f41718057bc17533c2b6ceb69433a9d2dcda56a6087d939fa1805f804d8d5fd",
+  "artifactEntries": 18,
+  "serverParserChecks": 20,
+  "httpJourney": {
+    "providers": 3,
+    "groupsPerProvider": 7,
+    "timingsPerProvider": 14,
+    "settledOperationsPerProvider": 9
+  },
+  "source": "a6407f06e1befa3f80959462c9e007eaaf470d9c",
+  "core": "ed51f44d5f3518ccfdaa9e27cfdf39cda2417b67",
+  "compilerPassed": 16,
+  "typedViewsFeedFurtherNativeSetsVerified": true,
+  "typedViewScalarAndElementTerminalsVerified": true,
+  "nativePassed": 15,
+  "serverSqlSelectedSetSumAverageVerified": true,
+  "nativeRecursiveSetHttpVerified": true,
+  "nativeSetPublicationCountsVerified": true,
+  "nativeRecursiveEntitySetProviders": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS",
+    "Neo4jOASIS"
+  ],
+  "nativeRecursiveSelectedSetProviders": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS",
+    "Neo4jOASIS"
+  ],
+  "typedFinalSetSelectionVerified": true,
+  "nativeSelectedSetSumAverageVerified": true,
+  "nativeNumericRepresentativeDomains": [
+    "Int32Sum",
+    "Int32DoubleAverage"
+  ],
+  "nativeSelectedSetCountVerified": true,
+  "nativeSelectedSetScalarExtremaVerified": true,
+  "nestedVisibleOutputBindingsVerified": true,
+  "fullSetParentsComplete": false,
+  "actualWeb4Compiled": true,
+  "ownedFixturesAbsent": true,
+  "sharedDatabaseCalls": 0,
+  "deployed": false
+}
