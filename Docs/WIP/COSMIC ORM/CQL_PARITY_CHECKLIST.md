@@ -888,3 +888,6 @@ Native semantics are described in
 22November source-only addition: runtime record reselection and additive WEB4 composition Select stage retain hidden native input validation and earlier windows while emitting only final aliases/cells. Three Core/API and three actual SDK native checks are prepared, not run. No new row is green, no SQL CTE or full parity claim. GroupJoin native45019120717 remains its original queued source. [Reselection source](RECORD_RESELECT_SOURCE_2026-11-22.json).
 
 22November GroupJoin partial evidence:45019120717 passed5Core controls and real Mongo whole-left output; GroupJoin query capture refused the fixture's culture-dependent StartsWith. Three fixtures corrected to explicit Ordinal; replacement selects only5failed/unexecuted native cases. No full GroupJoin/EF row accepted, no live acceptance or count increment. [Partial proof](GROUP_JOIN_PARTIAL_ACCEPTANCE_2026-11-22.json).
+
+
+2026-11-28 M04 ordinary-class custom scalar increment: Core5e83d6733da2726e2677f8649521b419c7ab68be source and representative3-store native fixture added; CI pending. Main144/168, extension4/13 unchanged. Full M04 remains OPEN.

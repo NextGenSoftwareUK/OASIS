@@ -488,3 +488,12 @@ ImportNHibernateXml(xml, contracts, customTypes) accepts an explicit IReadOnlyDi
 
 
 Registered XML scalar qualification: exact13a6e233/Core0a4074ec passed46138409566 (native6/admission2/actual WEB4/cleanup) and paired CQL46138409613 (compiler17/native15/actual WEB4/cleanup). Development13a6e233/Core0a4074ec is serving this slice (Railway deployment a426a71c-b9db-4f4d-9cad-efd80049ed79 SUCCESS). Full NHibernate XML remains incomplete; no new hosted data walkthrough is claimed.
+
+
+## Ordinary-class native scalar converters
+
+CosmicPocoModelBuilder<T>.Property(selector).HasConversion(converter) maps a business property through the existing immutable CosmicValueConverter<TModel,TProvider>. The matching XML overload is ImportNHibernateXml(xml, entityName, customTypes); scalar property type names resolve only through that explicit bounded registry. The model property domain must match exactly. XML loads no assemblies or callback code.
+
+The ordinary-class codec writes native provider-domain metadata and decodes it before materialization. Native query binding uses the same converted-value marker as Holon models: typed filters, ordering and projections operate in the declared equality/ordering-preserving provider domain. Model constraints apply after decoding; a prefix or scale does not redefine a business length/precision constraint. Built mappings retain their converters after registry edits or later builder changes. Canonical GUID identity, caller visibility and acknowledged writes retain their existing owners.
+
+Representative real MongoDB/SQLite/Neo4j qualification is pending for this increment. Full NHibernate XML relationships, collection mappings, table/schema placement and IUserType parity remain open.

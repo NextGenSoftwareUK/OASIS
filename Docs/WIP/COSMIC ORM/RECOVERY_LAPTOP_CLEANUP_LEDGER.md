@@ -11541,3 +11541,10 @@ New backend SQL lowering preserves bounded plain entity sources and post-page en
 
 
 2026-11-28 SQL endpoint fixture correction:46143154521 failed compilation because the isolated native test project linked CqlTextCompiler but not CqlTextMiddleware or the shipping text action/models. Linked those four exact shipping sources; no duplicate controller or middleware implementation. No native endpoint acceptance claimed. Existing backend SQL46142342992 remains accepted. Local build/download/database outputs0; failed CI owned Mongo stopped by cleanup. Main144/168 extension4/13 unchanged.
+
+
+### 2026-11-28 — ordinary-class XML/fluent custom scalar slice, native gate pending
+- Core 5e83d6733da2726e2677f8649521b419c7ab68be adds POCO HasConversion and explicit XML named scalar registration through the existing immutable CosmicValueConverter/native expression marker and ordinary-class storage codec. No client or alternate provider evaluator.
+- Provider shadow fields retain provider domains; model constraints validate decoded model values rather than scaled/prefixed representations. Converters are frozen per built model; failed XML imports remain atomic. Existing Holon and POCO XML imports share one bounded registration capture.
+- Representative native journey per MongoDB/SQLite/Neo4j: same fluent/XML model over one owned record, scaled integer, prefixed constrained text and custom record-to-string value; physical representation, native filter/order/projection, roundtrip, acknowledged update, foreign isolation, rejected overlength update/preserved winner, registry/model freezing. Expected9groups/9timings/2writes/1cleanupID. Native acceptance pending; main144/168 extension4/13 unchanged.
+- Backend SQL Development60b0ca66/Corecf34 published2026-11-28T12:17:31.176Z from accepted5e runtime plus docs only; endpoint-host fixture excluded. Next own Dev>=12:47:31UTC. No staging/production deployment, Atlas calls, local builds/installs/databases/worktrees or retained ZIPs.
