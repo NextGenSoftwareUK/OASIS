@@ -84,10 +84,10 @@ def main():
     marker='oasis_startup_'+os.environ['GITHUB_RUN_ID']+'_'+os.environ['GITHUB_RUN_ATTEMPT']
     assert re.fullmatch('oasis_startup_[0-9]+_[0-9]+',marker)
     network=marker+'_net';mongo=marker+'_mongo';api=marker+'_api';created=[]
-    processes=ExitStack();web5_process=None
+    processes=ExitStack();web5_process=None;catalogue_proxy=None
     web5_app=os.environ.get('OASIS_STARTUP_WEB5_APP', '')
     popup_group=os.environ.get('OASIS_STARTUP_POPUP_GROUP', '') or 'none'
-    if popup_group not in ('none', 'onet', 'web5-diff', 'web5-errors', 'provider-migration', 'web5-depth', 'nft', 'data', 'data-crud', 'data-edit', 'files-write', 'map-route', 'messaging', 'messaging-read', 'chat', 'chat-directory', 'directory-message', 'clan', 'portal-breadth', 'chat-hyperdrive', 'data-messaging', 'nft-messaging-data', 'social-activity', 'account-recovery'):
+    if popup_group not in ('none', 'map-places', 'onet', 'web5-diff', 'web5-errors', 'provider-migration', 'web5-depth', 'nft', 'data', 'data-crud', 'data-edit', 'files-write', 'map-route', 'messaging', 'messaging-read', 'chat', 'chat-directory', 'directory-message', 'clan', 'portal-breadth', 'chat-hyperdrive', 'data-messaging', 'nft-messaging-data', 'social-activity', 'account-recovery'):
         raise ValueError('Unknown owned popup group.')
     popup_breadth=os.environ.get('OASIS_STARTUP_POPUP_BREADTH') == 'true'
     if popup_breadth and popup_group != 'none':
@@ -104,6 +104,11 @@ def main():
     for kind,name in [('network',network),('container',mongo),('container',api)]: assert absent(kind,name)
     try:
         docker('network','create','--internal','--label','oasis.startup.owner='+marker,network);created.append(('network',network))
+        if popup_group == 'map-places':
+            from owned_overpass_proxy import OwnedOverpassProxy
+            selected_network=json.loads(docker('network','inspect',network).stdout)[0]
+            assert selected_network['Internal'] is True and selected_network['Labels']['oasis.startup.owner']==marker
+            catalogue_proxy=processes.enter_context(OwnedOverpassProxy(selected_network['IPAM']['Config'][0]['Gateway']))
         docker('create','--name',mongo,'--label','oasis.startup.owner='+marker,'--network',network,
             '--network-alias','mongo','--memory','1g','mongo:8.0.15','--replSet','rs0','--bind_ip_all',timeout=180);created.append(('container',mongo));docker('start',mongo)
         deadline=time.monotonic()+60
@@ -135,16 +140,17 @@ def main():
                 # This explicit new-image scenario needs collection authority under passive boot.
                 admission=json.loads(fixture_env['PREPARED_STORAGE_ADMISSION_JSON'])
                 admission['authoritativeProvider']='MongoDBOASIS'
-                if popup_group in ('data-crud', 'data-edit', 'files-write', 'map-route', 'web5-depth', 'web5-diff'):
+                if popup_group in ('data-crud', 'data-edit', 'files-write', 'map-route', 'web5-depth', 'web5-diff', 'map-places'):
                     # Same free ordinary-operation tariff kinds as the admitted dev write profile.
                     catalogue=admission['routes'][0]['policy']['pricingCatalogueVersion']
                     admission['storageTariffs']=[{'provider':'MongoDBOASIS','operation':operation,'costUsd':0,'catalogueVersion':catalogue}
                         for operation in ('LoadHolon','SaveHolon','SaveHolons','LoadHolonByProviderKey','DeleteHolon','ReadConditionalHolonWriteOutcome','ReadHolonWritePreparation')]
                     write_policy=dict(admission['routes'][0]['policy'],meterCategory='api.request',maximumProviderAttempts=512)
                     admission['routes'] += [{'method':method,'path':path,'policy':dict(write_policy)}
-                        for method,path in ((('POST','/api/map/routes'),) if popup_group == 'map-route' else
+                        for method,path in ((('POST','/api/places/observe'),) if popup_group == 'map-places' else
+                            ((('POST','/api/map/routes'),) if popup_group == 'map-route' else
                             ((('POST','/api/files/upload-file'),) if popup_group == 'files-write' else
-                             (('POST','/api/data/save-holon'),('DELETE','/api/data/delete-holon'))))]
+                             (('POST','/api/data/save-holon'),('DELETE','/api/data/delete-holon')))))]
                 if popup_group == 'web5-depth':
                     admission['routes'].append({'method':'POST','path':'/api/oapps','policy':dict(write_policy)})
                 if popup_group == 'web5-diff':
@@ -178,10 +184,22 @@ def main():
                 migration_admission['routes'] += [{'method':'POST','path':path,'policy':dict(policy)}
                     for path in ('/api/data/save-holon','/api/data/load-holon','/api/data/copy-holon')]
                 fixture_env['PREPARED_STORAGE_ADMISSION_JSON']=json.dumps(migration_admission,separators=(',',':'))
+            if catalogue_proxy:
+                fixture_env.update(HTTPS_PROXY=catalogue_proxy.url,https_proxy=catalogue_proxy.url,
+                    HTTP_PROXY='',http_proxy='',NO_PROXY='localhost,127.0.0.1,::1,mongo,'+api,no_proxy='localhost,127.0.0.1,::1,mongo,'+api,
+                    GEOAPIFY_API_KEY='')
+                admission=json.loads(fixture_env['PREPARED_STORAGE_ADMISSION_JSON'])
+                catalogue=admission['routes'][0]['policy']['pricingCatalogueVersion']
+                admission['storageTariffs'].append({'provider':'MongoDBOASIS','operation':'LoadAvatar','costUsd':0,'catalogueVersion':catalogue})
+                fixture_env['PREPARED_STORAGE_ADMISSION_JSON']=json.dumps(admission,separators=(',',':'))
             envfile=Path(tmp)/'environment';envfile.write_text(''.join(k+'='+v+'\n' for k,v in fixture_env.items()));envfile.chmod(0o600)
             portal_root = os.environ.get('OASIS_STARTUP_PORTAL_ROOT', '')
             docker('create','--name',api,'--label','oasis.startup.owner='+marker,'--network',network,
                 '--memory','3g','--cpus','2','--env-file',str(envfile),image);created.append(('container',api));docker('start',api)
+            if catalogue_proxy:
+                selected_api=json.loads(docker('inspect',api).stdout)[0]
+                assert selected_api['Config']['Labels']['oasis.startup.owner']==marker
+                catalogue_proxy.admit(selected_api['NetworkSettings']['Networks'][network]['IPAddress'])
         probe = r"""
 (async()=>{
 let r;try{r=await fetch('http://127.0.0.1:8080/api/health',{signal:AbortSignal.timeout(3000)});}
@@ -255,7 +273,7 @@ console.log(JSON.stringify(b));
                 assert isinstance(outcomes,list) and 1 <= len(outcomes) <= 3
                 for item in outcomes:
                     assert set(item) <= {'name','passed','stage','closePassed'}
-                    assert item['name'] in ('ONET','HolonDiff','CatalogueErrors','Migration','OappMap','Launcher','NFT','Data','DataWrite','FilesWrite','MapRoute','Messaging','MessagingRead','Chat','DirectoryMessage','Clan','HyperDrive','SocialGraph','ActivityFeed','AccountRecovery') and isinstance(item['passed'],bool)
+                    assert item['name'] in ('MapPlaces','ONET','HolonDiff','CatalogueErrors','Migration','OappMap','Launcher','NFT','Data','DataWrite','FilesWrite','MapRoute','Messaging','MessagingRead','Chat','DirectoryMessage','Clan','HyperDrive','SocialGraph','ActivityFeed','AccountRecovery') and isinstance(item['passed'],bool)
                     assert isinstance(item['closePassed'],bool)
                     assert re.fullmatch(r'[A-Za-z0-9 /-]{1,80}',item['stage'])
                 portal_source=subprocess.check_output(['git','-C',portal_root,'rev-parse','HEAD'],text=True).strip()
@@ -319,6 +337,10 @@ console.log(JSON.stringify(b));
             docker('exec', api, 'node', '-e', auth_script.read_text(encoding='utf-8'), timeout=120)
             print('STARTUP_AUTH_PROOF: shipping registration/verification/password/session/subscription journey passed; owned Mongo only.', flush=True)
         processes.close()
+        if catalogue_proxy:
+            proof=catalogue_proxy.proof()
+            assert 1<=proof['connections']<=2 and 0<proof['ciphertextBytes']<=proof['maximumCiphertextBytes']
+            assert proof['failures']==0 and proof['deniedConnections']==0 and proof['proxyStopped'] and proof['activeTunnels']==0
         if web5_process and web5_process.graceful_exit!=0:
             raise RuntimeError('Owned WEB5 did not exit gracefully.')
         native="const x=require('/app/host-sandbox-openvino.cjs');x.verifyNative(require('/app/openvino-model-server-pins.json'),AbortSignal.timeout(10000)).then(()=>console.log('native-metadata-verified')).catch(e=>{console.error(e);process.exit(1)})"
@@ -333,6 +355,8 @@ console.log(JSON.stringify(b));
             processes.close()
         except Exception as cause:
             shutdown_error=type(cause).__name__
+        if catalogue_proxy:
+            (out/'catalogue-proxy.json').write_text(json.dumps(catalogue_proxy.proof(),indent=2))
         if ('container',api) in created:
             observed=json.loads(docker('inspect',api).stdout)[0]
             assert observed['Config']['Labels']['oasis.startup.owner']==marker

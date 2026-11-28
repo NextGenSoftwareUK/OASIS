@@ -3159,3 +3159,10 @@ Root fix restores earlier0bc4d64f shared Holon boot filter/demo-substitution rem
 ## 2026-11-28 — generic map visit attribution source
 
 Core5668324b/Unity9d4d53c1source fixes reported app labels while preserving shared physical-place rewards, legacy requests and existing route proof. REST/body/Postman/generator/reference synchronized in owned source branch; native/browser and website guide synchronization remain pending. No shared Atlas, local runtime/download/env/build/database/results or new owner action.123/163native baseline unchanged.
+
+
+## 2026-11-28 — bounded cross-app place verification prepared
+
+Immutable WEB4 image46138363710builds sourceb0c2f5a6/Core18dad5ae. New map-places control selects one real public Yoga catalogue lookup, three explicit enter/departure/return observations through the shipping SDK, two app labels sharing physical-place rewards and independent ledger/karma plus OPORTAL readback. It does not repeat the accepted GPX route flow or claim a physical device walk. Mongo/API stay on the owned internal Docker network; a private-gateway CONNECT bridge admits only that API container to overpass-api.de:443, at most2connections/5MB and bounded lifetime. No arbitrary egress, shared Atlas, mock catalogue or copied key. Proxy cleanup is in the existing ExitStack.
+
+One focused local loopback-only boundary test passed1/1: unadmitted client and other destinations are refused before upstream connection, and owned sockets/thread stop. No external request, runtime install, environment, database, result or build output was created locally; Python ran without bytecode output. Native API/browser acceptance remains pending. All helper source remains in Git objects; private index removed in finally. Unity7e9e3490adds explicit source label and stable metered keys (including the authorized401 refresh and existing garden command operation IDs); hosted Unity/device verification remains in the existing owner action.
