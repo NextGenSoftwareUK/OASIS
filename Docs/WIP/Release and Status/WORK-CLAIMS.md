@@ -191,3 +191,5 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | OPORTAL existing signed-in breadth suite: inspect isolated real-API harness and fill demonstrated screen gaps | OPORTAL | local: gpt-hyperdrive | work/gpt-oportal-isolated-breadth | 2026-11-28T06:20:52.225Z | IN PROGRESS |
 
 | Reconcile HoloOASIS.Desktop matrix with owner obsolete decision (documentation only; preserve canonical HoloOASIS) | HyperDrive inventory | local: gpt-hyperdrive | work/gpt-provider-obsolete-status | 2026-11-28T06:24:46.581Z | IN PROGRESS |
+
+| Recover existing Meilisearch/OpenSearch/Solr/Weaviate native CI receipts only; preserve original source/CI wiring claim, no backend reruns | HyperDrive evidence | local: gpt-hyperdrive | work/gpt-search-evidence-reconciliation | 2026-11-28T06:29:46.413Z | IN PROGRESS |
