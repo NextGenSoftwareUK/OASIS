@@ -1,12 +1,21 @@
-# COSMIC current session status
+# COSMIC current status
 
-Updated2026-11-28T04:21:28.926Z UTC; session gpt-cosmic.
+Updated 2026-11-28T05:32:59.134Z. Session gpt-cosmic.
 
-- Maintained checklist144/168 rows green across the three primary stores. Historical owner baseline130/164 used an older denominator; no existing feature is removed. This session completed3 rows: O07, M01, M09, each native3/3 plus actual WEB4 build and owned cleanup. Existing accepted rows are preserved without agent-initiated rechecks.
-- O07: sourcecdefa9ee/Core6613656a; CI46103037019; integrated Development6f3e. Newer81e also includes it. WEB4 deployment metadata latest81e BUILDING at last observation; no live acceptance inferred.
-- M01: source20ff7eee/Core0623246c; CI46104535369. Ordinary-class/constructor/shadow identity persistence and native queries, tracking, permissions, revisions, soft delete verified.
-- M09: source926bc3f8/Corea30df79c; CI46105605228. Logical composite primary keys use atomic native full-tuple claims, actor-bound lookup, immutable identity and delete/reuse, with rollback proof.
-- This commit combines qualified M01/M09 and the qualified ordinary-XML M04 increment in one Development batch, preserving peer work and the30-minute interval. Runtime acceptance for this new batch remains pending.
-- M04 XML ordinary-class/identity increment: source289471b9/Core5e8f22d7; CI46105933887 passed native3/3, actual WEB4 and exact cleanup. Full M04 remains open for relationships, inheritance/table/schema, custom types and remaining generators, even if this increment passes. Current implementation branchwork/gpt-m04; claims branch is the coordination authority. Full M04 remains IN PROGRESS.
-- SQL/AI search engines stay in backend POST /api/data/query-cql/sql and /ask; browser engine files untouched. Next roadmap phases and all provider priorities remain intact. Owner baseline107 sandbox sources is preserved, not newly retested here. TRON key remains on the existing owner list; hosted Neo4j stays stopped per owner budget decision, with CI containers independent.
-- No application API, PIPER or shared Atlas calls/tests. Native checks use isolated CI stores. No new local runtime/database/build environment/downloaded archive. C free34.94GiB at last measurement. Compact proofs retained; native zips read only in RAM and released. Cleanup exceptions: owned source recovery draft LocalState/COSMIC/GPT_M09_FIXTURE_DRAFT.cs about8KB; generated tool-profile C:/Source/OASIS2/null,1file/36bytes, retained as configuration under source/config preservation policy. No owner action added.
+Maintained checklist:144/168 rows green across MongoDB/SQLite/Neo4j. The historical130/164 baseline used an older denominator; all existing features remain in scope. This session completed3 full rows, each native3/3 plus actual WEB4 build and exact cleanup:
+
+- O07 execution strategy: cdefa9ee/Core6613656a, CI46103037019.
+- M01 ordinary classes:20ff7eee/Core0623246c, CI46104535369.
+- M09 composite primary identities:926bc3f8/Corea30df79c, CI46105605228.
+
+Ordinary-class XML increment289471b9/Core5e8f22d7 passed native3/3 and WEB4 in46105933887; full M04 remains OPEN for remaining relationships, inheritance/table/schema, custom types and generators. No full M04 credit.
+
+These qualified changes are on Developmenta267db5b12fc35f2e2ab7e21a3bd14e36e873e0b/Core5e8f22d75ed8994071885ee57f125bf5918ec31c. Railway WEB4 dev deployment c80c4da7-7e71-4187-9d8a-7efbd86839bd reports SUCCESS for that exact revision. This is deployment metadata acceptance, not a new live data/API/browser test. No agent test or diagnostic call touched shared Atlas or PIPER.
+
+Numeric identifiers and XML discriminator/subclass mappings passed native6/6 and actual WEB4 build in46111979889 on6d24d741/Core5ef2f9e2. Artifact15249779607 verified strictly in RAM, exact cleanup. Qualified batch preserves current Development8c7a3148 and Core provider documentation via7d00ed11; pending component implementationcfc8d0f6 is excluded. Full M04 remains OPEN and parity totals unchanged. Live acceptance remains pending.
+
+Next work: full M04 XML components are implemented through the common native owned-value codec (stored aliases, nested field predicates/hydration, constraint validation, explicit unknown-field refusal); representative native qualification is being prepared. Claims remain the coordination source.
+
+SQL/AI search stays backend-owned at POST /api/data/query-cql/sql and /ask; browser engines untouched. All Next phases/provider priorities remain intact. Owner baseline107 enrolled sandbox sources is retained without rechecking accepted cohorts. Hosted Neo4j stays stopped per budget; CI containers are independent. Existing TRON key action remains deferred on the one owner list; no new owner action added.
+
+Cleanup: no local build/runtime/database/environment/image/archive download. CI stores were isolated and their owned containers removed. Compact JSON proofs retained; artifact zips were inspected only in RAM. Last measured C free34.94GiB, no reclamation claim. Retained recovery source LocalState/COSMIC/GPT_M09_FIXTURE_DRAFT.cs about8KB and generated tool profile C:/Source/OASIS2/null (1file/36bytes) are recorded; source/configuration was preserved. Existing global Railway CLI was reused. Parent physical checkout/unrelated ACTIONS and cleanup docs remain preserved; implementation is committed on the claimed task branches.

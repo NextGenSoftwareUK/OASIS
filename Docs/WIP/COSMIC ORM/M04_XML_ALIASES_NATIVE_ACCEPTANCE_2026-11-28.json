@@ -1,0 +1,44 @@
+{
+  "run": 46109664251,
+  "job": 140870149849,
+  "artifact": 15249576722,
+  "source": {
+    "source": "900f72a5bfcced8c59c2ebfa91bbae9ffe3b2eab",
+    "core": "f868ddd283bb390d2a202bff40d15e21a05615b8",
+    "nativePassed": 3,
+    "xmlTypeAliasesVerified": true,
+    "inlineGeneratorsVerified": true,
+    "fullNHibernateParity": false,
+    "actualWeb4Compiled": true,
+    "ownedFixturesAbsent": true,
+    "sharedDatabaseCalls": 0,
+    "deployed": false
+  },
+  "counters": {
+    "total": "3",
+    "executed": "3",
+    "passed": "3",
+    "failed": "0",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  },
+  "artifactBytes": 3404,
+  "artifactSha256": "52fd528c6c6d928660d961e7a82c526367e93aa6bec44ed7b8e33cb085b89134",
+  "entries": [
+    "MongoDBOASIS-xml-aliases-native.json",
+    "Neo4jOASIS-xml-aliases-native.json",
+    "SQLLiteDBOASIS-xml-aliases-native.json",
+    "source.json",
+    "xml-aliases-native.trx"
+  ]
+}
