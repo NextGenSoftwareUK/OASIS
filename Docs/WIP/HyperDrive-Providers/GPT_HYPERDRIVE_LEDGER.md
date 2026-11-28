@@ -17,3 +17,7 @@
 - Programme remains about115/234; existing-provider identity fixes do not add providers. Rechecks2/3, PocketBase retained by its owner. Hosted/global v2 gates stay open.
 - OPORTAL: corrected private-source public-link exposure, runtime label mismatch, bounded transient artifact retention; removed9138068830bytes of superseded failed reports. GitHub quota recount pending; no claim that laptop disk grew by this amount.
 - No local runtime/env/download/build/database/output, no shared Atlas/protected delivery operations. Private Git indexes removed in finally; compact receipts retained.
+
+## 2026-11-27 — v2 source-gate audit (in progress)
+
+Claimed before inspection. `HYPERDRIVE_V2_GATE_AUDIT_2026-11-27.md` records a split authoritative state between the public ProviderSwitcher helper/ProviderRegistry and shipping ProviderManager, enum-only switching, publication before possible failure, and fabricated last-switch time. Existing native main-router acceptance is preserved and not relabelled as switcher evidence. No global backend tests run before provider acceptance; no owner action or local runtime/output. Next is the canonical state fix and focused real-provider verification when the provider gate permits it.
