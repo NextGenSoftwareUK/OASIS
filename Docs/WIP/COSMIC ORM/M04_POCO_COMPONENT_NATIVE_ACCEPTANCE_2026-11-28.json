@@ -1,0 +1,68 @@
+{
+  "run": 46113931675,
+  "artifact": 15250183724,
+  "bytes": 5630,
+  "sha256": "c96432289802bb25b9b90e6f880e961ff16bc3412b1c78f01fc9d884d110c09f",
+  "source": {
+    "source": "de3259e281eaceff5e4909b37d6b3906102765eb",
+    "core": "0fd03dede3f2caaa02ec6e2c5ff75319f9528e55",
+    "nativePassed": 6,
+    "xmlComponentsVerified": true,
+    "pocoXmlComponentsVerified": true,
+    "fullNHibernateParity": false,
+    "actualWeb4Compiled": true,
+    "ownedFixturesAbsent": true,
+    "sharedDatabaseCalls": 0,
+    "deployed": false
+  },
+  "cohorts": [
+    {
+      "provider": "MongoDBOASIS",
+      "family": "xml-components",
+      "groups": 8,
+      "ownedIds": 1,
+      "writes": 2,
+      "timings": 10
+    },
+    {
+      "provider": "MongoDBOASIS",
+      "family": "poco-xml-components",
+      "groups": 8,
+      "ownedIds": 2,
+      "writes": 3,
+      "timings": 10
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "family": "xml-components",
+      "groups": 8,
+      "ownedIds": 1,
+      "writes": 2,
+      "timings": 10
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "family": "poco-xml-components",
+      "groups": 8,
+      "ownedIds": 2,
+      "writes": 3,
+      "timings": 10
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "family": "xml-components",
+      "groups": 8,
+      "ownedIds": 1,
+      "writes": 2,
+      "timings": 10
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "family": "poco-xml-components",
+      "groups": 8,
+      "ownedIds": 2,
+      "writes": 3,
+      "timings": 10
+    }
+  ]
+}
