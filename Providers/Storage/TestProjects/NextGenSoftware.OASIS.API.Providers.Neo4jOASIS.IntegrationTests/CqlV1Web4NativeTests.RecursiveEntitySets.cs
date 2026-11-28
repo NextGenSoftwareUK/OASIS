@@ -101,11 +101,13 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.IsFalse(lr.IsError,lr.Message+lr.Exception);CollectionAssert.AreEqual(new[]{ids[0],ids[1],ids[0],ids[1],ids[1]},lr.Result.Select(row=>row.Id).ToArray());
         var ln=await Timed("linq-nested-native-count",()=>lchild.Concat(lc).ToCosmicLongCountAsync());
         Assert.IsFalse(ln.IsError,ln.Message+ln.Exception);Assert.AreEqual(5L,ln.Result);
+        var late=await Timed("linq-nested-late-selection",()=>lchild.Concat(lc).Select(row=>row.Name).ToCosmicListAsync());
+        Assert.IsFalse(late.IsError,late.Message+late.Exception);CollectionAssert.AreEqual(new[]{"tree-0","tree-1","tree-1","tree-2","tree-3"},late.Result.ToArray());
         using var cancel=new CancellationTokenSource();cancel.Cancel();
         var cancelled=await Timed("cancel-tree",()=>manager.ExecuteTypedSetQueryAsync(Plan(intent),new[]{adapter},10,cancel.Token));
         Assert.IsTrue(cancelled.IsError);Assert.AreEqual("CQL_QUERY_CANCELLED",cancelled.ErrorCode);
-        return new NativeFixtureJourneyProof(13,1,new Dictionary<string,bool>{
-            ["registeredLinqLeftTree"]=true,["registeredLinqRightTree"]=true,["registeredLinqNativeCount"]=true,
+        return new NativeFixtureJourneyProof(14,1,new Dictionary<string,bool>{
+            ["registeredLinqLateSelection"]=true,["registeredLinqLeftTree"]=true,["registeredLinqRightTree"]=true,["registeredLinqNativeCount"]=true,
             ["sharedActorAuthorityModelAdmission"]=true,["boundedTreeAndExplicitEnrollment"]=true,["nestedConcatOccurrenceOrder"]=true,
             ["perNodeWindowsPreserved"]=true,["allFourNativeIdentityOperators"]=true,["countIndependentOfPublication"]=true,
             ["rightNestedInput"]=true,["deepSourceAndChildOutputBoundsBeforeEmpty"]=true,["foreignPolicyPreserved"]=true,["cancellationPreserved"]=true});

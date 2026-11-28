@@ -82,3 +82,8 @@ Neo4j now recursively compiles set nodes as native Cypher subqueries. Each retur
 ### Registered nested LINQ capture — qualification pending
 
 Core39488eac gives each set provider a registered constant root and binds every source/subtree through its owning provider. Source+tree, tree+source and tree+tree share one manager/native adapter and immutable CreateTree admission. No expression compilation or managed set evaluation. Deferred binding captures current parameters through registered state. Three native journey assertions add left nested windows, right nested operands and LongCount; tree cohort now13 groups/15timings per store, plus unchanged count3 controls. Full set rows remain OPEN; main144/168 + extension4/13. No local runtime/build/download/database or shared Atlas/PIPER access.
+
+
+### Recursive late selection qualification
+
+Neo4j late-selection source now uses the common tree Anchor and total admitted leaf proof bound. The same native tree journey additionally selects Name after the nested identity operations, preserving duplicate occurrences and order, with14groups/16timings per store. Tree membership remains entity identity; this does not claim recursive selected-tuple set equality. Native gates and full parents still pending. No local build/download/environment/database/shared data activity.

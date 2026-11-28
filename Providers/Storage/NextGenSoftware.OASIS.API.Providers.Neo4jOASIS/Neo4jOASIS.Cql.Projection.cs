@@ -74,7 +74,7 @@ public partial class Neo4jOASIS : ICosmicQueryEntityProjectionStorageProvider,IC
                 maximumResults=Math.Min(maximumResults,setProjection.Source.Options.MaximumResultRows);
             }
             var source = plan.Query.Source;
-            var compiled = CompileCqlSource(setProjection?.Query.Source.Left??source);
+            var compiled = CompileCqlSource(setProjection?.Query.Source.Anchor??source);
             var translator = compiled.Translator;
             var columns = translator.TranslateProjection(plan.Query.Columns);
             var keys = translator.TranslateOrdering(source.Orderings);
@@ -134,8 +134,7 @@ public partial class Neo4jOASIS : ICosmicQueryEntityProjectionStorageProvider,IC
                 new CosmicEntityCompositionOptions(Math.Max(setProjection.Source.Options.MaximumLeftInputRows,
                     setProjection.Source.Options.MaximumRightInputRows),setProjection.Source.Options.MaximumInputPayloadBytes));
             var inputProof=entityOptions==null?null:new NeoCqlEntityInputProof(entityOptions,
-                setProjection==null?null:checked(setProjection.Source.Options.MaximumLeftInputRows+
-                    setProjection.Source.Options.MaximumRightInputRows));
+                setProjection==null?null:checked((int)setProjection.Source.MaximumLeafRows));
             while (true)
             {
                 budget.Check();
