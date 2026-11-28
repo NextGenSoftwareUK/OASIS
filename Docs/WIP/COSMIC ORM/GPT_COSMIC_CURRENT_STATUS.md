@@ -33,3 +33,6 @@ Latest native acceptance: heldkernel3/3 passed46158243226 plus paired46158243287
 
 
 PublishedDev3f23c388/Core250c5936 at15:22:04UTC from accepted84b488cd, Railwaypending, nextownnormalpush>=15:52:04UTC. PrivateauthorityseamCore24404c3b nowfeature-only qualificationpending, held11groups/21timings perstore; no fullO03credit.
+
+
+Next owned-preparation slice: ordinary and held writes now share one preparation/publisher, private held authority reads reuse the existing permission/revision checks; native9cases and pairedCQL qualificationpending. Public CosmicSession transaction tracking/lifecycle/queryfamily binding remainsOPEN, main148/168 extension4/13 unchanged.
