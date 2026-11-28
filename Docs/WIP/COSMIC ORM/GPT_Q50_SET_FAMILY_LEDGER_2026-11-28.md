@@ -41,3 +41,13 @@ Native count retry46116059517 is active on c76ee53d/Core0fd03ded after the Neo c
 Exactc76ee53d/Core0fd03ded passed46116059517/job140890060504: all3real stores,8groups/7ownedIDs/1writebatch/12timings each,0fail/skip, actual WEB4 build and exact cleanup. Strict RAM artifact15252186758,3721bytes,SHA256c84eb7f329bbf666ed0b576bdceaa226fae53b5bac84d5030d3e30815485ca45. Both publication-cap and combined-input acknowledgement invariants are fixed; preserve failed46115004145 evidence. No full set parent credit.
 
 The qualified batch includes both previously native6/6 component cohorts through pinned Core0fd03ded. It preserves peer Development03bf0ef2 Miden canonical publish-graph repair, independently accepted2/2 in46113637170; only Docker/packager/CI/docs differ from count-qualified root runtime source. CQL/provider/Core runtime code matches count source exactly. Private tree Core4e3e3e85 and Mongo tree drafts are excluded from the manifest and deployment. No new API/data/browser/shared Atlas/PIPER test or owner action.
+
+### Native Mongo recursive execution — implemented, native0/1 pending
+
+Core4e3e3e85 is now pinned for this feature candidate only. The shipping Mongo set compiler consumes source or nested-plan operands recursively through its existing compiler; its existing read owner already recurses into child source/stage proofs within the same native snapshot. Row/count dispatch use the structural plan Anchor, and the provider explicitly enrolls recursive execution. SQLite/Neo remain unenrolled; no universal tree support or parent row completion claimed.
+
+The new real-Mongo journey requires10groups/4ownedIDs/1writebatch/12timings: all4identity operators, both nesting sides, duplicate order, child/parent windows, native count beyond publication cap, actor/authority/model/capability/depth/width/source budget admission, foreign isolation, cancellation, and protected oversized deep source/child output before outer Take(0). Existing count3/store controls accompany the new Mongo1 case; actual WEB4 build and exact cleanup required. No managed set-row evaluation or separate provider adapter.
+
+The verified batch8ed94e27/Core0fd03ded was pushed to Development at06:31:10 UTC and EXCLUDES this recursive candidate; next normal Development push no earlier than07:01:10 and only after relevant verification. All4parent rows remain OPEN; main144/168 + extension4/13.
+
+Cleanup: retained source drafts GPT_Q50_NATIVE_TREE_FIXTURE_DRAFT.cs and3Mongo tree compiler/adapter drafts in LocalState/COSMIC. No local build/runtime/env/database/container/image/install/archive or shared Atlas/PIPER calls; CI has owned loopback stores/2-day artifacts and temporary index cleanup. No new David action.
