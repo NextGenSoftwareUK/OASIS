@@ -17,3 +17,7 @@
 Native run 46100733894 stopped at SQLite compilation: its repository interface omitted the new bound execution method. Added the exact contract to IHolonRepository and made its implementation public. No native acceptance credit; MongoDB/SQLite/Neo4j verification remains 0/3 pending the corrected run. Owned CI Mongo container and service cleanup succeeded. No local build output or downloaded logs retained.
 
 SQL and AI query engines remain backend-owned (`POST /api/data/query-cql/sql` and `/ask`). Future engine improvements belong in server code; do not modify Web4Site cql-text.js or cql-ask.js.
+
+### Native test host dependency correction
+
+O07 run46102113566 reached native test-project compilation and exposed an existing linked-source omission: CqlHostedSources now calls the shipping CqlSandboxSidecar, but the linked HTTP test host did not compile that dependency. Link the actual shipping class alongside its caller; no stub or duplicate implementation. The same host fix is applied to both pending row candidates. Native acceptance remains 0/3 pending corrected CI; no runtime or deployment change.
