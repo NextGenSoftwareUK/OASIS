@@ -317,7 +317,7 @@ jobs:
           retention-days: 30
 
   web5-depth:
-    if: github.event_name == 'workflow_dispatch' && (inputs.startup_popup_group == 'map-geo' || inputs.startup_popup_group == 'web5-depth' || inputs.startup_popup_group == 'web5-errors' || inputs.startup_popup_group == 'web5-diff')
+    if: github.event_name == 'workflow_dispatch' && !inputs.clan_actor_compile && (inputs.startup_popup_group == 'map-geo' || inputs.startup_popup_group == 'web5-depth' || inputs.startup_popup_group == 'web5-errors' || inputs.startup_popup_group == 'web5-diff')
     uses: ./.github/workflows/oportal-web5-startup-qualification.yml
     with:
       portal: ${{ inputs.startup_portal }}
