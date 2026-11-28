@@ -33,3 +33,6 @@ Typed-view scalar terminals now implemented in Core6f3f3c80, representative nati
 
 
 Current source candidate Core72245df5: canonical tuple layout allows further native sets over typed views; native element windows and scalar terminals retained. DTO Distinct capture and typed Min compilation gaps fixed. Required gate15 compiler/capture controls +15 native cases + actual WEB4 build; selected native journey25groups/33timings. Earlier failed runs remain recorded, no new full-row/live credit. Mixed identity-set late-projection operands and SQL numeric-set aggregate exposure remain OPEN. Peer Development5b28612a changes portal fixtures/docs only, Core1b24c629 unchanged.
+
+
+Backend numeric SQL candidate: SUM/AVG over selected set sources, optional captured ReductionColumn and native scalar response are implemented; parser20/20 on3providers. Required16 compiler controls +15 native cases + actual WEB4 pending. Browser engines untouched. Existing dedicated gRPC/GraphQL CQL transport gap remains explicit; no new full-row/live credit.

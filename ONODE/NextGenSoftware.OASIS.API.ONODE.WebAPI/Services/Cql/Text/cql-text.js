@@ -548,12 +548,13 @@
       const distinct = accept('DISTINCT');
       const leadingTake=readTop();
       const output=[];
-      let setReduction,scalarAlias;
-      if(input.setBody&&['COUNT','ANY'].includes(peek())&&tokens[index+1]==='(') {
+      let setReduction,scalarAlias,setReductionColumn;
+      if(input.setBody&&['COUNT','ANY','SUM','AVG'].includes(peek())&&tokens[index+1]==='(') {
         const operation=tokens[index++].toUpperCase();expect('(');
-        if(!accept('*')&&!accept('1'))throw new Error('A selected-set reduction accepts COUNT(*)/COUNT(1) or ANY(*).');
-        expect(')');setReduction=operation==='COUNT'?'LongCount':'Any';
-        scalarAlias=readColumnAlias(operation==='COUNT'?'Count':'Any');
+        if(operation==='SUM'||operation==='AVG')setReductionColumn=column().alias;
+        else if(!accept('*')&&!accept('1'))throw new Error('Selected cardinality accepts COUNT(*)/COUNT(1) or ANY(*).');
+        expect(')');setReduction=({COUNT:'LongCount',ANY:'Any',SUM:'Sum',AVG:'Average'})[operation];
+        scalarAlias=readColumnAlias(({COUNT:'Count',ANY:'Any',SUM:'Sum',AVG:'Average'})[operation]);
         input.columns.forEach(item=>output.push({alias:item.alias,sourceAlias:item.alias}));
       } else if (accept('*')) input.columns.forEach(item=>output.push({alias:item.alias,sourceAlias:item.alias}));
       else do {
@@ -578,7 +579,7 @@
         if(stages.length>16||stages.reduce((sum,stage)=>sum+(stage.filters?.length??0)+(stage.anyOf?.length??0),0)>32)
           throw new Error('Selected reduction exceeds16 stages or32 comparisons.');
         const result=stages.length?bindSelectedFrame(input,stages):{path:'data/query-cql/set',body:input.setBody};
-        return {path:result.path,body:{...result.body,includeMetadata:false,reduction:setReduction},scalarAlias};
+        return {path:result.path,body:{...result.body,includeMetadata:false,reduction:setReduction,...(setReductionColumn?{reductionColumn:setReductionColumn}:{})},scalarAlias};
       }
       // SQL DISTINCT compares only this SELECT's visible tuple, before its order/page.
       // Earlier native source and result windows remain separate stages.

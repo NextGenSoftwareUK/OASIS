@@ -134,4 +134,7 @@
     <EmbeddedResource Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/Text/cql-text.js" LogicalName="OASIS.Cql.Text.cql-text.js" />
     <EmbeddedResource Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/Text/cql-ask.js" LogicalName="OASIS.Cql.Text.cql-ask.js" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlProjectedSetNumericV1Endpoint.cs" Link="Web4/CqlProjectedSetNumericV1Endpoint.cs" />
+  </ItemGroup>
 </Project>

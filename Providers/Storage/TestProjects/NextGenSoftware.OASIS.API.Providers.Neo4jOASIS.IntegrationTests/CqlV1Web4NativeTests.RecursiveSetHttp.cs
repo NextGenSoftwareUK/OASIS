@@ -27,7 +27,7 @@ public sealed partial class CqlV1Web4NativeTests
         var type=provider.ProviderType.Value;var actor=Guid.NewGuid();var outsider=Guid.NewGuid();
         var row=new Holon{Id=Guid.NewGuid(),Name="native-tree-http",Description="fixture",CreatedByAvatarId=actor,IsPublic=false,IsActive=true,IsNewHolon=true};
         owned.Add(row.Id);Assert.IsNull((await provider.LoadHolonAsync(row.Id)).Result);
-        var saved=await provider.SaveHolonAsync(row);Assert.IsFalse(saved.IsError,saved.Message+saved.Exception);Assert.IsTrue(saved.IsSaved);
+        var saved=await provider.SaveHolonAsync(row);Assert.IsFalse(saved.IsError,saved.Message+saved.Exception);Assert.IsTrue(saved.IsSaved);Assert.IsNotNull(saved.Result);var persistedVersion=saved.Result.Version;
         const string uri="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         var mongo=new MongoClient(uri);var database="cosmic_recursive_http_usage_"+Guid.NewGuid().ToString("N");
         using(var names=await mongo.ListDatabaseNamesAsync())Assert.IsFalse((await names.ToListAsync()).Contains(database));
@@ -51,10 +51,14 @@ public sealed partial class CqlV1Web4NativeTests
                 var right="(SELECT Name AS kept FROM "+type+" WHERE Id = '"+id+"' LIMIT 1)";
                 var selectedSql="("+child+") UNION ALL "+right;
                 var scalarSql="WITH counted AS ("+selectedSql+") SELECT COUNT(*) AS total FROM counted";
+                var numericLeaf="(SELECT Version AS amount FROM "+type+" WHERE Id = '"+id+"' LIMIT 1)";
+                var numericSet=numericLeaf+" UNION ALL "+numericLeaf;
+                var sumSql="WITH amounts AS ("+numericSet+") SELECT SUM(amount) AS total FROM amounts";
+                var averageSql="WITH amounts AS ("+numericSet+") SELECT AVG(amount) AS mean FROM amounts";
                 async Task Send(string sql,string mode,string? bearer,int expected)
                 {
                     var query=compiler.Compile(sql);Assert.AreEqual("data/query-cql/set",query.Path);
-                    var body=JsonNode.Parse(query.Body.GetRawText())!.AsObject();if(mode=="count")body["maximumResults"]=1;
+                    var body=JsonNode.Parse(query.Body.GetRawText())!.AsObject();if(mode is "count" or "sum" or "average")body["maximumResults"]=1;
                     using var request=new HttpRequestMessage(HttpMethod.Post,"/api/"+query.Path){Content=new StringContent(body.ToJsonString(),Encoding.UTF8,"application/json")};
                     if(bearer!=null)request.Headers.Authorization=new AuthenticationHeaderValue("Bearer",bearer);
                     request.Headers.Add("Idempotency-Key",Guid.NewGuid().ToString("D"));
@@ -63,7 +67,15 @@ public sealed partial class CqlV1Web4NativeTests
                     var text=await response.Content.ReadAsStringAsync();
                     if(bearer==null){Assert.AreEqual(HttpStatusCode.Unauthorized,response.StatusCode,text);return;}
                     Assert.AreEqual(HttpStatusCode.OK,response.StatusCode,text);using var json=JsonDocument.Parse(text);var result=json.RootElement.GetProperty("result");
-                    if(mode=="count")
+                    if(mode is "sum" or "average")
+                    {
+                        Assert.AreEqual("cql-scalar-v1",result.GetProperty("version").GetString());
+                        Assert.AreEqual(mode=="sum"?"Sum":"Average",result.GetProperty("operation").GetString());
+                        Assert.AreEqual(mode=="sum"?"Int32":"Decimal",result.GetProperty("valueType").GetString());
+                        if(mode=="sum")Assert.AreEqual(expected*persistedVersion,result.GetProperty("value").GetInt32());
+                        else Assert.AreEqual((decimal)persistedVersion,decimal.Parse(result.GetProperty("value").GetString()!,System.Globalization.CultureInfo.InvariantCulture));
+                    }
+                    else if(mode=="count")
                     {
                         Assert.AreEqual("cql-scalar-v1",result.GetProperty("version").GetString());
                         Assert.AreEqual("LongCount",result.GetProperty("operation").GetString());
@@ -84,9 +96,10 @@ public sealed partial class CqlV1Web4NativeTests
                     Assert.AreEqual("settled",operation.State);Assert.AreEqual(1,operation.ProviderAttempts.Count);Assert.AreEqual(1,operation.Receipts.Count);
                     Assert.AreEqual(0.002m,authority.Settlements[operation.Id].ActualCostUsd);
                 }
-                foreach(var sample in new[]{(entitySql,"entity"),(selectedSql,"selected"),(scalarSql,"count")})
+                foreach(var sample in new[]{(entitySql,"entity"),(selectedSql,"selected"),(scalarSql,"count"),(sumSql,"sum")})
                 {await Send(sample.Item1,sample.Item2,ownerToken,2);await Send(sample.Item1,sample.Item2,foreignToken,0);await Send(sample.Item1,sample.Item2,null,0);}
-                Assert.AreEqual(6,authority.Started.Count);Assert.AreEqual(6,authority.Settlements.Count);
+                await Send(averageSql,"average",ownerToken,2);await Send(averageSql,"average",null,0);
+                Assert.AreEqual(9,authority.Started.Count);Assert.AreEqual(9,authority.Settlements.Count);
             }
             finally{await app.StopAsync();}
         }
@@ -98,7 +111,7 @@ public sealed partial class CqlV1Web4NativeTests
                 await mongo.DropDatabaseAsync(database);using var names=await mongo.ListDatabaseNamesAsync();Assert.IsFalse((await names.ToListAsync()).Contains(database));
             }
         }
-        return new NativeFixtureJourneyProof(6,1,new Dictionary<string,bool>{["serverSqlCompilation"]=true,["nestedEntityWindows"]=true,
+        return new NativeFixtureJourneyProof(7,1,new Dictionary<string,bool>{["serverSqlNumericSetAggregates"]=true,["serverSqlCompilation"]=true,["nestedEntityWindows"]=true,
             ["selectedChildBindings"]=true,["nativeScalarCountBeyondPublication"]=true,["ownerForeignAnonymousBoundaries"]=true,["oneSettledNativeAttempt"]=true});
     }
 }

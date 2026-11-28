@@ -45,6 +45,7 @@ internal static class CqlRequestCapture
         return new CqlSetV1Request {
             Provider=value.Provider,Kind=value.Kind,Left=Source(value.Left,1),Right=Source(value.Right,1),
             Reduction=value.Reduction,
+            ReductionColumn=value.ReductionColumn,
             ReductionWhere=value.ReductionWhere==null?null:Capture(new CqlV1Request{Where=value.ReductionWhere}).Where,
             MaximumLeftRows=value.MaximumLeftRows,MaximumRightRows=value.MaximumRightRows,
             MaximumResults=value.MaximumResults,Skip=value.Skip,Take=value.Take,
