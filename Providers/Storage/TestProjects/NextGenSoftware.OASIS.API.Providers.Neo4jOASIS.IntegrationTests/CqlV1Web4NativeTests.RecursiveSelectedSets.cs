@@ -111,10 +111,18 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.IsFalse(minimum.IsError,minimum.Message+minimum.Exception);Assert.AreEqual("y",minimum.Result);
         var maximum=await Timed("selected-native-max",()=>scalars.ToCosmicMaxAsync());
         Assert.IsFalse(maximum.IsError,maximum.Message+maximum.Exception);Assert.AreEqual("z",maximum.Result);
+        var bindings=new[]{new CosmicProjectionOutputBinding("Only","Category")};
+        var rebound=child.WithSelectedOutput(child.Output.SelectOutputColumns(bindings).Result);Assert.IsFalse(rebound.IsError,rebound.Message);
+        Assert.AreEqual("CQL_SET_OUTPUT_INVALID",child.WithSelectedOutput(c).ErrorCode);
+        var narrowed=CosmicProjectedSetQuery<Holon,CosmicProjectionRecord>.CreateTree(Node(rebound.Result),Leaf(c.SelectOutputColumns(bindings).Result),CosmicSetQueryKind.Union);
+        Assert.IsFalse(narrowed.IsError,narrowed.Message);
+        var shaped=await Timed("nested-reselected-visible-tuple",()=>manager.ExecuteProjectedSetQueryAsync(Plan(narrowed.Result),new[]{adapter},10));
+        Assert.IsFalse(shaped.IsError,shaped.Message+shaped.Exception);
+        CollectionAssert.AreEqual(new[]{"x","y","z"},shaped.Result.Providers.Single().Rows.Select(row=>(string)row["Only"]).ToArray());
         using var cancel=new CancellationTokenSource();cancel.Cancel();
         var stopped=await Timed("selected-cancel",()=>manager.ExecuteProjectedSetQueryAsync(Plan(query),new[]{adapter},10,cancellationToken:cancel.Token));
         Assert.IsTrue(stopped.IsError);Assert.AreEqual("CQL_QUERY_CANCELLED",stopped.ErrorCode);
-        return new NativeFixtureJourneyProof(15,1,new Dictionary<string,bool>{["nativeScalarExtremaAfterWindows"]=true,["nativeCountIndependentOfPublication"]=true,["nativeCardinalityWithoutConstructors"]=true,["foreignNativeCount"]=true,["registeredLinqLeftTree"]=true,["registeredLinqRightTree"]=true,["explicitTreeAdmission"]=true,["concatOccurrences"]=true,
+        return new NativeFixtureJourneyProof(16,1,new Dictionary<string,bool>{["nestedVisibleOutputBindings"]=true,["nativeScalarExtremaAfterWindows"]=true,["nativeCountIndependentOfPublication"]=true,["nativeCardinalityWithoutConstructors"]=true,["foreignNativeCount"]=true,["registeredLinqLeftTree"]=true,["registeredLinqRightTree"]=true,["explicitTreeAdmission"]=true,["concatOccurrences"]=true,
             ["visibleTupleUnion"]=true,["visibleTupleIntersectExcept"]=true,["nodeWindows"]=true,["rightNested"]=true,
             ["foreignIsolation"]=true,["childBoundBeforeEmpty"]=true,["cancellation"]=true});
     }

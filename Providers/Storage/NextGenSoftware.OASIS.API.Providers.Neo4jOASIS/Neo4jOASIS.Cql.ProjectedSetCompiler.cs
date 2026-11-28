@@ -24,7 +24,9 @@ public partial class Neo4jOASIS
             {
                 text.Append("CALL { CALL { ").Append(Build(child,true))
                     .Append(" } RETURN {kind:'set',proof:{leftProof:leftProof,rightProof:rightProof,members:members,stages:stages,work:work}} AS ")
-                    .Append(name).Append("Proof,rows AS ").Append(name).Append("Values } ");
+                    .Append(name).Append("Proof,[row IN rows | {values:[")
+                    .Append(string.Join(",",selection.OutputColumnIndices.Select(column=>"row.values["+column+"]")))
+                    .Append("]}] AS ").Append(name).Append("Values } ");
                 return;
             }
             var command=CompileCqlSelected(leaf.Query,ProjectedSetInputLimits(leaf.Options),sharedParameters:parameters);
