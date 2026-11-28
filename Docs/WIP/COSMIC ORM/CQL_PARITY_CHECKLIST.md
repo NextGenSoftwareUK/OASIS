@@ -1,6 +1,6 @@
 ## Progress
 
-2026-11-28 UTC — O07 accepted on all3 real stores and actual WEB4 build. This session has added1 fully verified row (O07); M01 remains pending. Maintained table cells now tally142/168; the owner's130/164 baseline predates the current168-entry table. Preserve every existing feature and accepted proof; this tally is not a new audit of old green rows. Completion still requires every checklist feature, not dropping four rows to fit an older denominator.
+2026-11-28 UTC — O07 accepted on all3 real stores and actual WEB4 build. This session has added2 fully verified rows (O07,M01); M09 remains pending. Maintained table cells now tally143/168; the owner's130/164 baseline predates the current168-entry table. Preserve every existing feature and accepted proof; this tally is not a new audit of old green rows. Completion still requires every checklist feature, not dropping four rows to fit an older denominator.
 
 Maintained by cloud session cloud-cosmic-B (claims in `Docs/WIP/Release and Status/WORK-CLAIMS.md`).
 
