@@ -1,0 +1,23 @@
+# OASIS record commitments on a public Miden account.
+#
+# The map slot "oasis::kv" holds, for each record, two entries keyed by
+# [id0, id1, id2, half] where id0..id2 are 32-bit limbs of SHA-256(record key) and half is 0 or 1.
+# Each value is four 32-bit limbs of one half of the record envelope's SHA-256. A zero word means
+# the record does not exist. Only transactions authenticated by the account's own key can call
+# set_entry, so only the owner writes.
+
+use miden::protocol::native_account
+
+const KV_SLOT = word("oasis::kv")
+
+#! Writes one map entry.
+#! Inputs:  [KEY, VALUE, pad(8)]
+#! Outputs: [pad(16)]
+@account_procedure
+pub proc set_entry
+    push.KV_SLOT[0..2]
+    # => [slot_id_prefix, slot_id_suffix, KEY, VALUE, pad(8)]
+    exec.native_account::set_map_item
+    # => [OLD_VALUE, pad(8)]
+    dropw
+end

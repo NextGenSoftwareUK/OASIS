@@ -45,6 +45,7 @@ RUN test -f "/src/STAR ODK/NextGenSoftware.OASIS.STAR.STARDNA/DNA/OASIS_DNA.json
 WORKDIR "/src/WEB6/NextGenSoftware.OASIS.Web6.WebAPI"
 RUN dotnet restore "NextGenSoftware.OASIS.Web6.WebAPI.csproj"
 RUN dotnet publish "NextGenSoftware.OASIS.Web6.WebAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN sh /src/Docker/install-miden-sdk.sh /app/publish/MidenSdkBridge
 
 RUN bash /src/Docker/package-provider-sdk-bridges.sh /app/publish
 

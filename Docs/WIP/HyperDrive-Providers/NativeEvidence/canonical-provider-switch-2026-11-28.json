@@ -1,0 +1,42 @@
+{
+  "scope": "Canonical public provider-control storage selection; not whole HyperDrive v2 acceptance",
+  "core": "907cd4b46040793f64c9973ad16a8b089bcea637",
+  "parent": "5366da3cc1b3fee0049c416aadd6bb6df215119e",
+  "build": {
+    "run": 46109274477,
+    "conclusion": "success",
+    "checks": [
+      "public manager manifest",
+      "WEB4 route manifest",
+      "V2 storage-operation inventory",
+      "shipping WEB4 API build"
+    ]
+  },
+  "native": {
+    "run": 46109531969,
+    "conclusion": "success",
+    "passed": 2,
+    "total": 2,
+    "skipped": 0,
+    "backends": [
+      "real SQLite file",
+      "real LocalFile directories"
+    ],
+    "checks": [
+      "activation failure preserves selected and global backend",
+      "registered facade instances match router",
+      "actual reads follow acknowledged switches",
+      "same-type inactive provider reactivates",
+      "borrowed providers remain active",
+      "no-op/failed switch preserves switch timestamp",
+      "shared load-balancer rotation and disabled policy",
+      "no alternative is an explicit error"
+    ]
+  },
+  "cleanup": "Native providers stopped, SQLite disposed, owned temporary directories removed and original process-manager singleton restored; no Mongo fixture, shared Atlas operation or local build output",
+  "remaining": [
+    "Hosted/runtime acceptance",
+    "Remaining provider capability gates",
+    "Global v2 release gates beyond this scoped control regression"
+  ]
+}

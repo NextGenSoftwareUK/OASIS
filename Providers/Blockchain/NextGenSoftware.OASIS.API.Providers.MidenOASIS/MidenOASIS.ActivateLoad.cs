@@ -34,38 +34,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
 {
     public partial class MidenOASIS
     {
-        public override async Task<OASISResult<bool>> ActivateProviderAsync()
-        {
-            var result = new OASISResult<bool>();
-            try
-            {
-                _midenService = new MidenService(_apiClient);
-                _bridgeService = new MidenBridgeService(_midenService);
-
-                IsProviderActivated = true;
-                result.Result = true;
-                result.Message = "Miden provider activated successfully";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Failed to activate Miden provider: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        public override OASISResult<bool> ActivateProvider()
-        {
-            return ActivateProviderAsync().Result;
-        }
-
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
-        {
-            _midenService = null;
-            _bridgeService = null;
-            IsProviderActivated = false;
-            return new OASISResult<bool>(true);
-        }
-
         /// <summary>
         /// Gets the bridge service for cross-chain operations
         /// </summary>
@@ -73,12 +41,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
         {
             return _bridgeService;
         }
-
-        public override OASISResult<bool> DeActivateProvider()
-        {
-            return DeActivateProviderAsync().Result;
-        }
-
 
         public async Task<OASISResult<PrivateNote>> CreatePrivateNoteAsync(decimal value, string ownerPublicKey, string assetId = null, string metadata = null)
         {
@@ -310,20 +272,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
             return result;
         }
 
-
-
-        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0) { await Task.CompletedTask; return NoRecordStore<IEnumerable<IAvatar>>(); }
-
-        public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0) => NoRecordStore<IEnumerable<IAvatar>>();
-
-        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0) { await Task.CompletedTask; return NoRecordStore<IAvatar>(); }
-
-        public override OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0) => NoRecordStore<IAvatar>();
-
-        // Additional required overrides would go here...
         // For now, implementing minimal set for bridge functionality
-
-
 
         public async Task<OASISResult<decimal>> GetAccountBalanceAsync(string accountAddress, CancellationToken token = default)
         {
@@ -458,8 +407,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
                 return result;
             }
         }
-
-
 
         public OASISResult<ITransactionResponse> SendToken(ISendWeb3TokenRequest request)
         {

@@ -17,9 +17,11 @@ OPORTAL, the ONODE popup and billing UI are now owned by a different session. CQ
 
 All three rechecks used isolated real backends in CI; no shared Atlas test operations or local runtime/download/build output. Compact receipts are in `NativeEvidence/*-development-2026-11-27.json`. Hosted acceptance and global v2 gates remain open. OPORTAL continuation is limited to gaps beyond the other session’s accepted work; verified MCP source-link correction is tracked in OPORTAL-JS.
 
-Miden: existing Claude source0289f57c passed52/52 in CI45753725053 but was not merged. `work/gpt-miden-native-integration` reuses it, completes SDK shipping/configuration and verifies the current Core6613656a graph in CI46104748678 (pending). No new Miden acceptance/deployment count is claimed yet.
+Miden: Claude’s native implementation is integrated with shipping SDK provisioning, persistent-store reuse and owned worker disposal. CI46106768815 on6fd58ec3 passed26sync+26async plus the native lifecycle case, zero skips. Current Development’s subsequent COSMIC-only Core increment is preserved; build verification follows. Hosted admission remains MIDEN-HOSTED1.
 
 OPORTAL: dev/checkout CI46102330540 passed203/203executed browser checks per target,80signed-in checks skipped. Only report-upload quota failed. Credential custody is recorded once as OPORTAL-CI1; no broad shared-Atlas test authorized.35redundant CI artifacts/9649851300bytes removed, release/latest-good artifacts retained.
+
+Canonical provider controls: shipping WEB4 build46109274477 and native SQLite/LocalFile control regression46109531969 passed2/2, zero skips. Facades use the canonical registry/selection engine; activation precedes publication and healthy borrowed providers remain active. This closes the scoped public storage-switch defect, not all global v2 gates.
 
 ## Progress (local HyperDrive programme, updated 2026-11-25 03:00 UTC)
 
@@ -76,6 +78,8 @@ native core-storage suite in CI (20 above). Nothing self-hostable is left unclai
 - Delegated identity gate: Eclipse, Telos and SEEDS fixes pass their native suites and key round trips; hosted/full-interface and global gates remain separate.
 
 ## Branches
+
+Current GPT verification branch: `work/gpt-hyperdrive-release-gates`; Miden integration branch `work/gpt-miden-native-integration`. Shared physical checkouts are left untouched. The following older branch note is historical.
 
 This work is on `work/hyperdrive-triad`, which was cut from `origin/Development` (d1936908). The old GPT task branch
 `work/hyperdrive-provider-completion` (277560b0, pushed) has a stale Core gitlink, a88a9926. Its provider source no longer

@@ -53,6 +53,16 @@
     </ItemGroup>
 
     <ItemGroup>
+      <None Include="SdkBridge\worker.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="MidenSdkBridge\worker.mjs" Pack="true" PackagePath="contentFiles/any/any/MidenSdkBridge/worker.mjs" PackageCopyToOutput="true" />
+      <None Include="SdkBridge\oasis_kv.masm" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="MidenSdkBridge\oasis_kv.masm" Pack="true" PackagePath="contentFiles/any/any/MidenSdkBridge/oasis_kv.masm" PackageCopyToOutput="true" />
+      <None Include="SdkBridge\package.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="MidenSdkBridge\package.json" Pack="true" PackagePath="contentFiles/any/any/MidenSdkBridge/package.json" PackageCopyToOutput="true" />
+      <None Include="SdkBridge\package-lock.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="MidenSdkBridge\package-lock.json" Pack="true" PackagePath="contentFiles/any/any/MidenSdkBridge/package-lock.json" PackageCopyToOutput="true" />
+      <None Include="../../../Docker/install-miden-sdk.sh" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="MidenSdkBridge/install-sdk.sh" Pack="true" PackagePath="contentFiles/any/any/MidenSdkBridge/install-sdk.sh" PackageCopyToOutput="true" />
+      <InternalsVisibleTo Include="NextGenSoftware.OASIS.API.Providers.MidenOASIS.UnitTests" />
+      <InternalsVisibleTo Include="NextGenSoftware.OASIS.API.Providers.MidenOASIS.IntegrationTests" />
+    </ItemGroup>
+
+    <ItemGroup>
       <None Update="README.md">
         <PackagePath>\</PackagePath>
         <Pack>True</Pack>
