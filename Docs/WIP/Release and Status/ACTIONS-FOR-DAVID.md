@@ -1816,3 +1816,12 @@ Status: OPEN (2026-11-27). Details: `API_SURFACE_SYNC_STATUS.md`. npm publishing
 2. MCP server with 511 tools (adds web4_cql_sql, web4_cql_ask, web4_admin_cql_sidecars): run the "Build and Publish MCP
    Server" workflow with the next version and publish=true: `gh workflow run publish-mcp.yml -R NextGenSoftwareUK/OASIS -f version=<next> -f publish=true`
    (needs the change on the branch the workflow builds from).
+
+
+## OPORTAL-CI1 — approved signed-in test credential custody
+
+Open, verified2026-11-27 by gpt-hyperdrive. OPORTAL-JS repository Actions secret-name inventory is empty; the browser workflow expects `OPORTAL_TEST_EMAIL` and `OPORTAL_TEST_PASSWORD`. The 25November OPORTAL handoff says David already supplied an approved account to Claude, but those values are not in the repository secret store and cannot be recovered from GitHub. No credential or account identifier is recorded here.
+
+Owner/custodian action: arrange for the previously approved dedicated account credentials to be placed in those two repository Actions secrets (Settings → Secrets and variables → Actions). Use the existing approved custody route; do not paste credentials into this document or chat, and do not create a competing account solely for this entry. Source handoff: OPORTAL-JS `Docs/WIP/OPORTAL-E2E.md`.
+
+Engineering will first review the authenticated request scope and shared-Atlas isolation rules before dispatching signed-in acceptance; adding secrets alone does not authorize a broad shared-cluster test. The current signed-out run reported202passes/80skips per target and cannot establish that every authenticated popup is100% complete. Other portal fixes and provider work continue independently.

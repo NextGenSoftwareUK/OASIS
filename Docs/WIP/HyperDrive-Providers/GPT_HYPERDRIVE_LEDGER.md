@@ -21,3 +21,5 @@
 ## 2026-11-27 — v2 source-gate audit (in progress)
 
 Claimed before inspection. `HYPERDRIVE_V2_GATE_AUDIT_2026-11-27.md` records a split authoritative state between the public ProviderSwitcher helper/ProviderRegistry and shipping ProviderManager, enum-only switching, publication before possible failure, and fabricated last-switch time. Existing native main-router acceptance is preserved and not relabelled as switcher evidence. No global backend tests run before provider acceptance; no owner action or local runtime/output. Next is the canonical state fix and focused real-provider verification when the provider gate permits it.
+
+- OPORTAL owner custody checkpoint: GitHub repository Actions secret-name inventory is empty; recorded OPORTAL-CI1 in the single owner-action list, referencing the already supplied account from Claude’s handoff rather than asking for credentials again. No signed-in request or shared-cluster test dispatched.
