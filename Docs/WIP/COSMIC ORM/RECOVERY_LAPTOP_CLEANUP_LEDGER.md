@@ -11529,3 +11529,6 @@ New backend SQL lowering preserves bounded plain entity sources and post-page en
 - The recursive native HTTP host can now opt into the shipping CqlTextMiddleware before usage admission. Existing typed-route checks remain; one owner/foreign/anonymous SQL-text trio posts directly to `/api/data/query-cql/sql`, with no client compilation for those requests.
 - Expected evidence: 12 HTTP check groups / 31 timing observations per provider, 20 independently settled native attempts (anonymous calls have no reservation). Response parsing/route headers are checked; same one owned fixture write and exact cleanup. No WEB6 external drafting call or browser engine change.
 - Main 144/168, extension 4/13 unchanged; identity-set late-selection operands remain open. Native acceptance pending exact CI; no deployment claim.
+
+
+2026-11-28: SQL endpoint qualification exact5a8241a runs in existing CI containers. Automatic run46143154521 retained; redundant manually queued46143168518 canceled immediately. No local runtime/build/database/ZIP files created. Backend ownership recorded in AGENTS.md; native endpoint review found no blockers.

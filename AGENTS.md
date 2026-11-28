@@ -69,6 +69,9 @@ Work in cohesive batches across shared Core and real shipping providers. Use rep
 
 Keep builds, caller permissions, source/data preservation, acknowledged writes, isolated tests and required CI/deployment gates. Defer nonessential performance tuning and hardening; address serious regressions immediately. Report implementation, representative functional verification and hardened coverage separately. Do not mark full parity or deployment acceptance merely from source presence or a smoke test. Publish usable demo slices as they become available instead of waiting for the whole programme. Follow the existing single-branch, coordination, cleanup and rollout rules.
 
+
+SQL-like and AI query engines are backend-owned: implement parser and prompt changes in `ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/Text/cql-text.js` and `cql-ask.js`, executed by the WEB4 API. The browser calls `POST /api/data/query-cql/sql` and `/api/data/query-cql/ask`; do not update or restore engine copies in Web4Site. Preserve the existing typed-query authorization, usage admission and native-provider execution when expanding either text endpoint.
+
 ## Railway WEB4-WEB10 dependency policy
 
 - `Docker/oasis-dependency-versions.env` is the single source of deployed dependency SHAs. Never duplicate commit pins in individual WEB4-WEB10 Dockerfiles or clone moving branch tips.
