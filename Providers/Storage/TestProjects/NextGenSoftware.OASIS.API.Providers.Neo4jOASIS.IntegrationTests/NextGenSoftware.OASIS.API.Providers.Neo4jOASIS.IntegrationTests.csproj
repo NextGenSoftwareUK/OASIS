@@ -138,10 +138,4 @@
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlProjectedSetNumericV1Endpoint.cs" Link="Web4/CqlProjectedSetNumericV1Endpoint.cs" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlProjectedSetExtremumV1Endpoint.cs" Link="Web4/CqlProjectedSetExtremumV1Endpoint.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlTextMiddleware.cs" Link="Web4/CqlTextMiddleware.cs" />
-    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/CqlV1Controller.Text.cs" Link="Web4/CqlV1Controller.Text.cs" />
-    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlSqlRequest.cs" Link="Web4/CqlSqlRequest.cs" />
-    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlAskRequest.cs" Link="Web4/CqlAskRequest.cs" />
-  </ItemGroup>
 </Project>
