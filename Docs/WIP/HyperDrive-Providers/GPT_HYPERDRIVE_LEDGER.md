@@ -45,3 +45,5 @@ Shipping build46109274477 passed3manifest gates and WEB4 compilation. Native4610
 ## 2026-11-28 — popular search native CI gap
 
 Existing Elasticsearch/Qdrant26-check native adapters require explicit disposable GitHub fixtures, but no workflow sets their admission markers/ports/modes. Reused those tests and pinned official backend9.5.5/1.16.3manifest digests obtained from registries without local downloads. New selective workflow builds once under the lease and runs both modes with fresh isolated containers,26-check/zero-skip/native-empty guards and EXIT cleanup. Current source acceptance pending; no Atlas/backend secrets or local environment/output.
+
+- GitHub does not register a newly added workflow for manual dispatch until it is on the default branch. The existing registered popular-provider workflow now calls the new isolated workflow only when search_provider is explicitly selected; its accepted matrix is skipped for this selection. No product code promoted to master and no old suites repeated.

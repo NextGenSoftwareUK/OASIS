@@ -59,12 +59,25 @@ on:
       - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.RadixOASIS.IntegrationTests/**'
       - 'Providers/*/TestProjects/*/*NativeStorageConformanceTests.cs'
   workflow_dispatch:
+    inputs:
+      search_provider:
+        description: Run only the missing search core-storage gate; None preserves the existing matrix
+        type: choice
+        options: [None, Both, Elasticsearch, Qdrant]
+        default: None
 
 permissions:
   contents: read
 
 jobs:
+  native-search:
+    if: ${{ inputs.search_provider != '' && inputs.search_provider != 'None' }}
+    uses: ./.github/workflows/search-core-native-storage.yml
+    with:
+      provider: ${{ inputs.search_provider }}
+    secrets: inherit
   storage:
+    if: ${{ inputs.search_provider == '' || inputs.search_provider == 'None' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:

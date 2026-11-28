@@ -1,6 +1,14 @@
 name: Search core native storage
 
 on:
+  workflow_call:
+    inputs:
+      provider:
+        type: string
+        default: Both
+    secrets:
+      PRIVATE_SUBMODULE_PAT:
+        required: true
   workflow_dispatch:
     inputs:
       provider:
