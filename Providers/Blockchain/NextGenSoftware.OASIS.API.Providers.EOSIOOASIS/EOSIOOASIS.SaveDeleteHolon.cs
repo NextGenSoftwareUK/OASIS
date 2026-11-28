@@ -68,6 +68,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             try
             {
                 var plan = HolonGraphWritePlan.CreateForSave(holons, saveChildren, recursive, maxChildDepth, currentChildDepth);
+                foreach (var node in plan.Nodes)
+                    WithStorageIdentity(node.Snapshot);
                 var rows = plan.Nodes.Select(node => new HolonDto
                 {
                     HolonId = node.Snapshot.Id.ToString(),
@@ -78,7 +80,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
                 foreach (var node in plan.Nodes)
                 {
-                    node.Source.Id = node.Snapshot.Id;
+                    AcknowledgeStorageIdentity(node.Source, node.Snapshot);
                     node.Source.ParentHolonId = node.Snapshot.ParentHolonId;
                 }
 
@@ -126,33 +128,13 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                // Delete holon directly by provider key from EOSIO blockchain
-                var deleteResult = await _eosClient.DeleteHolonByProviderKeyAsync(providerKey);
-                if (!deleteResult)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Error deleting holon by provider key from EOSIO");
-                    return result;
-                }
-
-                result.Result = null; // Holon deleted, so return null
-                result.IsError = false;
-                result.Message = "Holon deleted successfully by provider key from EOSIO";
+                return await DeleteHolonAsync(ParseStorageKey(providerKey)).ConfigureAwait(false);
             }
-            catch (Exception ex)
+            catch (Exception error)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error deleting holon by provider key from EOSIO: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, "EOSIO holon storage-key deletion failed.", error);
+                return result;
             }
-            return result;
         }
 
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)

@@ -58,6 +58,8 @@ EclipseOASIS: done by the hyperdrive-triad session (f2717b1b); the duplicate `wo
 
 Classified non-storage: LoomOASIS (PLAN_LOOM_CLASSIFICATION_2026-11-25.md) and FarcasterOASIS (no keyed, durable app-data message type; see FARCASTER_STORAGE_CLASSIFICATION_2026-11-25.md).
 
+In progress (gpt-hyperdrive, `work/gpt-delegated-storage-keys`): integrate existing `6c95573c` and align EOSIO canonical record-key reads/writes; native CI acceptance pending.
+
 Known gap: providers that delegate storage (Eclipse to Solana, Telos to EOSIO) stamp saved records with the inner
 provider's ProviderUniqueStorageKey type; routing by the outer type does not find them. Fix is to make the stamped type
 configurable in SolanaOASIS/EOSIOOASIS.
