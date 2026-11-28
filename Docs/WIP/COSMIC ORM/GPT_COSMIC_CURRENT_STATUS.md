@@ -27,3 +27,6 @@ Current source-only gates: backend recursive SQL/API9fe4f5c9 in46128402238; nati
 
 
 Typed final-view source: Core1ae4f815 adds DTO/anonymous/scalar reselection with native stages and no intermediate constructors. New native representative pending; further set composition and typed-view scalar terminals remain OPEN. This is implementation, not native/live acceptance.
+
+
+Typed-view scalar terminals now implemented in Core6f3f3c80, representative native tests pending. Further set algebra over typed views remains OPEN. Mongo numeric boundary repairfa3b8aa4 is the current independent gate46130453011; no new full-row or live acceptance.

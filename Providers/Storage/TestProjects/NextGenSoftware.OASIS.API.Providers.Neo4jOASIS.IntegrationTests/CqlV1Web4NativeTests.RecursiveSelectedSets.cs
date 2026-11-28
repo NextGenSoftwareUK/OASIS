@@ -161,12 +161,19 @@ public sealed partial class CqlV1Web4NativeTests
         var typedResult=await Timed("native-typed-final-shape",()=>typedView.ToCosmicListAsync());
         Assert.IsFalse(typedResult.IsError,typedResult.Message+typedResult.Exception);
         CollectionAssert.AreEqual(new[]{"x"},typedResult.Result.Select(row=>row.Value).ToArray());
+        var typedCount=await Timed("typed-view-native-count",()=>typedView.ToCosmicCountAsync());
+        Assert.IsFalse(typedCount.IsError,typedCount.Message+typedCount.Exception);Assert.AreEqual(1,typedCount.Result);
+        var typedMin=await Timed("typed-view-native-min",()=>typedView.ToCosmicMinAsync(row=>row.Value));
+        Assert.IsFalse(typedMin.IsError,typedMin.Message+typedMin.Exception);Assert.AreEqual("x",typedMin.Result);
+        var typedNumberView=nativeNumbers.Select(number=>new{Number=number}).Where(row=>row.Number>0);
+        var typedSum=await Timed("typed-view-native-sum",()=>typedNumberView.ToCosmicSumAsync(row=>row.Number));
+        Assert.IsFalse(typedSum.IsError,typedSum.Message+typedSum.Exception);Assert.AreEqual(5,typedSum.Result);
         Assert.AreEqual(0,SelectedCountProbe.ConstructorCalls,"Do not construct the original set DTO.");
         Assert.AreEqual(0,SelectedFinalProbe.ConstructorCalls,"Do not construct an intermediate final shape that was reselected.");
         using var cancel=new CancellationTokenSource();cancel.Cancel();
         var stopped=await Timed("selected-cancel",()=>manager.ExecuteProjectedSetQueryAsync(Plan(query),new[]{adapter},10,cancellationToken:cancel.Token));
         Assert.IsTrue(stopped.IsError);Assert.AreEqual("CQL_QUERY_CANCELLED",stopped.ErrorCode);
-        return new NativeFixtureJourneyProof(21,1,new Dictionary<string,bool>{["typedFinalSelectionWithoutIntermediateConstructors"]=true,["registeredLinqNativeSumAverage"]=true,["sharedOrdinaryNumericDecoderControl"]=true,["nativeSumAverageAfterSetWindows"]=true,["numericVisibleEqualityAndForeignScope"]=true,["nestedVisibleOutputBindings"]=true,["nativeScalarExtremaAfterWindows"]=true,["nativeCountIndependentOfPublication"]=true,["nativeCardinalityWithoutConstructors"]=true,["foreignNativeCount"]=true,["registeredLinqLeftTree"]=true,["registeredLinqRightTree"]=true,["explicitTreeAdmission"]=true,["concatOccurrences"]=true,
+        return new NativeFixtureJourneyProof(23,1,new Dictionary<string,bool>{["typedViewCardinalityAndExtrema"]=true,["typedViewNumericTerminal"]=true,["typedFinalSelectionWithoutIntermediateConstructors"]=true,["registeredLinqNativeSumAverage"]=true,["sharedOrdinaryNumericDecoderControl"]=true,["nativeSumAverageAfterSetWindows"]=true,["numericVisibleEqualityAndForeignScope"]=true,["nestedVisibleOutputBindings"]=true,["nativeScalarExtremaAfterWindows"]=true,["nativeCountIndependentOfPublication"]=true,["nativeCardinalityWithoutConstructors"]=true,["foreignNativeCount"]=true,["registeredLinqLeftTree"]=true,["registeredLinqRightTree"]=true,["explicitTreeAdmission"]=true,["concatOccurrences"]=true,
             ["visibleTupleUnion"]=true,["visibleTupleIntersectExcept"]=true,["nodeWindows"]=true,["rightNested"]=true,
             ["foreignIsolation"]=true,["childBoundBeforeEmpty"]=true,["cancellation"]=true});
     }
