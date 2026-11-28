@@ -4,13 +4,15 @@ Updated2026-11-28UTC. Shared Atlas is not a test backend; protected deliveries53
 
 ## Latest OPORTAL continuation — 28 November
 
-Selected new native/browser flows8/8(recovery1,populated Map/Launcher2,migration1,ONET1,Holon Diff1,geo layers1,actual map renderer1); separate OAPP API/SDK missing-detail1/1and current SDK delivery3/3. No accepted suite replay or new provider credit. Holon source308ed7cfis preserved by peer CQL; specific seal/cryptographic/hosted gates stay separate.
+Selected new native/browser flows9/9(recovery1,populated Map/Launcher2,migration1,ONET1,Holon Diff1,geo layers1,actual map renderer1,manual map Visit1). Separate API contracts: OAPP missing-detail1/1 and map search transports3/3. The45/45surface count is a source inventory, not all completed screens; OPORTAL and HyperDrive are not100% accepted. Provider baseline123/163within238tracked projects is unchanged.
 
-Geo46142470160passed actual visible/hidden hotspot and linked quest create/readback plus popup layer status/close. MapRenderer46146049497passed actual MapLibre6.19/WebGL2 and9camera/selection/highlight actions on a real API/native Mongo location, rendered identity and close/disposal. All owned cleanup acknowledged; no raster tile, Unity, GeoNFT mint or remote runtime claim. Qualified UI is integrated OPORTALdev830a97e6;45/45remains a source inventory, not all screens complete.
+Map search46151924276passed actual SDK JSON filters, actual source-proto Grpc.Net.Client and GraphQL, each one-match/no-match/identity. Coref799bc0c corrects explicit collection-read tariff names and durable gRPC response framing; merge2d076f7c preserves peer CQLfa4ea2e2. Existing Wizard gates, pricing/reservation/settlement remain. Native receipt names exact frozen sourcee60162c2; current merged-graph and hosted deployment acceptance remain separate.
 
-Generic sourceApp natural-place contractb0c2f5a6/Core18dad5ae/Unity7e9e3490stays unaccepted/unpromoted after real public catalogue46140605906timeout/46141372411upstream failure. Map search source46ce43e9corrects ignored SDK JSON filters and Guid.EmptygRPC/GraphQL search identity; image46146213659built, native46148591025running, existing Wizard gates unchanged. Current source and deployed acceptance remain distinct.
+Map Visit46152223451passed one real UI save, independent private history/statistics, visible counters and close. This is not physical place/karma verification. Renderer46146049497 and geo46142470160 are retained without rerun. New SDK6795c431 honors seven existing bodyParam declarations; source wire test1/1covers8shapes; changed browser delivery46152132189passed3wire checks and existing guards. Portaldev0a3c8541 contains that qualified bundle; WEB5/WEB6 asset blobs unchanged. npm publication/hosted signed-in gates remain open.
 
-Docs/Learn maps guides observed2/2live staticHTTP200; WEB4 SDK guide3e8d07c3on its qualified source branch. Development308ed7cfhas7/7SUCCESS service statuses through11:14:43UTC(metadata only). No new owner action/shared Atlas test; protected deliveries535/543and worker/routing holds untouched. Provider baseline123/163within238tracked projects unchanged. [Structured current report](LATEST_FULL_STATUS_2026-11-28.json).
+Generic sourceApp natural-place contractb0c2f5a6/Core18dad5ae/Unity7e9e3490 stays unaccepted/unpromoted after real public catalogue timeout/upstream failure. Populated GeoNFT, live tiles, Unity/device and remote provider runtime remain open. No accepted provider suite replay, paid calls, shared Atlas operations or new owner action. Protected deliveries535/543 and worker/routing holds untouched.
+
+Cleanup receipts confirm owned containers/networks/database volumes removed, APIgracefulexit0; laptop31.9GiBfree with0owned temporary indexes and no local runtime/install/results. Docs/Learn maps guides retained2/2live staticHTTP200. [Structured current report](LATEST_FULL_STATUS_2026-11-28.json).
 
 ## Railway shipping gate verified
 
