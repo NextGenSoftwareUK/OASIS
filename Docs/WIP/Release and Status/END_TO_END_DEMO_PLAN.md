@@ -12,7 +12,13 @@ The goal David set on 2026-11-26: one full end-to-end demo of everything OASIS h
 6. **WEB6 sandbox:** the AI layer (agents, holonic memory, free-text queries).
 7. **HoloNET sandbox:** Holochain through HoloNET.
 
-## Workstreams and their state (26 Nov 2026)
+## Verification checkpoint (28 Nov 2026)
+
+HyperDrive matrix:118/163 storage-role rows have recorded26sync+26async native baselines;238tracked provider projects include75non-storage and legacy variants. This is not all-provider hosted/current-graph certification. Global v2 gates remain open. See `../HyperDrive-Providers/CURRENT_STATUS.md`.
+
+OPORTAL: existing dev/checkout browser runs passed203/203 executed checks per target;80signed-in checks were skipped without CI account credentials. Representative isolated real-backend popup journeys have separate evidence; Social Graph/Activity Feed continuation is in progress. Whole-portal and paid subscription acceptance remain open.
+
+## Historical workstream checkpoint (26 Nov 2026)
 
 | Workstream | State | Lead |
 |---|---|---|

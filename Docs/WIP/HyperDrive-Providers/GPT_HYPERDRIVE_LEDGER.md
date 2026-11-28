@@ -79,3 +79,5 @@ Read-only selected build logs prove WEB6/7/9failed at my unconditional Miden SDK
 ## 2026-11-28 — obsolete Desktop inventory reconciliation
 
 Corrected the stale HoloOASIS.Desktop matrix row to obsolete, consistent with its existing README and owner decision. Retained canonical HoloOASIS priority and original historical CI45723092086; no new Desktop tests, source deletion, runtime change, build or download. Inventory238 and native-baseline118/163 remain unchanged; denominator includes retained legacy variants.
+
+- Refreshed remaining current CQL inventory references to238and added the4missing non-storage rows with explicit no-CQL/no-hosted acceptance. Exact current table238rows; old dated CQL feature metrics unchanged. Demo26Nov checkpoint retained with a28Nov scoped118/163and OPORTAL coverage note. No tests/builds/downloads needed for documentation.
