@@ -1,0 +1,22 @@
+{
+  "provider": "WeaviateOASIS",
+  "suite": "core-storage-v2",
+  "mode": "native",
+  "source": "67663f814422b58dca1a7e427d7afeea36f567cc",
+  "core": "0fd03dede3f2caaa02ec6e2c5ff75319f9528e55",
+  "inputTree": "b026c3db2d188c720437212de84cc6475ec6199f",
+  "run": 46118279343,
+  "url": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/46118279343",
+  "conclusion": "success",
+  "sync": 26,
+  "async": 26,
+  "passed": 52,
+  "total": 52,
+  "skipped": 0,
+  "scope": "Current changed query-client binding and shared deserializer graph qualified on exact Development source. Official pinned real Weaviate; no mock, shared Atlas or local runtime/build/download.",
+  "cleanup": "Both modes report complete26checks/FixtureCleanupComplete true and owned node/volumes/fixture removal.",
+  "limits": [
+    "Hosted/full-interface/global routing acceptance remains separate",
+    "Original12Nov evidence retained historically; not counted twice"
+  ]
+}
