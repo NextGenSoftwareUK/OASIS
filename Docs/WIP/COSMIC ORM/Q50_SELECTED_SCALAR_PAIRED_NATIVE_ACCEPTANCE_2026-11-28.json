@@ -1,0 +1,28 @@
+{
+  "run": 46126840806,
+  "artifact": 15256053536,
+  "sha256": "a4ce4ef283cc3823b4a19a3cf87e0d5da6293eeaf99e931c76e1205dd27c8a7a",
+  "entries": 14,
+  "source": "233d9f1c1c467489f18a0dd62f671955d675ef8a",
+  "core": "1b24c6291c6500888d735e9eb9d81b30b802d1e8",
+  "nativePassed": 12,
+  "nativeSetPublicationCountsVerified": true,
+  "nativeRecursiveEntitySetProviders": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS",
+    "Neo4jOASIS"
+  ],
+  "nativeRecursiveSelectedSetProviders": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS",
+    "Neo4jOASIS"
+  ],
+  "nativeSelectedSetCountVerified": true,
+  "nativeSelectedSetScalarExtremaVerified": true,
+  "nestedVisibleOutputBindingsVerified": true,
+  "fullSetParentsComplete": false,
+  "actualWeb4Compiled": true,
+  "ownedFixturesAbsent": true,
+  "sharedDatabaseCalls": 0,
+  "deployed": false
+}

@@ -1,17 +1,23 @@
 # COSMIC current status
 
-Updated 2026-11-28T06:57:32.286Z. Session gpt-cosmic.
+Updated 2026-11-28T08:46:34.739Z. Session gpt-cosmic; task branch work/gpt-q50.
 
-Maintained checklist: **144/168** main rows verified on native MongoDB/SQLite/Neo4j; extension **4/13** tracked separately. This session completed O07 (cdefa9ee, CI46103037019), M01 (20ff7eee, CI46104535369), M09 (926bc3f8, CI46105605228), each native3/3, actual WEB4 build and exact cleanup. Existing accepted cohorts are preserved.
+## Progress
 
-Full M04 remains OPEN. Its XML ordinary-class/identity, aliases, numeric generators/discriminator inheritance, Holon components, POCO/constructor components increments passed their native cohorts. Latest component runs46113010583 and46113931675 each passed6/6 plus WEB4. They are in qualified Development8ed94e27/Core0fd03ded, pushed06:31:10 UTC; no further unverified runtime batch is deployed. Count-publication repair passed native3/3 in46116059517 and is in the same batch.
+Main checklist **144/168**, extension **4/13**. This session completed O07, M01 and M09, each with native MongoDB/SQLite/Neo4j CI evidence and actual WEB4 build. Full M04 and Q50/Q51/Q53/Q54 remain OPEN. Accepted XML mapping increments remain preserved; no full-row credit from partial coverage.
 
-Active claim: Q50/Q51/Q53/Q54 recursive set family on work/gpt-q50. Typed immutable trees and Mongo/SQLite source compilation are implemented. Mongo-only46117421264 exposed a shared admission null dereference (count3 passed, tree1 failed); fixed at Core0534cb49 by capturing every leaf policy, retaining indexed-source rejection. Corrected Mongo/SQLite source d4cfce8d is running46118924092 (tree2 + count3). Old-Core combined46118224678 was explicitly cancelled as superseded.
+## Latest qualified batch
 
-Neo4j native recursive compiler now uses existing stages/publication, unique node parameters, source proofs and inherited failures that survive empty windows. All-three candidate0b8c2499/Core0534cb49 is in46119098683 requiring tree3 + count3, actual WEB4 build and exact cleanup. No recursive cohort accepted yet. Nested registered LINQ and late selection were added in Core39488eac and Root369b8000; shared Neo compiler now covers flat and nested sets without a duplicate binary path. Latest exact qualification46119647384 runs c0fa8364/Core39488eac: tree3 (14groups/16timings each) + count3, WEB4 and exact cleanup required. Superseded LINQ13 run46119355816 and pre-unification46119544905 cancelled to avoid duplicate work. All four set parents remain OPEN: LINQ nested capture, selected tuple trees and backend/wire integration still need completion. No full-row credit from source presence.
+Exact source **233d9f1c1c467489f18a0dd62f671955d675ef8a**, Core **1b24c6291c6500888d735e9eb9d81b30b802d1e8**: CI [46126840806](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/46126840806) passed **12/12** native cases plus actual WEB4 build and exact owned-fixture cleanup. Includes peer password-recovery changes. Recursive entity/selected-value set trees, left/right LINQ composition, native Count/LongCount/Any/All without DTO constructors, scalar Min/Max after windows, and child visible-column bindings are verified on all three stores. Artifact15256053536, SHA256 a4ce4ef283cc3823b4a19a3cf87e0d5da6293eeaf99e931c76e1205dd27c8a7a, all14 entries checked in RAM. Shared-database calls0.
 
-SQL and AI Search remain backend-owned at POST /api/data/query-cql/sql and /ask. Browser cql-text.js/cql-ask.js stay untouched. Phase2a stays DONE; full provider parity/import/virtual/hybrid/ONODE roadmap preserved. Baseline107 enrolled demo sources retained without unnecessary rechecks; TRON secret action stays on the existing David list. Hosted Neo4j remains stopped for cost; native CI uses isolated containers.
+Full set-family rows remain red: Sum/Average, general typed output-shape composition and backend/wire recursion still need completion. Backend recursive SQL/selected-count API changes are active local source drafts, excluded from this accepted batch; representative native HTTP/permission/usage checks are being added to CI.
 
-Coordination: peer Development67663f81 adds qualified Typesense/provider evidence and CI changes after our8ed batch; reviewed as non-overlapping, preserved. Next normal Development push >=07:01:10 UTC and only qualified scoped changes. No staging/production deployment. Railway WEB43118e6df reports SUCCESS for peer67663f81 containing qualified8ed94e27/Core0fd03ded. Deployment metadata is distinct from app-data/browser acceptance.
+## Search ownership and later phases
 
-Cleanup: no local .NET build/runtime/environment/database/container/image/install/download/archive. CI artifacts have2-day retention; owned CI fixtures/containers require exact cleanup. Compact proofs and source-only recovery drafts retained. No shared Atlas/PIPER data/API calls, no new owner action, no disk reclamation claimed.
+SQL and AI Search use **POST /api/data/query-cql/sql** and **/ask**. Phase2a remains DONE; upgrades belong in ONODE WebAPI Services/Cql/Text and the backend compilers. Browser cql-text.js/cql-ask.js remain untouched. Full provider parity, native import, virtual/hybrid holons, per-avatar/app policies and ONODE host profiles remain in the roadmap. Existing accepted107-source baseline is retained; no unnecessary recheck. Hosted Neo4j remains stopped for cost; native CI uses isolated containers. TRON key remains the existing deferred owner action. No new David action.
+
+## Development and cleanup
+
+Verified native batch db6963c4 pushed08:47:38UTC on peer f6be65d0; backend API candidate is task-only and awaiting CI. At most one normal own Development push per30 minutes. No staging/production promotion. Deployment metadata and live application acceptance are recorded separately.
+
+No local .NET builds, runtime installs, databases or containers. Parser checks use existing Node and emit no files. CI artifact archives inspected only in RAM and released; compact evidence retained. No shared Atlas/PIPER calls or data changes. Last free-space reading33.06GiB; no reclamation claim. Unrelated working-tree changes preserved; temporary scoped Git indexes removed after commit.
