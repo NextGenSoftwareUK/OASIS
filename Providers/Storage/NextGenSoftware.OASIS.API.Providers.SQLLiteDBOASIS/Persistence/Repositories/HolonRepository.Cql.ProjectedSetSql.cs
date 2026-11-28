@@ -11,6 +11,7 @@ public partial class HolonRepository
     {
         internal string Proof,Rows,Rank;
         internal CompositionSql Left,Right;
+        internal IdentitySelectedSql LeftIdentity,RightIdentity;
         internal ProjectedSetSql LeftSet,RightSet;
         internal bool HasRelationship;
     }
@@ -21,8 +22,10 @@ public partial class HolonRepository
         List<SqliteParameter> parameters) where T:IHolon
     {
         var query=plan.Query;
-        var left=plan.LeftSet==null?CompileSelectedSql(query.Left,plan.Left.Options,ProjectedSetInputLimits(plan.Left.Options),entity:plan.Left.EntitySource,selectedSetInput:true,sharedParameters:parameters):null;
-        var right=plan.RightSet==null?CompileSelectedSql(query.Right,plan.Right.Options,ProjectedSetInputLimits(plan.Right.Options),entity:plan.Right.EntitySource,selectedSetInput:true,sharedParameters:parameters):null;
+        var leftIdentity=plan.LeftIdentity==null?null:CompileSetSelectedSql(plan.LeftIdentity,ProjectedSetInputLimits(plan.LeftInputOptions),parameters,terminalSource:true);
+        var rightIdentity=plan.RightIdentity==null?null:CompileSetSelectedSql(plan.RightIdentity,ProjectedSetInputLimits(plan.RightInputOptions),parameters,terminalSource:true);
+        var left=plan.LeftSet==null&&leftIdentity==null?CompileSelectedSql(query.Left,plan.Left.Options,ProjectedSetInputLimits(plan.Left.Options),entity:plan.Left.EntitySource,selectedSetInput:true,sharedParameters:parameters):null;
+        var right=plan.RightSet==null&&rightIdentity==null?CompileSelectedSql(query.Right,plan.Right.Options,ProjectedSetInputLimits(plan.Right.Options),entity:plan.Right.EntitySource,selectedSetInput:true,sharedParameters:parameters):null;
         var leftSet=plan.LeftSet==null?null:CompileProjectedSetSql(plan.LeftSet,parameters);
         var rightSet=plan.RightSet==null?null:CompileProjectedSetSql(plan.RightSet,parameters);
         var definitions=new List<string>();
@@ -37,8 +40,8 @@ public partial class HolonRepository
             }
             definitions.Add(name+" AS MATERIALIZED (SELECT "+string.Join(",",fields)+" FROM ("+rows+") AS chosen)");
         }
-        Input("setLeft",query.LeftInput.Anchor,leftSet?.Rows??left.Rows,leftSet?.Rank??left.Rank);
-        Input("setRight",query.RightInput.Anchor,rightSet?.Rows??right.Rows,rightSet?.Rank??right.Rank);
+        Input("setLeft",query.LeftInput.Anchor,leftSet?.Rows??leftIdentity?.Selection.Rows??left.Rows,leftSet?.Rank??leftIdentity?.Selection.Rank??left.Rank);
+        Input("setRight",query.RightInput.Anchor,rightSet?.Rows??rightIdentity?.Selection.Rows??right.Rows,rightSet?.Rank??rightIdentity?.Selection.Rank??right.Rank);
         definitions.Add("setOccurrences AS MATERIALIZED (SELECT 0 AS side,* FROM setLeft UNION ALL SELECT 1 AS side,* FROM setRight)");
         var tuple=query.ValueTypes.Select((type,index)=>"v"+index+"v"+CqlSqlTranslator.SelectedCollation(type)).ToArray();
         var match=string.Join(" AND ",query.ValueTypes.Select((type,index)=>
@@ -65,8 +68,9 @@ public partial class HolonRepository
         if(selected.Work.Count!=0)work+="+"+string.Join("+",selected.Work);
         var common="WITH "+string.Join(",",definitions)+" ";
         return new ProjectedSetSql {
-            Left=left,Right=right,LeftSet=leftSet,RightSet=rightSet,
-            HasRelationship=left?.HasRelationship==true||right?.HasRelationship==true||leftSet?.HasRelationship==true||rightSet?.HasRelationship==true,
+            Left=left,Right=right,LeftIdentity=leftIdentity,RightIdentity=rightIdentity,LeftSet=leftSet,RightSet=rightSet,
+            HasRelationship=left?.HasRelationship==true||right?.HasRelationship==true||leftIdentity?.Selection.HasRelationship==true||rightIdentity?.Selection.HasRelationship==true
+                ||leftSet?.HasRelationship==true||rightSet?.HasRelationship==true,
             Rank=selected.Rank,Rows=common+"SELECT * FROM c"+query.Output.ResultStages.Count+" ORDER BY "+selected.Rank,
             Proof=common+"SELECT -2 AS phase,0 AS side,(SELECT count(*) FROM c"+query.Output.ResultStages.Count+") AS occurrenceIndex,0 AS ordinal,"+
                 work+" AS stageRows UNION ALL "+string.Join(" UNION ALL ",proofs)+" ORDER BY phase,ordinal,side,occurrenceIndex"

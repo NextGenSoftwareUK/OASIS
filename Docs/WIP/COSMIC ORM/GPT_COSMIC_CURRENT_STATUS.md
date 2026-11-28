@@ -28,7 +28,7 @@ Model constraints apply after native value decoding; scaled/prefixed storage doe
 
 ## Current work and remaining scope
 
-Current Q50 WIP: identity-set late-projection selections feeding further selected sets. Coreb4ddeb4a89482f985a46946116dd5e42a27a45e5 adds capture/planning/occurrence validation and registered LINQ; Mongo native owner implemented with qualification pending. SQLite/Neo owners, JSON/SQL capture and native3 acceptance remain open. No fabricated IDs, managed query fallback or live enrollment from this unqualified feature branch. Standalone staged entity-derived SQL also remains open.
+Current Q50 WIP: identity-set late-projection selections feeding further selected sets. Coreb4ddeb4a89482f985a46946116dd5e42a27a45e5 adds capture/planning/occurrence validation and registered LINQ; Mongo and SQLite native owners implemented with qualification pending. Neo owner, JSON/SQL capture and native3 acceptance remain open. No fabricated IDs, managed query fallback or live enrollment from this unqualified feature branch. Standalone staged entity-derived SQL also remains open.
 
 Full M04 relationships, composite collection elements, POCO XML collections, table/schema placement, full IUserType and remaining generators remain open. Other open rows stay in the checklist.
 

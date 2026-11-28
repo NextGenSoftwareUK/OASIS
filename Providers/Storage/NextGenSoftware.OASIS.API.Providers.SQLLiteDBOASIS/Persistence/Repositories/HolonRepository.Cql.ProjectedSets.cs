@@ -61,8 +61,8 @@ public partial class HolonRepository
                         ProjectedSetSql native,CosmicProjectedSetExecutionLimits nodeLimits)
                     {
                         async Task<(CosmicProjectedSetInputPacket Proof,IReadOnlyList<CosmicProjectionRow> Rows)> Input(
-                            CosmicProjectionCompositionPlan<T,TResult> leaf,CosmicProjectedSetPlan<T,TResult> child,
-                            CompositionSql leafSql,ProjectedSetSql childSql,int maximum)
+                            CosmicProjectionCompositionPlan<T,TResult> leaf,CosmicProjectedSetPlan<T,TResult> child,CosmicSetProjectionPlan<T,TResult> identity,
+                            CompositionSql leafSql,ProjectedSetSql childSql,IdentitySelectedSql identitySql,int maximum)
                         {
                             if(child!=null)
                             {
@@ -70,12 +70,21 @@ public partial class HolonRepository
                                     new CosmicProjectedSetExecutionLimits(child.Options,maximum,nodeLimits.MaximumPayloadBytes)).ConfigureAwait(false);
                                 return(new(null,childPacket),childPacket.Rows);
                             }
+                            if(identity!=null)
+                            {
+                                var inputLimits=ProjectedSetInputLimits(identity.SelectedOptions);
+                                var input=await ReadIdentityProjectionWithinOwnerAsync(identity,identitySql,inputLimits,
+                                    connection,budget,traversal,cancellationToken).ConfigureAwait(false);
+                                var identityPacket=await ReadSetSelectedOccurrencesAsync(identity,inputLimits,connection,budget,traversal,input,
+                                    cancellationToken,identitySql).ConfigureAwait(false);
+                                return(CosmicProjectedSetInputPacket.FromIdentitySelection(identityPacket,identity.Query.Source.TreeDepth,identity.Query.Source.LeafCount),identityPacket.Rows);
+                            }
                             var leafPacket=await ReadSelectedPacketAsync(leaf.Query,leafSql,ProjectedSetInputLimits(leaf.Options),
                                 connection,budget,traversal,Check,cancellationToken,leaf,selectedSetInput:true).ConfigureAwait(false);
                             return(new(leafPacket,null),leafPacket.Rows.Select(row=>row.Row).ToArray());
                         }
-                        var left=await Input(node.Left,node.LeftSet,native.Left,native.LeftSet,node.Options.Bounds.MaximumLeftInputRows).ConfigureAwait(false);
-                        var right=await Input(node.Right,node.RightSet,native.Right,native.RightSet,node.Options.Bounds.MaximumRightInputRows).ConfigureAwait(false);
+                        var left=await Input(node.Left,node.LeftSet,node.LeftIdentity,native.Left,native.LeftSet,native.LeftIdentity,node.Options.Bounds.MaximumLeftInputRows).ConfigureAwait(false);
+                        var right=await Input(node.Right,node.RightSet,node.RightIdentity,native.Right,native.RightSet,native.RightIdentity,node.Options.Bounds.MaximumRightInputRows).ConfigureAwait(false);
                     var members=new List<CosmicProjectedSetOccurrence>();
                     var stages=Enumerable.Range(0,node.Query.Output.ResultStages.Count)
                         .Select(_=>new List<CosmicProjectedSetOccurrence>()).ToArray();

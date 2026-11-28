@@ -121,42 +121,16 @@ public partial class HolonRepository
                             + ") AS Holon ORDER BY " + ordering + " LIMIT $projectionLimit";
                     foreach (var parameter in translator.Parameters)
                         command.Parameters.Add(new SqliteParameter(parameter.ParameterName, parameter.SqliteType) { Value = parameter.Value });
-                    var rows = new List<CosmicProjectionRow>();
-                    long bytes = 0;
-                    await using (var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
-                    {
-                        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
-                        {
-                            budget.Check(); traversal?.Check();
-                            if (rows.Count >= maximumResults) throw new SqliteCqlResourceException("Projection exceeds its declared result count.");
-                            var cells = new object[plan.Query.Columns.Count];
-                            bytes += 16;
-                            for (var column = 0; column < cells.Length; column++)
-                            {
-                                budget.Check();
-                                var state = reader.GetInt64(column * 2);
-                                var declared = plan.Query.Columns[column].ValueType;
-                                if (state == 3 || state is < 0 or > 3)
-                                    throw new InvalidDataException("Selected metadata path is ambiguous or has the wrong native domain.");
-                                cells[column] = state == 0 || state == 1 ? null
-                                    : DecodeProjectionCell(reader.GetValue(column * 2 + 1), declared);
-                                if (cells[column] == null && declared.IsValueType && Nullable.GetUnderlyingType(declared) == null)
-                                    throw new InvalidDataException("A selected non-nullable projection value is missing or null.");
-                                bytes += 16 + (cells[column] is string text ? ProjectionUtf8.GetByteCount(text) : 16);
-                                if (bytes > maximumPayloadBytes) throw new SqliteCqlResourceException("Projection exceeds its detached payload budget.");
-                            }
-                            rows.Add(new CosmicProjectionRow(cells));
-                        }
-                    }
+                    var rows=await ReadProjectionCellsWithinOwnerAsync(command,plan.Query.Columns,maximumResults,maximumPayloadBytes,budget,traversal,cancellationToken).ConfigureAwait(false);
                     budget.Check(); traversal?.Check();
                     if(selectedContinuation!=null)
                     {
                         if(setSql==null)throw new InvalidDataException("Selected set continuation requires its admitted native set read owner.");
-                        await selectedContinuation(connection,budget,traversal,rows.AsReadOnly()).ConfigureAwait(false);
+                        await selectedContinuation(connection,budget,traversal,rows).ConfigureAwait(false);
                         budget.Check();traversal?.Check();
                     }
                     transaction?.Commit(); budget.Check();
-                    return new OASISResult<IReadOnlyList<CosmicProjectionRow>>(rows.AsReadOnly()) { IsLoaded = true };
+                    return new OASISResult<IReadOnlyList<CosmicProjectionRow>>(rows) { IsLoaded = true };
                 }
                 catch (SqliteException cause) when (cause.SqliteErrorCode == 9) { budget.Check(); throw; }
             }
@@ -211,6 +185,41 @@ public partial class HolonRepository
                 return Convert.ChangeType(integer, type, CultureInfo.InvariantCulture);
         }
         throw new InvalidDataException("Selected native scalar does not match its declared CLR domain.");
+    }
+
+    private static async Task<IReadOnlyList<CosmicProjectionRow>> ReadProjectionCellsWithinOwnerAsync(
+        SqliteCommand command,IReadOnlyList<CosmicProjectionColumn> columns,int maximumResults,int maximumPayloadBytes,
+        SqliteCqlReadBudget budget,SqliteCqlTraversalGuard traversal,CancellationToken token)
+    {
+        var rows = new List<CosmicProjectionRow>();
+        long bytes = 0;
+        await using (var reader = await command.ExecuteReaderAsync(token).ConfigureAwait(false))
+        {
+            while (await reader.ReadAsync(token).ConfigureAwait(false))
+            {
+                budget.Check(); traversal?.Check();
+                if (rows.Count >= maximumResults) throw new SqliteCqlResourceException("Projection exceeds its declared result count.");
+                var cells = new object[columns.Count];
+                bytes += 16;
+                for (var column = 0; column < cells.Length; column++)
+                {
+                    budget.Check();
+                    var state = reader.GetInt64(column * 2);
+                    var declared = columns[column].ValueType;
+                    if (state == 3 || state is < 0 or > 3)
+                        throw new InvalidDataException("Selected metadata path is ambiguous or has the wrong native domain.");
+                    cells[column] = state == 0 || state == 1 ? null
+                        : DecodeProjectionCell(reader.GetValue(column * 2 + 1), declared);
+                    if (cells[column] == null && declared.IsValueType && Nullable.GetUnderlyingType(declared) == null)
+                        throw new InvalidDataException("A selected non-nullable projection value is missing or null.");
+                    bytes += 16 + (cells[column] is string text ? ProjectionUtf8.GetByteCount(text) : 16);
+                    if (bytes > maximumPayloadBytes) throw new SqliteCqlResourceException("Projection exceeds its detached payload budget.");
+                }
+                rows.Add(new CosmicProjectionRow(cells));
+            }
+        }
+        budget.Check();traversal?.Check();
+        return rows.AsReadOnly();
     }
 
     private static OASISResult<IReadOnlyList<CosmicProjectionRow>> ProjectionCqlError(string code, string message, Exception cause = null)

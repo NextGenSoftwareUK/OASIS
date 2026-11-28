@@ -51,13 +51,17 @@ public partial class HolonRepository
         return new OASISResult<CosmicSetProjectionCompositionPacket>(packet){IsLoaded=true,LoadedCount=packet.Rows.Count};
     }
 
-    private async Task<CosmicSetProjectionCompositionPacket> ReadSetSelectedOccurrencesAsync<T,TResult>(
-        CosmicSetProjectionPlan<T,TResult> plan,CosmicProjectionCompositionExecutionLimits limits,
-        SqliteConnection connection,SqliteCqlReadBudget budget,SqliteCqlTraversalGuard traversal,
-        IReadOnlyList<CosmicProjectionRow> input,CancellationToken token) where T:IHolon
+    private sealed class IdentitySelectedSql
     {
-        void Check(){token.ThrowIfCancellationRequested();budget.Check();traversal?.Check();}
-        var set=CompileSetSql(plan.Source);var entity=set.Result;var translator=entity.SourceTranslator;
+        internal SetSql Source;
+        internal CompositionSql Selection;
+    }
+    private static IdentitySelectedSql CompileSetSelectedSql<T,TResult>(CosmicSetProjectionPlan<T,TResult> plan,
+        CosmicProjectionCompositionExecutionLimits limits,List<SqliteParameter> parameters=null,bool terminalSource=false) where T:IHolon
+    {
+        if(plan==null||limits==null||!terminalSource&&!plan.RequiresSelectedComposition||limits.Admit(plan.SelectedOptions).IsError)
+            throw new ArgumentException("One admitted native identity selection is required.");
+        var set=CompileSetSql(plan.Source,parameters);var entity=set.Result;var translator=entity.SourceTranslator;
         var order="Holon."+entity.Position;
         var cells=new List<string>{"row_number() OVER (ORDER BY "+order+") AS position"};
         for(var index=0;index<plan.Query.Selection.Columns.Count;index++)
@@ -71,8 +75,41 @@ public partial class HolonRepository
         var selected=CompileSelectedStages(plan.Query.Selection,translator,ctes);
         var header="SELECT -1 AS phase,0 AS position,0 AS ordinal,(SELECT count(*) FROM c0) AS sourceCount,"
             +(selected.Work.Count==0?"0":string.Join("+",selected.Work))+" AS stageRows";
-        var sql="WITH "+string.Join(",",ctes)+" "+header+" UNION ALL "+string.Join(" UNION ALL ",selected.Proof)
+        var common="WITH "+string.Join(",",ctes)+" ";
+        var sql=common+header+(selected.Proof.Count==0?"":" UNION ALL "+string.Join(" UNION ALL ",selected.Proof))
             +" ORDER BY phase,ordinal,position";
+        return new IdentitySelectedSql{Source=set,Selection=new CompositionSql{
+            Entity=entity,Parameters=translator.Parameters,HasRelationship=entity.HasRelationship,Proof=sql,
+            Rows=common+"SELECT * FROM c"+plan.Query.Selection.ResultStages.Count+" ORDER BY "+selected.Rank,Rank=selected.Rank}};
+    }
+
+    private async Task<IReadOnlyList<CosmicProjectionRow>> ReadIdentityProjectionWithinOwnerAsync<T,TResult>(
+        CosmicSetProjectionPlan<T,TResult> plan,IdentitySelectedSql native,CosmicProjectionCompositionExecutionLimits limits,
+        SqliteConnection connection,SqliteCqlReadBudget budget,SqliteCqlTraversalGuard traversal,CancellationToken token) where T:IHolon
+    {
+        var entity=native.Source.Result;var translator=entity.SourceTranslator;
+        var guard=new CosmicEntityCompositionOptions(Math.Max(plan.Source.Options.MaximumLeftInputRows,plan.Source.Options.MaximumRightInputRows),
+            plan.Source.Options.MaximumInputPayloadBytes);
+        await ValidateEntityCompositionAsync(entity,guard,budget,traversal,token,native.Source.Sources).ConfigureAwait(false);
+        var columns=translator.TranslateProjection(plan.Selection.Query.Columns);
+        var limit=translator.Bind((long)limits.MaximumInputRows+1);
+        using var command=connection.CreateCommand();
+        command.Transaction=_dbContext.Database.CurrentTransaction?.GetDbTransaction() as SqliteTransaction;
+        command.CommandText="SELECT "+columns+" FROM ("+entity.Rows+") AS Holon ORDER BY Holon."+entity.Position+" LIMIT "+limit;
+        foreach(var parameter in translator.Parameters)
+            command.Parameters.Add(new SqliteParameter(parameter.ParameterName,parameter.SqliteType){Value=parameter.Value});
+        return await ReadProjectionCellsWithinOwnerAsync(command,plan.Selection.Query.Columns,limits.MaximumInputRows,
+            limits.MaximumInputPayloadBytes,budget,traversal,token).ConfigureAwait(false);
+    }
+
+    private async Task<CosmicSetProjectionCompositionPacket> ReadSetSelectedOccurrencesAsync<T,TResult>(
+        CosmicSetProjectionPlan<T,TResult> plan,CosmicProjectionCompositionExecutionLimits limits,
+        SqliteConnection connection,SqliteCqlReadBudget budget,SqliteCqlTraversalGuard traversal,
+        IReadOnlyList<CosmicProjectionRow> input,CancellationToken token,IdentitySelectedSql compiled=null) where T:IHolon
+    {
+        void Check(){token.ThrowIfCancellationRequested();budget.Check();traversal?.Check();}
+        var native=compiled??CompileSetSelectedSql(plan,limits);
+        var sql=native.Selection.Proof;
         var stages=Enumerable.Range(0,plan.Query.Selection.ResultStages.Count).Select(_=>new List<int>()).ToArray();
         var seen=stages.Select(_=>new HashSet<int>()).ToArray();
         bool acknowledged=false;long work=0,proofBytes=checked(4L*input.Count);
@@ -80,7 +117,7 @@ public partial class HolonRepository
         {
             command.Transaction=_dbContext.Database.CurrentTransaction?.GetDbTransaction() as SqliteTransaction;
             command.CommandText=sql;
-            foreach(var parameter in translator.Parameters)
+            foreach(var parameter in native.Selection.Parameters)
                 command.Parameters.Add(new SqliteParameter(parameter.ParameterName,parameter.SqliteType){Value=parameter.Value});
             await using var reader=await command.ExecuteReaderAsync(token).ConfigureAwait(false);
             while(await reader.ReadAsync(token).ConfigureAwait(false))
@@ -108,7 +145,7 @@ public partial class HolonRepository
         }
         Check();
         if(!acknowledged)throw new InvalidDataException("Selected set native header is missing.");
-        var final=stages[stages.Length-1];
+        var final=stages.Length==0?Enumerable.Range(0,input.Count).ToList():stages[stages.Length-1];
         if(final.Count>limits.MaximumResults)
             throw new SqliteCqlResourceException("Selected set native output exceeds its limit.");
         // Native ordinals choose already validated detached cells; no managed
