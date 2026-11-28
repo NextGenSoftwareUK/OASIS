@@ -11457,3 +11457,6 @@ Owned Chrome stopped; marker/path and process absence verified before normal rec
 
 
 2026-11-28 2026-11-28T08:53:45.749Z — Native scalar paired CI46126840806 artifact15256053536 (10608bytes) inspected in RAM only;14entries, exactRoot233d9f1c/Core1b24c629,12/12 + WEB4/cleanup. Archive released; no local download retained. Backend parser14/14 uses existing Node18; source/test/docs only, no build/test result directory, runtime install, database, container or environment created locally. Native HTTP candidate CI46127912136 uses isolated CI stores and owned usage DB prefixes with exact cleanup, uploads compact evidence retention2days. Cfree32.85GiB; no space-reclamation claim. Scoped index removed after snapshots; no shared Atlas/PIPER access. Source-only recovery drafts remain source, not disposable build output; unrelated files untouched.
+
+
+2026-11-28T10:00:16.370Z — Composition native artifact15257792940 16747bytes/18entries inspected in RAM and released; compact accepted source/hash/CI proof retained. No local build/env/install/database/container/download archive/test output. Native owned fixtures absent; CI artifacts2day retention. Existing Node parser20controls emits no files. Shared Atlas/PIPER operations0; temporary snapshot index removed. No unrelated cleanup or space-reclamation claim.
