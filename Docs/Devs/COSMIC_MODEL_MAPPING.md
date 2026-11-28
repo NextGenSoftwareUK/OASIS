@@ -471,3 +471,12 @@ representative native checks on MongoDB, SQLite and Neo4j in run45254618972,
 including the actual WEB4 build and exact owned-fixture/container cleanup.
 Image/package and hosted acceptance remain separate. This does not claim
 converted arithmetic or general NHibernate custom-type parity.
+
+
+## Canonical NHibernate XML Version mapping
+
+A Holon contract imported through CosmicModelBuilder.ImportNHibernateXml may declare its canonical native optimistic concurrency token. Example: <version name="Version" column="Version" type="Int32" unsaved-value="0" generated="never"/> within a class with optimistic-lock="version". The explicit CLR allowlist resolves the class. Nested column syntax is accepted for the same canonical required token.
+
+Version must be the inherited Holon.Version getter/setter and native storage column. Native acknowledged writes assign/increment it; a stale session cannot overwrite a newer winner. Unsaved-value may be0 or undefined, generated only never. Renamed/custom/timestamp/POCO version tokens, other optimistic-lock strategies and database-generated versions are refused explicitly. Invalid imports leave the destination builder unchanged.
+
+Native MongoDB/SQLite/Neo4j qualification46134517647 verified initial acknowledgement, increment, stale-write refusal, preserved winner and foreign-reader isolation, plus atomic admission and actual WEB4 build. Development49f8f1c7/Core551ac0d8 deployed successfully; a new hosted application walkthrough is not claimed. Full NHibernate XML parity remains open.
