@@ -1,0 +1,187 @@
+name: OPORTAL real WEB5 startup
+on:
+  workflow_call:
+    inputs:
+      portal:
+        required: true
+        type: string
+      popup_group:
+        required: false
+        type: string
+        default: none
+    secrets:
+      PRIVATE_SUBMODULE_PAT:
+        required: true
+permissions:
+  contents: read
+  packages: read
+  actions: read
+jobs:
+  startup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: control
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /Scripts/TestHosts/qualify_web4_combined_startup.py
+            /Scripts/TestHosts/owned_docker_resources.py
+            /Scripts/TestHosts/owned_web5_startup.py
+            /Scripts/TestHosts/Fixtures/portal-startup-browser.cjs
+            /Scripts/TestHosts/Fixtures/startup-authentication.cjs
+            /Scripts/TestHosts/Fixtures/profile-browser-runtime.json
+            /Docs/WIP/HyperDrive-Providers/OPORTAL_WEB5_DEPTH_2026-11-28.json
+      - name: Read accepted source and image receipts
+        id: source
+        env:
+          PORTAL: ${{ inputs.portal }}
+        run: |
+          python3 -B - <<'PY'
+          import json, os, re
+          from pathlib import Path
+          p=json.loads(Path('control/Docs/WIP/HyperDrive-Providers/OPORTAL_WEB5_DEPTH_2026-11-28.json').read_text())
+          assert re.fullmatch('[0-9a-f]{40}', os.environ['PORTAL'])
+          assert re.fullmatch('[0-9a-f]{40}', p['source'])
+          assert re.fullmatch('sha256:[0-9a-f]{64}', p['image'])
+          with open(os.environ['GITHUB_OUTPUT'],'a') as out:
+              for key in ['source','imageSource','core','star','image','packageRun','packageArtifact']:
+                  out.write(key+'='+str(p[key])+'\n')
+          PY
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ steps.source.outputs.source }}
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          submodules: recursive
+          path: OASIS
+          persist-credentials: false
+      - name: Verify pins and resolve sibling dependencies
+        id: dependencies
+        env:
+          EXPECTED_CORE: ${{ steps.source.outputs.core }}
+          EXPECTED_STAR: ${{ steps.source.outputs.star }}
+        shell: pwsh
+        run: |
+          $core = git -C OASIS rev-parse 'HEAD:OASIS Architecture/NextGenSoftware.OASIS.API.Core'
+          $star = git -C OASIS rev-parse 'HEAD:STAR ODK'
+          if ($core -ne $env:EXPECTED_CORE -or $star -ne $env:EXPECTED_STAR) { throw 'Accepted source pin mismatch.' }
+          $manifest = Get-Content OASIS/Docker/oasis-dependency-versions.env
+          foreach ($key in @('LIBRARIES_COMMIT','HOLOCHAIN_COMMIT')) {
+            $entries = @($manifest | Where-Object { $_ -match "^${key}=" })
+            if ($entries.Count -ne 1) { throw 'One exact dependency pin required.' }
+            $revision = $entries[0].Substring($key.Length + 1)
+            if ($revision -notmatch '^[0-9a-f]{40}$') { throw 'Invalid dependency pin.' }
+            "$key=$revision" >> $env:GITHUB_OUTPUT
+          }
+          python3 -B OASIS/Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          if ($LASTEXITCODE) { throw 'Paired dependency validation failed.' }
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.LIBRARIES_COMMIT }}
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependencies.outputs.HOLOCHAIN_COMMIT }}
+          path: holochain-client-csharp
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/OPORTAL-JS
+          ref: ${{ inputs.portal }}
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: oportal-source
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Publish actual WEB5 once under provider build lease
+        shell: pwsh
+        run: |
+          $output = Join-Path $env:GITHUB_WORKSPACE 'portal-web5-owned/app'
+          if (Test-Path -LiteralPath $output) { throw 'Owned output must be new.' }
+          & OASIS/Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner 'oportal-web5-startup' -Operation {
+            dotnet publish 'OASIS/STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/NextGenSoftware.OASIS.STAR.WebAPI.csproj' -c Release -o $output /p:UseAppHost=false /m:2 /nr:false /p:UseSharedCompilation=false
+            if ($LASTEXITCODE) { throw 'Actual WEB5 publish failed.' }
+          }
+      - uses: actions/download-artifact@v7
+        with:
+          artifact-ids: ${{ steps.source.outputs.packageArtifact }}
+          run-id: ${{ steps.source.outputs.packageRun }}
+          github-token: ${{ github.token }}
+          path: accepted-receipt
+          merge-multiple: true
+      - name: Reuse exact accepted package receipt and current test controls
+        env:
+          SOURCE: ${{ steps.source.outputs.imageSource }}
+          DIGEST: ${{ steps.source.outputs.image }}
+        run: |
+          python3 -B - <<'PY'
+          import json, os, shutil
+          from pathlib import Path
+          candidates=list(Path('accepted-receipt').rglob('acknowledged.json'))
+          candidates=[path for path in candidates if json.loads(path.read_text()).get('checks',{}).get('packagedSourceHashes') is True]
+          assert len(candidates)==1, 'One exact original package receipt required.'
+          receipt=json.loads(candidates[0].read_text())
+          assert receipt['source']==os.environ['SOURCE']
+          assert receipt['image']=='ghcr.io/nextgensoftwareuk/oasis-web4@'+os.environ['DIGEST']
+          assert receipt['profile']=='cql-api' and receipt['checks']['packagedSourceHashes'] is True
+          target=Path('OASIS/TestResults/Web4FullPackage');target.mkdir(parents=True,exist_ok=False)
+          shutil.copyfile(candidates[0],target/'acknowledged.json')
+          for name in ['qualify_web4_combined_startup.py','owned_docker_resources.py','owned_web5_startup.py']:
+              shutil.copyfile(Path('control/Scripts/TestHosts')/name,Path('OASIS/Scripts/TestHosts')/name)
+          for name in ['portal-startup-browser.cjs','startup-authentication.cjs']:
+              shutil.copyfile(Path('control/Scripts/TestHosts/Fixtures')/name,Path('OASIS/Scripts/TestHosts/Fixtures')/name)
+          PY
+      - name: Prepare owned pinned browser
+        run: |
+          set -euo pipefail
+          command -v google-chrome >/dev/null
+          owned="$GITHUB_WORKSPACE/portal-web5-owned"
+          metadata="$GITHUB_WORKSPACE/control/Scripts/TestHosts/Fixtures/profile-browser-runtime.json"
+          version="$(node -p "require('$metadata').version")"
+          expected="$(node -p "require('$metadata').integrity")"
+          actual="$(npm view "playwright-core@$version" dist.integrity --registry https://registry.npmjs.org --cache "$owned/npm-cache")"
+          test "$actual" = "$expected"
+          npm install --prefix "$owned/browser" --cache "$owned/npm-cache" --registry https://registry.npmjs.org --ignore-scripts --no-audit --no-fund "playwright-core@$version"
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      - name: Pull accepted immutable API image without rebuilding
+        env:
+          DIGEST: ${{ steps.source.outputs.image }}
+        run: docker pull "ghcr.io/nextgensoftwareuk/oasis-web4@$DIGEST"
+      - name: Actual portal and both shipping entry points
+        working-directory: OASIS
+        env:
+          DIGEST: ${{ steps.source.outputs.image }}
+          OASIS_STARTUP_POPUP_GROUP: ${{ inputs.popup_group || 'none' }}
+          OASIS_STARTUP_AUTHENTICATION: 'true'
+          OASIS_STARTUP_PORTAL_ROOT: ${{ github.workspace }}/oportal-source
+          OASIS_STARTUP_WEB5_APP: ${{ github.workspace }}/portal-web5-owned/app
+          OASIS_PROFILE_BROWSER_RUNTIME: ${{ github.workspace }}/portal-web5-owned/browser
+        run: python3 -B Scripts/TestHosts/qualify_web4_combined_startup.py --digest "$DIGEST" --profile cql-api
+      - name: Remove stopped owned publish and browser outputs
+        if: always()
+        run: |
+          set -euo pipefail
+          owned="$GITHUB_WORKSPACE/portal-web5-owned"
+          test "$owned" = "$GITHUB_WORKSPACE/portal-web5-owned"
+          test ! -L "$owned"
+          if test -e "$owned"; then rm -rf -- "$owned"; fi
+          test ! -e "$owned"
+          echo 'Owned WEB5 publish/browser/cache/TLS outputs absent.'
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: oportal-web5-startup
+          path: OASIS/TestResults/Web4CombinedStartup/
+          if-no-files-found: warn
+          retention-days: 14
