@@ -388,7 +388,7 @@ async function main(){
   }
   if(popupGroup==='map-places'){
    function safeVisitMessage(value){let text=String(value||'').replace(/(?:mongodb(?:\+srv)?|https?):\/\/[^\s]+/gi,'[URI]').replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g,'[JWT]');return /password|secret|credential|connectionstring|refresh.?token/i.test(text)?'Sensitive detail withheld':text.slice(0,320);}
-   stage='Real place catalogue';const [catalogueReply,catalogue]=await Promise.all([page.waitForResponse(r=>new URL(r.url()).pathname==='/api/places/nearby'),page.evaluate(()=>window.oasisClient.places.nearby({category:'Yoga',latitude:51.5074,longitude:-0.1278}))]);
+   stage='Real place catalogue';const [catalogueReply,catalogue]=await Promise.all([page.waitForResponse(r=>new URL(r.url()).pathname==='/api/places/nearby'),page.evaluate(()=>window.oasisClient.places.nearby({category:'Mountain',latitude:46.98,longitude:8.25}))]);
    httpFacts.push({path:'/api/places/nearby',status:catalogueReply.status(),isError:catalogue.isError,routingMessage:safeVisitMessage(catalogue.message)});assert.equal(catalogueReply.status(),200);
    assert.equal(catalogue.isError,false);assert.ok(Array.isArray(catalogue.result));
    const point=catalogue.result.find(row=>row.source==='OpenStreetMap'&&String(row.id).startsWith('osm:node:')&&Number.isFinite(row.latitude)&&Number.isFinite(row.longitude));
