@@ -4,7 +4,7 @@ Updated2026-11-28UTC. Shared Atlas is not a test backend; protected deliveries53
 
 ## Railway shipping gate under repair
 
-WEB6/WEB7/WEB9 deployments for8c7a3148 failed at the unconditional Miden SDK install. Proposed root fix moves Miden into the existing publish-graph packager: a shipped Miden assembly requires its complete SDK, while API graphs without that provider do not install it. Real Miden-consumer and WEB6-publish packaging checks are pending; accepted native storage cases are not repeated. No running-environment setting or secret changed.
+WEB6/WEB7/WEB9 deployments for8c7a3148 failed at the unconditional Miden SDK install. Qualified root fix moves Miden into the existing publish-graph packager: a shipped Miden assembly requires its complete SDK, while API graphs without that provider do not install it. CI46113637170passed both real Miden-consumer and WEB6publish-graph checks plus cleanup. Corrected-source Railway rollout remains pending; accepted native storage cases were not repeated. No running-environment setting or secret changed.
 
 ## Progress and scope
 
@@ -33,6 +33,10 @@ Developmentbfaf7957092735dfe31d83f5284b46ad738f5b5d preserves COSMICCore5e8f22d 
 Provider-account/capability gaps, retained-data compatibility and current shared-dependency graph acceptance remain in the matrix and [ACTIONS-FOR-DAVID](../Release%20and%20Status/ACTIONS-FOR-DAVID.md). Hosted-only providers are skipped until their isolated accounts/fixtures exist. No secrets in source/evidence.
 
 Global HyperDrive release gates remain open. Preserve the accepted2026-11-23 real MongoDB/SQLite/SQLServer triad evidence in MongoSqliteSqlServerTriadHyperDriveTests.cs (replication,9read round-robin, failover, outbox convergence); do not repeat unchanged checks. Hosted multi-provider acceptance and eligible network-provider fan-out are separate. Never clear/replay/re-authorize held deliveries to make a gate pass.
+
+## Current site inventory
+
+11repository updates published, including the founders site, Omniverse, both WEB4sites, Docs/Learn, WEB6/WEB8, STAR/STARNET and Our World.10public pages/catalogues observed updated; WEB8change is README-only. Three public catalogues contain all238project entries; the added4are non-storage. Source and public-check receipt: NativeEvidence/site-provider-inventory-publication-2026-11-28.json. OPORTALruntime counts remain actual registered providers.
 
 ## OPORTAL continuation
 
