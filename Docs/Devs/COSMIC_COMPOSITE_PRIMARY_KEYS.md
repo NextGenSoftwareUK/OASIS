@@ -1,6 +1,6 @@
 # Composite primary keys in COSMIC ordinary-class models
 
-Status: implemented on Corea30df79c; native three-store acceptance is pending. Full verification is tracked in Docs/WIP/COSMIC ORM/GPT_M09_LEDGER_2026-11-28.md.
+Status: native MongoDB, SQLite and Neo4j acceptance plus actual WEB4 build passed46105605228 on Corea30df79c. Development integration/deployment is pending. Full verification is tracked in Docs/WIP/COSMIC ORM/GPT_M09_LEDGER_2026-11-28.md.
 
 A composite primary key is the business identity. OASIS keeps its global GUID as an internal storage identity, so existing audit, revision, replication and provider contracts retain their native GUID binding. The complete typed tuple is claimed in the existing native key registry inside the same transaction as the row. No tuple is reduced to a hash or concatenated with an ambiguous delimiter.
 
