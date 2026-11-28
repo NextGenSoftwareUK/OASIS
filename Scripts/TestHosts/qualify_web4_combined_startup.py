@@ -87,7 +87,7 @@ def main():
     processes=ExitStack();web5_process=None
     web5_app=os.environ.get('OASIS_STARTUP_WEB5_APP', '')
     popup_group=os.environ.get('OASIS_STARTUP_POPUP_GROUP', '') or 'none'
-    if popup_group not in ('none', 'provider-migration', 'web5-depth', 'nft', 'data', 'data-crud', 'data-edit', 'files-write', 'map-route', 'messaging', 'messaging-read', 'chat', 'chat-directory', 'directory-message', 'clan', 'portal-breadth', 'chat-hyperdrive', 'data-messaging', 'nft-messaging-data', 'social-activity', 'account-recovery'):
+    if popup_group not in ('none', 'onet', 'provider-migration', 'web5-depth', 'nft', 'data', 'data-crud', 'data-edit', 'files-write', 'map-route', 'messaging', 'messaging-read', 'chat', 'chat-directory', 'directory-message', 'clan', 'portal-breadth', 'chat-hyperdrive', 'data-messaging', 'nft-messaging-data', 'social-activity', 'account-recovery'):
         raise ValueError('Unknown owned popup group.')
     popup_breadth=os.environ.get('OASIS_STARTUP_POPUP_BREADTH') == 'true'
     if popup_breadth and popup_group != 'none':
@@ -202,7 +202,7 @@ console.log(JSON.stringify(b));
                 if time.monotonic() > deadline:
                     raise RuntimeError('Full image Docker health readiness deadline.')
                 time.sleep(2)
-        if popup_group == 'provider-migration':
+        if popup_group in ('provider-migration', 'onet'):
             from owned_migration_bootstrap import prepare
             prepare(root,api,marker)
         auth_checked = os.environ.get('OASIS_STARTUP_AUTHENTICATION') == 'true'
