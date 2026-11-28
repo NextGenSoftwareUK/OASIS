@@ -38,6 +38,9 @@ async function createOwnedAvatar(base){
  const avatar=await call('registration','POST','/api/avatar/register',{
   title:'',firstName:'Owned',lastName:'Startup',avatarType:'Human',email:username+'@startup.invalid',
   username,password,confirmPassword:password,acceptTerms:true,suppressVerificationEmail:true},undefined,true);
+ if(typeof avatar?.verificationToken!=='string'||!avatar.verificationToken){
+  console.error('PORTAL_STARTUP_HTTP_FACTS:'+JSON.stringify([{path:'/api/avatar/register',status:200,isError:false,errorCode:'OWNED_VERIFICATION_TOKEN_MISSING',resultShape:typeof avatar}]));
+ }
  assert.match(avatar?.id||'',/^[0-9a-f-]{36}$/i,'Persisted registration identity');
  assert.equal(typeof avatar.verificationToken,'string','Isolated email-disabled verification token');
  assert.ok(avatar.verificationToken.length>0,'Verification token present');

@@ -147,6 +147,7 @@ jobs:
           cp "$RUNNER_TEMP/owned_web5_startup.py" Scripts/TestHosts/owned_web5_startup.py
           mkdir -p Scripts/TestHosts/Fixtures
           cp "$RUNNER_TEMP/startup-authentication.cjs" Scripts/TestHosts/Fixtures/startup-authentication.cjs
+          cp "$RUNNER_TEMP/startup-authentication.cjs" Scripts/TestHosts/Fixtures/startup-authentication.cjs
           cp "$RUNNER_TEMP/portal-startup-browser.cjs" Scripts/TestHosts/Fixtures/portal-startup-browser.cjs
       - name: Validate immutable portal browser selection
         if: inputs.startup_portal != ''
