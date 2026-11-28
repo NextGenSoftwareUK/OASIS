@@ -22,8 +22,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EclipseOASIS.UnitTests
             var account = new Account();
             var provider = new EclipseOASIS("http://127.0.0.1:1/", account.PrivateKey.Key, account.PublicKey.Key);
             var repository = new CapturingRepository();
-            typeof(SolanaOASIS).GetField("_solanaRepository", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(provider.SvmStorage, repository);
-            typeof(SolanaOASIS).GetProperty("IsProviderActivated")!.SetValue(provider.SvmStorage, true);
+            var storage = (SolanaOASIS)typeof(EclipseOASIS).GetField("_solana", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(provider)!;
+            typeof(SolanaOASIS).GetField("_solanaRepository", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(storage, repository);
+            typeof(SolanaOASIS).GetProperty("IsProviderActivated")!.SetValue(storage, true);
             return (provider, repository);
         }
 
