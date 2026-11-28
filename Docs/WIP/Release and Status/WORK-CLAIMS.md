@@ -209,3 +209,5 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | OPORTAL populated OAPP/Launcher real child creation failure45184249838: reconcile request contract and fix only unaccepted flow | OPORTAL/WEB5 | local: gpt-hyperdrive | work/gpt-oportal-oapp-breadth | 2026-11-28T07:55:15.519Z | IN PROGRESS; inspect retained failure first, no accepted empty-flow replay |
 
 | OPORTAL ONODE controls: prevent API state leaking into registered-node command availability and disable unknown/loading controls | OPORTAL UI | local: gpt-hyperdrive | work/gpt-oportal-onode-controls | 2026-11-28T08:08:17.375Z | IN PROGRESS; registered snapshot has service states but no aggregate API isRunning; preserve real command acknowledgement |
+
+| OPORTAL SDK adoption: latest WEB4/WEB5/WEB6 source fixes; preserve atomic Profile client absent from new WEB4 main, qualify delivery before dev | OPORTAL/npm SDKs | local: gpt-hyperdrive | work/gpt-oportal-sdk-current | 2026-11-28T08:12:21.721Z | IN PROGRESS; published WEB4/5 lag current source; no downgrade or blind pin bump |
