@@ -94,3 +94,8 @@ Neo4j late-selection source now uses the common tree Anchor and total admitted l
 Flat and nested Neo4j sets now share the recursive native compiler; the duplicate binary compiler was removed. Existing count/window controls must qualify this shared owner alongside nested trees, LINQ and late selection. This is a source change requiring a new exact cohort, not a retry caused by observation timeout. Native acceptance remains pending; main144/168 + extension4/13.
 
 Railway selected deployment metadata:3118e6df-2541-4b85-97d3-6223d2b93be6 SUCCESS at Development67663f81, which contains qualified8ed94e27/Core0fd03ded. No new application-data/browser/shared Atlas/PIPER check. Current recursive candidate remains feature-only. Local free space34.19GiB measured; no local build/database/runtime/env/download/artifact, no reclamation claimed.
+
+
+### Recursive entity trees accepted on all three native stores
+
+Exact0b8c2499/Core0534cb49 passed6/6 in46119098683, actual WEB4 build and exact cleanup. Artifact15252889091 (6135B, SHA256 f90a8465ed5e4d726f83b557c70afbf31bc5dfc35b414d90a2cdea33b935cb07) inspected strictly in RAM:3tree journeys each10groups/4ownedIDs/1writebatch/12timings, and3count controls each8groups/7IDs/1write/12timings; source/TRX exact. No full parent credit: main144/168 + extension4/13. Newer Core39488eac LINQ, unified Neo compiler and late-selection candidatec0fa8364 runs46119647384 and remains unqualified. No local build/env/download/database/shared Atlas/PIPER operation.
