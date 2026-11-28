@@ -295,7 +295,10 @@ async function main(){
    assert.match(child.id,/^[0-9a-f-]{36}$/i);
    stage='Catalogue native depth comparison';
    for(const deep of [false,true]){
-    const reply=await context.request.get(proxy5Origin+'/api/oapps'+(deep?'?loadChildren=true':''),{headers:{Authorization:'Bearer '+ownedToken}});assert.equal(reply.status(),200);const body=await reply.json();assert.equal(body.isError,false);assert.ok(Array.isArray(body.result));const app=body.result.find(row=>row.id===catalogueAppId);assert.ok(app);assert.ok(Array.isArray(app.children));assert.equal(app.children.some(row=>row.id===child.id),deep,'Actual descendant loading matches explicit request');
+    stage=deep?'Catalogue native deep read':'Catalogue native shallow read';
+    const reply=await context.request.get(proxy5Origin+'/api/oapps'+(deep?'?loadChildren=true':''),{headers:{Authorization:'Bearer '+ownedToken}});const body=await reply.json();const app=Array.isArray(body.result)?body.result.find(row=>row.id===catalogueAppId):null;
+    httpFacts.push({path:'/api/oapps',status:reply.status(),isError:body.isError===true,resultShape:Array.isArray(body.result)?'array':typeof body.result,resultCount:Array.isArray(body.result)?body.result.length:0,oappShape:{loadChildren:deep,rootPresent:!!app,childrenArray:Array.isArray(app?.children),childPresent:Array.isArray(app?.children)&&app.children.some(row=>row.id===child.id),childCount:Array.isArray(app?.children)?app.children.length:0}});
+    assert.equal(reply.status(),200);assert.equal(body.isError,false);assert.ok(Array.isArray(body.result));assert.ok(app);assert.ok(Array.isArray(app.children));assert.equal(app.children.some(row=>row.id===child.id),deep,'Actual descendant loading matches explicit request');
    }
   }
 
