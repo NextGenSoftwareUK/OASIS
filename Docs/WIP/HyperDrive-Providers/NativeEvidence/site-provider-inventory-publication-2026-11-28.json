@@ -1,0 +1,134 @@
+{
+  "observedUtc": "2026-11-28T06:00:20.961Z",
+  "inventory": {
+    "trackedProjects": 238,
+    "matrixStorageRoles": 163,
+    "matrixNonStorageRoles": 75,
+    "includesLegacyVariants": true,
+    "notActiveBackendCount": true
+  },
+  "source": "8c7a3148d70ee19f49e0b7f99735138922c4ef90",
+  "publicChecks": [
+    {
+      "url": "https://founders.oasisomniverse.one/",
+      "status": 200,
+      "counter": 238
+    },
+    {
+      "url": "https://www.oasisomniverse.one/providers.html",
+      "status": 200,
+      "catalogue": 238
+    },
+    {
+      "url": "https://web4.oasisomniverse.one/providers.html",
+      "status": 200,
+      "catalogue": 238
+    },
+    {
+      "url": "https://www.oasisweb4.com/providers",
+      "status": 200,
+      "catalogue": 238
+    },
+    {
+      "url": "https://docs.oasisomniverse.one/providers/overview",
+      "status": 200,
+      "inventory": 238,
+      "roles": "163/75"
+    },
+    {
+      "site": "learn",
+      "url": "https://learn.oasisomniverse.one/tutorials/08-providers-production",
+      "status": 200,
+      "inventory238": true,
+      "stale234Provider": false
+    },
+    {
+      "site": "web6",
+      "url": "https://web6.oasisomniverse.one/",
+      "status": 200,
+      "inventory238": true,
+      "stale234Provider": false
+    },
+    {
+      "site": "star",
+      "url": "https://star.oasisomniverse.one/",
+      "status": 200,
+      "inventory238": true,
+      "stale234Provider": false
+    },
+    {
+      "site": "starnet",
+      "url": "https://starnet.oasisomniverse.one/",
+      "status": 200,
+      "inventory238": true,
+      "stale234Provider": false
+    },
+    {
+      "site": "ourworld",
+      "url": "https://ourworld.oasisomniverse.one/",
+      "status": 200,
+      "inventory238": true,
+      "stale234Provider": false
+    }
+  ],
+  "repositories": [
+    {
+      "repository": "NFTFoundersLandingPage",
+      "commit": "4a25459e1bd5a16034f6695b5e2964ba4d3621a6",
+      "scope": "counter"
+    },
+    {
+      "repository": "OASISOmniverseSite",
+      "commit": "e40f7e12ccee17b03b43f7677aaf66b492e9bcf0",
+      "scope": "inventory copy/catalogue"
+    },
+    {
+      "repository": "Web4Site",
+      "commit": "165b2bb4aa172985d2963be7ed51aba01e53d848",
+      "scope": "inventory copy/catalogue"
+    },
+    {
+      "repository": "oasisweb4.com",
+      "commit": "24c9ec38e46f0e4da899abc7d6cb5e5adca75859",
+      "scope": "inventory copy/catalogue"
+    },
+    {
+      "repository": "OASISDocsWebsite",
+      "commit": "9aad856f7ae3699cb712cacc97b89688693a232a",
+      "scope": "inventory copy/catalogue"
+    },
+    {
+      "repository": "OASISLearnWebsite",
+      "commit": "4d05eb407fd076b729f08daf52b1d4ee1264cdab",
+      "scope": "current inventory text"
+    },
+    {
+      "repository": "Web6Site",
+      "commit": "0a0dfb8691f231fe6d674654a7fcc11988d0a21a",
+      "scope": "current inventory text"
+    },
+    {
+      "repository": "Web8Site",
+      "commit": "12f19f55182de1767c5ca3b3d60a5521a679bdee",
+      "scope": "README only"
+    },
+    {
+      "repository": "STARWebsite",
+      "commit": "77ddcfa11f17bfb351296cb494cf71243070058d",
+      "scope": "current inventory text"
+    },
+    {
+      "repository": "STARNETSite",
+      "commit": "6cde5e5e11aee02a4a7f3b3df781fe6705bdb206",
+      "scope": "current inventory text"
+    },
+    {
+      "repository": "OurWorldSite",
+      "commit": "3d9b3176aa37d94f532e295733d132d152f5548b",
+      "scope": "current inventory text"
+    }
+  ],
+  "founderDevCommit": "32af793fae09e059d96698062168db6a7b1eb679",
+  "oportal": "No hard-coded234inventory text found in current dev source; runtime provider counts remain actual registered-provider counts. Existing MCP/runtime-label corrections preserved.",
+  "cleanup": "No local build, SDK, environment or test database; only Git objects and compact receipts. Private indexes removed in finally."
+}

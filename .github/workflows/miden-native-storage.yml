@@ -9,6 +9,11 @@ on:
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.MidenOASIS/**'
       - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.MidenOASIS.IntegrationTests/MidenNativeStorageConformanceTests.cs'
   workflow_dispatch:
+    inputs:
+      packaging_only:
+        description: Verify real publish-graph SDK packaging without repeating native ledger checks
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -18,7 +23,109 @@ env:
   TESTS: Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.MidenOASIS.IntegrationTests
 
 jobs:
+  sdk-packaging:
+    if: ${{ inputs.packaging_only }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        graph: [miden-provider, web6-api]
+    env:
+      QUALIFICATION_GRAPH: ${{ matrix.graph }}
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+      - name: Read recorded dependencies and Docker Node version
+        id: dependencies
+        shell: bash
+        run: |
+          for key in LIBRARIES_COMMIT HOLOCHAIN_COMMIT; do
+            revision="$(sed -n "s/^$key=//p" Docker/oasis-dependency-versions.env)"
+            [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+            echo "$key=$revision" >> "$GITHUB_OUTPUT"
+          done
+          node_version="$(sed -n 's/^FROM node:\([0-9.]*\)-bookworm-slim@sha256:.* AS provider_node$/\1/p' Docker/Dockerfile.web4)"
+          [[ "$node_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          echo "node=$node_version" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependencies.outputs.HOLOCHAIN_COMMIT }}
+          path: holochain-client-csharp
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ steps.dependencies.outputs.node }}
+      - name: Reserve the Docker-owned publish path
+        shell: bash
+        run: |
+          set -euo pipefail
+          test ! -e /app/publish
+          sudo install -d -o "$(id -u)" -g "$(id -g)" /app/publish
+          printf '%s' "$GITHUB_RUN_ID-$QUALIFICATION_GRAPH" > /app/publish/.oasis-sdk-qualification-owner
+      - name: Publish the actual provider consumer or WEB6 API under the build lease
+        shell: pwsh
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner miden-sdk-publish-qualification -Operation {
+            if ($env:QUALIFICATION_GRAPH -eq 'miden-provider') {
+              dotnet publish 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.MidenOASIS.IntegrationTests' --configuration Release -p:NativeStorageConformance=true -o /app/publish -m:2 -nr:false -p:UseSharedCompilation=false
+            } else {
+              dotnet publish 'WEB6/NextGenSoftware.OASIS.Web6.WebAPI/NextGenSoftware.OASIS.Web6.WebAPI.csproj' --configuration Release -p:UseAppHost=false -o /app/publish -m:2 -nr:false -p:UseSharedCompilation=false
+            }
+            if ($LASTEXITCODE) { throw 'Shipping publish graph qualification failed.' }
+          }
+      - name: Package only SDKs in the real shipping publish graph
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$QUALIFICATION_GRAPH" == miden-provider ]]; then
+            test -f /app/publish/NextGenSoftware.OASIS.API.Providers.MidenOASIS.dll
+          else
+            test ! -f /app/publish/NextGenSoftware.OASIS.API.Providers.MidenOASIS.dll
+            test ! -e /app/publish/MidenSdkBridge
+          fi
+          bash Docker/package-provider-sdk-bridges.sh /app/publish
+          if [[ "$QUALIFICATION_GRAPH" == miden-provider ]]; then
+            test -f /app/publish/MidenSdkBridge/node_modules/@miden-sdk/miden-sdk/package.json
+            echo 'Real Miden publish graph packaged the locked SDK and verified its actual exports.'
+          else
+            test ! -e /app/publish/MidenSdkBridge
+            echo 'Real WEB6 publish graph requires no Miden SDK; canonical packaging succeeded.'
+          fi
+      - name: Remove only the owned published SDK and output
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          marker=/app/publish/.oasis-sdk-qualification-owner
+          if [[ -f "$marker" ]]; then
+            [[ "$(cat "$marker")" == "$GITHUB_RUN_ID-$QUALIFICATION_GRAPH" ]]
+            [[ "$(realpath /app/publish)" == /app/publish ]]
+            sudo rm -rf -- /app/publish
+            test ! -e /app/publish
+            echo 'Removed the owned publish graph and SDK output.'
+          fi
+
   storage:
+    if: ${{ !inputs.packaging_only }}
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     defaults:

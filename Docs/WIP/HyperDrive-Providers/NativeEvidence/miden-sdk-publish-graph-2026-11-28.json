@@ -1,0 +1,17 @@
+{
+  "source": "b920783c62e8fcd08c2a42917c2d8e3c49c641b2",
+  "run": 46113637170,
+  "url": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/46113637170",
+  "conclusion": "success",
+  "passedGraphs": 2,
+  "totalGraphs": 2,
+  "graphs": [
+    "Actual published Miden native consumer: provider DLL present, locked SDK0.18.1 installed and real exports verified",
+    "Actual WEB6 API publish: Miden DLL/assets absent, canonical SDK packager succeeds without installing Miden"
+  ],
+  "nodeVersion": "24.19.0 (derived from pinned Docker image)",
+  "cleanup": "Ownership marker and exact realpath validated; owned /app/publish removed with required parent-directory authority; both cleanup steps passed",
+  "preservedNativeEvidence": 46106768815,
+  "nativeLedgerSuiteRepeated": false,
+  "remaining": "Roll out corrected source to Railway and verify deployment status; no running-environment DNA or secret changed"
+}

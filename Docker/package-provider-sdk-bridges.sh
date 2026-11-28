@@ -17,3 +17,10 @@ for task_bridge in CosmosSdkBridge HederaSdkBridge NearSdkBridge SuiSdkBridge Po
   npm ci --prefix "$task_path" --omit=dev --no-audit --no-fund
   node "$(dirname "$0")/verify-provider-sdk-bridge.mjs" "$task_path"
 done
+
+# Install Miden only when this publish graph ships its provider assembly.
+# Its presence makes the complete bridge mandatory; missing assets fail in the installer.
+task_miden_provider="$task_publish_root/NextGenSoftware.OASIS.API.Providers.MidenOASIS.dll"
+if [[ -f "$task_miden_provider" ]]; then
+  sh "$(dirname "$0")/install-miden-sdk.sh" "$task_publish_root/MidenSdkBridge"
+fi
