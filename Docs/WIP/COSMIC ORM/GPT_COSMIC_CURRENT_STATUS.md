@@ -24,3 +24,6 @@ No local .NET builds, runtime installs, databases or containers. Parser checks u
 
 
 Current source-only gates: backend recursive SQL/API9fe4f5c9 in46128402238; native selected-set Sum/Average and registered LINQ1fbd9678/Coree0304746 in46129166552. Numeric representative scope is Int32 Sum and Int32-to-Double Average, with windows, visible Union, foreign isolation and ordinary decoder control; other domains are implementation, not newly hardened acceptance. Full parent rows remain OPEN.
+
+
+Typed final-view source: Core1ae4f815 adds DTO/anonymous/scalar reselection with native stages and no intermediate constructors. New native representative pending; further set composition and typed-view scalar terminals remain OPEN. This is implementation, not native/live acceptance.

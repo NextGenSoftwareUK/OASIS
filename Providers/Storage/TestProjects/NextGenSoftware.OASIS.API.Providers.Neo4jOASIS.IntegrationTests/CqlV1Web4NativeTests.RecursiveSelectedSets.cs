@@ -155,12 +155,26 @@ public sealed partial class CqlV1Web4NativeTests
         Assert.IsFalse(lsum.IsError,lsum.Message+lsum.Exception);Assert.AreEqual(5,lsum.Result);
         var lavg=await Timed("linq-selected-native-average",()=>nativeNumbers.ToCosmicAverageAsync());
         Assert.IsFalse(lavg.IsError,lavg.Message+lavg.Exception);Assert.AreEqual(1d,lavg.Result);
+        SelectedFinalProbe.ConstructorCalls=0;SelectedCountProbe.ConstructorCalls=0;
+        var typedView=probe.Select(row=>new SelectedFinalProbe{Label=row.Category}).Where(row=>row.Label=="x")
+            .Distinct().OrderBy(row=>row.Label).Select(row=>new{Value=row.Label});
+        var typedResult=await Timed("native-typed-final-shape",()=>typedView.ToCosmicListAsync());
+        Assert.IsFalse(typedResult.IsError,typedResult.Message+typedResult.Exception);
+        CollectionAssert.AreEqual(new[]{"x"},typedResult.Result.Select(row=>row.Value).ToArray());
+        Assert.AreEqual(0,SelectedCountProbe.ConstructorCalls,"Do not construct the original set DTO.");
+        Assert.AreEqual(0,SelectedFinalProbe.ConstructorCalls,"Do not construct an intermediate final shape that was reselected.");
         using var cancel=new CancellationTokenSource();cancel.Cancel();
         var stopped=await Timed("selected-cancel",()=>manager.ExecuteProjectedSetQueryAsync(Plan(query),new[]{adapter},10,cancellationToken:cancel.Token));
         Assert.IsTrue(stopped.IsError);Assert.AreEqual("CQL_QUERY_CANCELLED",stopped.ErrorCode);
-        return new NativeFixtureJourneyProof(20,1,new Dictionary<string,bool>{["registeredLinqNativeSumAverage"]=true,["sharedOrdinaryNumericDecoderControl"]=true,["nativeSumAverageAfterSetWindows"]=true,["numericVisibleEqualityAndForeignScope"]=true,["nestedVisibleOutputBindings"]=true,["nativeScalarExtremaAfterWindows"]=true,["nativeCountIndependentOfPublication"]=true,["nativeCardinalityWithoutConstructors"]=true,["foreignNativeCount"]=true,["registeredLinqLeftTree"]=true,["registeredLinqRightTree"]=true,["explicitTreeAdmission"]=true,["concatOccurrences"]=true,
+        return new NativeFixtureJourneyProof(21,1,new Dictionary<string,bool>{["typedFinalSelectionWithoutIntermediateConstructors"]=true,["registeredLinqNativeSumAverage"]=true,["sharedOrdinaryNumericDecoderControl"]=true,["nativeSumAverageAfterSetWindows"]=true,["numericVisibleEqualityAndForeignScope"]=true,["nestedVisibleOutputBindings"]=true,["nativeScalarExtremaAfterWindows"]=true,["nativeCountIndependentOfPublication"]=true,["nativeCardinalityWithoutConstructors"]=true,["foreignNativeCount"]=true,["registeredLinqLeftTree"]=true,["registeredLinqRightTree"]=true,["explicitTreeAdmission"]=true,["concatOccurrences"]=true,
             ["visibleTupleUnion"]=true,["visibleTupleIntersectExcept"]=true,["nodeWindows"]=true,["rightNested"]=true,
             ["foreignIsolation"]=true,["childBoundBeforeEmpty"]=true,["cancellation"]=true});
+    }
+    public sealed class SelectedFinalProbe
+    {
+        public static int ConstructorCalls;
+        public string Label {get;set;}="";
+        public SelectedFinalProbe(){ConstructorCalls++;}
     }
     public sealed class SelectedCountProbe
     {
