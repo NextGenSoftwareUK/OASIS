@@ -1,0 +1,134 @@
+{
+  "date": "2026-11-28",
+  "root": "0ce39fefb44fe4492715aefa8745ab5e7669e3f7",
+  "core": "e7dbd42d20d67c2674bb81d012f6e173e908eb7b",
+  "run": 46152193758,
+  "artifact": 15267090010,
+  "artifactBytes": 18455,
+  "rowsCompleted": [
+    "Q50",
+    "Q51",
+    "Q53",
+    "Q54"
+  ],
+  "providersDone": 3,
+  "providersTotal": 3,
+  "mainDone": 148,
+  "mainTotal": 168,
+  "extensionDone": 4,
+  "extensionTotal": 13,
+  "receipt": {
+    "sha256": "ffc3c9a483cddb2d89e752ef0db0254639f26c3c089b315c52f25684d4d37a06",
+    "entries": 18,
+    "reports": {
+      "MongoDBOASIS-projected-tuple-set-native.json": 4,
+      "MongoDBOASIS-recursive-entity-set-native.json": 14,
+      "MongoDBOASIS-recursive-selected-set-native.json": 27,
+      "MongoDBOASIS-recursive-set-http-native.json": 14,
+      "MongoDBOASIS-set-publication-count-native.json": 8,
+      "Neo4jOASIS-projected-tuple-set-native.json": 4,
+      "Neo4jOASIS-recursive-entity-set-native.json": 14,
+      "Neo4jOASIS-recursive-selected-set-native.json": 27,
+      "Neo4jOASIS-recursive-set-http-native.json": 14,
+      "Neo4jOASIS-set-publication-count-native.json": 8,
+      "SQLLiteDBOASIS-projected-tuple-set-native.json": 4,
+      "SQLLiteDBOASIS-recursive-entity-set-native.json": 14,
+      "SQLLiteDBOASIS-recursive-selected-set-native.json": 27,
+      "SQLLiteDBOASIS-recursive-set-http-native.json": 14,
+      "SQLLiteDBOASIS-set-publication-count-native.json": 8
+    },
+    "trx": {
+      "recursive-selected-set-native.trx": 15,
+      "recursive-set-compiler.trx": 20
+    },
+    "source": {
+      "source": "0ce39fefb44fe4492715aefa8745ab5e7669e3f7",
+      "core": "e7dbd42d20d67c2674bb81d012f6e173e908eb7b",
+      "compilerPassed": 20,
+      "nativeIdentitySelectedOperandProviders": [
+        "MongoDBOASIS",
+        "SQLLiteDBOASIS",
+        "Neo4jOASIS"
+      ],
+      "nativeIdentityInputHttpVerified": true,
+      "serverSqlIdentityInputsVerified": true,
+      "shippingSqlEndpointVerified": true,
+      "serverSqlEntityInputsVerified": true,
+      "nativeEntityInputHttpVerified": true,
+      "nativeEntityStageSelectedOperandsVerified": true,
+      "serverSqlSelectedValueCountsVerified": true,
+      "serverSqlSelectedSetExtremaVerified": true,
+      "typedViewsFeedFurtherNativeSetsVerified": true,
+      "typedViewScalarAndElementTerminalsVerified": true,
+      "nativePassed": 15,
+      "serverSqlSelectedSetSumAverageVerified": true,
+      "nativeRecursiveSetHttpVerified": true,
+      "nativeSetPublicationCountsVerified": true,
+      "nativeRecursiveEntitySetProviders": [
+        "MongoDBOASIS",
+        "SQLLiteDBOASIS",
+        "Neo4jOASIS"
+      ],
+      "nativeRecursiveSelectedSetProviders": [
+        "MongoDBOASIS",
+        "SQLLiteDBOASIS",
+        "Neo4jOASIS"
+      ],
+      "typedFinalSetSelectionVerified": true,
+      "nativeSelectedSetSumAverageVerified": true,
+      "nativeNumericRepresentativeDomains": [
+        "Int32Sum",
+        "Int32DoubleAverage"
+      ],
+      "nativeSelectedSetCountVerified": true,
+      "nativeSelectedSetScalarExtremaVerified": true,
+      "nestedVisibleOutputBindingsVerified": true,
+      "fullSetParentsComplete": false,
+      "actualWeb4Compiled": true,
+      "ownedFixturesAbsent": true,
+      "sharedDatabaseCalls": 0,
+      "deployed": false
+    },
+    "entityTimingsMilliseconds": {
+      "MongoDBOASIS": {
+        "ordinary-entity-selected-control": 34,
+        "entity-selections-feed-native-sets": 90,
+        "entity-selected-foreign": 27,
+        "entity-source-bound-before-empty-set": 9,
+        "identity-selected-ordinary-control": 53,
+        "identity-selected-feed-native-sets": 108,
+        "identity-selected-foreign": 31,
+        "identity-source-bound-before-empty": 6
+      },
+      "Neo4jOASIS": {
+        "ordinary-entity-selected-control": 482,
+        "entity-selections-feed-native-sets": 1777,
+        "entity-selected-foreign": 888,
+        "entity-source-bound-before-empty-set": 906,
+        "identity-selected-ordinary-control": 565,
+        "identity-selected-feed-native-sets": 2330,
+        "identity-selected-foreign": 899,
+        "identity-source-bound-before-empty": 871
+      },
+      "SQLLiteDBOASIS": {
+        "ordinary-entity-selected-control": 22,
+        "entity-selections-feed-native-sets": 37,
+        "entity-selected-foreign": 8,
+        "entity-source-bound-before-empty-set": 9,
+        "identity-selected-ordinary-control": 33,
+        "identity-selected-feed-native-sets": 71,
+        "identity-selected-foreign": 10,
+        "identity-source-bound-before-empty": 8
+      }
+    }
+  },
+  "basis": "Current incremental gate plus retained accepted native families in Q50 ledger and independent scope review; fullSetParentsComplete=false in the source receipt is preserved.",
+  "remainingSeparateScope": [
+    "dedicated typed gRPC/GraphQL sets",
+    "advanced hosted catalogue/browser demonstration",
+    "standalone staged entity-source SQL",
+    "deeper edge coverage/optimisation/hardening"
+  ],
+  "sharedDatabaseCalls": 0,
+  "newHostedAcceptance": false
+}

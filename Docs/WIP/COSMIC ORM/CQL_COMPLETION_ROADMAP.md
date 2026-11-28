@@ -1,6 +1,6 @@
 ## Next phases (set by David, 2026-11-26)
 
-Phase 1 is the COSMIC ORM parity checklist (`CQL_PARITY_CHECKLIST.md`): Entity Framework and NHibernate features working natively on MongoDB, SQLite and Neo4j. Maintained checklist: **144/168** main rows verified, with **4/13** extension rows tracked separately (28 November 2026). The historical130/164 count used an older denominator; no rows are removed. See `CQL_PARITY_CHECKLIST.md` and `GPT_COSMIC_CURRENT_STATUS.md` for current native evidence and open scope.
+Phase 1 is the COSMIC ORM parity checklist (`CQL_PARITY_CHECKLIST.md`): Entity Framework and NHibernate features working natively on MongoDB, SQLite and Neo4j. Maintained checklist: **148/168** main rows verified, with **4/13** extension rows tracked separately (28 November 2026). The historical130/164 count used an older denominator; no rows are removed. See `CQL_PARITY_CHECKLIST.md` and `GPT_COSMIC_CURRENT_STATUS.md` for current native evidence and open scope.
 
 ### Phase 2a: SQL-like and free-text queries as API endpoints — DONE
 
