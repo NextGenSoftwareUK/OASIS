@@ -161,3 +161,4 @@ Keep claims small (one provider, one checklist row or one feature), so that work
 | COSMIC O07 transaction-safe execution strategy | COSMIC ORM | local: gpt-cosmic | work/gpt-o07 | 2026-11-28 02:32 | IN PROGRESS |
 | FirebaseOASIS current-Development native core-storage recheck | HyperDrive providers | local: gpt-hyperdrive | work/gpt-firebase-native-recheck | 2026-11-28 02:35 UTC | DONE 7b4df6bfc78032041d711a6eadb55b987919cb65 |
 | TursoOASIS current-Development native core-storage recheck | HyperDrive providers | local: gpt-hyperdrive | work/gpt-turso-native-recheck | 2026-11-28 02:36 UTC | DONE 7b4df6bfc78032041d711a6eadb55b987919cb65 |
+| Integrate existing 6c95573c delegated-key fix and align EOSIO canonical save/key lookup | HyperDrive providers | local: gpt-hyperdrive | work/gpt-delegated-storage-keys | 2026-11-28 02:45 UTC | IN PROGRESS |
