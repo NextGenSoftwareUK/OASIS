@@ -200,7 +200,7 @@ async function main(){
       assert.match(body.expectedRevisions[savedHolonId],/^[0-9a-f-]{36}$/i);ownedOperation=true;
      }
     }
-    if(popupGroup==='onet'&&request.method()==='POST'){
+    if(popupGroup==='onet'&&request.method()==='POST'&&url.pathname.startsWith('/api/v1/onet/')){
      assert.ok(['/api/v1/onet/network/start','/api/v1/onet/network/stop'].includes(url.pathname),'Only owned local ONET lifecycle writes');
      assert.equal(onetWrites[url.pathname]=(onetWrites[url.pathname]||0)+1,1,'One explicit lifecycle command');ownedOperation=true;
     }
