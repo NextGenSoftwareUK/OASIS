@@ -17,10 +17,16 @@ public partial class Neo4jOASIS
         {this.plan=plan;this.limits=limits;}
         internal void Add(IReadOnlyDictionary<string,object> record)
         {
+            if(packet!=null)throw Invalid("Native selected-set snapshot repeats its envelope.");
+            packet=ReadNode(plan,limits,record);
+        }
+        private CosmicProjectedSetPacket ReadNode(CosmicProjectedSetPlan<T,TResult> node,
+            CosmicProjectedSetExecutionLimits nodeLimits,IReadOnlyDictionary<string,object> record)
+        {
             check();
-            if(packet!=null || record.Count!=5)throw Invalid("Native selected-set snapshot requires one exact envelope.");
-            var left=Input("leftProof",plan.Query.Left,plan.Left.Options);
-            var right=Input("rightProof",plan.Query.Right,plan.Right.Options);
+            if(record.Count!=5)throw Invalid("Native selected-set snapshot requires one exact envelope.");
+            var left=Input("leftProof",node.Left,node.LeftSet,node.Options.Bounds.MaximumLeftInputRows);
+            var right=Input("rightProof",node.Right,node.RightSet,node.Options.Bounds.MaximumRightInputRows);
             long proofBytes=0;
             CosmicProjectedSetStageProof Stage(object raw)
             {
@@ -35,7 +41,7 @@ public partial class Neo4jOASIS
                     var occurrence=new CosmicProjectedSetOccurrence(side==1,checked((int)index));
                     if(!seen.Add(occurrence))throw Invalid("Native selected-set occurrence repeats within one phase.");
                     proofBytes=checked(proofBytes+5);
-                    if(proofBytes>plan.Options.MaximumProofPayloadBytes || references.Count>=20000)
+                    if(proofBytes>node.Options.MaximumProofPayloadBytes || references.Count>=20000)
                         throw new NeoCqlLimitException("Selected-set occurrence proof exceeds its bounded size.");
                     references.Add(occurrence);
                 }
@@ -43,32 +49,42 @@ public partial class Neo4jOASIS
             }
             var members=Stage(record["members"]);
             var stages=record["stages"].As<IReadOnlyList<object>>().Select(Stage).ToArray();
-            if(stages.Length!=plan.Query.Output.ResultStages.Count)
+            if(stages.Length!=node.Query.Output.ResultStages.Count)
                 throw Invalid("Native selected-set output stages are incomplete.");
             var work=Number(record,"work");
-            if(work<0 || work>plan.Options.MaximumStageRows)
+            if(work<0 || work>node.Options.MaximumStageRows)
                 throw new NeoCqlLimitException("Selected-set native work exceeds its admitted bound.");
             var final=stages.Length==0?members.Occurrences:stages[stages.Length-1].Occurrences;
-            if(final.Count>limits.MaximumResults)throw new NeoCqlLimitException("Selected-set output exceeds its admitted row bound.");
+            if(final.Count>nodeLimits.MaximumResults)throw new NeoCqlLimitException("Selected-set output exceeds its admitted row bound.");
             var rows=new List<CosmicProjectionRow>();long outputBytes=0;
             foreach(var occurrence in final)
             {
                 check();var source=occurrence.IsRight?right.Rows[occurrence.Index]:left.Rows[occurrence.Index];
-                var indices=occurrence.IsRight?plan.Query.Right.OutputColumnIndices:plan.Query.Left.OutputColumnIndices;
-                var values=indices.Select(index=>source.Row.Values[index]).ToArray();outputBytes=checked(outputBytes+16);
-                foreach(var value in values)Reserve(value,ref outputBytes,limits.MaximumPayloadBytes);
+                var indices=occurrence.IsRight?node.Query.RightInput.Anchor.OutputColumnIndices:node.Query.LeftInput.Anchor.OutputColumnIndices;
+                var values=indices.Select(index=>source.Values[index]).ToArray();outputBytes=checked(outputBytes+16);
+                foreach(var value in values)Reserve(value,ref outputBytes,nodeLimits.MaximumPayloadBytes);
                 rows.Add(new(values));
             }
-            check();packet=new(left,right,members,stages,rows,work);
-            CosmicProjectionCompositionPacket Input(string key,CosmicProjectionQuery<T,TResult> query,
-                CosmicProjectionCompositionOptions options)
+            check();return CosmicProjectedSetPacket.FromTree(left.Proof,right.Proof,members,stages,rows,work);
+            (CosmicProjectedSetInputPacket Proof,IReadOnlyList<CosmicProjectionRow> Rows) Input(string key,
+                CosmicProjectionCompositionPlan<T,TResult> leaf,CosmicProjectedSetPlan<T,TResult> child,int maximum)
             {
-                var decoder=new NeoCqlCompositionDecoder<T,TResult>(query,ProjectedSetInputLimits(options),check,selectedSetInput:true);
-                foreach(var row in record[key].As<IReadOnlyList<object>>())
+                var envelope=record[key].As<IReadOnlyDictionary<string,object>>();
+                if(envelope.Count!=2 || envelope["kind"].As<string>()!=(child==null?"source":"set"))
+                    throw Invalid("The native selected input envelope does not match its captured source or subtree.");
+                if(child!=null)
+                {
+                    var childPacket=ReadNode(child,new CosmicProjectedSetExecutionLimits(child.Options,maximum,nodeLimits.MaximumPayloadBytes),
+                        envelope["proof"].As<IReadOnlyDictionary<string,object>>());
+                    return(new(null,childPacket),childPacket.Rows);
+                }
+                var decoder=new NeoCqlCompositionDecoder<T,TResult>(leaf.Query,ProjectedSetInputLimits(leaf.Options),check,selectedSetInput:true);
+                foreach(var row in envelope["proof"].As<IReadOnlyList<object>>())
                 {
                     check();decoder.Add(row.As<IReadOnlyDictionary<string,object>>());
                 }
-                return decoder.Complete();
+                var sourcePacket=decoder.Complete();
+                return(new(sourcePacket,null),sourcePacket.Rows.Select(row=>row.Row).ToArray());
             }
         }
         internal CosmicProjectedSetPacket Complete()

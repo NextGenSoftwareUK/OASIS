@@ -17,7 +17,7 @@ subprocess.run(['dotnet','test',PROJECT,*BOUNDS,'--filter',
  '--results-directory',str(RESULTS),'--logger','trx;LogFileName=recursive-selected-set-native.trx'],cwd=ROOT,check=True)
 ns={'t':'http://microsoft.com/schemas/VisualStudio/TeamTest/2010'}
 c=ET.parse(RESULTS/'recursive-selected-set-native.trx').find('.//t:Counters',ns)
-assert c is not None and c.attrib['total']=='11' and c.attrib['passed']=='11' and c.attrib['failed']=='0'
+assert c is not None and c.attrib['total']=='12' and c.attrib['passed']=='12' and c.attrib['failed']=='0'
 groups={'allFourSetKinds','duplicateCountIndependentOfPublicationCap','semanticWindowsRetained',
  'postWindowPredicatesRetained','noEntityMaterialization','foreignCallerIsolated','inputCompletenessBeforeEmptyOutput','cancellationPreserved'}
 for store in ['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS']:
@@ -37,7 +37,7 @@ for store in ['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS']:
  assert flat['provider']==store and flat['checks']==4 and flat['successfulHolonWrites']==4
  assert flat['nativeProviderVerified'] and flat['exactCleanupVerified'] and flat['allFourSetOperationsVerified'] and flat['visibleTupleEqualityVerified']
  assert flat['concatMultiplicityVerified'] and flat['nullTupleCellVerified'] and flat['foreignRowsHiddenVerified']
-for store in ['MongoDBOASIS','SQLLiteDBOASIS']:
+for store in ['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS']:
  selected=json.loads((RESULTS/(store+'-recursive-selected-set-native.json')).read_text(encoding='utf-8-sig'))
  assert selected['provider']==store and selected['checks']==9 and selected['ownedCleanupIds']==4 and selected['successfulHolonWrites']==1
  assert selected['nativeProviderVerified'] and selected['exactCleanupVerified'] and len(selected['queryElapsedMilliseconds'])==10
@@ -48,6 +48,6 @@ def git(*args):
 source=git('rev-parse','HEAD')
 assert source==os.environ['GITHUB_SHA']
 proof={'source':source,'core':git('-C','OASIS Architecture/NextGenSoftware.OASIS.API.Core','rev-parse','HEAD'),
- 'nativePassed':11,'nativeSetPublicationCountsVerified':True,'nativeRecursiveEntitySetProviders':['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS'],'nativeRecursiveSelectedSetProviders':['MongoDBOASIS','SQLLiteDBOASIS'],'fullSetParentsComplete':False,'actualWeb4Compiled':True,'ownedFixturesAbsent':True,
+ 'nativePassed':12,'nativeSetPublicationCountsVerified':True,'nativeRecursiveEntitySetProviders':['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS'],'nativeRecursiveSelectedSetProviders':['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS'],'fullSetParentsComplete':False,'actualWeb4Compiled':True,'ownedFixturesAbsent':True,
  'sharedDatabaseCalls':0,'deployed':False}
 (RESULTS/'source.json').write_text(json.dumps(proof,indent=2)+'\n',encoding='utf-8')
