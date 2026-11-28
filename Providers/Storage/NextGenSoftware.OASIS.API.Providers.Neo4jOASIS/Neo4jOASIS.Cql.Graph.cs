@@ -87,7 +87,7 @@ public partial class Neo4jOASIS
             if (observeEntityCount != null && !inputProof)
             {
                 if (countSeen || !row.Keys.Contains("entityCount") || row["entityCount"] is not long count
-                    || count<0 || count>entityOptions.MaximumInputRows)
+                    || count<0 || count>(maximumEntityInputRows??entityOptions.MaximumInputRows))
                     throw new InvalidDataException("Entity count requires one exact bounded native integer acknowledgement.");
                 countSeen=true; observeEntityCount(count); continue;
             }

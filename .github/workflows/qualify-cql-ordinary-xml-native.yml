@@ -1,4 +1,4 @@
-name: Qualify M04 numeric identifiers and XML inheritance on three native providers
+name: Qualify M04 ordinary-class and Holon XML components on three native providers
 
 on:
   push:
@@ -7,8 +7,8 @@ on:
       - "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests.csproj"
       - "Docker/oasis-dependency-versions.env"
       - "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.XmlInheritance.cs"
-      - "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.NumericIdentifiers.cs"
-      - "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.Inheritance.cs"
+      - "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.XmlComponents.cs"
+      - "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.PocoXmlComponents.cs"
       - "Scripts/TestHosts/qualify_cosmic_m04_native.py"
       - ".github/workflows/qualify-cql-ordinary-xml-native.yml"
   workflow_dispatch:
@@ -96,11 +96,11 @@ jobs:
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: cql-xml-mapping-native
+          name: cql-poco-xml-components-native
           path: |
-            OASIS/TestResults/Neo4jCurrent/xml-mapping-native.trx
-            OASIS/TestResults/Neo4jCurrent/*-xml-inheritance-native.json
-            OASIS/TestResults/Neo4jCurrent/*-numeric-identifiers-native.json
+            OASIS/TestResults/Neo4jCurrent/poco-xml-components-native.trx
+            OASIS/TestResults/Neo4jCurrent/*-xml-components-native.json
+            OASIS/TestResults/Neo4jCurrent/*-poco-xml-components-native.json
             OASIS/TestResults/Neo4jCurrent/source.json
           if-no-files-found: ignore
           retention-days: 2

@@ -65,7 +65,7 @@ internal sealed partial class MongoCqlTranslator
     private MongoCqlCommand CompileEntityStages<T>(MongoCqlCommand source,CosmicQuery<T> sourceQuery,
         IReadOnlyList<CosmicEntityStage> intent,CosmicEntityCompositionOptions options,int maximumResults,
         BsonDocument[] initialPipeline=null,string naturalPositionField=null,
-        MongoCqlEntityInput[] inputs=null,int? maximumInputRows=null) where T:IHolon
+        MongoCqlEntityInput[] inputs=null,int? maximumInputRows=null,bool applyPublicationLimit=true) where T:IHolon
     {
         var inputRows=maximumInputRows??options.MaximumInputRows;
         var current = (initialPipeline??source.Pipeline).Select(stage => (BsonDocument)stage.DeepClone()).ToList();
@@ -145,7 +145,7 @@ internal sealed partial class MongoCqlTranslator
         }
         // All protected outcomes in the last stage have already been checked
         // by the same snapshot owner before this final output bound is applied.
-        current.Add(new("$limit", maximumResults + 1));
+        if(applyPublicationLimit)current.Add(new("$limit", maximumResults + 1));
         if(naturalPositionField!=null)current.Add(new("$unset",naturalPositionField));
         ValidatePipeline(current);
         return new MongoCqlCommand(current.ToArray(), maximumResults + 1, membership,

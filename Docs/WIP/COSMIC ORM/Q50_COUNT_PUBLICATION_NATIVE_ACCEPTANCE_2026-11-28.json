@@ -1,0 +1,40 @@
+{
+  "run": 46116059517,
+  "artifact": 15252186758,
+  "bytes": 3721,
+  "sha256": "c84eb7f329bbf666ed0b576bdceaa226fae53b5bac84d5030d3e30815485ca45",
+  "source": {
+    "source": "c76ee53df435080fadce0eca3a69aea9d6e5def6",
+    "core": "0fd03dede3f2caaa02ec6e2c5ff75319f9528e55",
+    "nativePassed": 3,
+    "nativeSetPublicationCountsVerified": true,
+    "fullSetParentsComplete": false,
+    "actualWeb4Compiled": true,
+    "ownedFixturesAbsent": true,
+    "sharedDatabaseCalls": 0,
+    "deployed": false
+  },
+  "cohorts": [
+    {
+      "provider": "MongoDBOASIS",
+      "groups": 8,
+      "ownedIds": 7,
+      "writeBatches": 1,
+      "timings": 12
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "groups": 8,
+      "ownedIds": 7,
+      "writeBatches": 1,
+      "timings": 12
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "groups": 8,
+      "ownedIds": 7,
+      "writeBatches": 1,
+      "timings": 12
+    }
+  ]
+}
