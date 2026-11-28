@@ -1,0 +1,50 @@
+{
+  "date": "2026-11-28",
+  "suite": "oportal-native-map-geo-breadth",
+  "run": 46142470160,
+  "control": "428c34856b48f41659c61714b3959a716ceda241",
+  "web4": {
+    "source": "fbea95eb33b67bfa1dc11d6a2b6c15bc9a7d7717",
+    "image": "sha256:f5cca6cd4781834468545a5ec2e24e50e1d7a34e3f2511a5e7d8b1a8eda8cabb",
+    "profile": "cql-api"
+  },
+  "web5": {
+    "source": "f6d4d602706b790aa9f33375253ed3bb29530644",
+    "core": "c0e8f2b8e0ffee1a3e8993db5b068ff26ed6c1d8",
+    "star": "bda2d2a8f9a3d2177cadf202771756d9cfb9f333"
+  },
+  "portal": "a1d5ee3709e8f052a764d5df8b72b38e411cfd33",
+  "done": 1,
+  "total": 1,
+  "checks": [
+    "Real visible and hidden hotspot creation",
+    "Real linked root quest creation",
+    "Independent nearby and avatar-quest readback",
+    "Map Geo Assets 0NFT/1visiblehotspot/1quest status",
+    "Normal popup close"
+  ],
+  "excluded": [
+    "Populated/minted GeoNFT",
+    "Public-catalogue place visits or karma",
+    "MapLibre WebGL/tiles",
+    "Unity/device GPS/GOMap",
+    "Trigger/reward execution",
+    "Hosted deployment/current dependency graph"
+  ],
+  "artifact": {
+    "id": 15262437693,
+    "bytes": 3350,
+    "sha256": "d5d0fd1d166304128e0d0830837ff54dc36064bd011f8e2ebfc57161ea29b87f"
+  },
+  "cleanup": {
+    "ownedContainersAbsent": true,
+    "ownedNetworkAbsent": true,
+    "ephemeralDatabaseVolumesRemoved": true,
+    "web5ProcessStopped": true,
+    "web5DnaAbsent": true,
+    "publishBrowserCacheTlsOutputsAbsent": true,
+    "localFilesWritten": false
+  },
+  "sharedAtlasOperations": 0,
+  "newOwnerActions": []
+}
