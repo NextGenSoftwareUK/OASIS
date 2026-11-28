@@ -320,3 +320,9 @@ New backend SQL lowering preserves bounded plain entity sources and post-page en
 ### 2026-11-28 — first two late identity owners accepted
 - Mongo Root4ba8b8f55128500e84b0d249dcfd748c25767095 CI46149700249 and Mongo+SQLite Roota4643c591ad848af25a9600aed6c1e1b2e13b126 CI46150404741 both SUCCESS on Coreb4ddeb4a. Each archive independently verified:18 entries,18 compiler/15 native, actual WEB4 build, exact cleanup, zero shared database calls. New-owner native scope1/3 then2/3; selected journey27groups/41timings for enrolled owners.
 - Compact receipt records archive SHA256 and original source provenance. ZIPs processed only in RAM and released. Native3 Rootb23498a5 remains pending, independent Neo review found no concrete blockers. Main144/168 extension4/13 unchanged; full parent rows OPEN.
+
+
+### 2026-11-28 — backend JSON/SQL late identity inputs, qualification pending
+- Set+Columns now means an identity-set subtree selected after its own membership/entity stages, followed by selected Stages before outer tuple equality. Source leaf settings remain disallowed on the envelope; selected subtrees cannot acquire a second entity selection. Recursive capture/depth/leaf bounds and one actor/provider/model policy are unchanged.
+- Server SQL lowering now retains this shape for derived/WITH identity results used as selected operands;47 parser controls passed in RAM. WEB6 server drafting guidance and Postman examples updated; browser engines untouched. Existing generic SDK/MCP JSON forwarding uses the same endpoint; dedicated typed gRPC/GraphQL set operations remain OPEN.
+- Representative HTTP journey adds owner/foreign/anonymous requests through both typed and direct SQL paths:14groups/37timings,24authenticated settlements, same1owned record/1write per store. Compiler20/native15/WEB4/cleanup gate pending. Main144/168 extension4/13 unchanged; full parent rows OPEN.

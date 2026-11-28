@@ -21,11 +21,14 @@ public static partial class CqlV1Compiler
     {
         _=ValidateSetRequest(request,reduction);
         if(UsesSelectedSet(request))throw new ArgumentException("Selected columns require the selected-value set compiler.");
-        CosmicSetQuery<Holon> Node(CqlSetV1Node node)
+        return CompileEntitySetNode(RootSetNode(request,false),actor,provider,access);
+    }
+    private static CosmicSetQuery<Holon> CompileEntitySetNode(CqlSetV1Node node,Guid actor,
+        ProviderType? provider,CosmicQueryReadAccess access)
         {
             CosmicSetInput<Holon> Input(CqlSetV1Source source)=>source.Set==null
                 ?RequiredSet(CosmicSetInput<Holon>.FromSource(SetSource(source,actor,provider,access)))
-                :RequiredSet(CosmicSetInput<Holon>.FromSet(Node(source.Set)));
+                :RequiredSet(CosmicSetInput<Holon>.FromSet(CompileEntitySetNode(source.Set,actor,provider,access)));
             var query=RequiredSet(CosmicSetQuery<Holon>.CreateTree(Input(node.Left),Input(node.Right),ParseNativeSetKind(node.Kind)));
             query=ApplyEntitySetOrdering(query,node.Ordering);
             if(node.Reverse)query=RequiredSet(query.Reverse());
@@ -33,8 +36,6 @@ public static partial class CqlV1Compiler
             if(node.Take.HasValue)query=RequiredSet(query.Take(node.Take.Value));
             return ApplyEntitySetStages(query,node.EntityStages);
         }
-        return Node(RootSetNode(request,false));
-    }
 
     private static CosmicSetQuery<Holon> ApplyEntitySetOrdering(CosmicSetQuery<Holon> query,CqlV1Ordering[] ordering)
         =>ApplyEntityOrdering(query,ordering,(q,d,a)=>new SetOrderingConsumer(q,d,a),q=>RequiredSet(q.ThenBy(row=>row.Id)));

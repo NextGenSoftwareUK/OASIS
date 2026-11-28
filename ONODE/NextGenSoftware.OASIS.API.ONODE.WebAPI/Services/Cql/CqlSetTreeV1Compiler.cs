@@ -26,10 +26,17 @@ public static partial class CqlV1Compiler
             {
                 if(source.Where!=null||source.Filters?.Length is >0||source.AnyOf?.Length is >0
                     ||source.AnyChildren?.Length is >0||source.AnyDescendants?.Length is >0
-                    ||source.Columns!=null||source.Stages!=null||source.EntityStages!=null||source.OrderBy!="Name"||source.Descending
+                    ||source.EntityStages!=null||source.OrderBy!="Name"||source.Descending
                     ||source.Skip!=0||source.Take.HasValue)
                     throw new ArgumentException("A nested set operand cannot also contain leaf source settings; put its stages inside Set.");
-                return Node(source.Set,depth+1);
+                var nestedSelected=Node(source.Set,depth+1);
+                if(source.Columns!=null)
+                {
+                    if(nestedSelected)throw new ArgumentException("Columns on a nested operand select only after entity identity membership.");
+                    return true;
+                }
+                if(source.Stages!=null)throw new ArgumentException("Nested selected stages require explicit late Columns or stages inside Set.");
+                return nestedSelected;
             }
             if(++leaves>CosmicSetQuery<Holon>.MaximumTreeLeaves)
                 throw new ArgumentException("The set request exceeds its leaf bound.");

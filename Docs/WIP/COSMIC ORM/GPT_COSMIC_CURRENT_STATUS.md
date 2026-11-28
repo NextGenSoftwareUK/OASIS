@@ -41,3 +41,9 @@ Provider matrix baseline238projects; native import8/238, virtual3/238/demo-only;
 ## Isolation and cleanup
 
 Shared Atlas/PIPER calls0; no data changes, retries or diagnostic polling. No local builds, installs, databases, environments, containers or worktrees created. Artifact ZIPs inspected in RAM and released; only compact evidence retained. CI artifacts expire2days; owned fixtures/containers cleaned. Temporary scoped Git indexes removed. Last measured free31.91GiB; no reclamation claim. Source, credentials, user databases and unrelated environments preserved.
+
+
+### 2026-11-28 — backend JSON/SQL late identity inputs, qualification pending
+- Set+Columns now means an identity-set subtree selected after its own membership/entity stages, followed by selected Stages before outer tuple equality. Source leaf settings remain disallowed on the envelope; selected subtrees cannot acquire a second entity selection. Recursive capture/depth/leaf bounds and one actor/provider/model policy are unchanged.
+- Server SQL lowering now retains this shape for derived/WITH identity results used as selected operands;47 parser controls passed in RAM. WEB6 server drafting guidance and Postman examples updated; browser engines untouched. Existing generic SDK/MCP JSON forwarding uses the same endpoint; dedicated typed gRPC/GraphQL set operations remain OPEN.
+- Representative HTTP journey adds owner/foreign/anonymous requests through both typed and direct SQL paths:14groups/37timings,24authenticated settlements, same1owned record/1write per store. Compiler20/native15/WEB4/cleanup gate pending. Main144/168 extension4/13 unchanged; full parent rows OPEN.

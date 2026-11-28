@@ -39,6 +39,11 @@ for(const provider of ['MongoDBOASIS','SQLLiteDBOASIS','Neo4jOASIS']) {
  q=compile('WITH sample AS (SELECT * FROM '+provider+' LIMIT 2), narrowed AS (SELECT * FROM sample WHERE Version > 0), labels AS (SELECT Name AS Label FROM narrowed) SELECT DISTINCT Label FROM labels UNION ALL (SELECT Name AS Label FROM '+provider+' LIMIT 2)');
  assert.equal(q.body.left.take,2);assert.equal(q.body.left.entityStages.length,1);assert.equal(q.body.left.stages.at(-1).operation,'Distinct');assert.equal(q.body.left.columns[0].alias,'Label');checks++;
  assert.throws(()=>compile('SELECT Name FROM (SELECT * FROM '+provider+' LIMIT 2) AS sample WHERE Version > 0'),/set operand/);checks++;
+ q=compile('(SELECT Name AS Label FROM ('+a+' UNION ALL '+a+') AS members WHERE Version > 0) UNION ALL (SELECT Name AS Label FROM '+provider+' LIMIT 2)');
+ assert.equal(q.body.left.set.kind,'Concat');assert.equal(q.body.left.set.left.take,2);
+ assert.equal(q.body.left.set.entityStages[0].operation,'Where');assert.equal(q.body.left.columns[0].alias,'Label');checks++;
+ q=compile('WITH members AS ('+a+' UNION ALL '+a+'), labels AS (SELECT DISTINCT Name AS Label FROM members) SELECT Label FROM labels UNION ALL (SELECT Name AS Label FROM '+provider+' LIMIT 2)');
+ assert.equal(q.body.left.set.kind,'Concat');assert.equal(q.body.left.stages[0].operation,'Distinct');assert.equal(q.body.left.columns[0].alias,'Label');checks++;
 
 
 }

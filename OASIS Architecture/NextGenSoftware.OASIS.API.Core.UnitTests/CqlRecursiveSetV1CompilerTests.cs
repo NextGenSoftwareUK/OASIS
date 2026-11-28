@@ -69,4 +69,28 @@ public sealed class CqlRecursiveSetV1CompilerTests
         Assert.Throws<ArgumentException>(()=>CqlV1Compiler.CompileProjectedSet(copy,actor,ProviderType.MongoDBOASIS));
     }
 
+
+    [Fact] public void IdentitySetLateColumnsCaptureAsAnOuterSelectedOperand()
+    {
+        var request=Tree();request.Left.Set!.Left.Columns=null;request.Left.Set.Right.Columns=null;
+        request.Left.Columns=new[]{new CqlProjectionV1Column{Field="Name",Alias="label"}};
+        request.Left.Set.EntityStages=new[]{new CqlSetV1EntityStage{Operation="Take",Count=2}};
+        request.Left.Stages=new[]{new CqlCompositionV1Stage{Operation="Skip",Count=1}};
+        var copy=CqlRequestCapture.Capture(request);request.Left.Columns[0].Alias="mutated";
+        request.Left.Set.EntityStages[0].Count=0;request.Left.Stages[0].Count=0;
+        var actor=Guid.NewGuid();var query=CqlV1Compiler.CompileProjectedSet(copy,actor,ProviderType.MongoDBOASIS);
+        Assert.Equal(3,query.LeafCount);Assert.Equal(2,query.TreeDepth);
+        Assert.Equal("label",query.Left.Columns[0].Alias);
+        Assert.Equal(actor,query.Left.Source.ReadAccess.ActorId);
+        Assert.Single(query.Left.ResultStages);
+        Assert.Equal(2,copy.Left.Set!.EntityStages![0].Count);Assert.Equal(1,copy.Left.Stages![0].Count);
+        Assert.Null(query.LeftSet);Assert.Null(query.LeftInput.EntityProjection);
+    }
+    [Fact] public void NestedIdentitySelectionRejectsMixedSourceAndSelectedMembership()
+    {
+        var request=Tree();request.Left.Columns=new[]{new CqlProjectionV1Column{Field="Name",Alias="label"}};
+        Assert.Throws<ArgumentException>(()=>CqlV1Compiler.CompileProjectedSet(request,Guid.NewGuid(),ProviderType.MongoDBOASIS));
+        request.Left.Set!.Left.Columns=null;request.Left.Set.Right.Columns=null;request.Left.Skip=1;
+        Assert.Throws<ArgumentException>(()=>CqlV1Compiler.CompileProjectedSet(request,Guid.NewGuid(),ProviderType.MongoDBOASIS));
+    }
 }

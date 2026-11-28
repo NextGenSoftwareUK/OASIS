@@ -35,9 +35,16 @@ public static partial class CqlV1Compiler
         }
         CosmicProjectedSetQuery<Holon,CosmicProjectionRecord> Node(CqlSetV1Node node)
         {
-            CosmicProjectedSetInput<Holon,CosmicProjectionRecord> Input(CqlSetV1Source source)=>source.Set==null
-                ?Leaf(source)
-                :RequiredSet(CosmicProjectedSetInput<Holon,CosmicProjectionRecord>.FromSet(Node(source.Set)));
+            CosmicProjectedSetInput<Holon,CosmicProjectionRecord> Input(CqlSetV1Source source)
+            {
+                if(source.Set==null)return Leaf(source);
+                if(source.Columns==null)return RequiredSet(CosmicProjectedSetInput<Holon,CosmicProjectionRecord>.FromSet(Node(source.Set)));
+                if(source.Columns.Length is <1 or >32)throw new ArgumentException("Select one to32 columns after identity membership.");
+                var identity=CompileEntitySetNode(source.Set,actor,provider,access);
+                var selection=RequiredSet(identity.SelectColumns(source.Columns.Select(ProjectionColumn).ToArray()));
+                if(source.Stages!=null)selection=RequiredSet(selection.WithSelectedPipeline(ApplyCompositionStages(selection.Selection,source.Stages)));
+                return RequiredSet(CosmicProjectedSetInput<Holon,CosmicProjectionRecord>.FromIdentityProjection(selection));
+            }
             var query=RequiredSet(CosmicProjectedSetQuery<Holon,CosmicProjectionRecord>.CreateTree(
                 Input(node.Left),Input(node.Right),ParseNativeSetKind(node.Kind)));
             return ApplyProjectedSetNodeOutput(query,node);

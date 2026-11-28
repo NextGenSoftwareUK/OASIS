@@ -38,7 +38,7 @@ public sealed class CqlSetV1Request
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed class CqlSetV1Source
 {
-    /// <summary>Nested sequence; leaf settings must remain at their defaults. Bounds and policy come from the enclosing operand.</summary>
+    /// <summary>Nested sequence. With Columns, this must be an entity-identity set: select after its membership and entity stages, then apply Stages before outer tuple equality. Other leaf settings remain at defaults. Bounds and policy are inherited.</summary>
     [JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)]
     public CqlSetV1Node? Set {get;set;}
     public CqlWhereV1Predicate? Where { get; set; }

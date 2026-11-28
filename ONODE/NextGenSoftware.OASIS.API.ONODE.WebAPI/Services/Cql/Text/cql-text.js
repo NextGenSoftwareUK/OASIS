@@ -186,7 +186,10 @@
     }
     const wrappedTokens=rawTokens.at(-1)===';'?rawTokens.slice(0,-1):rawTokens;
     if(wholeParentheses(wrappedTokens))return compileQuery(wrappedTokens.slice(1,-1).join(' '),discoveredProfiles,parameters,cteScope,compileDepth+1);
-    function setSourceColumns(source) {return source.set?setVisibleColumns(source.set):source.columns;}
+    function setSourceColumns(source) {
+      if(source.columns)return visibleSelectedColumns(source.columns,source.stages??[]);
+      return source.set?setVisibleColumns(source.set):undefined;
+    }
     function setVisibleColumns(body) {
       const columns=body.outputColumns??setSourceColumns(body.left);
       return Array.isArray(columns)?visibleSelectedColumns(columns,body.selectedStages??[]):undefined;
@@ -759,11 +762,17 @@
         }
 
         if(compiled.path==='data/query-cql/set') {
-          if(compiled.body.reduction||compiled.body.outputColumns)
-            throw new Error('A nested set operand must remain an entity or selected-value sequence without a late entity projection.');
-          const {provider,includeMetadata,maximumLeftRows,maximumRightRows,maximumResults,...node}=compiled.body;
-          checkSetTree(node);
-          return {provider,includeMetadata,source:{set:node},columns:setVisibleColumns(node)};
+          if(compiled.body.reduction)throw new Error('A scalar set reduction cannot be a sequence operand.');
+          const {provider,includeMetadata,maximumLeftRows,maximumRightRows,maximumResults,outputColumns,...rest}=compiled.body;
+          if(outputColumns) {
+            const {selectedStages=[],...node}=rest;
+            checkSetTree(node);
+            if(setVisibleColumns(node))throw new Error('Late Columns require entity identity membership.');
+            return {provider,includeMetadata:false,source:{set:node,columns:outputColumns,
+              ...(selectedStages.length?{stages:selectedStages}:{})},columns:visibleSelectedColumns(outputColumns,selectedStages)};
+          }
+          checkSetTree(rest);
+          return {provider,includeMetadata,source:{set:rest},columns:setVisibleColumns(rest)};
         }
         let visibleColumns;
         if (compiled.path === 'data/query-cql/composition') {

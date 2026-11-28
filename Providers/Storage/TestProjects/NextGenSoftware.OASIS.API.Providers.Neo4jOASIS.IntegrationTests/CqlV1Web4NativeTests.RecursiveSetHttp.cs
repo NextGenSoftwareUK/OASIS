@@ -52,6 +52,7 @@ public sealed partial class CqlV1Web4NativeTests
                 var selectedSql="("+child+") UNION ALL "+right;
                 var scalarSql="WITH counted AS ("+selectedSql+") SELECT COUNT(*) AS total FROM counted";
                 var entityInputSql="(SELECT Name AS kept FROM (SELECT * FROM "+type+" WHERE Id = '"+id+"' LIMIT 1) AS sample WHERE Name = 'native-tree-http') UNION ALL "+right;
+                var identityInputSql="(SELECT Name AS kept FROM ("+entity+" UNION ALL "+entity+") AS members WHERE Name = 'native-tree-http') UNION ALL "+right;
                 var numericLeaf="(SELECT Version AS amount FROM "+type+" WHERE Id = '"+id+"' LIMIT 1)";
                 var numericSet=numericLeaf+" UNION ALL "+numericLeaf;
                 var sumSql="WITH amounts AS ("+numericSet+") SELECT SUM(amount) AS total FROM amounts";
@@ -108,7 +109,7 @@ public sealed partial class CqlV1Web4NativeTests
                     else
                     {
                         var rows=result.GetProperty("rows");Assert.AreEqual(expected,rows.GetArrayLength());
-                        if(mode is "selected" or "entity-input" or "entity-input-sql")
+                        if(mode is "selected" or "entity-input" or "entity-input-sql" or "identity-input" or "identity-input-sql")
                         {
                             Assert.AreEqual("cql-projected-set-v1",result.GetProperty("version").GetString());
                             Assert.AreEqual(1,result.GetProperty("columns").GetArrayLength());Assert.AreEqual("kept",result.GetProperty("columns")[0].GetProperty("alias").GetString());
@@ -136,7 +137,11 @@ public sealed partial class CqlV1Web4NativeTests
                 await Send(entityInputSql,"entity-input-sql",ownerToken,2,throughSql:true);
                 await Send(entityInputSql,"entity-input-sql",foreignToken,0,throughSql:true);
                 await Send(entityInputSql,"entity-input-sql",null,0,throughSql:true);
-                Assert.AreEqual(20,authority.Started.Count);Assert.AreEqual(20,authority.Settlements.Count);
+                await Send(identityInputSql,"identity-input",ownerToken,3);await Send(identityInputSql,"identity-input",foreignToken,0);await Send(identityInputSql,"identity-input",null,0);
+                await Send(identityInputSql,"identity-input-sql",ownerToken,3,throughSql:true);
+                await Send(identityInputSql,"identity-input-sql",foreignToken,0,throughSql:true);
+                await Send(identityInputSql,"identity-input-sql",null,0,throughSql:true);
+                Assert.AreEqual(24,authority.Started.Count);Assert.AreEqual(24,authority.Settlements.Count);
             }
             finally{await app.StopAsync();}
         }
@@ -148,7 +153,7 @@ public sealed partial class CqlV1Web4NativeTests
                 await mongo.DropDatabaseAsync(database);using var names=await mongo.ListDatabaseNamesAsync();Assert.IsFalse((await names.ToListAsync()).Contains(database));
             }
         }
-        return new NativeFixtureJourneyProof(12,1,new Dictionary<string,bool>{["shippingSqlEndpoint"]=true,["serverSqlEntityInputs"]=true,["nativeEntityInputHttp"]=true,["serverSqlSelectedValueCounts"]=true,["serverSqlSetExtrema"]=true,["serverSqlNumericSetAggregates"]=true,["serverSqlCompilation"]=true,["nestedEntityWindows"]=true,
+        return new NativeFixtureJourneyProof(14,1,new Dictionary<string,bool>{["nativeIdentityInputHttp"]=true,["serverSqlIdentityInputs"]=true,["shippingSqlEndpoint"]=true,["serverSqlEntityInputs"]=true,["nativeEntityInputHttp"]=true,["serverSqlSelectedValueCounts"]=true,["serverSqlSetExtrema"]=true,["serverSqlNumericSetAggregates"]=true,["serverSqlCompilation"]=true,["nestedEntityWindows"]=true,
             ["selectedChildBindings"]=true,["nativeScalarCountBeyondPublication"]=true,["ownerForeignAnonymousBoundaries"]=true,["oneSettledNativeAttempt"]=true});
     }
 }

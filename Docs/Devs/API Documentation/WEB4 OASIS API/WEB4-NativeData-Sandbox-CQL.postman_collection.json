@@ -991,6 +991,37 @@
           }
         }
       }
+    },
+    {
+      "name": "Backend SQL identity-set late selection operand (qualification pending)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{bearerToken}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "{{$guid}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"(SELECT Name AS Label FROM ((SELECT * FROM MongoDBOASIS LIMIT 2) UNION ALL (SELECT * FROM MongoDBOASIS LIMIT 2)) AS members WHERE Version > 0) UNION ALL (SELECT Name AS Label FROM MongoDBOASIS LIMIT 2)\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{web4BaseUrl}}/api/data/query-cql/sql",
+        "description": "One ready native provider; identity membership and entity predicates precede late selection, then outer tuple set equality. Isolated native qualification pending; no full parity claim."
+      }
     }
   ]
 }
