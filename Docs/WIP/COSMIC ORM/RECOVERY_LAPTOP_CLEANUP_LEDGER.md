@@ -11473,3 +11473,8 @@ CI46137078181 accepted d0d03d2f/Core1b061dca: compiler17/17, native15/15, actual
 ## Combined dependency qualification
 
 Development advanced concurrently to308ed7cf with Corec0e8f2b8 real metadata-read tariff classification. The push guard preserved that work. Aggregate source d0d03d2f/Core1b061dca remains accepted46137078181, but this exact new dependency pair must qualify before deployment. Paired aggregate Core60c4e11f includes only accepted native extrema plus peer billing; XML custom types are excluded. Existing one feature branch is used for this frozen integration checkpoint; pending XML source45d6fdaa and corrected full Core0a4074ec remain preserved in commit history for the next source slice. XML dictionary-capture compile failure46137736017/46137735964 was fixed in Core9c0e297b with a bounded129-entry snapshot. Full M04 remains OPEN. No new branch/worktree/environment, no shared Atlas/PIPER operation, no unverified Dev push.
+
+
+## Corrected XML custom-scalar source restored after paired aggregate checkpoint
+
+The single task branch retains paired aggregate checkpoint32c83be0/Core60c4e11f for independent native qualification and scoped deployment. Restored XML custom scalar source from45d6fdaa now uses corrected full Core0a4074ec (Core9c0e297b bounded dictionary capture plus peer metadata-tariff fix). New XML native6/admission2/WEB4 and CQL compiler17/native15/WEB4 gates must pass before this newer slice deploys. No new branch/worktree, no work lost or reimplemented. Original aggregate qualification46137078181 remains accepted; older46136894293 had already completed when cancellation was attempted, so no cancellation occurred.
