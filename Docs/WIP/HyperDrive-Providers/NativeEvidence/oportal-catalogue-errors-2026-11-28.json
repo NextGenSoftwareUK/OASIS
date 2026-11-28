@@ -1,0 +1,28 @@
+{
+  "date": "2026-11-28",
+  "run": 46132041520,
+  "conclusion": "success",
+  "done": 1,
+  "total": 1,
+  "scope": "OAPP cold missing-detail real error, not another popup",
+  "source": "2e8ae614c5f6db6d13aa1371db04b7d906382107",
+  "onodeCore": "f2c6b219f207be8b9d2084763f33c2b53b841f22",
+  "star": "fdc8e3a3acde84ea102e860eac24d009182dc029",
+  "control": "f7bcf8abae15e2d0ef0feece4a1e11a15eb70381",
+  "artifact": 15257639687,
+  "artifactBytes": 3232,
+  "artifactInspectedInMemory": true,
+  "cleanup": {
+    "ownedContainersAbsent": true,
+    "ownedNetworkAbsent": true,
+    "ephemeralDatabaseVolumesRemoved": true,
+    "web5ProcessStopped": true,
+    "web5DnaAbsent": true,
+    "publishBrowserCacheTlsAbsent": true
+  },
+  "sharedAtlasTouched": false,
+  "nativeStorageDone": 123,
+  "nativeStorageTotal": 163,
+  "wholePortalAccepted": false,
+  "hyperdriveGlobalGatesAccepted": false
+}
