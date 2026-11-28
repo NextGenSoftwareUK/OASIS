@@ -146,7 +146,7 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider, ICosmicJoinFetchS
                 Math.Max(set.Options.MaximumLeftInputRows,set.Options.MaximumRightInputRows),set.Options.MaximumInputPayloadBytes));
             var rows=await ReadCqlRowsAsync(cursor,joinFetch==null?rootBudget:rootBudget+1,budget,options,
                 countOnly ? new Action<long>(count=>nativeCount=count) : null,
-                set==null?null:checked(set.Options.MaximumLeftInputRows+set.Options.MaximumRightInputRows),joinFetch?.Children).ConfigureAwait(false);
+                set==null?null:checked((int)set.MaximumLeafRows),joinFetch?.Children).ConfigureAwait(false);
             if(!countOnly && plan.Query.GraphOptions!=null)
             {
                 Task<IReadOnlyList<IHolon>> ReadChildren(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.CosmicQueryChildSelection selection,CancellationToken token)

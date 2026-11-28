@@ -100,7 +100,7 @@ public partial class Neo4jOASIS : ICosmicQueryEntityCountStorageProvider
 
 
     private static void AppendCqlEntityStages<T>(StringBuilder text,CosmicQuery<T> source,
-        IReadOnlyList<CosmicEntityStage> stages,NeoCqlTranslator translator) where T:IHolon
+        IReadOnlyList<CosmicEntityStage> stages,NeoCqlTranslator translator,string parameterPrefix="entity") where T:IHolon
     {
         var parameters=translator.Parameters;
         var index = 0;
@@ -140,7 +140,7 @@ public partial class Neo4jOASIS : ICosmicQueryEntityCountStorageProvider
             }
             else if (stage is CosmicEntityWindowStage window)
             {
-                var name = "entityWindow" + index; parameters.Add(name, window.Count);
+                var name = parameterPrefix + "Window" + index; parameters.Add(name, window.Count);
                 var slice = window.Kind == CosmicSelectedWindowKind.Take ? "[..$" + name + "]" : "[$" + name + "..]";
                 text.Append("WITH entitySource,selected" + slice + " AS selected,entityCycle,entityLimit,entityWork ");
             }

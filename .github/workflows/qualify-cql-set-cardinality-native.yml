@@ -16,7 +16,7 @@ on:
       - "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoDBOASIS.Cql.Set.cs"
       - "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoDBOASIS.Cql.SetCount.cs"
       - "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.RecursiveEntitySets.cs"
-      - "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql.Graph.cs"
+      - "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/Neo4jOASIS.Cql*.cs"
       - "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.SetPublicationCounts.cs"
       - "Scripts/TestHosts/qualify_cosmic_set_publication_native.py"
       - ".github/workflows/qualify-cql-set-cardinality-native.yml"

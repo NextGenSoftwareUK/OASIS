@@ -12,15 +12,16 @@ public partial class Neo4jOASIS:ICosmicSetQueryStorageProvider
 {
     public CosmicSetQueryCapabilities SetQueryCapabilities=>new(
         CosmicSetQueryFeatures.Union|CosmicSetQueryFeatures.Concat|CosmicSetQueryFeatures.Intersect|CosmicSetQueryFeatures.Except,
-        EntityCompositionCapabilities);
+        EntityCompositionCapabilities,supportsNestedSets:true);
     public Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicSetQueryAsync<T>(
         CosmicSetQueryPlan<T> plan,int maximumResults=100,CancellationToken cancellationToken=default) where T:IHolon
-        =>ProjectCqlRowsAsync(ExecuteCqlReadAsync(plan?.Left,maximumResults,cancellationToken,set:plan));
+        =>ProjectCqlRowsAsync(ExecuteCqlReadAsync(plan?.Anchor,maximumResults,cancellationToken,set:plan));
 
     private static string CompileCqlSet<T>(NeoCqlSource left,CosmicSetQueryPlan<T> plan,int maximumResults,
         IReadOnlyList<CosmicProjectionColumn> projection=null,
         int maximumProjectionBytes=CosmicProjectionResults.MaximumPayloadLimit,bool countOnly=false) where T:IHolon
     {
+        if(plan.Query.IsNested)return CompileCqlSetTree(left,plan,maximumResults,projection,maximumProjectionBytes,countOnly);
         var translator=left.Translator;var parameters=translator.Parameters;
         var right=CompileCqlSource(plan.Query.Right,parameters);
         parameters.Add("setLeftBound",plan.Options.MaximumLeftInputRows);
