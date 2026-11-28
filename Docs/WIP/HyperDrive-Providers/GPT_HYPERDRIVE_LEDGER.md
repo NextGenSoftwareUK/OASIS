@@ -166,3 +166,12 @@ Root fix restores earlier0bc4d64f shared Holon boot filter/demo-substitution rem
 
 
 2026-11-28: Actual MapLibre controls46146049497accepted1/1(9actions), portal830a97e6integrated with exact qualified map assets; earlier geo46142470160retained. Aggregate selected8/8not45screens. API search46ce43e9fixes SDK JSON/validated non-REST actor, image46146213659built, native46148591025running. No sourceApp/legacy remote runtime/full portal/HyperDrive certification;123/163baseline unchanged.
+
+
+### 2026-11-28 14:00 UTC — accepted search transports and manual map visit
+
+Native46151924276passed actual SDK REST/source-proto gRPC/GraphQL map search3/3 on immutable sourcee60162c2aa1f94298a7cac0d1f8fcedd663df15f and digestsha256:0d54d74cb87f16ba9f111f66f49c6757fe7d4d18a25ec253424c34d5b2b0eae6. Native46152223451passed manual Map Visit1/1 with real acknowledged save, independent history/stats and popup close. Selected new journeys now9/9; OAPP missing-detail1/1and search transports3/3remain separate API contracts, not additional completed screens. No provider credit or accepted-suite rerun. Explicit Core collection tariffs and buffered gRPC logical-start invariants corrected; Core merge2d076f7cb13d021f3e2ae3aeed05d880d49cd749 preserves peerfa4ea2e2. Source-qualified files unchanged in scoped integration; current merged graph/hosted deployment acceptance separate.
+
+SDK6795c431c3c3f0eccec6d48215bfce38fa8826b4 bodyParam generation now matches7actual controller bindings. Local actualHTTP wire regression1/1covers8request shapes; browser delivery46152132189passes3wire checks, existing guards and cleanup, retaining WEB5/WEB6 blobs. Portal dev0a3c854185f2b9ae669dcc07733f661a4ae38e22 integrated; npm/hosted gates open.
+
+Receipts15265348826(4470B/SHAb4cb4f812152c6c62f3ff6a588a90167064fa6c1cd623fb4bdffec405e59b9a7) and15266098641(4335B/SHA215579cd70b553bf426dcb32ec9205e3b0e305b084e76e4892c1cb18a25b49ef) read in RAM: full-package container absent/dataWrites0 and5/5combined cleanup flags, APIexit0. No local download/extraction/install/build/database;31.9GiBfree/0temporary indexes. Failed diagnostic receipts also retained; no independent probe/cache directory absence asserted beyond CI cleanup step success. No new David action/shared Atlas operations; protected535/543and worker holds unchanged.

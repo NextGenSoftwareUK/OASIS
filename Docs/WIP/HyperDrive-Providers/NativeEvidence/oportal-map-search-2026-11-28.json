@@ -1,0 +1,37 @@
+{
+  "date": "2026-11-28",
+  "suite": "actual SDK REST/source-proto gRPC/GraphQL map search",
+  "run": 46151924276,
+  "source": "e60162c2aa1f94298a7cac0d1f8fcedd663df15f",
+  "coreQualified": "f799bc0c97ac2e7150838d615dec4882bca0f491",
+  "coreIntegrated": "2d076f7cb13d021f3e2ae3aeed05d880d49cd749",
+  "image": "sha256:0d54d74cb87f16ba9f111f66f49c6757fe7d4d18a25ec253424c34d5b2b0eae6",
+  "portal": "830a97e6ab1382c198b6476ce1d5b7044ae5c82f",
+  "done": 3,
+  "total": 3,
+  "positiveCount": 1,
+  "noMatchCount": 0,
+  "identityMatched": true,
+  "actualGrpcClient": "Grpc.Net.Client",
+  "existingWizardAdmission": true,
+  "artifact": {
+    "id": 15265348826,
+    "bytes": 4470,
+    "sha256": "b4cb4f812152c6c62f3ff6a588a90167064fa6c1cd623fb4bdffec405e59b9a7"
+  },
+  "cleanup": {
+    "ownedContainerAbsent": true,
+    "ownedContainersAbsent": true,
+    "ownedNetworkAbsent": true,
+    "ephemeralDatabaseVolumesRemoved": true,
+    "web5ProcessStopped": true,
+    "web5DnaAbsent": true
+  },
+  "excluded": [
+    "hosted",
+    "MCP exposure",
+    "full native Docker health profile",
+    "current merged dependency graph requalification"
+  ],
+  "sharedAtlasOperations": 0
+}

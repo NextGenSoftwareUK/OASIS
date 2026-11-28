@@ -1,0 +1,39 @@
+{
+  "date": "2026-11-28",
+  "suite": "actual OPORTAL manual Map Visit",
+  "run": 46152223451,
+  "source": "e60162c2aa1f94298a7cac0d1f8fcedd663df15f",
+  "image": "sha256:0d54d74cb87f16ba9f111f66f49c6757fe7d4d18a25ec253424c34d5b2b0eae6",
+  "portal": "830a97e6ab1382c198b6476ce1d5b7044ae5c82f",
+  "done": 1,
+  "total": 1,
+  "checks": [
+    "authorized canonical location save",
+    "one UI visit acknowledged saved",
+    "independent private history identity/avatar/date",
+    "independent stats1visit/1location",
+    "visible history/stat counters",
+    "normal popup close"
+  ],
+  "artifact": {
+    "id": 15266098641,
+    "bytes": 4335,
+    "sha256": "215579cd70b553bf426dcb32ec9205e3b0e305b084e76e4892c1cb18a25b49ef"
+  },
+  "cleanup": {
+    "ownedContainerAbsent": true,
+    "ownedContainersAbsent": true,
+    "ownedNetworkAbsent": true,
+    "ephemeralDatabaseVolumesRemoved": true,
+    "web5ProcessStopped": true,
+    "web5DnaAbsent": true
+  },
+  "excluded": [
+    "physical place karma",
+    "optional SDK purpose backend verification",
+    "Our World device",
+    "hosted",
+    "populated GeoNFT"
+  ],
+  "sharedAtlasOperations": 0
+}

@@ -1,55 +1,29 @@
 # COSMIC current status
 
-Updated 2026-11-28T12:49:11.404Z. Session gpt-cosmic; implementation branch work/gpt-q50. Detailed history and exact evidence: GPT_Q50_SET_FAMILY_LEDGER_2026-11-28.md and GPT_M04_LEDGER_2026-11-28.md.
+Updated2026-11-28 UTC. Sessiongpt-cosmic; implementation branchwork/gpt-q50. Detailed retained evidence is in GPT_Q50_SET_FAMILY_LEDGER_2026-11-28.md and GPT_M04_LEDGER_2026-11-28.md.
 
 ## Progress
 
-Main **144/168**, extension **4/13**. Full rows completed this session: O07, M01, M09, native-qualified on MongoDB/SQLite/Neo4j plus actual WEB4 build/cleanup. M04 and Q50/Q51/Q53/Q54 stay OPEN; accepted increments do not earn full-row credit.
+Main **148/168**, extension **4/13**. Completed7fullrows this session: O07,M01,M09,Q50,Q51,Q53,Q54. The four set rows now have native functional qualification across MongoDB/SQLite/Neo4j, including nested identity/tuple trees, independent windows, duplicates, entity-stage and late identity selection operands, typed composition/terminals and backend JSON/direct SQL. Full EF/NHibernate parity remains open20rows; no new hosted browser acceptance claimed.
 
-## Development
+## Qualified set family
 
-Published exact native-qualified **52110089779019065be2ef9dbd720e8962538368 / Corefa4ea2e254b59e55ab4c5f4fa031199b887ecabb** at **2026-11-28T12:48:01.532Z**. Railway **0f3e0497-3beb-4615-b07d-8ff92180772c SUCCESS**; metadata verified, no hosted data/browser acceptance claimed. Next normal own Development push **>=13:18:01UTC**, qualified scoped batch only. No staging/production deployment.
+Root0ce39fef/Coree7dbd42d passed46152193758:20compiler/15native/actualWEB4/exactcleanup; backend47parser controls. HTTP14groups/37timings and24settled authenticated operations per store, one native attempt/receipt each. Native late identity owners separately passed46151376266 onb23498a5/Coreb4ddeb4a. Both18-entry archives independently verified in RAM; see Q50_IDENTITY_INPUT_HTTP_NATIVE_ACCEPTANCE_2026-11-28.json and Q50_IDENTITY_INPUT_NATIVE_ACCEPTANCE_2026-11-28.json. Independent code and scope reviews passed.
 
-Previous running WEB4 **60b0ca66/Corecf34fb1a**, Railway049b0485-c87b-42f3-9f10-dc8124fc1055 **SUCCESS**, serves qualified backend entity-input/SQL support. Its runtime matches shipping SQL endpoint CI1b18b510; differences are docs and test-host files only. Metadata and native CI verification do not imply a new hosted browser/data walkthrough. Peer HyperDrive documents are preserved.
+## Development and coordination
 
-## Latest native acceptance
+Last own qualified push52110089/Corefa4ea2e2 at12:48:01UTC, Railway0f3e0497 SUCCESS. Peer Developmentd22ee312/Core2d076f7c subsequently adds qualified portal maps/tariffs/gRPC framing; preserve it. The next combined batch merges peer changes, qualified set family and ordinary-class XML scalar collections; exact combined CQL/XML CI pending before Dev push. Normal own batches remain at least30minutes apart; no empty/unqualified push. No staging/production rollout. Metadata/native acceptance is separate from hosted data acceptance.
 
-| Slice | Exact Root/Core | Gates |
-|---|---|---|
-| Entity-stage selected operands, SDK |25886971 /cf34fb1a |46140944273 compiler17/native15/WEB4/cleanup |
-| Entity-stage selected operands, JSON HTTP |5d20cf3e /cf34fb1a |46141533128 compiler18/native15/WEB4/cleanup |
-| Backend SQL entity-input lowering |5e07576b /cf34fb1a |46142342992 compiler18/native15/WEB4/cleanup |
-| Shipping SQL endpoint, owner/foreign/anonymous |1b18b510 /cf34fb1a |46143984744 compiler18/native15/WEB4/cleanup; HTTP12groups/31timings/20settled operations per store |
-| POCO fluent/XML converters and scalar XML bags/sets |52110089 /fa4ea2e2 |46145616196 native12/admission2/WEB4/cleanup; paired46145616238 compiler18/native15/WEB4/cleanup |
+## Current work
 
-Latest XML+paired CQL artifacts: all32entries independently inspected in RAM and hash-bound in M04_POCO_CONVERSIONS_AND_SCALAR_COLLECTIONS_NATIVE_ACCEPTANCE_2026-11-28.json. Exact-ref reviews passed. POCO journey9groups/9timings and scalar collection journey6groups/5timings per store, each2acknowledged writes/1owned ID. SQLite fixture raw JsonElement assertion is corrected at canonical serialization; no provider workaround.
+M04 ordinary-class XML List/array bags and HashSet sets use the same owned codec and declaration validator; Coree31af3c1 includes peer changes. New representative native3 collection journey pending, expected XMLnative15/admission2 plus actualWEB4/cleanup; paired CQLcompiler20/native15. Existing Holon collections and ordinary scalar converters are accepted46145616196/46145616238 and preserved. Full M04 relationships, composite collection elements, full type/generator/table/schema scope remain open.
 
-Model constraints apply after native value decoding; scaled/prefixed storage does not redefine business constraints. Frozen models/registries, exact scalar domains, native queries/updates, caller isolation and preserved winner on refused writes are verified. XML scalar collections reuse native owned-value codecs; unsupported relationship/table/key modifiers are refused.
+O03 session-held transaction family claimed. Existing native write halves already accept a held transaction, but public session paths publish only committed acknowledgements. Design must keep provisional writes/accepted revisions/lifecycle notifications separate until final commit; all reads must enlist in the same actor/authority-bound native owner. Do not emulate transactions by buffering managed queries or acknowledge an uncommitted write. O03/O02/O04/O05 remain open.
 
-## Current work and remaining scope
+## Backend ownership and later phases
 
-Current Q50 WIP: identity-set late-projection selections feeding further selected sets. Coreb4ddeb4a89482f985a46946116dd5e42a27a45e5 adds capture/planning/occurrence validation and registered LINQ; All three native owners implemented; combined native3 qualification pending. Mongo46149700249 and Mongo+SQLite46150404741 CI passed separately; artifact inspection pending. JSON/SQL capture and full parent-row acceptance remain open. No fabricated IDs, managed query fallback or live enrollment from this unqualified feature branch. Standalone staged entity-derived SQL also remains open.
-
-Full M04 relationships, composite collection elements, POCO XML collections, table/schema placement, full IUserType and remaining generators remain open. Other open rows stay in the checklist.
-
-## Backend ownership and remaining phases
-
-SQL and AI engines live only in WEB4 Services/Cql/Text/cql-text.js and cql-ask.js. Browser calls POST /api/data/query-cql/sql or /ask. Do not edit Web4Site engine copies. Phase2a baseline DONE; expanded syntax is qualified separately. Generic SDK forwarding exists; dedicated typed gRPC/GraphQL set operations remain open. The configured demo preset catalogue currently supports Rows/Federation; adding advanced set presets requires matching typed preset/admission and thin UI support, not mismatched Row text.
-
-Provider matrix baseline238projects; native import8/238, virtual3/238/demo-only;107sandbox sources preserved without reruns. Full provider parity, full/virtual/hybrid mappings, per-avatar/app policies and ONODE profiles remain in the roadmap. Hosted Neo4j is stopped for cost; CI has isolated containers. Existing TRON action stays deferred; no new ACTIONS-FOR-DAVID entry.
+SQL and AI engines live only in WEB4 Services/Cql/Text/cql-text.js and cql-ask.js. Browser calls POST /api/data/query-cql/sql or /ask; do not edit Web4Site engine copies. Baseline phase2a DONE; expanded syntax qualifies separately. Dedicated typed gRPC/GraphQL set operations, advanced preset catalogue/hosted walkthrough, standalone staged-entity SQL and deeper hardening remain separate work. Roadmap retains238providerprojects,8/238nativeimport,3/238demo virtual mappings and107sandboxsources; these are distinct inventory denominators, not universal hosted certification.
 
 ## Isolation and cleanup
 
-Shared Atlas/PIPER calls0; no data changes, retries or diagnostic polling. No local builds, installs, databases, environments, containers or worktrees created. Artifact ZIPs inspected in RAM and released; only compact evidence retained. CI artifacts expire2days; owned fixtures/containers cleaned. Temporary scoped Git indexes removed. Last measured free31.91GiB; no reclamation claim. Source, credentials, user databases and unrelated environments preserved.
-
-
-### 2026-11-28 — backend JSON/SQL late identity inputs, qualification pending
-- Set+Columns now means an identity-set subtree selected after its own membership/entity stages, followed by selected Stages before outer tuple equality. Source leaf settings remain disallowed on the envelope; selected subtrees cannot acquire a second entity selection. Recursive capture/depth/leaf bounds and one actor/provider/model policy are unchanged.
-- Server SQL lowering now retains this shape for derived/WITH identity results used as selected operands;47 parser controls passed in RAM. WEB6 server drafting guidance and Postman examples updated; browser engines untouched. Existing generic SDK/MCP JSON forwarding uses the same endpoint; dedicated typed gRPC/GraphQL set operations remain OPEN.
-- Representative HTTP journey adds owner/foreign/anonymous requests through both typed and direct SQL paths:14groups/37timings,24authenticated settlements, same1owned record/1write per store. Compiler20/native15/WEB4/cleanup gate pending. Main144/168 extension4/13 unchanged; full parent rows OPEN.
-
-
-### 2026-11-28 — late identity operands native-qualified3/3
-- Exact Rootb23498a594e3d8d27be0d3cc01b4233b2142b09e/Coreb4ddeb4a89482f985a46946116dd5e42a27a45e5 passed46151376266:18compiler/15native, actualWEB4 build and exactcleanup. Selected journey27groups/41timings allthree. Independent owner reviews found no blockers.
-- Artifact15265873063,18,041B/18entries, SHA2563983a7d8f92ee3c05520a6031fe5d5f45090d73b8f90f782c426673f05fa556d inspected in RAM and released. Shared databasecalls0. Native source/occurrence/caller/bound-before-empty checks passed; timings are observations, not benchmarks.
-- Backend JSON/SQL0ce39fef/Coree7dbd42d CI46152193758 remains pending; parser47/review passed. No full-parent credit or new live acceptance yet. Main144/168 extension4/13 unchanged. Hold next Dev batch for the combined qualified source.
+No shared Atlas/PIPER calls, queue535/543 changes, staging/production deployment, local database/runtime/install/build/worktree/archive output. Artifacts inspected only in RAM and released; compact hash-bound receipts retained. Disk31.86GiB free at latest measure. Scoped alternate indexes removed in finally, CI fixture cleanup passed, artifact retention2days. No new ACTIONS-FOR-DAVID entry.
