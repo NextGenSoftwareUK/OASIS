@@ -3164,3 +3164,10 @@ Root fix restores earlier0bc4d64f shared Holon boot filter/demo-substitution rem
 First native check46148591025 failed before transport acceptance because the Core supported-operation registry omitted collection reads. Core602b80f6 explicitly admits the three canonical collection-read names; isolated fixture prices remain explicit. Corrected source3b2c711c image build46149539396 passed; immutable digest `sha256:75a3c4a0c97abf64b3cd6b09cb9e8624178da0a6b555ad5b1574fb43139d3420`. New check46150601176 verifies JavaScript SDK REST, actual gRPC SDK/proto and GraphQL on owned isolated backends; acceptance is pending, not3/3. No shipping DNA, deployed prices or shared Atlas operations changed.
 
 Cleanup receipts for failed checks46148591025 (artifact15263934478) and renderer diagnostic46145478623 (artifact15264225074) were read in memory: full-package container absent/dataWrites0 and all five combined-startup cleanup flags true. No local download, extraction, runtime or database was created. These receipts do not independently certify runner probe/cache directory removal.
+
+
+### 2026-11-28 13:42 UTC — metered gRPC framing follow-up
+
+Actual isolated run46150601176 passed SDK REST positive/no-match2/2, then stopped at the actual gRPC client because initial OK status was sent with no unary message. Coref799bc0c/sourcee60162c2aa1f94298a7cac0d1f8fcedd663df15f adds logical response/body features so gRPC observes its buffered start while durable settlement still precedes real transport publication. Corrected image build46151089676 is pending; gRPC/GraphQL acceptance remains0/2, combined contract not3/3. Original manifest sync check and seven-Dockerfile/gitlink validator both passed.
+
+Failed-run artifact15265871129 was read in RAM: full-package owned container absent/dataWrites0 and all five combined-startup cleanup flags true. No files downloaded/extracted locally and no shared Atlas operations. Docs-only accepted renderer updates were pushed to OASIS master8cc69bda and OPORTAL maina4e58fe9; no product code promoted to master/main. No new David action.
