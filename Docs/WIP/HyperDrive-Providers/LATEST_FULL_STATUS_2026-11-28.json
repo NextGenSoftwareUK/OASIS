@@ -1,0 +1,126 @@
+{
+  "date": "2026-11-28",
+  "status": "in-progress-not-whole-portal-or-hyperdrive-certified",
+  "source": {
+    "oasisDevelopment": "5b28612aa73dbd1836630b661b8d72131ffb33c6",
+    "portalDev": "fe7944157ed9d8e4c98ceca24eda8ae4790c2574",
+    "portalDocsMain": "e114e9bf0d800ba9199286b306b39f691ddae787",
+    "corePinned": "1b24c6291c6500888d735e9eb9d81b30b802d1e8",
+    "runningCurrentDeploymentsVerified": false,
+    "portalStaticAssetsVerified": {
+      "url": "https://dev.oportal.oasisomniverse.one/portal.html",
+      "httpStatus": 200,
+      "migrationControls": true,
+      "currentSdkCacheKeys": "3/3",
+      "scope": "One static HTML request; no browser execution/sign-in/backend request"
+    },
+    "deploymentMetadata": {
+      "oasisRevision": "5b28612aa73dbd1836630b661b8d72131ffb33c6",
+      "done": 7,
+      "total": 7,
+      "status": "success",
+      "lastUpdated": "2026-11-28T09:44:37Z",
+      "scope": "GitHub deployment metadata only, not hosted functional acceptance"
+    }
+  },
+  "providers": {
+    "trackedProjects": {
+      "done": 238,
+      "total": 238
+    },
+    "nonStorageProjectRows": 75,
+    "storageAndSpecializedProjectRows": 163,
+    "nativeBaselineRows": {
+      "done": 123,
+      "total": 163
+    },
+    "rowsWithoutNativeBaseline": 40,
+    "limits": "Historical accepted baseline and project inventory include legacy/obsolete/specialized rows. Not123current-hosted/all-interface certifications or40eligible missing backend implementations."
+  },
+  "portal": {
+    "inventory": {
+      "done": 45,
+      "total": 45,
+      "meaning": "Current source surfaces reconciled with retained reports, not45completed screens."
+    },
+    "fullyAccepted": false,
+    "latestSelectedNativeBrowser": {
+      "done": 4,
+      "total": 4,
+      "runs": {
+        "recovery": 46123580498,
+        "populatedMapLauncher": 46126474607,
+        "providerMigration": 46130012906
+      }
+    },
+    "sdkDelivery": {
+      "done": 3,
+      "total": 3,
+      "run": 46125573999,
+      "versions": {
+        "web4": "2.0.18 Git56449c9e",
+        "web5": "1.0.8 Git5266ed88",
+        "web6": "2.1.2 Gited3843bd"
+      }
+    },
+    "onode": {
+      "acceptedNativeConfigurationAndRouting": 45257965206,
+      "newSelectedNodeUiStateUnit": true,
+      "publishedServiceLifecycleAndPeers": "open"
+    },
+    "remaining": "Per-surface CURRENT_ACCEPTANCE remaining column still applies. Includes ONET/AI/HolonDiff native flows, published service/app actions, real email/paid billing and hosted/signed-in deployment gates.",
+    "latestSelectedApiContract": {
+      "done": 1,
+      "total": 1,
+      "run": 46132041520,
+      "scope": "Cold OAPP detail missing-record result through real SDK/native API; not a new screen"
+    }
+  },
+  "hyperdrive": {
+    "releaseGates": "open",
+    "allProviderAutomaticReliabilityVerified": false,
+    "protectedDeliveriesUntouched": [
+      535,
+      543
+    ],
+    "sharedAtlasTestOperations": 0
+  },
+  "activeWork": [
+    {
+      "item": "ONET uncovered native browser read/local-lifecycle flow",
+      "branch": "work/gpt-oportal-onet-breadth",
+      "control": "59cb7e4ddb2b9f7a8f28427fcf411828e5507a63",
+      "run": 46132765901,
+      "status": "running; not accepted"
+    }
+  ],
+  "ownerActions": {
+    "new": [],
+    "existing": [
+      "A1/A2/API-SURFACE-PUBLISH npm account/trusted-publisher access",
+      "OPORTAL-CI1 approved dedicated signed-in credential custody; shared Atlas limits still apply",
+      "MIDEN-HOSTED1 persistent hosted backend/signing custody"
+    ],
+    "source": "Docs/WIP/Release and Status/ACTIONS-FOR-DAVID.md"
+  },
+  "cleanup": {
+    "localRuntimeDownloadEnvironmentBuildDatabaseOutputsCreated": false,
+    "ownedTemporaryIndexesObserved": 0,
+    "lastObservedFreeGiB": 32.87,
+    "freeSpaceReclamationClaimed": false,
+    "cloudOwnedContainersDatabasesVolumesBrowserCachesAndBootstrapOutputsRemoved": true,
+    "compactEvidenceInspectedInMemory": true
+  },
+  "documents": {
+    "status": "Docs/WIP/HyperDrive-Providers/CURRENT_STATUS.md",
+    "matrix": "Docs/WIP/HyperDrive-Providers/PROVIDER_MATRIX.md",
+    "releaseGates": "Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md",
+    "portal": "https://github.com/NextGenSoftwareUK/OPORTAL-JS/blob/dev/Docs/WIP/CURRENT_ACCEPTANCE.md"
+  },
+  "completedPendingIntegration": {
+    "item": "Truthful OAPP catalogue/detail errors",
+    "source": "dc27a0298995ce1fa005a33a508ae8dda2a6d6ab",
+    "run": 46132041520,
+    "starPreservingPeerCli": "5542303630989aaf81a899dbf9fe247e18f9f255"
+  }
+}

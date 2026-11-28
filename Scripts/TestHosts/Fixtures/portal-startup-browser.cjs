@@ -9,8 +9,8 @@ async function main(){
  const api=new URL(process.env.OASIS_STARTUP_API_URL);assert.equal(api.hostname,'127.0.0.1');assert.equal(api.protocol,'http:');
  const api5=process.env.OASIS_STARTUP_WEB5_URL?new URL(process.env.OASIS_STARTUP_WEB5_URL):null;
  const popupGroup=process.env.OASIS_STARTUP_POPUP_GROUP||'none';
- assert.ok(['none','provider-migration','web5-depth','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data','social-activity','account-recovery'].includes(popupGroup));
- const selectedPopups=popupGroup==='provider-migration'?['Migration']:popupGroup==='web5-depth'?['OappMap','Launcher']:popupGroup==='account-recovery'?['AccountRecovery']:popupGroup==='social-activity'?['SocialGraph','ActivityFeed']:popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
+ assert.ok(['none','web5-errors','provider-migration','web5-depth','nft','data','data-crud','data-edit','files-write','map-route','messaging','messaging-read','chat','chat-directory','directory-message','clan','portal-breadth','chat-hyperdrive','data-messaging','nft-messaging-data','social-activity','account-recovery'].includes(popupGroup));
+ const selectedPopups=popupGroup==='web5-errors'?['CatalogueErrors']:popupGroup==='provider-migration'?['Migration']:popupGroup==='web5-depth'?['OappMap','Launcher']:popupGroup==='account-recovery'?['AccountRecovery']:popupGroup==='social-activity'?['SocialGraph','ActivityFeed']:popupGroup==='portal-breadth'?['Chat','DirectoryMessage','Clan']:popupGroup==='chat-directory'?['Chat','DirectoryMessage']:popupGroup==='chat-hyperdrive'?['Chat','HyperDrive']:popupGroup==='nft-messaging-data'?['NFT','Data','Messaging']:
   popupGroup==='data-messaging'?['Data','Messaging']:
   popupGroup==='none'?[]:[{nft:'NFT',data:'Data','data-crud':'DataWrite','data-edit':'DataWrite','files-write':'FilesWrite','map-route':'MapRoute',messaging:'Messaging','messaging-read':'MessagingRead',chat:'Chat','directory-message':'DirectoryMessage',clan:'Clan'}[popupGroup]];
  let migrationRootId,migrationChildId;const migrationReads={MongoDBOASIS:0,SQLLiteDBOASIS:0};let migrationCopies=0;
@@ -72,6 +72,7 @@ async function main(){
  const server=http.createServer(async(req,res)=>{
   try{
    const url=new URL(req.url,'http://127.0.0.1');
+   if(popupGroup==='web5-errors'&&url.pathname==='/owned-sdk-host'){res.writeHead(200,{'Content-Type':'text/html'});res.end('<!doctype html><html><head><meta charset="utf-8"><script src="/assets/js/oasis-web5-sdk.js"></script></head><body></body></html>');return;}
    const name=['/','/beamin','/subscription','/forgot'].includes(url.pathname)?'portal.html':decodeURIComponent(url.pathname).replace(/^\//,'');
    const file=await fs.realpath(path.resolve(root,name));if(!file.startsWith(root+path.sep)){res.writeHead(403);res.end();return;}
    const body=await fs.readFile(file);res.writeHead(200,{'Content-Type':types[path.extname(file)]||'application/octet-stream'});res.end(body);
@@ -102,7 +103,7 @@ async function main(){
   }
   if(api5)ownedToken=await admitFree(account);
   if(selectedPopups.length&&popupGroup!=='account-recovery'){
-   assert.equal(!!api5,popupGroup==='web5-depth','Explicit matching backend selection');if(!api5)ownedToken=await admitFree(account);
+   assert.equal(!!api5,['web5-depth','web5-errors'].includes(popupGroup),'Explicit matching backend selection');if(!api5)ownedToken=await admitFree(account);
    if(selectedPopups.includes('Messaging')||selectedPopups.includes('MessagingRead')||selectedPopups.includes('Chat')||selectedPopups.includes('DirectoryMessage')||selectedPopups.includes('Clan')||selectedPopups.includes('SocialGraph')){
     recipient=await createOwnedAvatar(api.href,readOwnedVerificationToken);recipientToken=await admitFree(recipient);
    }
@@ -247,6 +248,21 @@ async function main(){
     await route.abort();
    }
   });
+  if(popupGroup==='web5-errors'){
+   assert.ok(api5);stage='First direct OAPP detail missing record';
+   const probePage=await context.newPage();await probePage.goto(origin+'/owned-sdk-host',{waitUntil:'load'});
+   const result=await probePage.evaluate(async({base,token,id})=>{
+    const client=new window.STARClient({persistSession:false});client.setToken(token);
+    const response=await client.oAPPs.getOAPP({id});
+    return {status:response.statusCode,isError:response.isError,missing:response.result==null,errorCode:response.raw?.errorCode,message:response.message};
+   },{base:proxy5Origin,token:ownedToken,id:require('node:crypto').randomUUID()});
+   httpFacts.push({path:'/api/oapps/{id}',status:result.status,isError:result.isError,...(typeof result.errorCode==='string'&&/^[A-Z0-9_]{1,80}$/.test(result.errorCode)?{errorCode:result.errorCode}:{})});
+   assert.equal(result.status,400);assert.equal(result.isError,true);assert.equal(result.missing,true);
+   assert.equal(result.errorCode,'OASIS_RECORD_NOT_FOUND');assert.equal(result.message,'No Holon Found');
+   console.log('PORTAL_STARTUP_POPUP_OUTCOMES:'+JSON.stringify([{name:'CatalogueErrors',passed:true,stage:'Direct detail real missing-record error',closePassed:true}]));
+   console.log('PORTAL_STARTUP_BROWSER_PROOF: current shipping WEB5 SDK cold detail read reports real native missing record and declared400, with legacy test-data configuration explicitly enabled. API contract scope only; no new popup or whole-portal credit.');
+   return;
+  }
   const page=await context.newPage();page.on('pageerror',()=>errors.push('page-error'));
   page.on('response',async response=>{
    const url=new URL(response.url());if(!url.pathname.startsWith('/api/'))return;
